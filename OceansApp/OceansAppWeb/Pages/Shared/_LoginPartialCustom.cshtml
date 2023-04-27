@@ -10,7 +10,7 @@
             <a class="nav-link" href="#">Hello @UserManager.GetUserName(User)</a>
         </li>
         <li class="nav-item">
-            <form id="logoutForm" method="post" class="form-inline" asp-controller="Account" asp-action="LogOff">
+            <form id="logoutForm" method="post" class="form-inline" asp-area="" asp-controller="Account" asp-action="LogOff">
                 <button type="submit" class="btn nav-link">Cerrar Sesión</button>
             </form>
         </li>
@@ -23,7 +23,7 @@
             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard">Dashboard 2</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
         </li>
          <li class="nav-item">
             <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index">Calculator</a>

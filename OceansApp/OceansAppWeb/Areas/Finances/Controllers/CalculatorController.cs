@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
+    [Area("Finances")]
     public class CalculatorController : Controller
     {
-        [Area("Finances")]
+        [Authorize]
         public IActionResult Index()
         {
             return View();

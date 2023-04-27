@@ -1,4 +1,6 @@
+using FinancialCalculator.Utility;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using OceansAppWeb;
 using OceansAppWeb.Data;
@@ -11,7 +13,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
     builder.Configuration.GetConnectionString("DefaultConnnection")
     ));
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.Configure<IdentityOptions>(opt =>
+{
+    opt.Password.RequiredLength = 8;
+    opt.Password.RequireLowercase = true;
+    opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    opt.Lockout.MaxFailedAccessAttempts = 3;
+});
 
 var app = builder.Build();
 
@@ -34,7 +44,7 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.UseEndpoints(endpoints =>
-{
+{   
     endpoints.MapControllerRoute(
         name: "areas",
         pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
