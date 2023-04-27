@@ -1,0 +1,81 @@
+﻿@using OceansAppWeb.ViewModels
+@model RegisterVM
+
+@{
+    ViewData["Title"] = "Crear Nuevo Usuario";
+}
+
+<div id="register-section" class="container">
+    <h1 class="title-h1-account"><i class="bi bi-person-fill-add"></i> @ViewData["Title"]</h1>
+    <hr />
+    <form id="registerForm"  asp-controller="Account" asp-action="Register" method="post" role="form">
+        <div class="row">
+            <div class="col-md-6">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-floating">
+                    <input asp-for="Name" class="form-control" aria-required="true" />
+                    <label asp-for="Name"></label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <br />
+                <div class="form-floating">
+                    <input asp-for="LastName" class="form-control" aria-required="true" />
+                    <label asp-for="LastName"></label>
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+                <br />
+                <div class="form-floating">
+                    <input asp-for="Occupation" class="form-control" aria-required="true" />
+                    <label asp-for="Occupation"></label>
+                    <span asp-validation-for="Occupation" class="text-danger"></span>
+                </div>
+                <br />
+                <div class="form-floating">
+                    <input asp-for="PhoneNumber" class="form-control" aria-required="true" />
+                    <label asp-for="PhoneNumber"></label>
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+                <br />
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
+                    <label asp-for="Email"></label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <br />
+                <div class="form-floating">
+                    <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" />
+                    <label asp-for="Password"></label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div><br />
+                <div class="form-floating">
+                    <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" />
+                    <label asp-for="ConfirmPassword"></label>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div><br />
+               @* <div class="form-floating">
+                    <select asp-for="Input.Role" asp-items="@Model.Input.RoleList" class="form-select">
+                    </select>
+                    <label asp-for="Input.RoleList">Rol de Usuario</label>
+                    <span asp-validation-for="Input.RoleList" class="text-danger"></span>
+                     @for (int i = 0; i < Model.Input.RoleList.Count; i++)
+                    {
+                        <input type="hidden" asp-for="Input.RoleList[i].Value" name="Roles[@i].Value" />
+                        <input type="hidden" asp-for="Input.RoleList[i].Text" name="Roles[@i].Text" />
+                    }
+                </div><br />*@
+            </div>
+            <div class="text-center">
+                <button id="registerSubmit" type="submit" class="btn btn-primary" style="width:150px">Crear Usuario</button>
+                <a asp-area="AdminCenter" asp-controller="ApplicationUser" asp-action="Index" class="btn cancel-btn" style="width:150px">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts{ 
+@{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
