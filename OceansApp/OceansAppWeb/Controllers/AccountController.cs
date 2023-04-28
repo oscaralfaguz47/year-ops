@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using OceansAppWeb.Controllers;
+using OceansAppWeb.Data;
 using OceansAppWeb.Models;
 using OceansAppWeb.ViewModels;
+using System.Text.Encodings.Web;
 
 namespace OceansAppWeb.Areas.Account.Controllers
 {
@@ -14,12 +16,17 @@ namespace OceansAppWeb.Areas.Account.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
+        private readonly UrlEncoder _urlEncoder;
+        private readonly ApplicationDbContext _dbContext;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender
+            , UrlEncoder urlEncoder, ApplicationDbContext dbContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
+            _urlEncoder = urlEncoder;
+            _dbContext = dbContext;
         }
         public IActionResult Index()
         {
@@ -109,6 +116,10 @@ namespace OceansAppWeb.Areas.Account.Controllers
                 {
                     return LocalRedirect(returnUrl);
                 }
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
+                }
                 if (result.IsLockedOut)
                 {
                     return View("Lockout");
@@ -123,21 +134,73 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberMe, string returnUrl = null)
+        public async Task<IActionResult> RemoveAuthenticator()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+            await _userManager.SetTwoFactorEnabledAsync(user, false);
+            return RedirectToAction(nameof(HomeController.Dashboard), "Home");
+        }
+                
+        [HttpGet]
+        public async Task<IActionResult> EnableAuthenticator()
+        {
+            string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
+
+            var user = await _userManager.GetUserAsync(User);
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+            var token = await _userManager.GetAuthenticatorKeyAsync(user);
+            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("OceansApp"),
+                _urlEncoder.Encode(user.Email), token);
+            var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EnableAuthenticator(TwoFactorAuthenticationVM model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var succeeded = await _userManager.VerifyTwoFactorTokenAsync(user, _userManager.Options.Tokens.AuthenticatorTokenProvider, model.Code);
+                if (succeeded)
+                {
+                    await _userManager.SetTwoFactorEnabledAsync(user, true);
+                }
+                else
+                {
+                    ModelState.AddModelError("Verify", "Your two factor auth code could not be avalidated.");
+                    return View(model);
+                }
+                return RedirectToAction(nameof(AuthenticatorConfirmation));
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult AuthenticatorConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberMe, string? returnUrl)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
                 return View("Error");
             }
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                returnUrl = Url.Content("~/");
+            }
             ViewData["ReturnUrl"] = returnUrl;
             return View(new VerifyAuthenticatorVM { ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+
         public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticatorVM model)
         {
             model.ReturnUrl = model.ReturnUrl ?? Url.Content("~/");

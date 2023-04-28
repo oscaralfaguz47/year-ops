@@ -1,0 +1,32 @@
+﻿@using IdentityManager.Models
+@model TwoFactorAuthenticationVM
+
+<p>
+    Por favor ingresa el código de abajo en tu applicación de Autenticación de dos factores.
+</p>
+<p>
+    @Model.Token
+</p>
+<p>
+   Escanee el código QR a continuación con su teléfono móvil.
+</p>
+<div id="qrCode"></div>
+
+<form method="post">
+    <input hidden asp-for="Token" />
+    <div class="form-group">
+         <input hidden asp-for="QRCodeUrl" /> 
+        Ingresar Código : <input type="text" class="form-control" asp-for="Code" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+
+    </div>
+    <button type="submit" class="btn btn-primary">Enviar</button>
+</form>
+
+@section Scripts{ 
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+<script src="~/js/qrcode.js"></script>
+<script type="text/javascript">
+    new QRCode(document.getElementById("qrCode"), "@Model.QRCodeUrl");
+</script>
+}
