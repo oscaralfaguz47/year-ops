@@ -28,7 +28,8 @@ namespace OceansAppWeb.ViewModels
         public string? Occupation { get; set; }
         public string? PhoneNumber { get; set; }
 
-        //public IEnumerable<SelectListItem> RoleList { get; set; }
-        //public string RoleSelected { get; set; }
+        public List<SelectListItem> RoleList { get; set; }
+        [Required(ErrorMessage = "El rol es requerido")]
+        public string Role { get; set; }
     }
 }

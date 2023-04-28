@@ -4,10 +4,10 @@ namespace OceansAppWeb.ViewModels
 {
     public class VerifyAuthenticatorVM
     {
-        [Required]
+        [Required(ErrorMessage = "El código es requerido")]
         public string Code { get; set; }
         public string? ReturnUrl { get; set; }
-        [Display(Name = "Remember me?")]
+        [Display(Name = "¿Recordarme?")]
         public bool RememberMe { get; set; }
     }
 }

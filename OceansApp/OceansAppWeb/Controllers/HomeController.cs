@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace OceansAppWeb.Controllers
 {
-
+    [Authorize]
     public class HomeController : Controller
    
     {
@@ -31,7 +31,10 @@ namespace OceansAppWeb.Controllers
             }
             return View();
         }
-        [Authorize]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
         public IActionResult Privacy()
         {
             return View();

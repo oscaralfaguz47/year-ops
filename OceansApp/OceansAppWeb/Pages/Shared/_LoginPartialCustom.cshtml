@@ -6,7 +6,10 @@
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
-         <li class="nav-item">
+        <li class="nav-item">
+            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">Crear Usuario</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" href="#">Hello @UserManager.GetUserName(User)</a>
         </li>
         <li class="nav-item">
@@ -17,17 +20,15 @@
     }
     else
     {
-          <li class="nav-item">
-            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">Crear Usuario</a>
-        </li> <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard">Dashboard 2</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
         </li>
-         <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index">Calculator</a>
         </li>
     }
-  
+
 </ul>

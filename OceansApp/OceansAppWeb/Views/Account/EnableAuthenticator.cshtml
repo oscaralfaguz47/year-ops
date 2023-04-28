@@ -1,6 +1,7 @@
 ﻿@using IdentityManager.Models
 @model TwoFactorAuthenticationVM
 
+<div asp-validation-summary="All" class="text-danger"></div>
 <p>
     Por favor ingresa el código de abajo en tu applicación de Autenticación de dos factores.
 </p>
@@ -8,7 +9,7 @@
     @Model.Token
 </p>
 <p>
-   Escanee el código QR a continuación con su teléfono móvil.
+   O bien puedes escanear el código QR a continuación con tu teléfono móvil.
 </p>
 <div id="qrCode"></div>
 
@@ -16,7 +17,7 @@
     <input hidden asp-for="Token" />
     <div class="form-group">
          <input hidden asp-for="QRCodeUrl" /> 
-        Ingresar Código : <input type="text" class="form-control" asp-for="Code" />
+        Ingresa el Código que se muestra en tu aplicación móvil: <input type="text" class="form-control" asp-for="Code" />
         <span asp-validation-for="Code" class="text-danger"></span>
 
     </div>

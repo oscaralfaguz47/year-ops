@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansAppWeb.Controllers;
 using OceansAppWeb.Data;
 using OceansAppWeb.Models;
@@ -18,15 +19,17 @@ namespace OceansAppWeb.Areas.Account.Controllers
         private readonly IEmailSender _emailSender;
         private readonly UrlEncoder _urlEncoder;
         private readonly ApplicationDbContext _dbContext;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender
-            , UrlEncoder urlEncoder, ApplicationDbContext dbContext)
+            , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _urlEncoder = urlEncoder;
             _dbContext = dbContext;
+            _roleManager = roleManager;
         }
         public IActionResult Index()
         {
@@ -34,13 +37,31 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Master")]
         public async Task<IActionResult> Register()
         {
-            RegisterVM registerVM = new RegisterVM();
+            //if(!await _roleManager.RoleExistsAsync("Master"))
+            //{
+            //    await _roleManager.CreateAsync(new IdentityRole("Master"));
+            //}
+
+            List<SelectListItem> roleList = new List<SelectListItem>();
+            roleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+            {
+                Text = i,
+                Value = i
+            }).ToList();
+
+            RegisterVM registerVM = new()
+            {
+                RoleList = roleList
+            };
+
             return View(registerVM);
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
         {
@@ -61,6 +82,15 @@ namespace OceansAppWeb.Areas.Account.Controllers
 
                 if (result.Succeeded)
                 {
+                    if (model.Role == null)
+                    {
+                        await _userManager.AddToRoleAsync(user, "Simple");
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, model.Role);
+                    }
+
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
                         await _emailSender.SendEmailAsync(model.Email, "Confirma tu cuenta - Oceans App",
@@ -104,6 +134,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginVM model, string returnUrl = null)
         {
@@ -134,6 +165,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> RemoveAuthenticator()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -143,6 +175,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
                 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> EnableAuthenticator()
         {
             string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
@@ -157,6 +190,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> EnableAuthenticator(TwoFactorAuthenticationVM model)
         {
             if (ModelState.IsValid)
@@ -169,7 +203,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("Verify", "Your two factor auth code could not be avalidated.");
+                    ModelState.AddModelError("Code", "El código que ingresaste es incorrecto.");
                     return View(model);
                 }
                 return RedirectToAction(nameof(AuthenticatorConfirmation));
@@ -178,6 +212,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public IActionResult AuthenticatorConfirmation()
         {
             return View();
@@ -200,7 +235,6 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpPost]
-
         public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticatorVM model)
         {
             model.ReturnUrl = model.ReturnUrl ?? Url.Content("~/");
@@ -209,7 +243,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
                 return View(model);
             }
 
-            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, model.RememberMe, rememberClient: false);
+            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, model.RememberMe, rememberClient: true);
 
             if (result.Succeeded)
             {
@@ -228,6 +262,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()
         {

@@ -1,4 +1,5 @@
 ﻿@using OceansAppWeb.ViewModels
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @model RegisterVM
 
 @{
@@ -54,17 +55,18 @@
                     <label asp-for="ConfirmPassword"></label>
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div><br />
-               @* <div class="form-floating">
-                    <select asp-for="Input.Role" asp-items="@Model.Input.RoleList" class="form-select">
+               <div class="form-floating">
+                    <select asp-for="Role" asp-items="@Model.RoleList" class="form-select">
+                        <option value="">--Selecciona un Rol--</option>
                     </select>
-                    <label asp-for="Input.RoleList">Rol de Usuario</label>
-                    <span asp-validation-for="Input.RoleList" class="text-danger"></span>
-                     @for (int i = 0; i < Model.Input.RoleList.Count; i++)
+                    <label asp-for="RoleList">Rol de Usuario</label>
+                    <span asp-validation-for="Role" class="text-danger"></span>
+                     @for (int i = 0; i < Model.RoleList.Count; i++)
                     {
-                        <input type="hidden" asp-for="Input.RoleList[i].Value" name="Roles[@i].Value" />
-                        <input type="hidden" asp-for="Input.RoleList[i].Text" name="Roles[@i].Text" />
+                        <input type="hidden" asp-for="RoleList[i].Value" name="RoleList[@i].Value" />
+                        <input type="hidden" asp-for="RoleList[i].Text" name="RoleList[@i].Text" />
                     }
-                </div><br />*@
+                </div><br />
             </div>
             <div class="text-center">
                 <button id="registerSubmit" type="submit" class="btn btn-primary" style="width:150px">Crear Usuario</button>

@@ -22,6 +22,11 @@ builder.Services.Configure<IdentityOptions>(opt =>
     opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
     opt.Lockout.MaxFailedAccessAttempts = 3;
 });
+builder.Services.ConfigureApplicationCookie(opt =>
+{
+    opt.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
+    opt.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
+});
 
 var app = builder.Build();
 
