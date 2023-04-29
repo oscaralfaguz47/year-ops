@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OceansAppWeb.Data;
+using OceansApp.DataAccess.Data;
 
 #nullable disable
 
-namespace OceansAppWeb.Migrations
+namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20230426224455_addMoreTablesToApplicationUser")]

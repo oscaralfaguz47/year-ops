@@ -1,16 +1,16 @@
-﻿using IdentityManager.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using OceansApp.DataAccess.Data;
+using OceansApp.Models;
+using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 using OceansAppWeb.Controllers;
-using OceansAppWeb.Data;
-using OceansAppWeb.Models;
-using OceansAppWeb.ViewModels;
 using System.Text.Encodings.Web;
 
-namespace OceansAppWeb.Areas.Account.Controllers
+namespace OceansAppWeb.Account.Controllers
 {
     public class AccountController : Controller
     {
@@ -38,7 +38,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Master")]
-        public async Task<IActionResult> Register()
+        public IActionResult Register()
         {
             //if(!await _roleManager.RoleExistsAsync("Master"))
             //{
@@ -136,7 +136,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginVM model, string returnUrl)
         {
             ViewData["ReturnUrl"] = returnUrl ??= Url.Content("~/");
 
@@ -313,7 +313,7 @@ namespace OceansAppWeb.Areas.Account.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPassword(string code = null)
+        public IActionResult ResetPassword(string code)
         {
             return code == null ? View("Error") : View();
         }

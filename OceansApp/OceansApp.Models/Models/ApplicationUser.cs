@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
-namespace OceansAppWeb.Models
+namespace OceansApp.Models.Models
 {
     public class ApplicationUser: IdentityUser
     {

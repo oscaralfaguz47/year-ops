@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OceansAppWeb.Models;
+using OceansApp.Models.Models;
 
-namespace OceansAppWeb.Data
+namespace OceansApp.DataAccess.Data
 {
     public class ApplicationDbContext: IdentityDbContext
     {

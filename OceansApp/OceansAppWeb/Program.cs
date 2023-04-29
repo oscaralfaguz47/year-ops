@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using OceansAppWeb;
-using OceansAppWeb.Data;
+using OceansApp.DataAccess.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

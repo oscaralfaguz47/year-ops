@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OceansAppWeb.ViewModels
+namespace OceansApp.Models.ViewModels
 {
     public class VerifyAuthenticatorVM
     {

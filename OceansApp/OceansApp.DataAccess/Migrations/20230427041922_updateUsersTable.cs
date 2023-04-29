@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace OceansAppWeb.Migrations
+namespace OceansApp.DataAccess.Migrations
 {
     public partial class updateUsersTable : Migration
     {

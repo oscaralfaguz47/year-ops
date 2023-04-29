@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OceansApp.Models\OceansApp.Models.csproj" />
+    <ProjectReference Include="..\OceansApp.Utility\OceansApp.Utility.csproj" />
   </ItemGroup>
 
 </Project>

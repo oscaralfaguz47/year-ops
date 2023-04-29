@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OceansAppWeb.Migrations
+namespace OceansApp.DataAccess.Migrations
 {
     public partial class addMoreTablesToApplicationUser : Migration
     {
