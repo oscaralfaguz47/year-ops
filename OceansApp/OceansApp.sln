@@ -5,7 +5,11 @@ VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OceansAppWeb", "OceansAppWeb\OceansAppWeb.csproj", "{F5EDDC0E-2371-448D-BB8A-D9FAA97317AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OceansApp.Utility", "OceansApp.Utility\OceansApp.Utility.csproj", "{7F535B88-B043-4A40-A033-0D3DB1DBF4BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OceansApp.Utility", "OceansApp.Utility\OceansApp.Utility.csproj", "{7F535B88-B043-4A40-A033-0D3DB1DBF4BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OceansApp.DataAccess", "OceansApp.DataAccess\OceansApp.DataAccess.csproj", "{CFE555C3-994E-489F-A3E5-1FD387EC1E34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OceansApp.Models", "OceansApp.Models\OceansApp.Models.csproj", "{F5CB6974-13D6-4F55-84DB-BB662BAEEEEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{7F535B88-B043-4A40-A033-0D3DB1DBF4BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F535B88-B043-4A40-A033-0D3DB1DBF4BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F535B88-B043-4A40-A033-0D3DB1DBF4BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFE555C3-994E-489F-A3E5-1FD387EC1E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFE555C3-994E-489F-A3E5-1FD387EC1E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFE555C3-994E-489F-A3E5-1FD387EC1E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFE555C3-994E-489F-A3E5-1FD387EC1E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5CB6974-13D6-4F55-84DB-BB662BAEEEEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5CB6974-13D6-4F55-84DB-BB662BAEEEEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5CB6974-13D6-4F55-84DB-BB662BAEEEEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5CB6974-13D6-4F55-84DB-BB662BAEEEEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

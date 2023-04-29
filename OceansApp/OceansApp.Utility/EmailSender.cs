@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.Net.Mail;
 
-namespace FinancialCalculator.Utility
+namespace OceansApp.Utility
 {
     public class EmailSender : IEmailSender
     {
