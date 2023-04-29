@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace OceansAppWeb.Controllers
 {
     [Authorize]
+    [RequireTwoFactorEnabled]
     public class HomeController : Controller
    
     {

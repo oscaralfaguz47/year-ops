@@ -7,6 +7,7 @@ using OceansApp.Models.Models;
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Authorize(Roles = SD.Role_User_Master + "," + SD.Role_User_Admin)]
+    [RequireTwoFactorEnabled]
     public class AccountingAccountController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -6,6 +6,7 @@ namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
     [Authorize(Roles = SD.Role_User_Master)]
+    [RequireTwoFactorEnabled]
     public class AdminCenterController : Controller
     {
         [HttpGet]

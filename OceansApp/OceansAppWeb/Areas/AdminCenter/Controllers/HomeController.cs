@@ -6,6 +6,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
     [Authorize(Roles = SD.Role_User_Master)]
+    [RequireTwoFactorEnabled]
     public class HomeController : Controller
     {
         public IActionResult Index()

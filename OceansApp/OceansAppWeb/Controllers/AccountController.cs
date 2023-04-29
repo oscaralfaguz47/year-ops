@@ -37,6 +37,7 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpGet]
+        [RequireTwoFactorEnabled]
         [Authorize(Roles = "Master")]
         public IActionResult Register()
         {
@@ -62,6 +63,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpPost]
         [Authorize]
+        [RequireTwoFactorEnabled]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
         {
@@ -166,6 +168,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpGet]
         [Authorize]
+        [RequireTwoFactorEnabled]
         public async Task<IActionResult> RemoveAuthenticator()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -212,13 +215,14 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [RequireTwoFactorEnabled]
         public IActionResult AuthenticatorConfirmation()
         {
             return View();
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberMe, string? returnUrl)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -235,6 +239,7 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticatorVM model)
         {
             model.ReturnUrl = model.ReturnUrl ?? Url.Content("~/");
@@ -258,8 +263,8 @@ namespace OceansAppWeb.Account.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid Code.");
                 return View(model);
             }
-
         }
+
 
         [HttpPost]
         [Authorize]

@@ -11,6 +11,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
     [Authorize(Roles = SD.Role_User_Master)]
+    [RequireTwoFactorEnabled]
     public class CalculatorGlobalConfigurationController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
