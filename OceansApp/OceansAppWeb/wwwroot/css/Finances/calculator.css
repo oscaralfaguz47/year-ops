@@ -1,0 +1,79 @@
+﻿.red-text {
+    color: red
+}
+
+.btn-submit {
+    margin-top: 30px;
+    width: 100%
+}
+
+.rb-container {
+    text-align: left;
+}
+
+.green-cell {
+    color: RGB(10, 187, 34)
+}
+
+.yellow-cell {
+    color: RGB(238,179,15);
+    font-weight: bold;
+}
+
+.table-header {
+    background-color: RGB(29,29,29);
+    color: RGB(5,137,147)
+}
+.Manager-container{
+    text-align: end;
+    font-weight: bold;  
+}
+.form-custom-label {
+    font-weight: bold;
+}
+.checkboxes-box {
+        text-align: center;
+        display:flex;
+        align-items: center;
+    }
+
+/*GLOBAL CONFIGURATION*/
+#global-configuration label {
+    font-weight: bold;
+}
+#global-configuration h5 {
+    margin-bottom: 25px;
+}
+#global-configuration .cost-center-container {
+    text-align:center;
+}
+#global-configuration .config-sub-title {
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--clr-blueDark);
+}
+#global-configuration .bottom-btns {
+    position: fixed;
+    bottom: 10px;
+    width: auto;
+    right: 20px;
+    z-index: 100;
+}
+.cost-center-container .form-control {
+    display: revert !important;
+    width: 70% !important;
+    margin-left: 10px !important;
+}
+clients-profit .col-lg-4 {
+    text-align: center;
+}
+#clients-profit .client-title{
+    display: flex;
+    align-items:end;
+    text-align: center;
+    justify-content: center;
+}
+#clients-profit .row {
+    margin-bottom: 5px;
+}

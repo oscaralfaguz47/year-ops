@@ -1,0 +1,12 @@
+﻿namespace OceansApp.Models.ViewModels
+{
+    public class CalculatorCostCenterUserConfigurationVM
+    {
+        public string IdCostCenter { get; set; }
+        public string Description { get; set; }
+        public string? Detail { get; set; }
+
+        public bool Active { get; set; }
+
+    }
+}

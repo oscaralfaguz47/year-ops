@@ -1,0 +1,36 @@
+﻿@using OceansApp.Utility
+
+<div class="text-center">
+    <h2 class="" style="font-weight: bold">ADMINISTRADOR </h2>
+    <hr /> <br />
+
+    <div class="container">
+        <div class="row">
+            @if (User.IsInRole(SD.Role_User_Master))
+            {
+                <div class="col-lg-2">
+                    <a class="box-link" asp-area="AdminCenter" asp-controller="DataFromSoftland" asp-action="Index">
+                        <div class="box">
+                            <i class="bi bi-database-add"></i><br />
+                            <label>Actualizar Datos Desde Softland</label>
+                        </div>
+                    </a>
+                </div>
+            }
+
+            <div class="col-lg-2">
+                <a class="box-link" asp-area="AdminCenter" asp-controller="ApplicationUser" asp-action="Index">
+                    <div class="box">
+                        <i class="bi bi-people"></i><br />
+                        <label>Administración de Usuarios</label>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+</div>
+
+

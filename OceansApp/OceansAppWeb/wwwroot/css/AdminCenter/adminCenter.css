@@ -1,0 +1,26 @@
+﻿.box i {
+    font-size: 60px;
+    color: #fff;
+}
+
+.box {
+    background-color: var(--clr-dark3);
+    padding: 0 10px 10px 10px;
+}
+
+    .box label {
+        color: var(--clr-blueLight);
+        cursor: pointer;
+    }
+
+.box-link:hover {
+    color: var(--clr-yellow);
+}
+
+    .box-link:hover i {
+        color: var(--clr-yellow);
+    }
+
+    .box-link:hover label {
+        color: var(--clr-yellow);
+    }

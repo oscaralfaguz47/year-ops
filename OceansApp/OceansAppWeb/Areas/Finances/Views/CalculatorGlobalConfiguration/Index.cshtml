@@ -1,0 +1,116 @@
+﻿@using OceansApp.Models.ViewModels
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+@model CalculatorGlobalConfigurationVM
+@{
+}
+<h2 class="text-center" style="font-weight: bold">CONFIGURACIÓN GLOBAL PARA CALCULADORA</h2>
+<hr />
+<div class="container">
+    <form asp-controller="CalculatorGlobalConfiguration" asp-action="SaveGlobalConfiguration" id="global-configuration">
+        <div class="row">
+            <div class="col-lg-6">
+                <label for="startDate" class="form-label mt-4">Fecha Desde</label>
+                <input asp-for="CalculatorGlobalConfiguration.StartDate" class="form-control" type="date" id="startDate" />
+                <span asp-validation-for="CalculatorGlobalConfiguration.StartDate" class="text-danger"></span>
+            </div>
+            <div class="col-lg-6">
+                <label for="endDate" class="form-label mt-4">Fecha Hasta</label>
+                <input asp-for="CalculatorGlobalConfiguration.EndDate" class="form-control" type="date" id="endDate" />
+                <span asp-validation-for="CalculatorGlobalConfiguration.EndDate" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <label for="peopleNumber" class="form-label mt-4"># Recursos Actuales</label>
+                <input asp-for="CalculatorGlobalConfiguration.PeopleNumber" type="number" class="form-control" id="peopleNumber" placeholder="Dígita un número">
+                <span asp-validation-for="CalculatorGlobalConfiguration.PeopleNumber" class="text-danger"></span>
+            </div>
+            <div class="col-lg-4">
+                <label for="laborDays" class="form-label mt-4"># Días Laborales</label>
+                <input asp-for="CalculatorGlobalConfiguration.NumLaborDaysInMonth" type="number" step="any" class="form-control" id="laborDays" placeholder="Dígita un número">
+                <span asp-validation-for="CalculatorGlobalConfiguration.NumLaborDaysInMonth" class="text-danger"></span>
+            </div>
+            <div class="col-lg-4">
+                <label for="aditionalIncrease" class="form-label mt-4">% Riesgo</label>
+                <input asp-for="CalculatorGlobalConfiguration.AdditionalGlobalIncrease" type="number" step="any" class="form-control" id="aditionalIncrease" placeholder="Dígita un número">
+                <span asp-validation-for="CalculatorGlobalConfiguration.AdditionalGlobalIncrease" class="text-danger"></span>
+            </div>
+        </div> <br />
+        <div id="clients-profit">
+            <h5 class="config-sub-title">% Porcentages de utilidad para clientes</h5>
+            <div class="row">
+                <div class="col-lg-4 client-title">
+                    <label>CLIENTE AAA</label>
+                </div>
+                <div class="col-lg-4">
+                    <label for="profitGreenAAA" class="form-label green-label">% VERDE</label>
+                    <input asp-for="CalculatorGlobalConfiguration.ProfitGreenClientAAA" type="number" step="any" class="form-control" id="profitGreenAAA" placeholder="Dígita un número">
+                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenClientAAA" class="text-danger"></span>
+                </div>
+                <div class="col-lg-4">
+                    <label for="profitYellowAAA" class="form-label yellow-label">% AMARILLO</label>
+                    <input asp-for="CalculatorGlobalConfiguration.ProfitYellowClientAAA" type="number" step="any" class="form-control" id="profitYellowAAA" placeholder="Dígita un número">
+                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowClientAAA" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 client-title">
+                    <label>CLIENTE AA</label>
+                </div>
+                <div class="col-lg-4">
+                    <input asp-for="CalculatorGlobalConfiguration.ProfitGreenClientAA" type="number" step="any" class="form-control" id="profitGreenAA" placeholder="Dígita un número">
+                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenClientAA" class="text-danger"></span>
+                </div>
+                <div class="col-lg-4">
+                    <input asp-for="CalculatorGlobalConfiguration.ProfitYellowClientAA" type="number" step="any" class="form-control" id="profitYellowAA" placeholder="Dígita un número">
+                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowClientAA" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 client-title">
+                    <label>PARTNER</label>
+                </div>
+                <div class="col-lg-4">
+                    <input asp-for="CalculatorGlobalConfiguration.ProfitGreenPartner" type="number" step="any" class="form-control" id="profitGreenPartner" placeholder="Dígita un número">
+                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenPartner" class="text-danger"></span>
+                </div>
+                <div class="col-lg-4">
+                    <input asp-for="CalculatorGlobalConfiguration.ProfitYellowPartner" type="number" step="any" class="form-control" id="profitPartner" placeholder="Dígita un número">
+                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowPartner" class="text-danger"></span>
+                </div>
+            </div>
+        </div> <br />
+
+        <div class="cost-center-container">
+            <h5 class="config-sub-title">Porcentages de riesgo por centros de costo</h5>
+            @if (Model.CalculatorCostCenterIncreaseConfigurationVM != null)
+            {
+                @for (int i = 0; i < Model.CalculatorCostCenterIncreaseConfigurationVM.Count; i++)
+                {
+                    @Html.Hidden("CalculatorCostCenterIncreaseConfigurationVM[" + i + "].IdCostCenter", Model.CalculatorCostCenterIncreaseConfigurationVM[i].IdCostCenter)
+                    <label for="@Model.CalculatorCostCenterIncreaseConfigurationVM[i].Description">@Model.CalculatorCostCenterIncreaseConfigurationVM[i].Description</label>
+
+                    <br />
+
+                    <label>%</label> <input asp-for="@Model.CalculatorCostCenterIncreaseConfigurationVM[i].Increase" type="number" step="any" class="form-control" />
+
+                    <br />
+
+                    <br />
+                }
+            }
+        </div>
+
+        <br />
+        <div class="bottom-btns">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-device-ssd-fill"></i>&nbsp;Guardar Cambios</button>
+            <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="btn cancel-btn" style="width:150px">
+                Cancelar
+            </a>
+        </div>
+
+    </form>
+</div>
+

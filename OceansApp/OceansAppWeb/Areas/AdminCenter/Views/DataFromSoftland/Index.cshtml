@@ -1,0 +1,40 @@
+﻿@using OceansApp.Models.Models
+@model DataFromSoftland
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+
+<div class="text-center">
+    <h2 class="" style="font-weight: bold">CARGA DE DATOS DESDE SOFTLAND </h2>
+    <hr /> <br />
+
+    <div class="container">
+        <div class="dates-container">
+            <ol>
+                <li><strong>Fecha última actualización de datos: </strong> @TempData["globalLastDate"] , en las secciones: @TempData["globalLastDateSection"]</li>
+            </ol>
+        </div>
+        <form asp-action="UpdateData" class="dataToUpdateForm">
+            <div class="border p-3">
+                <div class="mb-3">
+                    <label asp-for="DataToSave"></label>
+                    <textarea asp-for="DataToSave" rows="3" class="form-control" placeholder="Inserta acá el JSON {} con los datos a actualizar"></textarea>
+                    <span asp-validation-for="DataToSave" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:150px">Actualizar Datos</button> 
+                <a asp-area="AdminCenter" asp-controller="Home" asp-action="Index" class="btn cancel-btn" style="width:150px">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts{
+	@{
+    <partial name="_ValidationScriptsPartial" />
+	}
+
+}
+

@@ -1,0 +1,15 @@
+﻿.dates-container{
+    text-align: left;
+}
+    .dates-container ol{
+        list-style: none;
+        padding:0;
+    }
+    .dataToUpdateForm textarea {
+        height: 310px;
+        overflow-x: hidden;
+    }
+.dataToUpdateForm label {
+   font-weight: bold;
+
+}

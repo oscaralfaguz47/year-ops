@@ -1,0 +1,25 @@
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using OceansApp.Models.Models;
+using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace OceansApp.Models.ViewModels
+{
+    public class CalculatorVM
+    {
+        [Range(0, 20, ErrorMessage = "El valor debe de ser mayor o igual a 0 y menor o igual a 20")]
+        public Double? DaysYear { get; set; } = 7;
+        [Range(0, 20, ErrorMessage = "El valor debe de ser mayor o igual a 0 y menor o igual a 20")]
+        public Double? VacationDays { get; set; } = 0;
+        [Required(ErrorMessage = "El monto a pagar al Consultor es requerido")]
+        [Range(500, 50000, ErrorMessage = "El valor debe de ser mayor o igual a $500 y menor o igual a $50,000")]
+        public Double? PaymentAmount { get; set; } = null;
+        [Required(ErrorMessage = "El Cliente es requerido")]
+        public String Client { get; set; }
+        public List<SelectListItem>? ClientList { get; set; }
+
+        public CalculatorCostCenterIncreaseConfiguration? CalculatorCostCenterIncreaseConfiguration { get; set; }
+        public Collection<CalculatorCostCenterUserConfigurationVM>? CalculatorCostCenterUserConfigurationVM { get; set; }
+        public List<CalculatorExpensesCostsDistribution>? CalculatorExpensesCostsDistribution { get; set; }
+    }
+}
