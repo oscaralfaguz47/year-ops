@@ -7,9 +7,9 @@
 }
 
 <div id="register-section" class="container">
-    <h1 class="title-h1-account"><i class="bi bi-person-fill-add"></i> @ViewData["Title"]</h1>
+    <h2 class="title-h1-account"><i class="bi bi-person-fill-add"></i> <strong>@ViewData["Title"]</strong></h2>
     <hr />
-    <form id="registerForm"  asp-controller="Account" asp-action="Register" method="post" role="form">
+    <form id="registerForm" asp-area="AdminCenter"  asp-controller="ApplicationUser" asp-action="Register" method="post" role="form">
         <div class="row">
             <div class="col-md-6">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>

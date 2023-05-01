@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansApp.DataAccess.Data;
+using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansAppWeb.Controllers;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 namespace OceansAppWeb.Account.Controllers
@@ -20,9 +22,10 @@ namespace OceansAppWeb.Account.Controllers
         private readonly UrlEncoder _urlEncoder;
         private readonly ApplicationDbContext _dbContext;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender
-            , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager)
+            , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -30,6 +33,7 @@ namespace OceansAppWeb.Account.Controllers
             _urlEncoder = urlEncoder;
             _dbContext = dbContext;
             _roleManager = roleManager;
+            _unitOfWork = unitOrWork;
         }
         public IActionResult Index()
         {
@@ -37,73 +41,76 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         [RequireTwoFactorEnabled]
-        [Authorize(Roles = "Master")]
-        public IActionResult Register()
+        public async Task<IActionResult> ProfileAsync()
         {
-            //if(!await _roleManager.RoleExistsAsync("Master"))
-            //{
-            //    await _roleManager.CreateAsync(new IdentityRole("Master"));
-            //}
-
-            List<SelectListItem> roleList = new List<SelectListItem>();
-            roleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+            var user = await _userManager.GetUserAsync(User);
+            var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+            if (userFromDb.TwoFactorEnabled)
             {
-                Text = i,
-                Value = i
-            }).ToList();
-
-            RegisterVM registerVM = new()
+                ViewData["TwoFactorEnabled"] = true;
+            }
+            else
             {
-                RoleList = roleList
+                ViewData["TwoFactorEnabled"] = userFromDb.TwoFactorEnabled;
+            }
+            ProfileVM myInfo = new()
+            {
+                Id = userFromDb.Id,
+                Email = userFromDb.Email,
+                Name = userFromDb.Name,
+                LastName = userFromDb.LastName,
+                Ocupation = userFromDb.Occupation,
+                PhoneNumber = userFromDb.PhoneNumber
             };
-
-            return View(registerVM);
+            return View(myInfo);
         }
 
         [HttpPost]
-        [Authorize]
-        [RequireTwoFactorEnabled]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterVM model)
-        {
+        public async Task<IActionResult> UpdateProfile(ProfileVM model)
+        {           
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser
+                try
                 {
-                    UserName = model.Email,
-                    Email = model.Email,
-                    Name = model.Name,
-                    LastName = model.LastName,
-                    Occupation = model.Occupation,
-                    IsActive = true,
-                    PhoneNumber = model.PhoneNumber
-                };
+                    var userToUpdate = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == model.Id);
 
-                var result = await _userManager.CreateAsync(user, model.Password);
+                    userToUpdate.Name = model.Name;
+                    userToUpdate.LastName = model.LastName;
+                    userToUpdate.Occupation = model.Ocupation;
+                    userToUpdate.PhoneNumber = model.PhoneNumber;
 
-                if (result.Succeeded)
-                {
-                    if (model.Role == null)
+                    _unitOfWork.Save();
+
+                    TempData["success"] = "¡Los datos fueron guardados con éxito!";
+                    if (userToUpdate.TwoFactorEnabled)
                     {
-                        await _userManager.AddToRoleAsync(user, "Simple");
+                        ViewData["TwoFactorEnabled"] = true;
                     }
                     else
                     {
-                        await _userManager.AddToRoleAsync(user, model.Role);
+                        ViewData["TwoFactorEnabled"] = userToUpdate.TwoFactorEnabled;
                     }
-
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                        await _emailSender.SendEmailAsync(model.Email, "Confirma tu cuenta - Oceans App",
-                        "Confirma tu cuenta haciendo click <a href=\"" + callbackurl + "\">Aquí</a>");
-                    return RedirectToAction("Index");
+                    return View("Profile", model);
                 }
-                AddErrors(result);
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
             }
-            return View(model);
+            var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == model.Id);
+            if (userFromDb.TwoFactorEnabled)
+            {
+                ViewData["TwoFactorEnabled"] = true;
+            }
+            else
+            {
+                ViewData["TwoFactorEnabled"] = userFromDb.TwoFactorEnabled;
+            }
+            return View("Profile", model);
         }
-
 
         [HttpGet]
         [AllowAnonymous]

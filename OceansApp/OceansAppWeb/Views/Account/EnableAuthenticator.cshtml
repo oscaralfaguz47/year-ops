@@ -1,31 +1,35 @@
 ﻿@using OceansApp.Models.ViewModels
 @model TwoFactorAuthenticationVM
 
-<div asp-validation-summary="All" class="text-danger"></div>
-<p>
-    Por favor ingresa el código de abajo en tu applicación de Autenticación de dos factores.
-</p>
-<p>
-    @Model.Token
-</p>
-<p>
-   O bien puedes escanear el código QR a continuación con tu teléfono móvil.
-</p>
-<div id="qrCode"></div>
+<div class="container">
+    <h2>Por favor configura tu autenticación de dos factores para poder continuar con tu cuenta.</h2>
+    <p>
+        Ingresa el código de abajo en tu applicación de Autenticación de dos factores.
+    </p>
+    <p>
+        @Model.Token
+    </p>
+    <p>
+        O bien puedes escanear el código QR a continuación con tu teléfono móvil.
+    </p>
+    <div id="qrCode"></div>
 
-<form method="post">
-    <input hidden asp-for="Token" />
-    <div class="form-group">
-         <input hidden asp-for="QRCodeUrl" /> 
-        Ingresa el Código que se muestra en tu aplicación móvil: <input type="text" class="form-control" asp-for="Code" />
-        <span asp-validation-for="Code" class="text-danger"></span>
+    <form method="post">
+        <input hidden asp-for="Token" />
+        <div class="form-group">
+            <input hidden asp-for="QRCodeUrl" /> <br />
+            Ingresa el Código que se muestra en tu aplicación móvil: <input type="text" class="form-control" asp-for="Code" />
+            <span asp-validation-for="Code" class="text-danger"></span>
+            <br />
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+    </form>
+</div>
 
-    </div>
-    <button type="submit" class="btn btn-primary">Enviar</button>
-</form>
-
-@section Scripts{ 
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+@section Scripts{
+    @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+ }
 <script src="~/js/qrcode.js"></script>
 <script type="text/javascript">
     new QRCode(document.getElementById("qrCode"), "@Model.QRCodeUrl");

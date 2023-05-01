@@ -45,9 +45,6 @@
                             @if (SignInManager.IsSignedIn(User))
                             {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">Inicio</a>
-                                    </li>
-                                    <li class="nav-item">
                                         <a class="nav-link text-dark" asp-area="Finances" asp-controller="Calculator" asp-action="Index">Calculadora</a>
                                     </li>
                                     @if (User.IsInRole(SD.Role_User_Master))
@@ -69,7 +66,9 @@
         <br /><br /><br /><br />
         <main role="main" class="pb-3">
             <partial name="_Notification" />
-            @RenderBody()
+            <div class="container">
+                @RenderBody()
+            </div>
         </main>
     </div>
 

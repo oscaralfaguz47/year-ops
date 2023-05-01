@@ -21,15 +21,6 @@ namespace OceansAppWeb.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                ViewData["TwoFactorEnabled"] = false;
-            }
-            else
-            {
-                ViewData["TwoFactorEnabled"] = user.TwoFactorEnabled;
-            }
             return View();
         }
         public IActionResult AccessDenied()

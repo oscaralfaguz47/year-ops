@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.ObjectModel;
+using OceansApp.Models.Models;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace OceansApp.Areas.AdminCenter.Controllers
 {
@@ -17,18 +19,81 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailSender _emailSender;
         public ApplicationUserController(IUnitOfWork unitOrWork, UserManager<IdentityUser> userManager, 
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
         {
             _unitOfWork = unitOrWork;
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailSender = emailSender;
         }
         public IActionResult Index()
         {
             return View();
         }
+        [HttpGet]
+        [RequireTwoFactorEnabled]
+        [Authorize(Roles = "Master")]
+        public IActionResult Register()
+        {
+            List<SelectListItem> roleList = new List<SelectListItem>();
+            roleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+            {
+                Text = i,
+                Value = i
+            }).ToList();
 
+            RegisterVM registerVM = new()
+            {
+                RoleList = roleList
+            };
+
+            return View(registerVM);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [RequireTwoFactorEnabled]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterVM model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    Name = model.Name,
+                    LastName = model.LastName,
+                    Occupation = model.Occupation,
+                    IsActive = true,
+                    PhoneNumber = model.PhoneNumber
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    if (model.Role == null)
+                    {
+                        await _userManager.AddToRoleAsync(user, "Simple");
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, model.Role);
+                    }
+
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                    await _emailSender.SendEmailAsync(model.Email, "Confirma tu cuenta - Oceans App",
+                    "Confirma tu cuenta haciendo click <a href=\"" + callbackurl + "\">Aquí</a>");
+                    return RedirectToAction("Index");
+                }
+                AddErrors(result);
+            }
+            return View(model);
+        }
         public IActionResult Edit(string userId)
         {
             var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == userId);
@@ -132,11 +197,13 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                 if (userToUpdate.IsActive == true)
                 {
                     userToUpdate.IsActive = false;
+                    userToUpdate.LockoutEnd = DateTime.Now.AddYears(1000);
                     message = "¡El usuario fue desactivado con éxito!";
                 }
                 else
                 {
                     userToUpdate.IsActive = true;
+                    userToUpdate.LockoutEnd = DateTime.Now;
                     message = "¡El usuario fue activado con éxito!";
                 }
                 _unitOfWork.Save();
@@ -145,6 +212,14 @@ namespace OceansApp.Areas.AdminCenter.Controllers
             catch (Exception e)
             {
                 return BadRequest(e.Message);
+            }
+        }
+
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
             }
         }
 

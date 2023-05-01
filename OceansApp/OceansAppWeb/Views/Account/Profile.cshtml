@@ -1,0 +1,84 @@
+﻿@using OceansApp.Models.ViewModels
+@model ProfileVM
+
+<div>
+    <h2 class="title-h1-account"><i class="bi bi-person-gear"></i> <strong>Configuración de mi Cuenta</strong></h2>
+    <hr />
+    <div class="row">
+        <div class="col-lg-6 text-center">
+            <h2><strong>Información Personal</strong></h2>
+            <form id="registerForm" asp-area="" asp-controller="Account" asp-action="UpdateProfile" method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        @Html.HiddenFor(m =>m.Id)
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-floating">
+                            <input asp-for="Name" class="form-control" aria-required="true" />
+                            <label asp-for="Name"></label>
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <br />
+                        <div class="form-floating">
+                            <input asp-for="LastName" class="form-control" aria-required="true" />
+                            <label asp-for="LastName"></label>
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                        <br />
+                        <div class="form-floating">
+                            <input asp-for="Ocupation" class="form-control" aria-required="true" />
+                            <label asp-for="Ocupation"></label>
+                            <span asp-validation-for="Ocupation" class="text-danger"></span>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            @Html.HiddenFor(m =>m.Email)
+                            <input disabled asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
+                            <label asp-for="Email"></label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <br />
+                        <div class="form-floating">
+                            <input asp-for="PhoneNumber" class="form-control" aria-required="true" />
+                            <label asp-for="PhoneNumber"></label>
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="text-center">
+                        <button id="registerSubmit" type="submit" class="btn btn-primary" style="width:150px">Guardar Cambios</button>
+                        <a asp-area="" asp-controller="Home" asp-action="Dashboard" class="btn cancel-btn" style="width:150px">
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+            </form>
+            <br /><br />
+        </div>
+        <div class="col-lg-6 text-center">
+            <h2><strong>Seguridad de mi cuenta</strong></h2>
+            @if (User.Identity.IsAuthenticated)
+            {
+                var twoFactor = ViewData["TwoFactorEnabled"];
+                if (twoFactor != null && twoFactor.ToString().ToLower() == "true")
+                {
+                    <a asp-area="" asp-action="RemoveAuthenticator" asp-controller="Account" class="btn btn-warning">Eliminar y cambiar la autenticación de 2 factores</a>
+                }
+                else
+                {
+                    <a asp-action="EnableAuthenticator" asp-controller="Account">Configurar la autenticación de 2 factores</a>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<br /><br /><br /><br />
+
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+}

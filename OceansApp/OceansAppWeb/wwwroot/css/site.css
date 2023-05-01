@@ -175,3 +175,31 @@ nav {
 .tooltip-target:hover ~ .tooltip-content {
     opacity: 1;
 }
+.custom-box {
+    display: flex;
+    justify-content: center;
+    align-items:center;
+}
+    .custom-box .sub-box {
+        background-color: var(--clr-dark1);
+        padding: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+        .custom-box .sub-box h2 {
+            font-weight:bold;
+            font-size: 27px;
+            color: var(--clr-blueDark);
+        }
+    .custom-box .sub-box a {
+        margin-bottom: 0 !important;
+    }
+        .custom-box .sub-box i {
+            font-size: 60px;
+            color: var(--clr-yellow);
+        }
+        .custom-box .sub-box p {
+            font-size: 18px;
+            color: #fff;
+        }
