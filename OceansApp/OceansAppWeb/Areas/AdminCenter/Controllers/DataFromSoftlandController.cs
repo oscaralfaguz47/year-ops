@@ -203,7 +203,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                 _unitOfWork.DataUpdateDates.Add(dataUpdateDate);
                                 _unitOfWork.Save();
                             }
-
+                            TempData["success"] = updatedRecords + " registros fueron afectados.";
+                            return RedirectToAction("Index");
                         }
                         else
                         {
@@ -232,8 +233,7 @@ namespace OceansApp.Areas.Admin.Controllers
                         return View("Index");
                     }
                 }
-                TempData["success"] = updatedRecords + " registros fueron afectados.";
-                return RedirectToAction("Index");
+                return View("Index");
             }
             catch (Exception e)
             {

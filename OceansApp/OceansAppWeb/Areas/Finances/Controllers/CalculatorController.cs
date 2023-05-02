@@ -385,12 +385,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
                     _unitOfWork.Save();
 
-                    var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.IsActive == "S").Select(i => new SelectListItem
-                    {
-                        Text = i.Name,
-                        Value = i.IdClient
-                    });
-
                     //MODEL TO RETURN
                     CalculatorVM cvm = new()
                     {
