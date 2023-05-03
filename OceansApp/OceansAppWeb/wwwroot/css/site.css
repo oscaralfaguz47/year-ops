@@ -41,12 +41,12 @@ nav {
 }
 
 .cancel-btn {
-    background-color: RGB(181, 19, 36 );
+    background-color: RGB(181, 19, 36, 0.6 );
     color: #fff
 }
 
     .cancel-btn:hover {
-        background-color: RGB(181, 19, 36, 0.5 );
+        background-color: RGB(181, 19, 36, 0.4 );
         color: #fff
     }
 
@@ -89,7 +89,7 @@ nav {
 }
 
 .green-label {
-    color: RGB(10, 187, 34)
+    color: RGB(10, 187, 34) !important;
 }
 
 .yellow-label {
@@ -189,7 +189,7 @@ nav {
     }
         .custom-box .sub-box h2 {
             font-weight:bold;
-            font-size: 27px;
+            font-size: 28px;
             color: var(--clr-blueDark);
         }
     .custom-box .sub-box a {
@@ -203,3 +203,25 @@ nav {
             font-size: 18px;
             color: #fff;
         }
+        .custom-box .sub-box label {
+            color: var(--clr-yellow);
+            margin-bottom: 5px;
+        }
+.validation-item{
+    width: 285px;
+}
+    .validation-item ul {
+        list-style-type: none;
+        padding: 0;
+    }
+/*FOOTER*/
+footer {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    height: 50px;
+    background-color: var(--clr-dark1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+}

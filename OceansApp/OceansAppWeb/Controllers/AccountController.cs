@@ -2,14 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models;
-using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansAppWeb.Controllers;
-using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 namespace OceansAppWeb.Account.Controllers
@@ -64,6 +60,7 @@ namespace OceansAppWeb.Account.Controllers
                 Ocupation = userFromDb.Occupation,
                 PhoneNumber = userFromDb.PhoneNumber
             };
+            ViewData["Title"] = "Mi Perfil";
             return View(myInfo);
         }
 
@@ -126,6 +123,7 @@ namespace OceansAppWeb.Account.Controllers
                 return View("Error");
             }
             var result = await _userManager.ConfirmEmailAsync(user, code);
+            ViewData["Title"] = "Confirmación de Correo";
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
 
         }
@@ -134,12 +132,21 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult Login(string? returnUrl)
         {
-            if (string.IsNullOrEmpty(returnUrl))
+            if (User.Identity.IsAuthenticated)
             {
-                returnUrl = Url.Content("~/");
+                return RedirectToAction(nameof(HomeController.Dashboard), "Home");
             }
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            else
+            {
+                if (string.IsNullOrEmpty(returnUrl))
+                {
+                    returnUrl = Url.Content("~/");
+                }
+                ViewData["Title"] = "Inicio de sesión";
+                ViewData["ReturnUrl"] = returnUrl;
+                return View();
+            }
+            
         }
 
         [HttpPost]
@@ -151,6 +158,12 @@ namespace OceansAppWeb.Account.Controllers
 
             if (ModelState.IsValid)
             {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user.EmailConfirmed == false)
+                {
+                    ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
+                    return View(model);
+                }
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
@@ -166,7 +179,7 @@ namespace OceansAppWeb.Account.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son invalidos!");
+                    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
                     return View(model);
                 }
             }
@@ -196,6 +209,7 @@ namespace OceansAppWeb.Account.Controllers
             string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("OceansApp"),
                 _urlEncoder.Encode(user.Email), token);
             var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
+            ViewData["Title"] = "Habilitar Autenticación de 2 factores";
             return View(model);
         }
 
@@ -225,6 +239,7 @@ namespace OceansAppWeb.Account.Controllers
         [RequireTwoFactorEnabled]
         public IActionResult AuthenticatorConfirmation()
         {
+            ViewData["Title"] = "Confirmacion Autenticación";
             return View();
         }
 
@@ -242,6 +257,7 @@ namespace OceansAppWeb.Account.Controllers
                 returnUrl = Url.Content("~/");
             }
             ViewData["ReturnUrl"] = returnUrl;
+            ViewData["Title"] = "Verificación de Autenticación";
             return View(new VerifyAuthenticatorVM { ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
@@ -267,7 +283,7 @@ namespace OceansAppWeb.Account.Controllers
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid Code.");
+                ModelState.AddModelError("Code", "El código que ingresaste es incorrecto.");
                 return View(model);
             }
         }
@@ -287,6 +303,7 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
+            ViewData["Title"] = "Olvidé Contraseña";
             return View();
         }
 
@@ -320,6 +337,7 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPasswordConfirmation()
         {
+            ViewData["Title"] = "Olvidé Contraseña";
             return View();
         }
 
@@ -327,6 +345,7 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ResetPassword(string code)
         {
+            ViewData["Title"] = "Cambio de Contraseña";
             return code == null ? View("Error") : View();
         }
 
@@ -335,7 +354,6 @@ namespace OceansAppWeb.Account.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordVM model)
         {
-
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
@@ -352,13 +370,14 @@ namespace OceansAppWeb.Account.Controllers
                 AddErrors(result);
             }
 
-            return View();
+            return View(model);
         }
 
         [HttpGet]
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation()
         {
+            ViewData["Title"] = "Confirmación Cambio de Contraseña";
             return View();
         }
 

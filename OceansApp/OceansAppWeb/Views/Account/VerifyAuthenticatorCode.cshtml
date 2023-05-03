@@ -1,26 +1,36 @@
 ﻿@using OceansApp.Models.ViewModels
 @model VerifyAuthenticatorVM
 
-<h1>Verfiy Authenticator Code</h1>
-
-<form asp-controller="Account" asp-action="VerifyAuthenticatorCode" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" role="form">
-    <div asp-validation-summary="All" class="text-danger"></div>
-    <input asp-for="RememberMe" type="hidden" />
-    <hr />
-    <div class="form-group">
-        <label asp-for="Code" class="col-md-2"></label>
-        <div class="col-md-10">
-            <input asp-for="Code" class="form-control" />
-            <span asp-validation-for="Code" class="text-danger"></span>
+<div class="text-center">
+    <div class="custom-box">
+        <div class="sub-box">
+           <div>
+                <h2 class="text-center">Verificación Código de Autenticación</h2>
+            <form asp-controller="Account" asp-action="VerifyAuthenticatorCode" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" role="form">
+                <p>Por favor ingresa el código que se desplega en tu aplicación móvil de autenticación.</p>
+                <input asp-for="RememberMe" type="hidden" />
+                <hr />
+                <div class="form-group">
+                    <strong> <label asp-for="Code" class="col-md-2"></label></strong>
+                    <div class="">
+                        <input asp-for="Code" class="form-control" />
+                        <span asp-validation-for="Code" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="form-group text-left">
+                    <br />
+                    <div class="">
+                        <button type="submit" class="btn btn-primary">Enviar</button>
+                    </div>
+                </div>
+            </form>
+           </div>
         </div>
     </div>
-    <div class="form-group">
-        <div class="offset-md-2 col-md-10">
-            <button type="submit" class="btn btn-success">Enviar</button>
-        </div>
-    </div>
-</form>
+</div>
 
 @section Scripts{
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+ }
 }

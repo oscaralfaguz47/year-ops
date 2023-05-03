@@ -85,12 +85,23 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                     }
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                    var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
                     await _emailSender.SendEmailAsync(model.Email, "Confirma tu cuenta - Oceans App",
                     "Confirma tu cuenta haciendo click <a href=\"" + callbackurl + "\">Aquí</a>");
+                    TempData["success"] = "El usuario para " + model.Name + " fue creado con exito. Se le envió una confirmación a su correo.";
                     return RedirectToAction("Index");
                 }
-                AddErrors(result);
+                foreach (var error in result.Errors)
+                {
+                    if (error.Code == "DuplicateUserName")
+                    {
+                        ModelState.AddModelError("", $"El usuario '{model.Email}' ya existe. Por favor, intente con otro usuario.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                }
             }
             return View(model);
         }
