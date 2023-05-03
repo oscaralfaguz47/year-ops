@@ -27,12 +27,35 @@ builder.Services.Configure<IdentityOptions>(opt =>
     opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
     opt.Lockout.MaxFailedAccessAttempts = 3;
 });
-builder.Services.ConfigureApplicationCookie(opt =>
+
+builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    opt.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
-    opt.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
+    options.CheckConsentNeeded = context => false;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Utiliza 'Always' para forzar cookies seguras en producción.
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.IsEssential = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(1440); // Establece la duración de la sesión según sea necesario.
+    options.SlidingExpiration = true;
+    options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
+    options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
+});
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5); // Ajusta el tiempo según tus necesidades
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // Ajusta el tiempo según tus necesidades
+});
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // ajusta el valor según tus necesidades
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -50,6 +73,8 @@ app.UseRouting();
 SeedDatabase();
 app.UseMiddleware<RedirectToDashboardMiddleware>();
 
+app.UseSession();
+app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 
