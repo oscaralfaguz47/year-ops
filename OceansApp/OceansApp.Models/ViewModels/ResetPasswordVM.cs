@@ -17,8 +17,6 @@ namespace OceansApp.Models.ViewModels
         public string Password { get; set; }
 
         [Required(ErrorMessage = "La confirmación de contraseña es requerida.")]
-        [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
-        [MaxLength(50, ErrorMessage = "La contraseña no puede tener más de 50 caracteres.")]
         [DataType(DataType.Password)]
         [Display(Name = "Confirma Contraseña")]
         [Compare("Password", ErrorMessage = "La contraseña y confirma contraseña no coinciden.")]

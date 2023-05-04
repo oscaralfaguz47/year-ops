@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
 
 public class RequireTwoFactorEnabledAttribute : ActionFilterAttribute
 {
@@ -11,11 +9,15 @@ public class RequireTwoFactorEnabledAttribute : ActionFilterAttribute
         if (context.HttpContext.User.Identity.IsAuthenticated)
         {
             var userManager = context.HttpContext.RequestServices.GetService<UserManager<IdentityUser>>();
+            var signInManager = context.HttpContext.RequestServices.GetService<SignInManager<IdentityUser>>();
             var user = await userManager.GetUserAsync(context.HttpContext.User);
 
             if (user != null && !await userManager.GetTwoFactorEnabledAsync(user))
             {
-                context.Result = new RedirectToActionResult("EnableAuthenticator", "Account", new { area = "" });
+                await userManager.ResetAuthenticatorKeyAsync(user);
+                await userManager.SetTwoFactorEnabledAsync(user, false);
+                await signInManager.SignOutAsync();
+                context.Result = new RedirectToActionResult("Login", "Account", new { area = "" });
                 return;
             }
         }

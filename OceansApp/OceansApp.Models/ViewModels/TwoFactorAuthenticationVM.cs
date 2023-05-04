@@ -12,5 +12,6 @@ namespace OceansApp.Models.ViewModels
         //used to register / signup
         public string Token { get; set; }
         public string QRCodeUrl { get; set; }
+        public string Email { get; set; }
     }
 }

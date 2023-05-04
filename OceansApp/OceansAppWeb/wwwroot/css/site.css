@@ -42,9 +42,12 @@ nav {
 
 .cancel-btn {
     background-color: RGB(181, 19, 36, 0.6 );
-    color: #fff
+    color: #fff;
+    border-radius: 0;
 }
-
+.btn-primary{
+    border-radius: 0;
+}
     .cancel-btn:hover {
         background-color: RGB(181, 19, 36, 0.4 );
         color: #fff

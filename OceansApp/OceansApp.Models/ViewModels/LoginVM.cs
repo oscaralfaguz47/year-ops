@@ -6,7 +6,7 @@ namespace OceansApp.Models.ViewModels
     {
         [Required(ErrorMessage = "El correo es requerido")]
         [Display(Name = "Correo")]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "El correo debe ser un e-mail valido")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "La contraseña es requerida")]

@@ -1,6 +1,8 @@
 ﻿@using OceansApp.Models.ViewModels
 @model VerifyAuthenticatorVM
 
+<partial name="_LoginStylesPartial" />
+
 <div class="text-center">
     <div class="custom-box">
         <div class="sub-box">
@@ -11,9 +13,8 @@
                 <input asp-for="RememberMe" type="hidden" />
                 <hr />
                 <div class="form-group">
-                    <strong> <label asp-for="Code" class="col-md-2"></label></strong>
                     <div class="">
-                        <input asp-for="Code" class="form-control" />
+                        <input placeholder="Código" asp-for="Code" class="form-control" />
                         <span asp-validation-for="Code" class="text-danger"></span>
                     </div>
                 </div>

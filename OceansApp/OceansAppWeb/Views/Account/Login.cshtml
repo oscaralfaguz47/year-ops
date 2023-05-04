@@ -3,25 +3,27 @@
 @using OceansApp.Models.ViewModels
 @inject SignInManager<IdentityUser> signInManager
 
+<partial name="_LoginStylesPartial" />
+
 <div class="text-center">
     <div class="custom-box">
         <div class="sub-box">
            <div>
                 <h2 class="text-center">INICIO DE SESIÓN</h2>
+                <br />
             <div asp-validation-summary="ModelOnly" class="text-danger validation-item"></div>
             <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" role="form">
                 <div class="text-lg-left">
                     <div class="form-group">
-                        <label asp-for="Email"></label>
                         <div class="">
-                            <input asp-for="Email" class="form-control" />
+                            <input placeholder="Correo" asp-for="Email" class="form-control" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                     </div>
+                    <br />
                     <div class="form-group">
-                        <label asp-for="Password"></label>
                         <div class="">
-                            <input asp-for="Password" class="form-control" />
+                            <input placeholder="Contraseña" asp-for="Password" class="form-control" />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
                     </div>

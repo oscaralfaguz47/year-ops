@@ -67,7 +67,7 @@ namespace OceansAppWeb.Account.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(ProfileVM model)
-        {           
+        {
             if (ModelState.IsValid)
             {
                 try
@@ -146,7 +146,7 @@ namespace OceansAppWeb.Account.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 return View();
             }
-            
+
         }
 
         [HttpPost]
@@ -158,29 +158,59 @@ namespace OceansAppWeb.Account.Controllers
 
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user.EmailConfirmed == false)
+                try
                 {
-                    ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
-                    return View(model);
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+
+                    if (user != null)
+                    {
+                        if (await _userManager.CheckPasswordAsync(user, model.Password))
+                        {
+                            if (user.EmailConfirmed == false)
+                            {
+                                ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
+                                return View(model);
+                            }
+                            if (!user.TwoFactorEnabled)
+                            {
+                                return RedirectToAction("EnableAuthenticator", new { email = model.Email });
+                            }
+                            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                            if (result.Succeeded)
+                            {
+                                return LocalRedirect(returnUrl);
+                            }
+                            if (result.RequiresTwoFactor)
+                            {
+                                return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
+                            }
+                            if (result.IsLockedOut)
+                            {
+                                return View("Lockout");
+                            }
+                            else
+                            {
+                                ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
+                                return View(model);
+                            }
+                        }
+                        else
+                        {
+                            user.AccessFailedCount++;
+                            await _userManager.UpdateAsync(user);
+                            ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
+                            return View(model);
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Tu usuario no se encuentra registrado, ponte en contacto con el Administrador.");
+                        return View(model);
+                    }
                 }
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
-                if (result.Succeeded)
+                catch (Exception e)
                 {
-                    return LocalRedirect(returnUrl);
-                }
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
-                }
-                if (result.IsLockedOut)
-                {
-                    return View("Lockout");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
-                    return View(model);
+                    return BadRequest(e.Message);
                 }
             }
             return View(model);
@@ -196,30 +226,29 @@ namespace OceansAppWeb.Account.Controllers
             await _userManager.SetTwoFactorEnabledAsync(user, false);
             return RedirectToAction(nameof(HomeController.Dashboard), "Home");
         }
-                
+
         [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> EnableAuthenticator()
+        [AllowAnonymous]
+        public async Task<IActionResult> EnableAuthenticator(string email)
         {
             string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-            var user = await _userManager.GetUserAsync(User);
+            var user = await _userManager.FindByEmailAsync(email);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var token = await _userManager.GetAuthenticatorKeyAsync(user);
             string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("OceansApp"),
                 _urlEncoder.Encode(user.Email), token);
-            var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
+            var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri, Email = email };
             ViewData["Title"] = "Habilitar Autenticación de 2 factores";
             return View(model);
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> EnableAuthenticator(TwoFactorAuthenticationVM model)
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.GetUserAsync(User);
+                var user = await _userManager.FindByEmailAsync(model.Email);
                 var succeeded = await _userManager.VerifyTwoFactorTokenAsync(user, _userManager.Options.Tokens.AuthenticatorTokenProvider, model.Code);
                 if (succeeded)
                 {
