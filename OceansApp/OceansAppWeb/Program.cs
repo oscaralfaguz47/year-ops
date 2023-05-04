@@ -25,7 +25,7 @@ builder.Services.Configure<IdentityOptions>(opt =>
     opt.Password.RequiredLength = 8;
     opt.Password.RequireLowercase = true;
     opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-    opt.Lockout.MaxFailedAccessAttempts = 3;
+    opt.Lockout.MaxFailedAccessAttempts = 5;
 });
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -70,7 +70,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-SeedDatabase();
+//SeedDatabase();
 app.UseMiddleware<RedirectToDashboardMiddleware>();
 
 app.UseSession();
@@ -91,11 +91,11 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
-void SeedDatabase()
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-        dbInitializer.Initialize();
-    }
-}
+//void SeedDatabase()
+//{
+//    using (var scope = app.Services.CreateScope())
+//    {
+//        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+//        dbInitializer.Initialize();
+//    }
+//}

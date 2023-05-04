@@ -6,7 +6,10 @@
 function redirectToCalculatorIndex() {
     location.href = '/Finances/Calculator';
 }
-
+function enableAuthenticatorStyles() {
+    //var elem = document.getElementById("qrCode").getElementsByTagName('img');;
+    elem.style.backgroundColor = 'red';
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     const forms = document.querySelectorAll("form");

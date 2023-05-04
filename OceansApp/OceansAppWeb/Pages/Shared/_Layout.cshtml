@@ -32,7 +32,11 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <header>
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            @{
+                var twoFactor = ViewData["TwoFactorNoEnabled"];
+                if (twoFactor == null || twoFactor.ToString().ToLower() == "false")
+                {
+                     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
                 <div class="container-fluid">
 
                     <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Dashboard"><img class="img-logo" src="/img/logo.jpg" /></a>
@@ -61,6 +65,9 @@
                     </div>
                 </div>
             </nav>
+                }
+            }
+           
         </header>
     }
     <div class="container">

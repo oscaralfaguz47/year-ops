@@ -19,9 +19,11 @@ namespace OceansAppWeb.Account.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender
-            , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork)
+            , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
+            IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -30,6 +32,7 @@ namespace OceansAppWeb.Account.Controllers
             _dbContext = dbContext;
             _roleManager = roleManager;
             _unitOfWork = unitOrWork;
+            _httpContextAccessor = httpContextAccessor;
         }
         public IActionResult Index()
         {
@@ -100,11 +103,11 @@ namespace OceansAppWeb.Account.Controllers
             var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == model.Id);
             if (userFromDb.TwoFactorEnabled)
             {
-                ViewData["TwoFactorEnabled"] = true;
+                ViewData["TwoFactorNoEnabled"] = true;
             }
             else
             {
-                ViewData["TwoFactorEnabled"] = userFromDb.TwoFactorEnabled;
+                ViewData["TwoFactorNoEnabled"] = userFromDb.TwoFactorEnabled;
             }
             return View("Profile", model);
         }
@@ -171,13 +174,13 @@ namespace OceansAppWeb.Account.Controllers
                                 ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
                                 return View(model);
                             }
-                            if (!user.TwoFactorEnabled)
-                            {
-                                return RedirectToAction("EnableAuthenticator", new { email = model.Email });
-                            }
                             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                             if (result.Succeeded)
                             {
+                                if (!user.TwoFactorEnabled)
+                                {
+                                    return RedirectToAction("EnableAuthenticator");
+                                }
                                 return LocalRedirect(returnUrl);
                             }
                             if (result.RequiresTwoFactor)
@@ -228,31 +231,53 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> EnableAuthenticator(string email)
+        [Authorize]
+        public async Task<IActionResult> EnableAuthenticator()
         {
             string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var token = await _userManager.GetAuthenticatorKeyAsync(user);
             string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("OceansApp"),
                 _urlEncoder.Encode(user.Email), token);
-            var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri, Email = email };
+            var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
+
+            if (user.TwoFactorEnabled)
+            {
+                ViewData["TwoFactorNoEnabled"] = user.TwoFactorEnabled;
+            }
+            else
+            {
+                ViewData["TwoFactorNoEnabled"] = true;
+            }
             ViewData["Title"] = "Habilitar Autenticación de 2 factores";
             return View(model);
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> EnableAuthenticator(TwoFactorAuthenticationVM model)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user.TwoFactorEnabled)
+            {
+                ViewData["TwoFactorNoEnabled"] = user.TwoFactorEnabled;
+            }
+            else
+            {
+                ViewData["TwoFactorNoEnabled"] = true;
+            }
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
                 var succeeded = await _userManager.VerifyTwoFactorTokenAsync(user, _userManager.Options.Tokens.AuthenticatorTokenProvider, model.Code);
                 if (succeeded)
                 {
                     await _userManager.SetTwoFactorEnabledAsync(user, true);
+                    DeleteCookie(".AspNetCore.Identity.Application");
+                    DeleteCookie("Identity.TwoFactorRememberMe");
+                    DeleteCookie("ai_user");
+                    DeleteCookie(".AspNetCore.Antiforgery.ZPQcRgzyRNU");
                 }
                 else
                 {
@@ -265,9 +290,9 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpGet]
-        [RequireTwoFactorEnabled]
         public IActionResult AuthenticatorConfirmation()
         {
+            ViewData["TwoFactorNoEnabled"] = true;
             ViewData["Title"] = "Confirmacion Autenticación";
             return View();
         }
@@ -415,6 +440,24 @@ namespace OceansAppWeb.Account.Controllers
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
+            }
+        }
+
+        public void DeleteCookie(string cookieName)
+        {
+            var cookie = _httpContextAccessor.HttpContext.Request.Cookies[cookieName];
+
+            if (cookie != null)
+            {
+                var cookieOptions = new CookieOptions
+                {
+                    Expires = DateTime.Now.AddDays(-1),
+                    HttpOnly = true,
+                    Secure = true, // Utiliza 'true' si tu aplicación está utilizando HTTPS.
+                    SameSite = SameSiteMode.Strict
+                };
+
+                _httpContextAccessor.HttpContext.Response.Cookies.Append(cookieName, "", cookieOptions);
             }
         }
     }
