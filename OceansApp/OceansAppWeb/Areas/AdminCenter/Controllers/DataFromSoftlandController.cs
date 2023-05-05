@@ -11,7 +11,6 @@ namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
     [Authorize(Roles = SD.Role_User_Master)]
-    [RequireTwoFactorEnabled]
     public class DataFromSoftlandController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -19,6 +18,7 @@ namespace OceansApp.Areas.Admin.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+        [RequireTwoFactorEnabled]
         public IActionResult Index()
         {
             DataUpdateDate dateLastGlobalUpdate = _unitOfWork.DataUpdateDates.GetLastDate();

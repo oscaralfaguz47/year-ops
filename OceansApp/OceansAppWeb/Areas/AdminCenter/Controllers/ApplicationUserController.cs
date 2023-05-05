@@ -53,7 +53,6 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         [RequireTwoFactorEnabled]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
@@ -185,7 +184,8 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                         LastName = user.LastName,
                         PhoneNumber = user.PhoneNumber,
                         Ocupation = user.Occupation,
-                        IsActive = user.IsActive 
+                        IsActive = user.IsActive,
+                        TwoFactorEnabled = user.TwoFactorEnabled
                     };
                     usersList.Add(customUser);
                 }
@@ -196,7 +196,22 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
+        [HttpPost]
+        [Authorize(Roles = SD.Role_User_Master)]
+        [RequireTwoFactorEnabled]
+        public async Task<IActionResult> RemoveAuthenticator(string userId)
+        {
+            try {
+                var user = await _userManager.FindByIdAsync(userId);
+                await _userManager.ResetAuthenticatorKeyAsync(user);
+                await _userManager.SetTwoFactorEnabledAsync(user, false);
+                return Json(new { success = true, message = "¡La autenticación de dos factores fue desactivada con éxito!" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         //POST
         [HttpPost]
         public IActionResult ActivateDeactivate(String userId)

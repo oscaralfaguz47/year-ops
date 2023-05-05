@@ -13,7 +13,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
     [Authorize(Roles = SD.Role_User_Master + "," + SD.Role_User_Admin + "," + SD.Role_User_Simple)]
-    [RequireTwoFactorEnabled]
     public class CalculatorController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -24,6 +23,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             _emailSender = emailSender;
         }
 
+        [RequireTwoFactorEnabled]
         public IActionResult Index()
         {
             Collection<CalculatorCostCenterUserConfigurationVM> costCenterUserList = new Collection<CalculatorCostCenterUserConfigurationVM>();

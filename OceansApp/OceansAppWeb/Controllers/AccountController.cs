@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
+using OceansApp.Utility;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
 
@@ -46,14 +47,7 @@ namespace OceansAppWeb.Account.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
-            if (userFromDb.TwoFactorEnabled)
-            {
-                ViewData["TwoFactorEnabled"] = true;
-            }
-            else
-            {
-                ViewData["TwoFactorEnabled"] = userFromDb.TwoFactorEnabled;
-            }
+
             ProfileVM myInfo = new()
             {
                 Id = userFromDb.Id,
@@ -85,29 +79,12 @@ namespace OceansAppWeb.Account.Controllers
                     _unitOfWork.Save();
 
                     TempData["success"] = "¡Los datos fueron guardados con éxito!";
-                    if (userToUpdate.TwoFactorEnabled)
-                    {
-                        ViewData["TwoFactorEnabled"] = true;
-                    }
-                    else
-                    {
-                        ViewData["TwoFactorEnabled"] = userToUpdate.TwoFactorEnabled;
-                    }
                     return View("Profile", model);
                 }
                 catch (Exception e)
                 {
                     return BadRequest(e.Message);
                 }
-            }
-            var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == model.Id);
-            if (userFromDb.TwoFactorEnabled)
-            {
-                ViewData["TwoFactorNoEnabled"] = true;
-            }
-            else
-            {
-                ViewData["TwoFactorNoEnabled"] = userFromDb.TwoFactorEnabled;
             }
             return View("Profile", model);
         }
@@ -167,43 +144,52 @@ namespace OceansAppWeb.Account.Controllers
 
                     if (user != null)
                     {
-                        if (await _userManager.CheckPasswordAsync(user, model.Password))
+                        //if (await _userManager.CheckPasswordAsync(user, model.Password))
+                        //{
+                        if (user.EmailConfirmed == false)
                         {
-                            if (user.EmailConfirmed == false)
+                            ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
+                            return View(model);
+                        }
+                        var applicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+                        if (!applicationUser.IsActive)
+                        {
+                            return View("Lockout");
+                        }
+                        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                        if (result.Succeeded)
+                        {
+                            if (!user.TwoFactorEnabled)
                             {
-                                ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
-                                return View(model);
+                                return RedirectToAction("EnableAuthenticator");
                             }
-                            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
-                            if (result.Succeeded)
-                            {
-                                if (!user.TwoFactorEnabled)
-                                {
-                                    return RedirectToAction("EnableAuthenticator");
-                                }
-                                return LocalRedirect(returnUrl);
-                            }
-                            if (result.RequiresTwoFactor)
-                            {
-                                return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
-                            }
-                            if (result.IsLockedOut)
-                            {
-                                return View("Lockout");
-                            }
-                            else
-                            {
-                                ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
-                                return View(model);
-                            }
+                            return LocalRedirect(returnUrl);
+                        }
+                        if (result.RequiresTwoFactor)
+                        {
+                            return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
+                        }
+                        if (result.IsLockedOut)
+                        {
+                            return View("Lockout");
                         }
                         else
                         {
-                            user.AccessFailedCount++;
-                            await _userManager.UpdateAsync(user);
                             ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
                             return View(model);
                         }
+                        //}
+                        //else
+                        //{
+                        //    user.AccessFailedCount++;
+                        //    if (user.lo)
+                        //    {
+                        //        return View("Lockout");
+                        //    }
+                        //    await _userManager.UpdateAsync(user);
+                        //    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
+                        //    return View(model);
+                        //}
                     }
                     else
                     {
@@ -219,16 +205,6 @@ namespace OceansAppWeb.Account.Controllers
             return View(model);
         }
 
-        [HttpGet]
-        [Authorize]
-        [RequireTwoFactorEnabled]
-        public async Task<IActionResult> RemoveAuthenticator()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            await _userManager.ResetAuthenticatorKeyAsync(user);
-            await _userManager.SetTwoFactorEnabledAsync(user, false);
-            return RedirectToAction(nameof(HomeController.Dashboard), "Home");
-        }
 
         [HttpGet]
         [Authorize]

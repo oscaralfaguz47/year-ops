@@ -29,6 +29,12 @@ html {
 body {
     margin-bottom: 60px;
 }
+.hide{
+    display: none;
+}
+.show {
+    display: block;
+}
 
 nav {
     position: fixed !important;
@@ -41,6 +47,7 @@ nav {
     --bs-navbar-padding-y: 1rem;
     --bs-navbar-color: var(--clr-grayLight);
     --bs-navbar-hover-color: var(--clr-blueLight);
+    font-weight: bold;
 }
 .img-logo {
     width: 160px
@@ -228,9 +235,10 @@ footer {
     position: fixed;
     width: 100%;
     bottom: 0;
-    height: 50px;
-    background-color: var(--clr-dark1);
+    height: 35px !important;
+    background-color: var(--clr-navbar-background);
     color: #fff;
     display: flex;
     align-items: center;
+    font-size: 13px !important;
 }

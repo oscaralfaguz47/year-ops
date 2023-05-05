@@ -58,19 +58,7 @@
         </div>
         <div class="col-lg-6 text-center">
             <h2><strong>Seguridad de mi cuenta</strong></h2>
-            @if (User.Identity.IsAuthenticated)
-            {
-                var twoFactor = ViewData["TwoFactorEnabled"];
-                if (twoFactor != null && twoFactor.ToString().ToLower() == "true")
-                {
-                    <a asp-area="" asp-action="RemoveAuthenticator" asp-controller="Account" class="btn btn-warning">Eliminar y cambiar la autenticación de 2 factores</a>
-                }
-                else
-                {
-                    <a asp-action="EnableAuthenticator" asp-controller="Account">Configurar la autenticación de 2 factores</a>
-                }
-
-            }
+            <p>TO-DO</p>
         </div>
 
     </div>

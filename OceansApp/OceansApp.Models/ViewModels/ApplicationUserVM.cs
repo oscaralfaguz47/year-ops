@@ -20,6 +20,7 @@ namespace OceansApp.Models.ViewModels
         [MaxLength(100)]
         public String? Ocupation { get; set; }
         public bool IsActive { get; set; }
+        public bool TwoFactorEnabled { get; set; }
 
     }
 }
