@@ -6,13 +6,18 @@
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
-            <a id="manage" class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile" title="Manage">@UserManager.GetUserName(User)</a>
-        </li>
-        <li class="nav-item">
-            <form id="logoutForm" class="form-inline" asp-area="" asp-controller="Account" asp-action="LogOff">
+        <li class="nav-item dropstart">
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-person-circle"></i></a>
+            <div class="dropdown-menu" style="">
+               <a id="manage" class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile" title="Manage">My Perfil</a>
+                <div class="dropdown-divider"></div>
+               <form id="logoutForm" class="form-inline" asp-area="" asp-controller="Account" asp-action="LogOff">
                 <button id="logout" type="submit" class="nav-link btn btn-link text-dark">Cerrar Sesión</button>
             </form>
+            </div>
         </li>
+
     }
 </ul>
+
+

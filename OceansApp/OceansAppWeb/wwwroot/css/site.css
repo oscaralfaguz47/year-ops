@@ -34,8 +34,14 @@ nav {
     position: fixed !important;
     z-index: 100 !important;
     width: 100% !important;
+    background-color: var(--clr-dark2);
 }
-
+.navbar {
+    --bs-navbar-padding-x: 0;
+    --bs-navbar-padding-y: 1rem;
+    --bs-navbar-color: var(--clr-grayLight);
+    --bs-navbar-hover-color: var(--clr-blueLight);
+}
 .img-logo {
     width: 160px
 }
