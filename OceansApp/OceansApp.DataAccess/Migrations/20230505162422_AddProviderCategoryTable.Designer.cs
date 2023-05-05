@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230505162422_AddProviderCategoryTable")]
+    partial class AddProviderCategoryTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -492,25 +494,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("COST_CENTER");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.Country", b =>
-                {
-                    b.Property<string>("IdCountry")
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
-
-                    b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
-
-                    b.HasKey("IdCountry");
-
-                    b.ToTable("COUNTRY");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.DataUpdateDate", b =>
                 {
                     b.Property<int>("IdUpdateDate")
@@ -589,77 +572,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("IdCostCenter");
 
                     b.ToTable("LEDGER_MOVEMENT");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.Provider", b =>
-                {
-                    b.Property<string>("IdProvider")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("AdmissionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Alias")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateLastUpdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(249)
-                        .HasColumnType("nvarchar(249)");
-
-                    b.Property<string>("IdCountry")
-                        .IsRequired()
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
-
-                    b.Property<string>("IdProviderCategory")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
-                    b.Property<string>("IsActive")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Occupation")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("Phone1")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Phone2")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("IdProvider");
-
-                    b.HasIndex("IdCountry");
-
-                    b.HasIndex("IdProviderCategory");
-
-                    b.ToTable("PROVIDER");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProviderCategory", b =>
@@ -815,25 +727,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("AccountingAccount");
 
                     b.Navigation("CostCenter");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.Provider", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("IdCountry")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ProviderCategory", "ProviderCategory")
-                        .WithMany()
-                        .HasForeignKey("IdProviderCategory")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Country");
-
-                    b.Navigation("ProviderCategory");
                 });
 #pragma warning restore 612, 618
         }

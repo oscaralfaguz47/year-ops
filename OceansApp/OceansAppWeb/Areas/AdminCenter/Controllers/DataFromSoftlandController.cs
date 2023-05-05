@@ -54,7 +54,10 @@ namespace OceansApp.Areas.Admin.Controllers
                         if (validateCorrectJsonStructureAccountingAccount(obj.DataToSave) &&
                             validateCorrectJsonStructureCostCenter(obj.DataToSave) 
                             && validateCorrectJsonStructureLedgerMovement(obj.DataToSave)
-                            && validateCorrectJsonStructureClients(obj.DataToSave))
+                            && validateCorrectJsonStructureClients(obj.DataToSave)
+                            && validateCorrectJsonStructureProviderCategory(obj.DataToSave)
+                            && validateCorrectJsonStructureCountry(obj.DataToSave)
+                            && validateCorrectJsonStructureProvider(obj.DataToSave))
                         {
                             var updatedSections = "";
 
@@ -190,6 +193,98 @@ namespace OceansApp.Areas.Admin.Controllers
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
 
+                            //INSERT CATEGORY PROVIDERS
+                            if (jsonFromInput.providerCategories != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.providerCategories)
+                                {
+                                    ProviderCategory category = new()
+                                    {
+                                        IdProviderCategory = jsonMaster.CATEGORIA_PROVEED,
+                                        Description = jsonMaster.DESCRIPCION,
+                                        CreateDate = jsonMaster.CreateDate
+                                    };
+                                    if (_unitOfWork.ProviderCategory.UpdateIfExistAddIfNot(category))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                    }
+                                    _unitOfWork.Save();
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Categorias de Proveedor /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
+                            //INSERT COUNTRIES
+                            if (jsonFromInput.countries != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.countries)
+                                {
+                                    Country country = new()
+                                    {
+                                        IdCountry = jsonMaster.PAIS,
+                                        Name = jsonMaster.NOMBRE,
+                                        CreateDate = jsonMaster.CreateDate
+                                    };
+                                    if (_unitOfWork.Country.UpdateIfExistAddIfNot(country))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                    }
+                                    _unitOfWork.Save();
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Paises /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
+                            //INSERT PROVIDERS
+                            if (jsonFromInput.providers != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.providers)
+                                {
+                                    DateTime? lastUpdate = null;
+                                    if (jsonMaster.FCH_HORA_ULT_MOD != "")
+                                    {
+                                        lastUpdate = jsonMaster.FCH_HORA_ULT_MOD;
+                                    }
+                                    Provider provider = new()
+                                    {
+                                        IdProvider = jsonMaster.PROVEEDOR,
+                                        Name = jsonMaster.NOMBRE,
+                                        Alias = jsonMaster.ALIAS,
+                                        Occupation = jsonMaster.CARGO,
+                                        Address = jsonMaster.DIRECCION,
+                                        Email = jsonMaster.E_MAIL,
+                                        AdmissionDate = jsonMaster.FECHA_INGRESO,
+                                        Phone1 = jsonMaster.TELEFONO1,
+                                        Phone2 = jsonMaster.TELEFONO2,
+                                        IdCountry = jsonMaster.PAIS,
+                                        IdProviderCategory = jsonMaster.CATEGORIA_PROVEED,
+                                        Notes = jsonMaster.NOTAS,
+                                        IsActive = jsonMaster.ACTIVO,
+                                        DateLastUpdate = lastUpdate,
+                                        CreationDate = jsonMaster.CreateDate
+                                    };
+                                    if (_unitOfWork.Provider.UpdateIfExistAddIfNot(provider))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                        _unitOfWork.Save();
+                                    }
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Proveedores /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
                             if (updatedSections != "")
                             {
                                 //INSERT DATE
@@ -224,6 +319,19 @@ namespace OceansApp.Areas.Admin.Controllers
                             {
                                 ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Clientes");
                             }
+                            if (!validateCorrectJsonStructureProviderCategory(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para la categoría de Proveedores");
+                            }
+                            if (!validateCorrectJsonStructureCountry(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los paises");
+                            }
+                            if (!validateCorrectJsonStructureProvider(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los proveedores");
+                            }
+
                             return View("Index");
                         }
                     }
@@ -434,5 +542,128 @@ namespace OceansApp.Areas.Admin.Controllers
                 return false;
             }
         }
+        public bool validateCorrectJsonStructureProviderCategory(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.providerCategories != null)
+                {
+                    foreach (var result in json.providerCategories)
+                    {
+                        ProviderCategory category = new()
+                        {
+                            IdProviderCategory = result.CATEGORIA_PROVEED,
+                            Description = result.DESCRIPCION,
+                            CreateDate = result.CreateDate
+                        };
+                        if (category.IdProviderCategory == null || category.Description == null
+                            || category.CreateDate.ToString() == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public bool validateCorrectJsonStructureCountry(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.countries != null)
+                {
+                    foreach (var result in json.countries)
+                    {
+                        Country country = new()
+                        {
+                            IdCountry = result.PAIS,
+                            Name = result.NOMBRE,
+                            CreateDate = result.CreateDate
+                        };
+                        if (country.IdCountry == null || country.Name == null
+                            || country.CreateDate.ToString() == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public bool validateCorrectJsonStructureProvider(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.providers != null)
+                {
+                    foreach (var result in json.providers)
+                    {
+                        DateTime? dateLastUpdate = null;
+                        if (result.FCH_HORA_ULT_MOD != "")
+                        {
+                            dateLastUpdate = result.FCH_HORA_ULT_MOD;
+                        }
+                        Provider provider = new()
+                        {
+                            IdProvider = result.PROVEEDOR,
+                            Name = result.NOMBRE,
+                            Alias = result.ALIAS,
+                            Occupation = result.CARGO,
+                            Address = result.DIRECCION,
+                            Email = result.E_MAIL,
+                            AdmissionDate = result.FECHA_INGRESO,
+                            Phone1 = result.TELEFONO1,
+                            Phone2 = result.TELEFONO2,
+                            IdCountry = result.PAIS,
+                            IdProviderCategory = result.CATEGORIA_PROVEED,
+                            Notes = result.NOTAS,
+                            IsActive = result.ACTIVO,
+                            DateLastUpdate = dateLastUpdate,
+                            CreationDate = result.CreateDate
+                        };
+                        if (provider.IdProvider == null || provider.Name == null || provider.Occupation == null 
+                            || provider.AdmissionDate.ToString() == null || provider.IdCountry == null || provider.IdProviderCategory == null
+                            || provider.IsActive == null || provider.CreationDate.ToString() == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
+
 }

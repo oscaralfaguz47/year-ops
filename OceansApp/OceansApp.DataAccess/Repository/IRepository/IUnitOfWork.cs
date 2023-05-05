@@ -13,6 +13,9 @@
         ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; }
         ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; }
         IClientRepository Client { get; }
+        IProviderCategoryRepository ProviderCategory { get; }
+        IProviderRepository Provider { get; }
+        ICountryRepository Country { get; }
 
         void Save();
     }

@@ -21,6 +21,9 @@ namespace OceansApp.DataAccess.Repository
             CalculatorSearchHistory = new CalculatorSearchHistoryRepository(_db);
             CalculatorAccountingAccountToIgnore = new CalculatorAccountingAccountToIgnoreRepository(_db);
             Client = new ClientRepository(_db);
+            ProviderCategory = new ProviderCategoryRepository(_db);
+            Provider = new ProviderRepository(_db);
+            Country = new CountryRepository(_db);
         }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
@@ -32,6 +35,9 @@ namespace OceansApp.DataAccess.Repository
         public ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; set; }
         public ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; set; }
         public IClientRepository Client { get; set; }
+        public IProviderCategoryRepository ProviderCategory { get; set; }
+        public IProviderRepository Provider { get; set; }
+        public ICountryRepository Country { get; set; }
 
 
         public void Save()

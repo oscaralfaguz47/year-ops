@@ -21,5 +21,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<CalculatorSearchHistory> CALCULATOR_SEARCH_HISTORY { get; set; }
         public DbSet<CalculatorAccountingAccountToIgnore> CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE { get; set; }
         public DbSet<Client> CLIENT { get; set; }
+        public DbSet<ProviderCategory> PROVIDER_CATEGORY { get; set; }
+        public DbSet<Provider> PROVIDER { get; set; }
+        public DbSet<Country> COUNTRY { get; set; }
     }
 }
