@@ -17,69 +17,75 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<List<ProviderGroupByCategoryVM>> GetProvidersGroupByCategoryAsync(string providerIsActive)
         {
-            var query = @"
-                SELECT PC.IdProviderCategory, PC.Description, COUNT(PC.Description) AS NumProviders
-                FROM PROVIDER P
-                JOIN PROVIDER_CATEGORY PC ON P.IdProviderCategory = PC.IdProviderCategory
-                WHERE P.IsActive = @ProviderIsActive AND PC.IdProviderCategory NOT IN('PR', 'OCEANS')
-                GROUP BY PC.IdProviderCategory, PC.Description ORDER BY PC.Description";
+            // Primera consulta: obtener las categorías y el número de proveedores por categoría
+            var categoryQuery = @"
+        SELECT PC.IdProviderCategory, PC.Description, COUNT(PC.Description) AS NumProviders
+        FROM PROVIDER P
+        JOIN PROVIDER_CATEGORY PC ON P.IdProviderCategory = PC.IdProviderCategory
+        WHERE P.IsActive = @ProviderIsActive AND PC.IdProviderCategory NOT IN('PR', 'OCEANS')
+        GROUP BY PC.IdProviderCategory, PC.Description
+        ORDER BY PC.Description";
+
+            // Segunda consulta: obtener los proveedores por categoría
+            var providerQuery = @"
+        SELECT P.IdProvider, P.Name, P.Occupation, PC.IdProviderCategory
+        FROM PROVIDER P
+        JOIN PROVIDER_CATEGORY PC ON P.IdProviderCategory = PC.IdProviderCategory
+        WHERE P.IsActive = @ProviderIsActive AND PC.IdProviderCategory NOT IN('PR', 'OCEANS')
+        ORDER BY PC.Description";
 
             var results = new List<ProviderGroupByCategoryVM>();
 
             using var connection = _db.Database.GetDbConnection();
             await connection.OpenAsync();
 
-            using var command = connection.CreateCommand();
-            command.CommandText = query;
-            command.Parameters.Add(new SqlParameter("@ProviderIsActive", providerIsActive));
+            // Ejecuta la primera consulta para obtener las categorías y el número de proveedores
+            using var categoryCommand = connection.CreateCommand();
+            categoryCommand.CommandText = categoryQuery;
+            categoryCommand.Parameters.Add(new SqlParameter("@ProviderIsActive", providerIsActive));
 
-            using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            using var categoryReader = await categoryCommand.ExecuteReaderAsync();
+            while (await categoryReader.ReadAsync())
             {
                 results.Add(new ProviderGroupByCategoryVM
                 {
-                    IdCategory = reader.GetString(0), // Asume que IdProviderCategory es de tipo string.
-                    CategoryDescription = reader.GetString(1),
-                    NumProviders = reader.GetInt32(2)
+                    IdCategory = categoryReader.GetString(0),
+                    CategoryDescription = categoryReader.GetString(1),
+                    NumProviders = categoryReader.GetInt32(2),
+                    Providers = new List<ProviderGetAllVM>()
                 });
             }
+            await connection.CloseAsync();
 
-            return results;
-        }
-        public async Task<List<ProviderGroupByCategoryVM>> GetWantedProvidersAsync(string providerIsActive)
-        {
-            var query = @"
-                SELECT 
-                IdProvider,
-                Name, 
-                Occupation, 
-                IdProviderCategory
-                FROM PROVIDER 
-                WHERE IsActive = @ProviderIsActive 
-                AND IdProviderCategory NOT IN('PR', 'OCEANS')";
-
-            var results = new List<ProviderGroupByCategoryVM>();
-
-            using var connection = _db.Database.GetDbConnection();
+            // Ejecuta la segunda consulta para obtener los proveedores por categoría
             await connection.OpenAsync();
+            using var providerCommand = connection.CreateCommand();
+            providerCommand.CommandText = providerQuery;
+            providerCommand.Parameters.Add(new SqlParameter("@ProviderIsActive", providerIsActive));
 
-            using var command = connection.CreateCommand();
-            command.CommandText = query;
-            command.Parameters.Add(new SqlParameter("@ProviderIsActive", providerIsActive));
-
-            using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            using var providerReader = await providerCommand.ExecuteReaderAsync();
+            while (await providerReader.ReadAsync())
             {
-                results.Add(new ProviderGroupByCategoryVM
+                var provider = new ProviderGetAllVM
                 {
-                    IdCategory = reader.GetString(0), // Asume que IdProviderCategory es de tipo string.
-                    CategoryDescription = reader.GetString(1),
-                    NumProviders = reader.GetInt32(2)
-                });
+                    IdProvider = providerReader.GetString(0),
+                    Name = providerReader.GetString(1),
+                    Occupation = providerReader.GetString(2)
+                };
+
+                var categoryId = providerReader.GetString(3);
+                var category = results.FirstOrDefault(x => x.IdCategory == categoryId);
+
+                if (category != null)
+                {
+                    category.Providers.Add(provider);
+                }
             }
+            await connection.CloseAsync();
 
             return results;
         }
+
 
         public void Update(Provider obj)
         {

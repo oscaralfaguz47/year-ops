@@ -27,13 +27,13 @@ body {
         margin-bottom: 3px;
         color: var(--clr-yellow);
     }
-.widget-footer{
+#widget-footer{
     color: #fff;
     font-size:14px;
     position: absolute;
     bottom: 7px;
 }
-    .widget-footer h6 {
+    #widget-footer h6 {
         font-weight: bold;
         margin-bottom: 0;
         color: var(--clr-blueDark);
@@ -42,6 +42,12 @@ body {
     text-align: left;
     display: inline-block;
     vertical-align: middle;
+    color:mediumblue;
+    text-decoration: underline;
+}
+.widget-left-col:hover {
+    color: var(--clr-blueLight);
+    text-decoration:underline;
 }
 .widget-right-col {
     text-align: right;

@@ -6,5 +6,6 @@ namespace OceansApp.Models.ViewModels
         public string IdCategory { get; set; }
         public string CategoryDescription { get; set; }
         public int NumProviders { get; set; }
+        public List<ProviderGetAllVM> Providers { get; set; }
     }
 }

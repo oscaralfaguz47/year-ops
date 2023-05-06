@@ -1,42 +1,87 @@
 ﻿@using OceansApp.Models.ViewModels
 @model DashboardVM
 <partial name="_HomeStylesPartial" />
+
+<!-- WIDGET PROVIDERS -->
+<div class="modal fade" id="providersModal" tabindex="-1" aria-labelledby="providersModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="providersModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="providersModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div>
     <div class="row" id="dashboard-box">
         <div class="col-md-4">
             <div class="oce-widget">
                 <h5>Consultores de Oceans</h5>
-                <div class="vertical-scroll-container">
-                    @{
-                        int totalProvidersDevs = 0;
-                        int totalProvidersAdmin = 0;
-                        foreach (var item in Model.ProvidersGroupByCategory)
-                        {
-                            if (item.CategoryDescription.Contains("Recursos Informáticos"))
-                            {
-                                totalProvidersDevs = totalProvidersDevs + item.NumProviders;
-                            }
-                            else
-                            {
-                                totalProvidersAdmin = totalProvidersAdmin + item.NumProviders;
-                            }
-                            <div class="vertical-scroll-item">
-                                <div class="widget-left-col">
-                                    @item.CategoryDescription
-                                </div>
-                                <div class="widget-right-col">
-                                    @item.NumProviders
-                                </div>
-                            </div>
-                        }
-                    }
+                <div class="vertical-scroll-container" id="providers-container">
                 </div>
-                <div class="widget-footer">
-                    <h6>TOTAL DE CONSULTORES: @(totalProvidersAdmin + totalProvidersDevs)</h6>
-                     <label>Consulores Administrativos: <span>@(totalProvidersAdmin)</span></label><br />
-                     <label>Consulores informáticos: <span>@(totalProvidersDevs)</span></label>
+                <div id="widget-footer">
                 </div>
             </div>
         </div>
     </div>
 </div>
+<!-- END WIDGET PROVIDERS -->
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        // Reemplaza la URL con la ruta a tu controlador que devuelve el JSON
+        var url = "/Home/GetProvidersGroupByCategory";
+
+        $.getJSON(url, function (data) {
+            var html = "";
+            var totalDevProviders = 0;
+            var totalAdminProviders = 0;
+            $.each(data, function (key, item) {
+                if(item.CategoryDescription.indexOf("Recursos Informáticos") !== -1){
+                    totalDevProviders += item.NumProviders;
+                }else{
+                    totalAdminProviders += item.NumProviders;
+                }
+
+                html += `<div class="vertical-scroll-item">
+                             <div class="widget-left-col category-description" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#providersModal">
+                                 ${item.CategoryDescription}
+                             </div>
+                             <div class="widget-right-col">
+                                 ${item.NumProviders}
+                             </div>
+                        </div>`;
+            });
+
+            $("#providers-container").html(html);
+
+            // Agrega un evento de clic para mostrar la lista de proveedores en el modal
+            $(".category-description").on("click", function() {
+                var index = $(this).parent().index();
+                var selectedItem = data[index];
+                var providerListHtml = '<ul>';
+                $.each(selectedItem.Providers, function (providerKey, provider) {
+                    providerListHtml += '<li>' + provider.Name + ' (' + provider.Occupation + ')</li>';
+                });
+                providerListHtml += '</ul>';
+                $("#providersModalBody").html(providerListHtml);
+                $("#providersModalLabel").text(selectedItem.CategoryDescription);
+            });
+
+            var widgetFooterHtml = `
+            <h6>TOTAL DE CONSULTORES: ${totalDevProviders + totalAdminProviders} </h6>
+                 <label>Consulores Administrativos: <span>${totalAdminProviders}</span></label><br />
+                 <label>Consulores informáticos: <span>${totalDevProviders}</span></label>
+            `;
+            $("#widget-footer").html(widgetFooterHtml);
+        });
+    });
+</script>
+}
+

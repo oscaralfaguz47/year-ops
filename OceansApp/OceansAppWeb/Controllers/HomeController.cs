@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
+using System.Text.Json;
 
 namespace OceansAppWeb.Controllers
 {
@@ -23,15 +24,17 @@ namespace OceansAppWeb.Controllers
             return RedirectToAction("Dashboard");
         }
 
-        public async Task<IActionResult> Dashboard()
+        public IActionResult Dashboard()
         {
-            var providersGroupByCategory = await _unitOfWork.Provider.GetProvidersGroupByCategoryAsync("S");
+            return View();
+        }
 
-            var viewModel = new DashboardVM
-            {
-                ProvidersGroupByCategory = providersGroupByCategory
-            };
-            return View(viewModel);
+        [HttpGet]
+        public async Task<IActionResult> GetProvidersGroupByCategory()
+        {
+            var providerList = await _unitOfWork.Provider.GetProvidersGroupByCategoryAsync("S");
+            string jsonResult = JsonSerializer.Serialize(providerList);
+            return Content(jsonResult, "application/json");
         }
         public IActionResult AccessDenied()
         {
