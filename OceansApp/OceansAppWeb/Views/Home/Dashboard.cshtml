@@ -1,3 +1,42 @@
-﻿<div class="container text-center">
-    <hi>¡BIENVENIDO!</hi>
+﻿@using OceansApp.Models.ViewModels
+@model DashboardVM
+<partial name="_HomeStylesPartial" />
+<div>
+    <div class="row" id="dashboard-box">
+        <div class="col-md-4">
+            <div class="oce-widget">
+                <h5>Consultores de Oceans</h5>
+                <div class="vertical-scroll-container">
+                    @{
+                        int totalProvidersDevs = 0;
+                        int totalProvidersAdmin = 0;
+                        foreach (var item in Model.ProvidersGroupByCategory)
+                        {
+                            if (item.CategoryDescription.Contains("Recursos Informáticos"))
+                            {
+                                totalProvidersDevs = totalProvidersDevs + item.NumProviders;
+                            }
+                            else
+                            {
+                                totalProvidersAdmin = totalProvidersAdmin + item.NumProviders;
+                            }
+                            <div class="vertical-scroll-item">
+                                <div class="widget-left-col">
+                                    @item.CategoryDescription
+                                </div>
+                                <div class="widget-right-col">
+                                    @item.NumProviders
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="widget-footer">
+                    <h6>TOTAL DE CONSULTORES: @(totalProvidersAdmin + totalProvidersDevs)</h6>
+                     <label>Consulores Administrativos: <span>@(totalProvidersAdmin)</span></label><br />
+                     <label>Consulores informáticos: <span>@(totalProvidersDevs)</span></label>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

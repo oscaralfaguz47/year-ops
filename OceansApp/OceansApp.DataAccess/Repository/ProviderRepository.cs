@@ -1,6 +1,9 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -12,6 +15,71 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
+        public async Task<List<ProviderGroupByCategoryVM>> GetProvidersGroupByCategoryAsync(string providerIsActive)
+        {
+            var query = @"
+                SELECT PC.IdProviderCategory, PC.Description, COUNT(PC.Description) AS NumProviders
+                FROM PROVIDER P
+                JOIN PROVIDER_CATEGORY PC ON P.IdProviderCategory = PC.IdProviderCategory
+                WHERE P.IsActive = @ProviderIsActive AND PC.IdProviderCategory NOT IN('PR', 'OCEANS')
+                GROUP BY PC.IdProviderCategory, PC.Description ORDER BY PC.Description";
+
+            var results = new List<ProviderGroupByCategoryVM>();
+
+            using var connection = _db.Database.GetDbConnection();
+            await connection.OpenAsync();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = query;
+            command.Parameters.Add(new SqlParameter("@ProviderIsActive", providerIsActive));
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                results.Add(new ProviderGroupByCategoryVM
+                {
+                    IdCategory = reader.GetString(0), // Asume que IdProviderCategory es de tipo string.
+                    CategoryDescription = reader.GetString(1),
+                    NumProviders = reader.GetInt32(2)
+                });
+            }
+
+            return results;
+        }
+        public async Task<List<ProviderGroupByCategoryVM>> GetWantedProvidersAsync(string providerIsActive)
+        {
+            var query = @"
+                SELECT 
+                IdProvider,
+                Name, 
+                Occupation, 
+                IdProviderCategory
+                FROM PROVIDER 
+                WHERE IsActive = @ProviderIsActive 
+                AND IdProviderCategory NOT IN('PR', 'OCEANS')";
+
+            var results = new List<ProviderGroupByCategoryVM>();
+
+            using var connection = _db.Database.GetDbConnection();
+            await connection.OpenAsync();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = query;
+            command.Parameters.Add(new SqlParameter("@ProviderIsActive", providerIsActive));
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                results.Add(new ProviderGroupByCategoryVM
+                {
+                    IdCategory = reader.GetString(0), // Asume que IdProviderCategory es de tipo string.
+                    CategoryDescription = reader.GetString(1),
+                    NumProviders = reader.GetInt32(2)
+                });
+            }
+
+            return results;
+        }
 
         public void Update(Provider obj)
         {
