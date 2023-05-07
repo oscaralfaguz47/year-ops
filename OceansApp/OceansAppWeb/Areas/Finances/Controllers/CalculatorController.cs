@@ -59,7 +59,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Calculate(CalculatorVM model)
+        public async Task<IActionResult> Calculate(CalculatorVM model)
         {
             if (ModelState.IsValid)
             {
@@ -68,17 +68,18 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var globalConfiguration = _unitOfWork.CalculatorGlobalConfiguration.GetGlobalConfiguration();
-                    var costOfSalesAccountingAccounts = _unitOfWork.AccountingAccounts.GetCostOfSalesAccountingAccounts();
-                    var expensesAccountingAccounts = _unitOfWork.AccountingAccounts.GetExpensesAccountingAccounts();
-                    var returnsAndDiscountsAccountingAccounts = _unitOfWork.AccountingAccounts.GetReturnsAndDiscountsAccountingAccounts();
+                    DateTime finalDate = Convert.ToDateTime("" + globalConfiguration.EndDate.Month + "/" + globalConfiguration.EndDate.Day + "/" + globalConfiguration.EndDate.Year + " 11:59:59 pm");
+                    var costOfSalesAccountingAccounts = await _unitOfWork.LedgerMovements
+                                   .GetAccountingAccountsWithBalance("5", globalConfiguration.StartDate, finalDate, 1, "D");
+                    var expensesAccountingAccounts = await _unitOfWork.LedgerMovements
+                                   .GetAccountingAccountsWithBalance("6", globalConfiguration.StartDate, finalDate, 1, "D");
+                    var returnsAndDiscountsAccountingAccounts = await _unitOfWork.LedgerMovements.GetAccountingAccountsReturnsAndDiscountsWithBalance(
+                        globalConfiguration.StartDate, finalDate, 1);
                     Decimal totalCostOfSales = 0;
                     Decimal totalExpenses = 0;
                     Decimal totalReturnsAndDiscounts = 0;
                     int userIsMasterOrAdmin = 0;
                     var userRoles = HttpContext.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
-                    DateTime finalDate = Convert.ToDateTime("" + globalConfiguration.EndDate.Month + "/" + globalConfiguration.EndDate.Day + "/" + globalConfiguration.EndDate.Year + " 11:59:59 pm");
-                    var accountingAccountsCostsSalesToIgnore = _unitOfWork.CalculatorAccountingAccountToIgnore.GetAll(x => x.ExpenseType == "Sales Cost");
-
 
                     Double numMonths = ((finalDate - globalConfiguration.StartDate).TotalDays) / 30;
 
@@ -140,59 +141,41 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             //CALCULATE TOTAL COST OF SALES
                             foreach (var accountingAccount in costOfSalesAccountingAccounts)
                             {
-                                Decimal amountByCostCenter = 0;
-                                Decimal totalAmountByCostCenterAfterPercentage = 0;
-                                bool isIgnored = false;
-                                if (accountingAccount.AcceptData == "S")
+                                if (accountingAccount.IdCostCenter == idCostCenter)
                                 {
-                                    foreach (var toIgnore in accountingAccountsCostsSalesToIgnore)
+                                    Decimal amountByCostCenter = 0;
+                                    Decimal totalAmountByCostCenterAfterPercentage = 0;
+
+                                    amountByCostCenter += accountingAccount.TotalAmount;
+                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.IdCostCenter == costCenter.IdCostCenter).Increase;
+                                    totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
+                                        + (amountByCostCenter
+                                        * ((decimal)percentageIncrease / 100));
+                                    if (amountByCostCenter > 0)
                                     {
-                                        if (accountingAccount.IdAccountingAccount == toIgnore.IdAccountingAccount)
+                                        expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                         {
-                                            isIgnored = true;
-                                        }
+                                            IdAccountingAccount = accountingAccount.IdAccountingAccount,
+                                            AccountingAccountName = accountingAccount.AccountingAccountName,
+                                            Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                            CostCenterName = costCenter.Description,
+                                            increasePercentage = percentageIncrease,
+                                            increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber
+                                        });
                                     }
-                                    if (!isIgnored)
-                                    {
-                                        amountByCostCenter = amountByCostCenter + _unitOfWork.LedgerMovements
-                                   .GetDebitAndCreditAmountOfAnAccountingAccount(
-                                   accountingAccount.IdAccountingAccount,
-                                   idCostCenter, globalConfiguration.StartDate,
-                                   finalDate,
-                                   accountingAccount.Balance);
-                                        Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.IdCostCenter == costCenter.IdCostCenter).Increase;
-                                        totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
-                                            + (amountByCostCenter
-                                            * ((decimal)percentageIncrease / 100));
-                                        if (amountByCostCenter > 0)
-                                        {
-                                            expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
-                                            {
-                                                IdAccountingAccount = accountingAccount.IdAccountingAccount,
-                                                AccountingAccountName = accountingAccount.Description,
-                                                Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
-                                                CostCenterName = costCenter.Description,
-                                                increasePercentage = percentageIncrease,
-                                                increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber
-                                            });
-                                        }
-                                    }
+                                    totalCostOfSales = totalCostOfSales + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
                                 }
-                                totalCostOfSales = totalCostOfSales + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
                             }
                             //CALCULATE TOTAL EXPENSES
                             foreach (var accountingAccount in expensesAccountingAccounts)
                             {
-                                Decimal amountByCostCenter = 0;
-                                Decimal totalAmountByCostCenterAfterPercentage = 0;
-                                if (accountingAccount.AcceptData == "S")
+                                if (accountingAccount.IdCostCenter == idCostCenter)
                                 {
-                                    amountByCostCenter = amountByCostCenter + _unitOfWork.LedgerMovements
-                                    .GetDebitAndCreditAmountOfAnAccountingAccount(
-                                    accountingAccount.IdAccountingAccount,
-                                    idCostCenter, globalConfiguration.StartDate,
-                                    finalDate,
-                                    accountingAccount.Balance);
+                                    Decimal amountByCostCenter = 0;
+                                    Decimal totalAmountByCostCenterAfterPercentage = 0;
+
+                                    amountByCostCenter += accountingAccount.TotalAmount;
+
                                     Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.IdCostCenter == costCenter.IdCostCenter).Increase;
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter * ((decimal)percentageIncrease / 100));
@@ -203,7 +186,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                             expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                             {
                                                 IdAccountingAccount = accountingAccount.IdAccountingAccount,
-                                                AccountingAccountName = accountingAccount.Description,
+                                                AccountingAccountName = accountingAccount.AccountingAccountName,
                                                 Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                                 CostCenterName = costCenter.Description,
                                                 increasePercentage = percentageIncrease,
@@ -211,8 +194,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                             });
                                         }
                                     }
+                                    totalExpenses = totalExpenses + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
                                 }
-                                totalExpenses = totalExpenses + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
                             }
                         }
                     }
@@ -220,28 +203,21 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     foreach (var accountingAccount in returnsAndDiscountsAccountingAccounts)
                     {
                         Decimal amount = 0;
-                        if (accountingAccount.AcceptData == "S")
+
+                        amount += accountingAccount.TotalAmount;
+                        if (amount > 0)
                         {
-                            amount = amount + _unitOfWork.LedgerMovements
-                       .GetDebitAndCreditAmountOfAnAccountingAccount(
-                       accountingAccount.IdAccountingAccount,
-                       null, globalConfiguration.StartDate,
-                       finalDate,
-                       accountingAccount.Balance);
-                            if (amount > 0)
+                            if (userIsMasterOrAdmin > 0)
                             {
-                                if (userIsMasterOrAdmin > 0)
+                                expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                 {
-                                    expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
-                                    {
-                                        IdAccountingAccount = accountingAccount.IdAccountingAccount,
-                                        AccountingAccountName = accountingAccount.Description,
-                                        Amount = ((decimal)amount / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
-                                        CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
-                                        increasePercentage = 0,
-                                        increaseAmount = 0
-                                    });
-                                }
+                                    IdAccountingAccount = accountingAccount.IdAccountingAccount,
+                                    AccountingAccountName = accountingAccount.AccountingAccountName,
+                                    Amount = ((decimal)amount / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                    CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
+                                    increasePercentage = 0,
+                                    increaseAmount = 0
+                                });
                             }
                         }
                         totalReturnsAndDiscounts = totalReturnsAndDiscounts + amount;

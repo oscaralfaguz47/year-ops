@@ -1,6 +1,9 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -11,26 +14,100 @@ namespace OceansApp.DataAccess.Repository
         {
             _db = db;
         }
-        public Decimal GetDebitAndCreditAmountOfAnAccountingAccount(String accountingAccount,
-            String? costCenter, DateTime StartDate, DateTime endDate, String balance)
+        public async Task<IEnumerable<AccountingAccountWithBalanceVM>> GetAccountingAccountsWithBalance(string accountingAccountIdBegin,
+        DateTime fechaInicial, DateTime fechaFinal, int ignoreAccountingAccounts, string balance)
         {
-            Decimal totalResult = 0;
-            Decimal resultFromDb = _db.LEDGER_MOVEMENT.Where(x => (x.Date >= StartDate && x.Date <= endDate)
-            && (costCenter == null || x.IdCostCenter == costCenter) && x.IdAccountingAccount == accountingAccount).AsEnumerable()
-              .Sum(s => s.LocalDebit - s.LocalCredit);
+            var query = @"
+SELECT
+LM.IdAccountingAccount
+,AA.Description
+,LM.IdCostCenter
+," + (balance == "D" ? "SUM(LM.LocalDebit) - SUM(LM.LocalCredit)" : "SUM(LM.LocalCredit) - SUM(LM.LocalDebit)") + @" AS TotalAmount
+FROM LEDGER_MOVEMENT LM
+JOIN ACCOUNTING_ACCOUNT AA ON LM.IdAccountingAccount = AA.IdAccountingAccount
+WHERE LM.IdAccountingAccount LIKE CONCAT(@accountingAccountIdBegin,'%')
+AND (LM.Date >= @fechaInicial AND LM.Date <= @fechaFinal)
+" + (ignoreAccountingAccounts == 1 ? "AND LM.IdAccountingAccount NOT IN (SELECT IdAccountingAccount FROM CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE)" : "") + @"
+GROUP BY LM.IdAccountingAccount, AA.Description, LM.IdCostCenter 
+ORDER BY LM.IdAccountingAccount";
 
-            totalResult = resultFromDb;
+            List<AccountingAccountWithBalanceVM> accountingAccountsList = new List<AccountingAccountWithBalanceVM>();
 
-            if (balance == "A" && resultFromDb > 0)
+            using (var command = _db.Database.GetDbConnection().CreateCommand())
             {
-                totalResult = resultFromDb * -1;
+                command.CommandText = query;
+                command.Parameters.Add(new SqlParameter("@accountingAccountIdBegin", accountingAccountIdBegin));
+                command.Parameters.Add(new SqlParameter("@fechaInicial", fechaInicial));
+                command.Parameters.Add(new SqlParameter("@fechaFinal", fechaFinal));
+
+                await _db.Database.OpenConnectionAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var accountingAccount = new AccountingAccountWithBalanceVM
+                        {
+                            IdAccountingAccount = reader["IdAccountingAccount"].ToString(),
+                            AccountingAccountName = reader["Description"].ToString(),
+                            IdCostCenter = reader["IdCostCenter"].ToString(),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
+                        };
+
+                        accountingAccountsList.Add(accountingAccount);
+                    }
+                }
             }
-            if (balance == "A" && resultFromDb < 0)
-            {
-                totalResult = Math.Abs(resultFromDb);
-            }
-            return totalResult;
+
+            return accountingAccountsList;
         }
+
+
+        public async Task<IEnumerable<AccountingAccountWithBalanceVM>> GetAccountingAccountsReturnsAndDiscountsWithBalance(
+            DateTime fechaInicial, DateTime fechaFinal, int ignoreAccountingAccounts)
+        {
+            var query = @"
+        SELECT
+        LM.IdAccountingAccount
+        ,AA.Description
+        ,SUM(LM.LocalDebit) - SUM(LM.LocalCredit) AS TotalAmount
+        FROM LEDGER_MOVEMENT LM
+        JOIN ACCOUNTING_ACCOUNT AA ON LM.IdAccountingAccount = AA.IdAccountingAccount
+        WHERE LM.IdAccountingAccount LIKE '4-02-01%' OR LM.IdAccountingAccount LIKE '4-03-01%'
+        AND (LM.Date >= @fechaInicial AND LM.Date <= @fechaFinal)
+        " + (ignoreAccountingAccounts == 1 ? "AND LM.IdAccountingAccount NOT IN (SELECT IdAccountingAccount FROM CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE)" : "") + @"
+        GROUP BY LM.IdAccountingAccount, AA.Description
+        ORDER BY LM.IdAccountingAccount";
+
+            List<AccountingAccountWithBalanceVM> accountingAccountsList = new List<AccountingAccountWithBalanceVM>();
+
+            using (var command = _db.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = query;
+                command.Parameters.Add(new SqlParameter("@fechaInicial", fechaInicial));
+                command.Parameters.Add(new SqlParameter("@fechaFinal", fechaFinal));
+
+                await _db.Database.OpenConnectionAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var accountingAccount = new AccountingAccountWithBalanceVM
+                        {
+                            IdAccountingAccount = reader["IdAccountingAccount"].ToString(),
+                            AccountingAccountName = reader["Description"].ToString(),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
+                        };
+
+                        accountingAccountsList.Add(accountingAccount);
+                    }
+                }
+            }
+
+            return accountingAccountsList;
+        }
+
         public void Update(LedgerMovement obj)
         {
             _db.LEDGER_MOVEMENT.Update(obj);
@@ -38,7 +115,7 @@ namespace OceansApp.DataAccess.Repository
         public bool AddIfNotExist(LedgerMovement obj)
         {
             var existingLedgerMovement = GetFirstOrDefault(u => u.IdSeat == obj.IdSeat && u.IdCostCenter == obj.IdCostCenter &&
-            u.IdAccountingAccount == obj.IdAccountingAccount && u.LocalDebit == obj.LocalDebit && 
+            u.IdAccountingAccount == obj.IdAccountingAccount && u.LocalDebit == obj.LocalDebit &&
             u.LocalCredit == obj.LocalCredit && u.Consecutive == obj.Consecutive);
 
             if (existingLedgerMovement == null)
