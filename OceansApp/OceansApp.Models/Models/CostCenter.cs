@@ -5,9 +5,10 @@ namespace OceansApp.Models.Models
     public class CostCenter
     {
         [Key]
+        public int CostCenterId { get; set; }
         [MaxLength(25)]
         [Required]
-        public string IdCostCenter { get; set; }
+        public string CostCenterCode { get; set; }
         [MaxLength(200)]
         [Required]
         public string Description { get; set; }
@@ -18,6 +19,8 @@ namespace OceansApp.Models.Models
         public string AcceptData { get; set; }
         [Required]
         public DateTime CreateDate { get; set; }
+         [MaxLength(8)]
+        public string? CompanyId { get; set; }
 
     }
 }

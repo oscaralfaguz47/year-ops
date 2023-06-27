@@ -15,14 +15,14 @@ namespace OceansApp.Models.Models
         public int Consecutive { get; set; }
         [Required]
         [MaxLength(25)]
-        public string IdCostCenter { get; set; }
-        [ForeignKey("IdCostCenter")]
+        public int? CostCenterId { get; set; }
+        [ForeignKey("CostCenterId")]
         [ValidateNever]
         public CostCenter CostCenter { get; set; }
         [Required]
         [MaxLength(25)]
-        public string IdAccountingAccount { get; set; }
-        [ForeignKey("IdAccountingAccount")]
+        public int AccountingAccountId { get; set; }
+        [ForeignKey("AccountingAccountId")]
         [ValidateNever]
         public AccountingAccount AccountingAccount { get; set; }
         [Required]
@@ -36,6 +36,8 @@ namespace OceansApp.Models.Models
         public string AccountingType { get; set; }
         [Required]
         public DateTime RecordDate { get; set; }
+        [MaxLength(8)]
+        public string? CompanyId { get; set; }
 
     }
 }

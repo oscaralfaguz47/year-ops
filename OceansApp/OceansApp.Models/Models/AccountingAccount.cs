@@ -5,11 +5,14 @@ namespace OceansApp.Models.Models
     public class AccountingAccount
     {
         [Key]
+        public int AccountingAccountId { get; set; }
         [MaxLength(25)]
-        public string? IdAccountingAccount { get; set; }
+        public string? AccountingAccountCode { get; set; }
         [Required]
         [MaxLength(400)]
         public string? Description { get; set; }
+        [MaxLength(400)]
+        public string? DescriptionIFRS { get; set; }
         [Required]
         [MaxLength(1)]
         public string? AccountingAccountType { get; set; }
@@ -32,6 +35,8 @@ namespace OceansApp.Models.Models
         public DateTime DateLastUpdate { get; set; }
         [Required]
         public DateTime DateHour { get; set; }
+        [MaxLength(8)]
+        public string CompanyId { get; set; }
 
     }
 }

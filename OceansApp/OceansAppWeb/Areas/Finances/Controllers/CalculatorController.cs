@@ -32,7 +32,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             {
                 CalculatorCostCenterUserConfigurationVM costCenterUserObj = new()
                 {
-                    IdCostCenter = costCenter.IdCostCenter,
+                    CostCenterId = costCenter.CostCenterId,
                     Description = costCenter.Description,
                     Detail = costCenter.Detail,
                     Active = true
@@ -105,7 +105,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         {
                             CalculatorCostCenterUserConfigurationVM costC = new()
                             {
-                                IdCostCenter = costCenter.IdCostCenter,
+                                CostCenterId = costCenter.CostCenterId,
                                 Description = costCenter.Description,
                                 Active = true
                             };
@@ -116,7 +116,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     foreach (var costCenter in costCenterList)
                     {
                         bool validateCostCenter = false;
-                        String idCostCenter = null;
+                        int? idCostCenter = null;
                         if (userIsMasterOrAdmin > 0)
                         {
                             validateCostCenter = true;
@@ -125,7 +125,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         {
                             if (costCenter.Active)
                             {
-                                idCostCenter = costCenter.IdCostCenter;
+                                idCostCenter = costCenter.CostCenterId;
                             }
                             else
                             {
@@ -134,20 +134,20 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         }
                         else
                         {
-                            idCostCenter = costCenter.IdCostCenter;
+                            idCostCenter = costCenter.CostCenterId;
                         }
                         if (idCostCenter != null)
                         {
                             //CALCULATE TOTAL COST OF SALES
                             foreach (var accountingAccount in costOfSalesAccountingAccounts)
                             {
-                                if (accountingAccount.IdCostCenter == idCostCenter)
+                                if (accountingAccount.CostCenterId == idCostCenter)
                                 {
                                     Decimal amountByCostCenter = 0;
                                     Decimal totalAmountByCostCenterAfterPercentage = 0;
 
                                     amountByCostCenter += accountingAccount.TotalAmount;
-                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.IdCostCenter == costCenter.IdCostCenter).Increase;
+                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter
                                         * ((decimal)percentageIncrease / 100));
@@ -155,7 +155,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                     {
                                         expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                         {
-                                            IdAccountingAccount = accountingAccount.IdAccountingAccount,
+                                            IdAccountingAccount = accountingAccount.AccountingAccountCode,
                                             AccountingAccountName = accountingAccount.AccountingAccountName,
                                             Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                             CostCenterName = costCenter.Description,
@@ -169,14 +169,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             //CALCULATE TOTAL EXPENSES
                             foreach (var accountingAccount in expensesAccountingAccounts)
                             {
-                                if (accountingAccount.IdCostCenter == idCostCenter)
+                                if (accountingAccount.CostCenterId == idCostCenter)
                                 {
                                     Decimal amountByCostCenter = 0;
                                     Decimal totalAmountByCostCenterAfterPercentage = 0;
 
                                     amountByCostCenter += accountingAccount.TotalAmount;
 
-                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.IdCostCenter == costCenter.IdCostCenter).Increase;
+                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter * ((decimal)percentageIncrease / 100));
                                     if (amountByCostCenter > 0)
@@ -185,7 +185,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                         {
                                             expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                             {
-                                                IdAccountingAccount = accountingAccount.IdAccountingAccount,
+                                                IdAccountingAccount = accountingAccount.AccountingAccountCode,
                                                 AccountingAccountName = accountingAccount.AccountingAccountName,
                                                 Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                                 CostCenterName = costCenter.Description,
@@ -211,7 +211,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             {
                                 expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                 {
-                                    IdAccountingAccount = accountingAccount.IdAccountingAccount,
+                                    IdAccountingAccount = accountingAccount.AccountingAccountCode,
                                     AccountingAccountName = accountingAccount.AccountingAccountName,
                                     Amount = ((decimal)amount / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                     CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",

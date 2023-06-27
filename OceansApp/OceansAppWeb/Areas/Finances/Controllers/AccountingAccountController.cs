@@ -12,9 +12,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public AccountingAccountController(IUnitOfWork _unitOfWork)
+        public AccountingAccountController(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = _unitOfWork;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
@@ -36,13 +36,13 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         }
 
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(string? idCuentaContable)
+        public IActionResult Edit(int? idCuentaContable)
         {
-            if(idCuentaContable==null || idCuentaContable == "")
+            if(idCuentaContable==null)
             {
                 return NotFound();
             }
-            var cuentaContableFromDbFirst = _unitOfWork.AccountingAccounts.GetFirstOrDefault(u => u.IdAccountingAccount == idCuentaContable);
+            var cuentaContableFromDbFirst = _unitOfWork.AccountingAccounts.GetFirstOrDefault(u => u.AccountingAccountId == idCuentaContable);
             if(cuentaContableFromDbFirst == null)
             {
                 return NotFound();

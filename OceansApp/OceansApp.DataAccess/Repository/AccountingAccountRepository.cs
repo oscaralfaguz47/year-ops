@@ -33,7 +33,7 @@ namespace OceansApp.DataAccess.Repository
 
         public bool UpdateIfExistAddIfNot(AccountingAccount obj)
         {
-            var existingAccountingAccount = GetFirstOrDefault(u => u.IdAccountingAccount == obj.IdAccountingAccount);
+            var existingAccountingAccount = GetFirstOrDefault(u => u.AccountingAccountCode == obj.AccountingAccountCode & u.CompanyId == obj.CompanyId);
 
             if (existingAccountingAccount == null)
             {

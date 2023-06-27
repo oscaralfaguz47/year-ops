@@ -2,7 +2,7 @@
 {
     public class CalculatorCostCenterUserConfigurationVM
     {
-        public string IdCostCenter { get; set; }
+        public int CostCenterId { get; set; }
         public string Description { get; set; }
         public string? Detail { get; set; }
 

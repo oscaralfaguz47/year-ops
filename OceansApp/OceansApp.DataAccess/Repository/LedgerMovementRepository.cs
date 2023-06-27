@@ -48,9 +48,9 @@ ORDER BY LM.IdAccountingAccount";
                     {
                         var accountingAccount = new AccountingAccountWithBalanceVM
                         {
-                            IdAccountingAccount = reader["IdAccountingAccount"].ToString(),
+                            AccountingAccountCode = reader["IdAccountingAccount"].ToString(),
                             AccountingAccountName = reader["Description"].ToString(),
-                            IdCostCenter = reader["IdCostCenter"].ToString(),
+                            CostCenterId = (int)reader["CostCenterId"],
                             TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
                         };
 
@@ -95,7 +95,7 @@ ORDER BY LM.IdAccountingAccount";
                     {
                         var accountingAccount = new AccountingAccountWithBalanceVM
                         {
-                            IdAccountingAccount = reader["IdAccountingAccount"].ToString(),
+                            AccountingAccountCode = reader["IdAccountingAccount"].ToString(),
                             AccountingAccountName = reader["Description"].ToString(),
                             TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
                         };
@@ -114,9 +114,9 @@ ORDER BY LM.IdAccountingAccount";
         }
         public bool AddIfNotExist(LedgerMovement obj)
         {
-            var existingLedgerMovement = GetFirstOrDefault(u => u.IdSeat == obj.IdSeat && u.IdCostCenter == obj.IdCostCenter &&
-            u.IdAccountingAccount == obj.IdAccountingAccount && u.LocalDebit == obj.LocalDebit &&
-            u.LocalCredit == obj.LocalCredit && u.Consecutive == obj.Consecutive);
+            var existingLedgerMovement = GetFirstOrDefault(u => u.IdSeat == obj.IdSeat && u.CostCenterId == obj.CostCenterId &&
+            u.AccountingAccountId == obj.AccountingAccountId && u.LocalDebit == obj.LocalDebit &&
+            u.LocalCredit == obj.LocalCredit && u.Consecutive == obj.Consecutive && u.CompanyId == obj.CompanyId);
 
             if (existingLedgerMovement == null)
             {

@@ -15,7 +15,7 @@ namespace OceansApp.DataAccess.Repository
         
         public bool UpdateIfExistAddIfNot(ProviderCategory obj)
         {
-            var existingCategory = GetFirstOrDefault(u => u.IdProviderCategory == obj.IdProviderCategory);
+            var existingCategory = GetFirstOrDefault(u => u.ProviderCategoryCode == obj.ProviderCategoryCode & u.CompanyId == obj.CompanyId);
             if (existingCategory == null)
             {
                 _db.PROVIDER_CATEGORY.Add(obj);

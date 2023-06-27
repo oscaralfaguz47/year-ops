@@ -114,7 +114,6 @@ namespace OceansApp.DataAccess.Repository
                     existingProvider.Phone1 = obj.Phone1;
                     existingProvider.Phone2 = obj.Phone2;
                     existingProvider.Country = obj.Country;
-                    existingProvider.IdProviderCategory = obj.IdProviderCategory;
                     existingProvider.Notes = obj.Notes;
                     existingProvider.IsActive = obj.IsActive;
                     existingProvider.DateLastUpdate = obj.DateLastUpdate;

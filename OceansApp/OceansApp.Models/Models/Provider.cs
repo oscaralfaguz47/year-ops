@@ -36,8 +36,8 @@ namespace OceansApp.Models.Models
         public Country Country { get; set; }
         [MaxLength(8)]
         [Required]
-        public string IdProviderCategory { get; set; }
-        [ForeignKey("IdProviderCategory")]
+        public int Id { get; set; }
+        [ForeignKey("Id")]
         [ValidateNever]
         public ProviderCategory ProviderCategory { get; set; }
         public string? Notes { get; set; }
@@ -47,6 +47,9 @@ namespace OceansApp.Models.Models
         public DateTime? DateLastUpdate { get; set; }
         [Required]
         public DateTime CreationDate { get; set; }
+
+        [MaxLength(8)]
+        public string CompanyId { get; set; }
 
     }
 }

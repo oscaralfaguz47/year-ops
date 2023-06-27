@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230626205314_updateProviderCategoryTable2")]
+    partial class updateProviderCategoryTable2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -228,20 +230,14 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.AccountingAccount", b =>
                 {
-                    b.Property<int>("AccountingAccountId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountingAccountId"), 1L, 1);
+                    b.Property<string>("IdAccountingAccount")
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<string>("AcceptData")
                         .IsRequired()
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("AccountingAccountCode")
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
 
                     b.Property<string>("AccountingAccountType")
                         .IsRequired()
@@ -252,11 +248,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
 
                     b.Property<DateTime>("DateHour")
                         .HasColumnType("datetime2");
@@ -284,7 +275,7 @@ namespace OceansApp.DataAccess.Migrations
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
 
-                    b.HasKey("AccountingAccountId");
+                    b.HasKey("IdAccountingAccount");
 
                     b.ToTable("ACCOUNTING_ACCOUNT");
                 });
@@ -307,15 +298,9 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorCostCenterIncreaseConfiguration", b =>
                 {
-                    b.Property<int>("CostCenterIncreaseId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CostCenterIncreaseId"), 1L, 1);
-
-                    b.Property<int>("CostCenterId")
+                    b.Property<string>("IdCostCenter")
                         .HasMaxLength(25)
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<DateTime?>("DateLastUpdate")
                         .IsRequired()
@@ -329,9 +314,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<double?>("Increase")
                         .HasColumnType("float");
 
-                    b.HasKey("CostCenterIncreaseId");
-
-                    b.HasIndex("CostCenterId");
+                    b.HasKey("IdCostCenter");
 
                     b.HasIndex("IdUserUpdatedBy");
 
@@ -485,25 +468,14 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.CostCenter", b =>
                 {
-                    b.Property<int>("CostCenterId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CostCenterId"), 1L, 1);
+                    b.Property<string>("IdCostCenter")
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<string>("AcceptData")
                         .IsRequired()
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("CompanyId")
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
-                    b.Property<string>("CostCenterCode")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
@@ -517,7 +489,7 @@ namespace OceansApp.DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.HasKey("CostCenterId");
+                    b.HasKey("IdCostCenter");
 
                     b.ToTable("COST_CENTER");
                 });
@@ -577,29 +549,26 @@ namespace OceansApp.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("AccountingAccountId")
-                        .HasMaxLength(25)
-                        .HasColumnType("int");
-
                     b.Property<string>("AccountingType")
                         .IsRequired()
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
 
-                    b.Property<string>("CompanyId")
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
                     b.Property<int>("Consecutive")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CostCenterId")
-                        .IsRequired()
-                        .HasMaxLength(25)
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("IdAccountingAccount")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<string>("IdCostCenter")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<string>("IdSeat")
                         .IsRequired()
@@ -617,9 +586,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountingAccountId");
+                    b.HasIndex("IdAccountingAccount");
 
-                    b.HasIndex("CostCenterId");
+                    b.HasIndex("IdCostCenter");
 
                     b.ToTable("LEDGER_MOVEMENT");
                 });
@@ -639,11 +608,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<string>("Alias")
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
@@ -810,7 +774,7 @@ namespace OceansApp.DataAccess.Migrations
                 {
                     b.HasOne("OceansApp.Models.Models.CostCenter", "CostCenter")
                         .WithMany()
-                        .HasForeignKey("CostCenterId")
+                        .HasForeignKey("IdCostCenter")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -851,13 +815,13 @@ namespace OceansApp.DataAccess.Migrations
                 {
                     b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
                         .WithMany()
-                        .HasForeignKey("AccountingAccountId")
+                        .HasForeignKey("IdAccountingAccount")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("OceansApp.Models.Models.CostCenter", "CostCenter")
                         .WithMany()
-                        .HasForeignKey("CostCenterId")
+                        .HasForeignKey("IdCostCenter")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

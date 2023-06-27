@@ -14,15 +14,15 @@ namespace OceansApp.DataAccess.Repository
         }
         IEnumerable<CostCenter> ICostCenterRepository.GetCostCenterOfExpenses()
         {
-            IEnumerable<CostCenter>? costCenter = GetAll(x => x.AcceptData == "S" && x.Description != "NO UTILIZAR" && (EF.Functions.Like(x.IdCostCenter, "10-02%")
-            || EF.Functions.Like(x.IdCostCenter, "10-03%") || EF.Functions.Like(x.IdCostCenter, "20%") || EF.Functions.Like(x.IdCostCenter, "30%")
-            || EF.Functions.Like(x.IdCostCenter, "40%") || EF.Functions.Like(x.IdCostCenter, "50%")));
+            IEnumerable<CostCenter>? costCenter = GetAll(x => x.AcceptData == "S" && x.Description != "NO UTILIZAR" && (EF.Functions.Like(x.CostCenterCode, "10-02%")
+            || EF.Functions.Like(x.CostCenterCode, "10-03%") || EF.Functions.Like(x.CostCenterCode, "20%") || EF.Functions.Like(x.CostCenterCode, "30%")
+            || EF.Functions.Like(x.CostCenterCode, "40%") || EF.Functions.Like(x.CostCenterCode, "50%")));
 
                 return costCenter;
         }
         public bool UpdateIfExistAddIfNot(CostCenter obj)
         {
-            var existingCostCenter = GetFirstOrDefault(u => u.IdCostCenter == obj.IdCostCenter);
+            var existingCostCenter = GetFirstOrDefault(u => u.CostCenterCode == obj.CostCenterCode && u.CompanyId == obj.CompanyId);
             if (existingCostCenter == null)
             {
                 _db.COST_CENTER.Add(obj);

@@ -9,9 +9,10 @@ namespace OceansApp.Models.Models
 
         [Required]
         [Key]
+        public int CostCenterIncreaseId { get; set; }
         [MaxLength(25)]
-        public string IdCostCenter { get; set; }
-        [ForeignKey("IdCostCenter")]
+        public int CostCenterId { get; set; }
+        [ForeignKey("CostCenterId")]
         [ValidateNever]
         public CostCenter CostCenter { get; set; }
         public Double? Increase { get; set; }

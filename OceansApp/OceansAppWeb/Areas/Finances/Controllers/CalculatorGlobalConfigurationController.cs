@@ -48,13 +48,13 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             foreach (var costCenter in costCenterList)
             {
                 var costCenterIncreaseFromDB = _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x =>
-                x.IdCostCenter == costCenter.IdCostCenter);
+                x.CostCenterId == costCenter.CostCenterId);
                 if (costCenterIncreaseFromDB != null)
                 {
-                    var description = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.IdCostCenter == costCenterIncreaseFromDB.IdCostCenter);
+                    var description = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterId == costCenterIncreaseFromDB.CostCenterId);
                     CalculatorCostCenterIncreaseConfigurationVM costCenterIncrease = new()
                     {
-                        IdCostCenter = costCenterIncreaseFromDB.IdCostCenter,
+                        CostCenterId = costCenterIncreaseFromDB.CostCenterId,
                         Description = description.Description,
                         Increase = costCenterIncreaseFromDB.Increase
                     };
@@ -62,10 +62,10 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 }
                 else
                 {
-                    var description = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.IdCostCenter == costCenter.IdCostCenter);
+                    var description = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenter.CostCenterCode);
                     CalculatorCostCenterIncreaseConfigurationVM costCenterIncrease = new()
                     {
-                        IdCostCenter = costCenter.IdCostCenter,
+                        CostCenterId = costCenter.CostCenterId,
                         Description = description.Description,
                         Increase = 0
                     };
@@ -98,12 +98,12 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         foreach (var costCenterIncrease in obj.CalculatorCostCenterIncreaseConfigurationVM)
                         {
                             var existingCostCenterFormDB = _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x =>
-                            x.IdCostCenter == costCenterIncrease.IdCostCenter);
+                            x.CostCenterId == costCenterIncrease.CostCenterId);
                             if (existingCostCenterFormDB == null)
                             {
                                 CalculatorCostCenterIncreaseConfiguration costCenterIncreaseConfigToSave = new()
                                 {
-                                    IdCostCenter = costCenterIncrease.IdCostCenter,
+                                    CostCenterId = (int)costCenterIncrease.CostCenterId,
                                     Increase = costCenterIncrease.Increase,
                                     IdUserUpdatedBy = claim.Value,
                                     DateLastUpdate = DateTime.Now

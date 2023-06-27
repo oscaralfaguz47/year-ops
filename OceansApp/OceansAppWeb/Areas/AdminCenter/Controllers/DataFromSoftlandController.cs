@@ -69,7 +69,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 {
                                     AccountingAccount accountingAccount = new()
                                     {
-                                        IdAccountingAccount = jsonMaster.CUENTA_CONTABLE,
+                                        AccountingAccountCode = jsonMaster.CUENTA_CONTABLE,
                                         Description = jsonMaster.DESCRIPCION,
                                         AccountingAccountType = jsonMaster.TIPO,
                                         DetailedType = jsonMaster.TIPO_DETALLADO,
@@ -78,7 +78,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                         UseCostCenter = jsonMaster.USA_CENTRO_COSTO,
                                         UseThird = jsonMaster.MANEJA_TERCERO,
                                         DateLastUpdate = jsonMaster.FCH_HORA_ULT_MOD,
-                                        DateHour = jsonMaster.FECHA_HORA
+                                        DateHour = jsonMaster.FECHA_HORA,
+                                        CompanyId = jsonMaster.CompanyId
                                     };
                                     if (_unitOfWork.AccountingAccounts.UpdateIfExistAddIfNot(accountingAccount))
                                     {
@@ -101,10 +102,11 @@ namespace OceansApp.Areas.Admin.Controllers
                                 {
                                     CostCenter costCenter = new()
                                     {
-                                        IdCostCenter = jsonMaster.CENTRO_COSTO,
+                                        CostCenterCode = jsonMaster.CENTRO_COSTO,
                                         Description = jsonMaster.DESCRIPCION,
                                         AcceptData = jsonMaster.ACEPTA_DATOS,
-                                        CreateDate = jsonMaster.CreateDate
+                                        CreateDate = jsonMaster.CreateDate,
+                                        CompanyId = jsonMaster.CompanyId
                                     };
                                     if (_unitOfWork.CenterOfCosts.UpdateIfExistAddIfNot(costCenter))
                                     {
@@ -124,17 +126,31 @@ namespace OceansApp.Areas.Admin.Controllers
                                 int affectedRecords = 0;
                                 foreach (var jsonMaster in jsonFromInput.ledgerMovements)
                                 {
+                                    var accountingAccountCode = "";
+                                    var costCenterCode = "";
+                                    var companyId = "";
+                                    if (jsonMaster.CUENTA_CONTABLE != null && jsonMaster.CompanyId != null)
+                                    {
+                                        accountingAccountCode = jsonMaster.CUENTA_CONTABLE;
+                                        costCenterCode = jsonMaster.CENTRO_COSTO;
+                                        companyId = jsonMaster.CompanyId;
+                                    }
+                                    var accountingAccount = _unitOfWork.AccountingAccounts.GetFirstOrDefault(x=>x.AccountingAccountCode == accountingAccountCode
+                                    && x.CompanyId == companyId);
+                                    var costCenter = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenterCode
+                                    && x.CompanyId == companyId);
                                     LedgerMovement ledgerMovement = new()
                                     {
                                         IdSeat = jsonMaster.ASIENTO,
                                         Consecutive = jsonMaster.CONSECUTIVO,
-                                        IdCostCenter = jsonMaster.CENTRO_COSTO,
-                                        IdAccountingAccount = jsonMaster.CUENTA_CONTABLE,
+                                        CostCenterId = costCenter.CostCenterId,
+                                        AccountingAccountId = accountingAccount.AccountingAccountId,
                                         Date = jsonMaster.FECHA,
                                         LocalDebit = jsonMaster.DEBITO_LOCAL,
                                         LocalCredit = jsonMaster.CREDITO_LOCAL,
                                         AccountingType = jsonMaster.CONTABILIDAD,
-                                        RecordDate = jsonMaster.RecordDate
+                                        RecordDate = jsonMaster.RecordDate,
+                                        CompanyId = companyId
                                     };
                                     if (_unitOfWork.LedgerMovements.AddIfNotExist(ledgerMovement))
                                     {
@@ -201,9 +217,10 @@ namespace OceansApp.Areas.Admin.Controllers
                                 {
                                     ProviderCategory category = new()
                                     {
-                                        IdProviderCategory = jsonMaster.CATEGORIA_PROVEED,
+                                        ProviderCategoryCode = jsonMaster.CATEGORIA_PROVEED,
                                         Description = jsonMaster.DESCRIPCION,
-                                        CreateDate = jsonMaster.CreateDate
+                                        CreateDate = jsonMaster.CreateDate, 
+                                        CompanyId = jsonMaster.CompanyId
                                     };
                                     if (_unitOfWork.ProviderCategory.UpdateIfExistAddIfNot(category))
                                     {
@@ -254,6 +271,16 @@ namespace OceansApp.Areas.Admin.Controllers
                                     {
                                         lastUpdate = jsonMaster.FCH_HORA_ULT_MOD;
                                     }
+                                    var categoryCode = "";
+                                    var companyId = "";
+                                    if (jsonMaster.CATEGORIA_PROVEED != null)
+                                    {
+                                        categoryCode = jsonMaster.CATEGORIA_PROVEED;
+                                        companyId = jsonMaster.CompanyId;
+                                    }
+                                    var categoryProvider = _unitOfWork.ProviderCategory.GetFirstOrDefault(x => x.ProviderCategoryCode == categoryCode 
+                                    && x.CompanyId == companyId);
+
                                     Provider provider = new()
                                     {
                                         IdProvider = jsonMaster.PROVEEDOR,
@@ -266,11 +293,12 @@ namespace OceansApp.Areas.Admin.Controllers
                                         Phone1 = jsonMaster.TELEFONO1,
                                         Phone2 = jsonMaster.TELEFONO2,
                                         IdCountry = jsonMaster.PAIS,
-                                        IdProviderCategory = jsonMaster.CATEGORIA_PROVEED,
+                                        Id = categoryProvider.Id,
                                         Notes = jsonMaster.NOTAS,
                                         IsActive = jsonMaster.ACTIVO,
                                         DateLastUpdate = lastUpdate,
-                                        CreationDate = jsonMaster.CreateDate
+                                        CreationDate = jsonMaster.CreateDate,
+                                        CompanyId = companyId
                                     };
                                     if (_unitOfWork.Provider.UpdateIfExistAddIfNot(provider))
                                     {
@@ -374,7 +402,7 @@ namespace OceansApp.Areas.Admin.Controllers
                     {
                         AccountingAccount accountingAccount = new()
                         {
-                            IdAccountingAccount = result.CUENTA_CONTABLE,
+                            AccountingAccountCode = result.CUENTA_CONTABLE,
                             Description = result.DESCRIPCION,
                             AccountingAccountType = result.TIPO,
                             DetailedType = result.TIPO_DETALLADO,
@@ -385,7 +413,7 @@ namespace OceansApp.Areas.Admin.Controllers
                             DateLastUpdate = result.FCH_HORA_ULT_MOD,
                             DateHour = result.FECHA_HORA
                         };
-                        if (accountingAccount.IdAccountingAccount == null || accountingAccount.Description == null || accountingAccount.AccountingAccountType == null
+                        if (accountingAccount.AccountingAccountCode == null || accountingAccount.Description == null || accountingAccount.AccountingAccountType == null
                         || accountingAccount.DetailedType == null || accountingAccount.Balance == null || accountingAccount.AcceptData == null
                         || accountingAccount.UseCostCenter == null || accountingAccount.UseThird == null || accountingAccount.DateLastUpdate.ToString() == null
                         || accountingAccount.DateHour.ToString() == null)
@@ -420,13 +448,14 @@ namespace OceansApp.Areas.Admin.Controllers
                     {
                         CostCenter costCenter = new()
                         {
-                            IdCostCenter = result.CENTRO_COSTO,
+                            CostCenterCode = result.CENTRO_COSTO,
                             Description = result.DESCRIPCION,
                             AcceptData = result.ACEPTA_DATOS,
-                            CreateDate = result.CreateDate
+                            CreateDate = result.CreateDate,
+                            CompanyId = result.CompanyId
                         };
-                        if (costCenter.IdCostCenter == null || costCenter.Description == null || costCenter.AcceptData == null
-                            || costCenter.CreateDate.ToString() == null)
+                        if (costCenter.CostCenterCode == null || costCenter.Description == null || costCenter.AcceptData == null
+                            || costCenter.CreateDate.ToString() == null || costCenter.CompanyId == null)
                         {
                             return false;
                         }
@@ -454,22 +483,21 @@ namespace OceansApp.Areas.Admin.Controllers
                 {
                     foreach (var result in json.ledgerMovements)
                     {
-                        LedgerMovement ledgerMovement = new()
-                        {
-                            IdSeat = result.ASIENTO,
-                            Consecutive = result.CONSECUTIVO,
-                            IdCostCenter = result.CENTRO_COSTO,
-                            IdAccountingAccount = result.CUENTA_CONTABLE,
-                            Date = result.FECHA,
-                            LocalDebit = result.DEBITO_LOCAL,
-                            LocalCredit = result.CREDITO_LOCAL,
-                            AccountingType = result.CONTABILIDAD,
-                            RecordDate = result.RecordDate
-                        };
-                        if (ledgerMovement.IdSeat == null || ledgerMovement.Consecutive.ToString() == null || ledgerMovement.IdCostCenter == null
-                            || ledgerMovement.IdAccountingAccount == null || ledgerMovement.Date.ToString() == null
+                            LedgerMovement ledgerMovement = new()
+                            {
+                                IdSeat = result.ASIENTO,
+                                Consecutive = result.CONSECUTIVO,
+                                Date = result.FECHA,
+                                LocalDebit = result.DEBITO_LOCAL,
+                                LocalCredit = result.CREDITO_LOCAL,
+                                AccountingType = result.CONTABILIDAD,
+                                RecordDate = result.RecordDate, 
+                                CompanyId = result.CompanyId
+                            };
+                        if (ledgerMovement.IdSeat == null || ledgerMovement.Consecutive.ToString() == null
+                            || ledgerMovement.Date.ToString() == null
                             || ledgerMovement.LocalDebit.ToString() == null || ledgerMovement.LocalCredit.ToString() == null
-                            || ledgerMovement.AccountingType == null || ledgerMovement.RecordDate.ToString() == null)
+                            || ledgerMovement.AccountingType == null || ledgerMovement.RecordDate.ToString() == null || ledgerMovement.CompanyId == null)
                         {
                             return false;
                         }
@@ -554,12 +582,13 @@ namespace OceansApp.Areas.Admin.Controllers
                     {
                         ProviderCategory category = new()
                         {
-                            IdProviderCategory = result.CATEGORIA_PROVEED,
+                            ProviderCategoryCode = result.CATEGORIA_PROVEED,
                             Description = result.DESCRIPCION,
-                            CreateDate = result.CreateDate
+                            CreateDate = result.CreateDate,
+                            CompanyId = result.CompanyId
                         };
-                        if (category.IdProviderCategory == null || category.Description == null
-                            || category.CreateDate.ToString() == null)
+                        if (category.ProviderCategoryCode == null || category.Description == null
+                            || category.CreateDate.ToString() == null || category.CompanyId == null)
                         {
                             return false;
                         }
@@ -639,15 +668,15 @@ namespace OceansApp.Areas.Admin.Controllers
                             Phone1 = result.TELEFONO1,
                             Phone2 = result.TELEFONO2,
                             IdCountry = result.PAIS,
-                            IdProviderCategory = result.CATEGORIA_PROVEED,
                             Notes = result.NOTAS,
                             IsActive = result.ACTIVO,
                             DateLastUpdate = dateLastUpdate,
-                            CreationDate = result.CreateDate
+                            CreationDate = result.CreateDate,
+                            CompanyId = result.CompanyId
                         };
                         if (provider.IdProvider == null || provider.Name == null || provider.Occupation == null 
-                            || provider.AdmissionDate.ToString() == null || provider.IdCountry == null || provider.IdProviderCategory == null
-                            || provider.IsActive == null || provider.CreationDate.ToString() == null)
+                            || provider.AdmissionDate.ToString() == null || provider.IdCountry == null
+                            || provider.IsActive == null || provider.CreationDate.ToString() == null || provider.CompanyId == null)
                         {
                             return false;
                         }
