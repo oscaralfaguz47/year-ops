@@ -33,7 +33,7 @@ namespace OceansApp.DataAccess.Repository
 
         public bool UpdateIfExistAddIfNot(AccountingAccount obj)
         {
-            var existingAccountingAccount = GetFirstOrDefault(u => u.AccountingAccountCode == obj.AccountingAccountCode & u.CompanyId == obj.CompanyId);
+            var existingAccountingAccount = GetFirstOrDefault(u => u.AccountingAccountCode == obj.AccountingAccountCode && u.CompanyId == obj.CompanyId);
 
             if (existingAccountingAccount == null)
             {
@@ -46,6 +46,7 @@ namespace OceansApp.DataAccess.Repository
                 if (existingAccountingAccount.DateLastUpdate != obj.DateLastUpdate)
                 {
                     existingAccountingAccount.Description = obj.Description;
+                    existingAccountingAccount.DescriptionIFRS = obj.DescriptionIFRS;
                     existingAccountingAccount.AccountingAccountType = obj.AccountingAccountType;
                     existingAccountingAccount.DetailedType = obj.DetailedType;
                     existingAccountingAccount.Balance = obj.Balance;

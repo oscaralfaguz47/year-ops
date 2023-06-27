@@ -71,6 +71,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                     {
                                         AccountingAccountCode = jsonMaster.CUENTA_CONTABLE,
                                         Description = jsonMaster.DESCRIPCION,
+                                        DescriptionIFRS = jsonMaster.DESCRIPCION_IFRS,
                                         AccountingAccountType = jsonMaster.TIPO,
                                         DetailedType = jsonMaster.TIPO_DETALLADO,
                                         Balance = jsonMaster.SALDO_NORMAL,
@@ -177,7 +178,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                     }
                                     Client client = new()
                                     {
-                                        IdClient = jsonMaster.CLIENTE,
+                                        ClientCode = jsonMaster.CLIENTE,
                                         Name = jsonMaster.NOMBRE,
                                         Alias = jsonMaster.ALIAS,
                                         Contact = jsonMaster.CONTACTO,
@@ -194,7 +195,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                         Notes = jsonMaster.NOTAS,
                                         DateLastUpdate = lastUpdate,
                                         Address = jsonMaster.OTRAS_SENAS,
-                                        CreationDate = jsonMaster.CreateDate
+                                        CreationDate = jsonMaster.CreateDate,
+                                        CompanyId = jsonMaster.CompanyId
                                     };
                                     if (_unitOfWork.Client.UpdateIfExistAddIfNot(client))
                                     {
@@ -404,6 +406,7 @@ namespace OceansApp.Areas.Admin.Controllers
                         {
                             AccountingAccountCode = result.CUENTA_CONTABLE,
                             Description = result.DESCRIPCION,
+                            DescriptionIFRS = result.DESCRIPCION_IFRS,
                             AccountingAccountType = result.TIPO,
                             DetailedType = result.TIPO_DETALLADO,
                             Balance = result.SALDO_NORMAL,
@@ -531,7 +534,7 @@ namespace OceansApp.Areas.Admin.Controllers
                         }
                         Client client = new()
                         {
-                            IdClient = result.CLIENTE,
+                            ClientCode = result.CLIENTE,
                             Name = result.NOMBRE,
                             Alias = result.ALIAS,
                             Contact = result.CONTACTO,
@@ -548,12 +551,13 @@ namespace OceansApp.Areas.Admin.Controllers
                             Notes = result.NOTAS,
                             DateLastUpdate = dateLastUpdate,
                             Address = result.OTRAS_SENAS,
-                            CreationDate = result.CreateDate
+                            CreationDate = result.CreateDate,
+                            CompanyId = result.CompanyId
                         };
-                        if (client.IdClient == null || client.Name == null || client.AdmissionDate.ToString() == null
+                        if (client.ClientCode == null || client.Name == null || client.AdmissionDate.ToString() == null
                             || client.PaymentCondition == null || client.Discount.ToString() == null
                             || client.IsActive == null || client.ClientCategory == null
-                            || client.CreationDate.ToString() == null)
+                            || client.CreationDate.ToString() == null || client.CompanyId == null)
                         {
                             return false;
                         }

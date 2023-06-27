@@ -20,7 +20,7 @@ namespace OceansApp.DataAccess.Repository
 
         public bool UpdateIfExistAddIfNot(Client obj)
         {
-            var existingClient = GetFirstOrDefault(u => u.IdClient == obj.IdClient);
+            var existingClient = GetFirstOrDefault(u => u.ClientCode == obj.ClientCode && u.CompanyId == obj.CompanyId);
             if (existingClient == null)
             {
                 _db.CLIENT.Add(obj);
@@ -48,6 +48,7 @@ namespace OceansApp.DataAccess.Repository
                     existingClient.DateLastUpdate = obj.DateLastUpdate;
                     existingClient.Address = obj.Address;
                     existingClient.CreationDate = obj.CreationDate;
+                    existingClient.CompanyId = obj.CompanyId;
                     return true;
                 }
                 return false;

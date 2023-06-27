@@ -7,5 +7,6 @@ namespace OceansApp.Models.ViewModels
         public string IdProvider { get; set; }
         public string Name { get; set; }
         public string Occupation { get; set; }
+        public string Company { get; set; }
     }
 }

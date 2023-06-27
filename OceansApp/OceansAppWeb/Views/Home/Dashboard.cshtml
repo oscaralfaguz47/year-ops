@@ -61,13 +61,13 @@
 
             $("#providers-container").html(html);
 
-            // Agrega un evento de clic para mostrar la lista de proveedores en el modal
+            // Agrega un evento de click para mostrar la lista de proveedores en el modal
             $(".category-description").on("click", function() {
                 var index = $(this).parent().index();
                 var selectedItem = data[index];
                 var providerListHtml = '<ul>';
                 $.each(selectedItem.Providers, function (providerKey, provider) {
-                    providerListHtml += '<li>' + provider.Name + ' (' + provider.Occupation + ')</li>';
+                    providerListHtml += '<li>' + provider.Name + ' (' + provider.Occupation + ') - ' + provider.Company + '</li>';
                 });
                 providerListHtml += '</ul>';
                 $("#providersModalBody").html(providerListHtml);
@@ -76,8 +76,8 @@
 
             var widgetFooterHtml = `
             <h6>TOTAL DE CONSULTORES: ${totalDevProviders + totalAdminProviders} </h6>
-                 <label>Consulores Administrativos: <span>${totalAdminProviders}</span></label><br />
-                 <label>Consulores informáticos: <span>${totalDevProviders}</span></label>
+                 <label>Consultores Administrativos: <span>${totalAdminProviders}</span></label><br />
+                 <label>Consultores informáticos: <span>${totalDevProviders}</span></label>
             `;
             $("#widget-footer").html(widgetFooterHtml);
         });

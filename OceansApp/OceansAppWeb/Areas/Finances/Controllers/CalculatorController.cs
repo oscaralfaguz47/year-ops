@@ -43,7 +43,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.IsActive == "S").Select(i => new SelectListItem
             {
                 Text = i.Name,
-                Value = i.IdClient
+                Value = i.ClientCode
             }); ;
 
             CalculatorVM cvm = new()
@@ -243,7 +243,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal appliedAmountGlobalIncrease = ((subtotalExpenses) * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100));
                     Decimal totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.IdClient == model.Client);
+                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == model.Client);
                     if (client != null)
                     {
                         if (client.ClientClass == "A")

@@ -19,20 +19,20 @@ namespace OceansApp.DataAccess.Repository
         {
             // Primera consulta: obtener las categorías y el número de proveedores por categoría
             var categoryQuery = @"
-        SELECT PC.IdProviderCategory, PC.Description, COUNT(PC.Description) AS NumProviders
+        SELECT PC.ProviderCategoryCode, PC.Description, COUNT(PC.Description) AS NumProviders
         FROM PROVIDER P
-        JOIN PROVIDER_CATEGORY PC ON P.IdProviderCategory = PC.IdProviderCategory
-        WHERE P.IsActive = @ProviderIsActive AND PC.IdProviderCategory NOT IN('PR', 'OCEANS')
-        GROUP BY PC.IdProviderCategory, PC.Description
+        JOIN PROVIDER_CATEGORY PC ON P.Id = PC.Id
+        WHERE P.IsActive = @ProviderIsActive AND PC.ProviderCategoryCode NOT IN('PR', 'OCEANS', 'PROV')
+        GROUP BY PC.ProviderCategoryCode, PC.Description
         ORDER BY PC.Description";
 
             // Segunda consulta: obtener los proveedores por categoría
             var providerQuery = @"
-        SELECT P.IdProvider, P.Name, P.Occupation, PC.IdProviderCategory
+        SELECT P.IdProvider, P.Name, P.Occupation, PC.ProviderCategoryCode, P.CompanyId
         FROM PROVIDER P
-        JOIN PROVIDER_CATEGORY PC ON P.IdProviderCategory = PC.IdProviderCategory
-        WHERE P.IsActive = @ProviderIsActive AND PC.IdProviderCategory NOT IN('PR', 'OCEANS')
-        ORDER BY PC.Description";
+        JOIN PROVIDER_CATEGORY PC ON P.Id = PC.Id
+        WHERE P.IsActive = @ProviderIsActive AND PC.ProviderCategoryCode NOT IN('PR', 'OCEANS')
+        ORDER BY P.Name";
 
             var results = new List<ProviderGroupByCategoryVM>();
 
@@ -70,7 +70,8 @@ namespace OceansApp.DataAccess.Repository
                 {
                     IdProvider = providerReader.GetString(0),
                     Name = providerReader.GetString(1),
-                    Occupation = providerReader.GetString(2)
+                    Occupation = providerReader.GetString(2),
+                    Company = providerReader.GetString(4)
                 };
 
                 var categoryId = providerReader.GetString(3);
@@ -94,7 +95,7 @@ namespace OceansApp.DataAccess.Repository
 
         public bool UpdateIfExistAddIfNot(Provider obj)
         {
-            var existingProvider = GetFirstOrDefault(u => u.IdProvider == obj.IdProvider);
+            var existingProvider = GetFirstOrDefault(u => u.IdProvider == obj.IdProvider && u.CompanyId == obj.CompanyId);
             if (existingProvider == null)
             {
                 _db.PROVIDER.Add(obj);

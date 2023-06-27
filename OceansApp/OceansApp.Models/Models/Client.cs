@@ -6,9 +6,10 @@ namespace OceansApp.Models.Models
     public class Client
     {
         [Key]
+        public int ClientId { get; set; }
         [MaxLength(20)]
         [Required]
-        public string IdClient { get; set; }
+        public string ClientCode { get; set; }
         [MaxLength(150)]
         [Required]
         public string Name { get; set; }
@@ -45,6 +46,8 @@ namespace OceansApp.Models.Models
         public string? Address { get; set; }
         [Required]
         public DateTime CreationDate { get; set; }
+        [MaxLength(8)]
+        public string CompanyId { get; set; }
 
     }
 }
