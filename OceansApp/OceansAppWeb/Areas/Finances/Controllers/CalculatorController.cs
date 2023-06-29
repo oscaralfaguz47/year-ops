@@ -44,11 +44,24 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             {
                 Text = i.Name,
                 Value = i.IdClient
-            }); ;
+            });
+
+            var roles = _unitOfWork.ConsultantRole.GetAll().Select(i => new SelectListItem
+            {
+                Text = i.Name,
+                Value = i.ConsultantRoleId.ToString()
+            });
+            var qualityLevels = _unitOfWork.ConsultantQualityLevel.GetAll().Select(i => new SelectListItem
+            {
+                Text = i.Name,
+                Value = i.ConsultantQualityLevelId.ToString()
+            });
 
             CalculatorVM cvm = new()
             {
                 ClientList = clients.ToList(),
+                ConsultantRoleList = roles.ToList(),
+                ConsultantQualityLevelList = qualityLevels.ToList(),
                 CalculatorCostCenterUserConfigurationVM = costCenterUserList
             };
             return View("Index", cvm);
@@ -243,6 +256,18 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal appliedAmountGlobalIncrease = ((subtotalExpenses) * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100));
                     Decimal totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
 
+                    var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
+                    x.ConsultantRoleId == int.Parse(model.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.ConsultantQualityLevelId));
+                    bool isProfitLessThanConfig = false;
+                    Decimal recommendedAmountToPayToConsultant = 0;
+                    Decimal recommendedAmountHolidaysToConsultant = 0;
+                    Decimal recommendedAmountVacationsToConsultant = 0;
+
+                    Decimal greenProfitAmount = 0;
+                    Decimal greenProfitPercentage = 0;
+                    Decimal yellowProfitAmount = 0;
+                    Decimal yellowProfitPercentage = 0;
+
                     var client = _unitOfWork.Client.GetFirstOrDefault(x => x.IdClient == model.Client);
                     if (client != null)
                     {
@@ -252,15 +277,67 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             Decimal monthlyRateYellowAAA = (totalAmountOfExpensesAndCosts / (100 - (decimal)globalConfiguration.ProfitYellowClientAAA)) * 100;
                             Decimal hourRateGreenAAA = monthlyRateGreenAAA / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
                             Decimal hourRateYellowAAA = monthlyRateYellowAAA / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
-                            TempData["monthlyRateGreenAAA"] = "$" + monthlyRateGreenAAA.ToString("#,##0.00");
-                            TempData["monthlyRateYellowAAA"] = "$" + (monthlyRateGreenAAA - 1).ToString("#,##0.00") + " - $" + monthlyRateYellowAAA.ToString("#,##0.00");
-                            TempData["hourRateGreenAAA"] = "$" + hourRateGreenAAA.ToString("#,##0.00");
-                            TempData["hourRateYellowAAA"] = "$" + (hourRateGreenAAA - 1).ToString("#,##0.00") + " - $" + hourRateYellowAAA.ToString("#,##0.00");
-                            if (userIsMasterOrAdmin > 0)
+                            if (hourRateGreenAAA > clientRateAndConsultantAmount.ClientRateMaximumAmount)
                             {
-                                TempData["greenProfitAAA"] = "$" + (monthlyRateGreenAAA - totalAmountOfExpensesAndCosts).ToString("#,##0.00");
-                                TempData["averageYellowProfitAAA"] = "$" + ((((monthlyRateGreenAAA - 1) + monthlyRateYellowAAA) / 2) - totalAmountOfExpensesAndCosts).ToString("#,##0.00");
+                                hourRateGreenAAA = clientRateAndConsultantAmount.ClientRateMaximumAmount;
+                                monthlyRateGreenAAA = (hourRateGreenAAA * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
+                                Decimal totalAmountPayToConsultant = 0;
+                                if (((monthlyRateGreenAAA - totalAmountOfExpensesAndCosts) / monthlyRateGreenAAA) < ((decimal)globalConfiguration.MinimumGlobalProfit) / 100)
+                                {
+                                    totalAmountPayToConsultant = (decimal)monthlyRateGreenAAA - (((decimal)monthlyRateGreenAAA * ((decimal)globalConfiguration.MinimumGlobalProfit) / 100) + (subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100)));
+                                    Decimal numHoursInMonth = (decimal)globalConfiguration.NumLaborDaysInMonth * 8;
+                                    Decimal numHolidaysHours = (decimal)daysYear * 8;
+                                    Decimal numVacationHours = (decimal)vacationDays * 8;
+                                    Decimal hourPriceToConsultant = (totalAmountPayToConsultant / (numHoursInMonth + (numHolidaysHours / 12) + (numVacationHours / 12)));
+
+                                    recommendedAmountToPayToConsultant = hourPriceToConsultant * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
+                                    recommendedAmountHolidaysToConsultant = hourPriceToConsultant * ((decimal)daysYear * 8);
+                                    recommendedAmountVacationsToConsultant = hourPriceToConsultant * ((decimal)vacationDays * 8);
+                                    subTotalMonthlyAmountPayToConsultant = recommendedAmountToPayToConsultant + (recommendedAmountHolidaysToConsultant/12) + (recommendedAmountVacationsToConsultant/12);
+                                    totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses *((decimal)globalConfiguration.AdditionalGlobalIncrease / 100)); 
+                                    isProfitLessThanConfig = true;
+
+                                    if (userIsMasterOrAdmin > 0)
+                                    {
+                                        greenProfitAmount = (monthlyRateGreenAAA - totalAmountPayToConsultant - subtotalExpenses - (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100)));
+                                        greenProfitPercentage = ((greenProfitAmount / monthlyRateGreenAAA) * 100);
+                                        yellowProfitAmount = (((monthlyRateGreenAAA + (((clientRateAndConsultantAmount.ClientRateMaximumAmount - 3) * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8)))) / 2) - totalAmountPayToConsultant - subtotalExpenses - (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100)));
+                                        yellowProfitPercentage = (yellowProfitAmount/((monthlyRateGreenAAA + (((clientRateAndConsultantAmount.ClientRateMaximumAmount - 3) * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8)))) / 2)) * 100;
+                                    }
+                                }
+                                else
+                                {
+                                    if (userIsMasterOrAdmin > 0)
+                                    {
+                                        greenProfitAmount = (monthlyRateGreenAAA - totalAmountOfExpensesAndCosts);
+                                        greenProfitPercentage = (greenProfitAmount / monthlyRateGreenAAA) * 100;
+                                        yellowProfitAmount = (((monthlyRateGreenAAA + (((clientRateAndConsultantAmount.ClientRateMaximumAmount - 3) * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8)))) / 2) - totalAmountOfExpensesAndCosts);
+                                        yellowProfitPercentage = (yellowProfitAmount/ ((monthlyRateGreenAAA + (((clientRateAndConsultantAmount.ClientRateMaximumAmount - 3) * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8)))) / 2))*100;
+                                    }
+                                }
+                                TempData["monthlyRateYellowAAA"] = "$" + ((clientRateAndConsultantAmount.ClientRateMaximumAmount - 3) * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8)).ToString("#,##0.00") + " - $" + (clientRateAndConsultantAmount.ClientRateMaximumAmount * ((decimal)globalConfiguration.NumLaborDaysInMonth) * 8).ToString("#,##0.00");
+                                TempData["hourRateGreenAAA"] = "$" + hourRateGreenAAA.ToString("#,##0.00");
+                                TempData["hourRateYellowAAA"] = "$" + (clientRateAndConsultantAmount.ClientRateMaximumAmount - 3).ToString("#,##0.00") + " - " + clientRateAndConsultantAmount.ClientRateMaximumAmount.ToString("#,##0.00");
                             }
+                            else
+                            {
+                                TempData["monthlyRateYellowAAA"] = "$" + monthlyRateYellowAAA.ToString("#,##0.00") + " - $" + (monthlyRateGreenAAA - 1).ToString("#,##0.00");
+                                TempData["hourRateGreenAAA"] = "$" + hourRateGreenAAA.ToString("#,##0.00");
+                                TempData["hourRateYellowAAA"] = "$" + hourRateYellowAAA.ToString("#,##0.00") + " - $" + (hourRateGreenAAA - 1).ToString("#,##0.00");
+                                if (userIsMasterOrAdmin > 0)
+                                {
+                                    greenProfitAmount = (monthlyRateGreenAAA - totalAmountOfExpensesAndCosts);
+                                    greenProfitPercentage = (greenProfitAmount/monthlyRateGreenAAA)*100;
+                                    yellowProfitAmount = ((((monthlyRateGreenAAA - 1) + monthlyRateYellowAAA) / 2) - totalAmountOfExpensesAndCosts);
+                                    yellowProfitPercentage = (yellowProfitAmount/ (((monthlyRateGreenAAA - 1) + monthlyRateYellowAAA) / 2))*100;
+                                }
+                            }
+                            TempData["monthlyRateGreenAAA"] = "$" + monthlyRateGreenAAA.ToString("#,##0.00");
+                            TempData["averageYellowProfitAAA"] = "$" + yellowProfitAmount.ToString("#,##0.00");
+                            TempData["greenProfitAAA"] = "$" + greenProfitAmount.ToString("#,##0.00");
+                            TempData["greenProfitPercentageAAA"] = greenProfitPercentage.ToString("#,##0.00") + "%";
+                            TempData["yellowProfitPercentageAAA"] = yellowProfitPercentage.ToString("#,##0.00") + "%";
+
                         }
                         if (client.ClientClass == "B")
                         {
@@ -268,10 +345,19 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             Decimal monthlyRateYellowAA = (totalAmountOfExpensesAndCosts / (100 - (decimal)globalConfiguration.ProfitYellowClientAA)) * 100;
                             Decimal hourRateGreenAA = monthlyRateGreenAA / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
                             Decimal hourRateYellowAA = monthlyRateYellowAA / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
+                            if (hourRateGreenAA > clientRateAndConsultantAmount.ClientRateMaximumAmount)
+                            {
+                                hourRateGreenAA = clientRateAndConsultantAmount.ClientRateMaximumAmount;
+                                monthlyRateGreenAA = (hourRateGreenAA * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
+                                if (((monthlyRateGreenAA - totalAmountOfExpensesAndCosts) / monthlyRateGreenAA) < ((decimal)globalConfiguration.MinimumGlobalProfit) / 100)
+                                {
+                                    isProfitLessThanConfig = true;
+                                }
+                            }
                             TempData["monthlyRateGreenAA"] = "$" + monthlyRateGreenAA.ToString("#,##0.00");
-                            TempData["monthlyRateYellowAA"] = "$" + (monthlyRateGreenAA - 1).ToString("#,##0.00") + " - $" + monthlyRateYellowAA.ToString("#,##0.00");
+                            TempData["monthlyRateYellowAA"] = "$" + monthlyRateYellowAA.ToString("#,##0.00") + " - $" + (monthlyRateGreenAA - 1).ToString("#,##0.00");
                             TempData["hourRateGreenAA"] = "$" + hourRateGreenAA.ToString("#,##0.00");
-                            TempData["hourRateYellowAA"] = "$" + (hourRateGreenAA - 1).ToString("#,##0.00") + " - $" + hourRateYellowAA.ToString("#,##0.00");
+                            TempData["hourRateYellowAA"] = "$" + hourRateYellowAA.ToString("#,##0.00") + " - $" + (hourRateGreenAA - 1).ToString("#,##0.00");
                             if (userIsMasterOrAdmin > 0)
                             {
                                 TempData["greenProfitAA"] = "$" + (monthlyRateGreenAA - totalAmountOfExpensesAndCosts).ToString("#,##0.00");
@@ -284,15 +370,30 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             Decimal monthlyRateYellowPartner = (totalAmountOfExpensesAndCosts / (100 - (decimal)globalConfiguration.ProfitYellowPartner)) * 100;
                             Decimal hourRateGreenPartner = monthlyRateGreenPartner / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
                             Decimal hourRateYellowPartner = monthlyRateYellowPartner / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8);
+                            if (hourRateGreenPartner > clientRateAndConsultantAmount.ClientRateMaximumAmount)
+                            {
+                                hourRateGreenPartner = clientRateAndConsultantAmount.ClientRateMaximumAmount;
+                                monthlyRateGreenPartner = (hourRateGreenPartner * ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
+                                if (((monthlyRateGreenPartner - totalAmountOfExpensesAndCosts) / monthlyRateGreenPartner) < ((decimal)globalConfiguration.MinimumGlobalProfit) / 100)
+                                {
+                                    isProfitLessThanConfig = true;
+                                }
+                            }
                             TempData["monthlyRateGreenPartner"] = "$" + monthlyRateGreenPartner.ToString("#,##0.00");
-                            TempData["monthlyRateYellowPartner"] = "$" + (monthlyRateGreenPartner - 1).ToString("#,##0.00") + " - $" + monthlyRateYellowPartner.ToString("#,##0.00");
+                            TempData["monthlyRateYellowPartner"] = "$" + monthlyRateYellowPartner.ToString("#,##0.00") + " - $" + (monthlyRateGreenPartner - 1).ToString("#,##0.00");
                             TempData["hourRateGreenPartner"] = "$" + hourRateGreenPartner.ToString("#,##0.00");
-                            TempData["hourRateYellowPartner"] = "$" + (hourRateGreenPartner - 1).ToString("#,##0.00") + " - $" + hourRateYellowPartner.ToString("#,##0.00");
+                            TempData["hourRateYellowPartner"] = "$" + hourRateYellowPartner.ToString("#,##0.00") + " - $" + (hourRateGreenPartner - 1).ToString("#,##0.00");
                             if (userIsMasterOrAdmin > 0)
                             {
                                 TempData["greenProfitPartner"] = "$" + (monthlyRateGreenPartner - totalAmountOfExpensesAndCosts).ToString("#,##0.00");
                                 TempData["averageYellowProfitPartner"] = "$" + ((((monthlyRateGreenPartner - 1) + monthlyRateYellowPartner) / 2) - totalAmountOfExpensesAndCosts).ToString("#,##0.00");
                             }
+                        }
+                        if (isProfitLessThanConfig)
+                        {
+                            TempData["messageProfitLessThanConfig"] = "Valla!, Parece que ingresaste un monto muy alto para el rol y el nivel que tiene el consultor, " +
+                                "te recomiendo un monto menor o igual a: $" + recommendedAmountToPayToConsultant.ToString("#,##0.00") + ", así pagarás anualmente un monto de: $" +
+                                recommendedAmountHolidaysToConsultant.ToString("#,##0.00") + " para Holidays y un monto anual de: $" + recommendedAmountVacationsToConsultant.ToString("#,##0.00") + " para días de vacaciones.";
                         }
                     }
 
@@ -302,6 +403,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         TempData["totalCosts"] = subTotalMonthlyAmountPayToConsultant.ToString("#,##0.00");
                         TempData["appliedAmountGlobalIncrease"] = "(" + globalConfiguration.AdditionalGlobalIncrease + "%): $" + appliedAmountGlobalIncrease.ToString("#,##0.00");
                         TempData["totalAmountOfExpensesAndCosts"] = totalAmountOfExpensesAndCosts.ToString("#,##0.00");
+
 
                         if (appliedAmountGlobalIncrease > 0)
                         {
@@ -365,7 +467,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CalculatorVM cvm = new()
                     {
                         Client = model.Client,
+                        ConsultantRoleId = model.ConsultantRoleId,
+                        ConsultantQualityLevelId = model.ConsultantQualityLevelId,
                         ClientList = model.ClientList,
+                        ConsultantRoleList = model.ConsultantRoleList,
+                        ConsultantQualityLevelList = model.ConsultantQualityLevelList,
                         CalculatorCostCenterUserConfigurationVM = model.CalculatorCostCenterUserConfigurationVM,
                         CalculatorExpensesCostsDistribution = expensesCostsDistributionList
                     };
@@ -385,7 +491,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 CalculatorVM cvm = new()
                 {
                     Client = model.Client,
+                    ConsultantRoleId = model.ConsultantRoleId,
+                    ConsultantQualityLevelId = model.ConsultantQualityLevelId,
                     ClientList = model.ClientList,
+                    ConsultantRoleList = model.ConsultantRoleList,
+                    ConsultantQualityLevelList = model.ConsultantQualityLevelList,
                     CalculatorCostCenterUserConfigurationVM = model.CalculatorCostCenterUserConfigurationVM
                 };
                 return View("Index", cvm);

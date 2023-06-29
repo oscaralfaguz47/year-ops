@@ -33,6 +33,8 @@ namespace OceansApp.Models.Models
         public Double ProfitYellowClientAA { get; set; }
         [Required(ErrorMessage = "El número de % es requerido")]
         public Double ProfitYellowPartner { get; set; }
+        [Required(ErrorMessage = "El número de % es requerido")]
+        public Double MinimumGlobalProfit { get; set; }
 
 
 

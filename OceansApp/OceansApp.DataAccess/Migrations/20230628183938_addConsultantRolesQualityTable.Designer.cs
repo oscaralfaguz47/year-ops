@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230628183938_addConsultantRolesQualityTable")]
+    partial class addConsultantRolesQualityTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -299,9 +301,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<double>("MinimumGlobalProfit")
-                        .HasColumnType("float");
-
                     b.Property<double>("NumLaborDaysInMonth")
                         .HasColumnType("float");
 
@@ -473,24 +472,15 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantRolesQualityLevels", b =>
                 {
-                    b.Property<int>("ConsultantRoleId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ConsultantQualityLevelId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("ClientRateMaximumAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ConsultantMaximumAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("UpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ConsultantRoleId", "ConsultantQualityLevelId");
+                    b.Property<int>("ConsultantRoleId")
+                        .HasColumnType("int");
 
                     b.HasIndex("ConsultantQualityLevelId");
+
+                    b.HasIndex("ConsultantRoleId");
 
                     b.ToTable("CONSULTANT_ROLES_QUALITY_LEVELS");
                 });
