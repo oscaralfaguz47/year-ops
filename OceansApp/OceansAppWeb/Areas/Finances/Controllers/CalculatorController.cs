@@ -43,9 +43,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.IsActive == "S").Select(i => new SelectListItem
             {
                 Text = i.Name,
-                Value = i.ClientCode
-            }); ;
-                Value = i.IdClient
+                Value = i.ClientId.ToString()
             });
 
             var roles = _unitOfWork.ConsultantRole.GetAll().Select(i => new SelectListItem
@@ -258,7 +256,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal appliedAmountGlobalIncrease = ((subtotalExpenses) * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100));
                     Decimal totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == model.Client);
                     var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
                     x.ConsultantRoleId == int.Parse(model.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.ConsultantQualityLevelId));
                     bool isProfitLessThanConfig = false;
@@ -271,7 +268,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal yellowProfitAmount = 0;
                     Decimal yellowProfitPercentage = 0;
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.IdClient == model.Client);
+                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == int.Parse(model.Client));
                     if (client != null)
                     {
                         if (client.ClientClass == "A")
