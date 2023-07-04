@@ -230,6 +230,9 @@ nav {
         list-style-type: none;
         padding: 0;
     }
+
+    /*SHARED COMPONENTS*/
+
 /*FOOTER*/
 footer {
     position: fixed;
@@ -242,3 +245,5 @@ footer {
     align-items: center;
     font-size: 13px !important;
 }
+
+

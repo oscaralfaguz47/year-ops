@@ -16,6 +16,9 @@
         IProviderCategoryRepository ProviderCategory { get; }
         IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
+        IConsultantRoleRepository ConsultantRole { get; }
+        IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
+        IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
 
         void Save();
     }

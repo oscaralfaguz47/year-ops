@@ -20,20 +20,25 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <label for="peopleNumber" class="form-label mt-4"># Recursos Actuales</label>
                 <input asp-for="CalculatorGlobalConfiguration.PeopleNumber" type="number" class="form-control" id="peopleNumber" placeholder="Dígita un número">
                 <span asp-validation-for="CalculatorGlobalConfiguration.PeopleNumber" class="text-danger"></span>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <label for="laborDays" class="form-label mt-4"># Días Laborales</label>
                 <input asp-for="CalculatorGlobalConfiguration.NumLaborDaysInMonth" type="number" step="any" class="form-control" id="laborDays" placeholder="Dígita un número">
                 <span asp-validation-for="CalculatorGlobalConfiguration.NumLaborDaysInMonth" class="text-danger"></span>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <label for="aditionalIncrease" class="form-label mt-4">% Riesgo</label>
                 <input asp-for="CalculatorGlobalConfiguration.AdditionalGlobalIncrease" type="number" step="any" class="form-control" id="aditionalIncrease" placeholder="Dígita un número">
                 <span asp-validation-for="CalculatorGlobalConfiguration.AdditionalGlobalIncrease" class="text-danger"></span>
+            </div>
+             <div class="col-lg-3">
+                <label for="minimumGlobalProfit" class="form-label mt-4">% Utilidad Neta Mínima</label>
+                <input asp-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" type="number" step="any" class="form-control" id="minimumGlobalProfit" placeholder="Dígita un número">
+                <span asp-validation-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" class="text-danger"></span>
             </div>
         </div> <br />
         <div id="clients-profit">

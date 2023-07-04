@@ -39,7 +39,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     ProfitGreenPartner = 21,
                     ProfitYellowClientAAA = 28,
                     ProfitYellowClientAA = 22,
-                    ProfitYellowPartner = 17
+                    ProfitYellowPartner = 17,
+                    MinimumGlobalProfit = 20
                 };
                 _unitOfWork.CalculatorGlobalConfiguration.Add(configToCreate);
                 _unitOfWork.Save();
@@ -134,6 +135,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         globalConfig.ProfitYellowClientAAA = obj.CalculatorGlobalConfiguration.ProfitYellowClientAAA;
                         globalConfig.ProfitYellowClientAA = obj.CalculatorGlobalConfiguration.ProfitYellowClientAA;
                         globalConfig.ProfitYellowPartner = obj.CalculatorGlobalConfiguration.ProfitYellowPartner;
+                        globalConfig.MinimumGlobalProfit = obj.CalculatorGlobalConfiguration.MinimumGlobalProfit;
                         _unitOfWork.CalculatorGlobalConfiguration.Update(globalConfig);
                         _unitOfWork.Save();
                     }

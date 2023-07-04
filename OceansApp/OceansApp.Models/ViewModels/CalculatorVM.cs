@@ -16,7 +16,13 @@ namespace OceansApp.Models.ViewModels
         public Double? PaymentAmount { get; set; } = null;
         [Required(ErrorMessage = "El Cliente es requerido")]
         public String Client { get; set; }
+        [Required(ErrorMessage = "El rol del consultor es requerido")]
+        public String ConsultantRoleId { get; set; }
+        [Required(ErrorMessage = "El nivel del consultor es requerido")]
+        public String ConsultantQualityLevelId { get; set; }
         public List<SelectListItem>? ClientList { get; set; }
+        public List<SelectListItem>? ConsultantRoleList { get; set; }
+        public List<SelectListItem>? ConsultantQualityLevelList { get; set; }
 
         public CalculatorCostCenterIncreaseConfiguration? CalculatorCostCenterIncreaseConfiguration { get; set; }
         public Collection<CalculatorCostCenterUserConfigurationVM>? CalculatorCostCenterUserConfigurationVM { get; set; }
