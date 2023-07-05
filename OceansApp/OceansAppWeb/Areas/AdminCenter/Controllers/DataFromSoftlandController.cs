@@ -285,7 +285,7 @@ namespace OceansApp.Areas.Admin.Controllers
 
                                     Provider provider = new()
                                     {
-                                        IdProvider = jsonMaster.PROVEEDOR,
+                                        ProviderCode = jsonMaster.PROVEEDOR,
                                         Name = jsonMaster.NOMBRE,
                                         Alias = jsonMaster.ALIAS,
                                         Occupation = jsonMaster.CARGO,
@@ -662,7 +662,7 @@ namespace OceansApp.Areas.Admin.Controllers
                         }
                         Provider provider = new()
                         {
-                            IdProvider = result.PROVEEDOR,
+                            ProviderCode = result.PROVEEDOR,
                             Name = result.NOMBRE,
                             Alias = result.ALIAS,
                             Occupation = result.CARGO,
@@ -678,7 +678,7 @@ namespace OceansApp.Areas.Admin.Controllers
                             CreationDate = result.CreateDate,
                             CompanyId = result.CompanyId
                         };
-                        if (provider.IdProvider == null || provider.Name == null || provider.Occupation == null 
+                        if (provider.ProviderCode == null || provider.Name == null || provider.Occupation == null 
                             || provider.AdmissionDate.ToString() == null || provider.IdCountry == null
                             || provider.IsActive == null || provider.CreationDate.ToString() == null || provider.CompanyId == null)
                         {

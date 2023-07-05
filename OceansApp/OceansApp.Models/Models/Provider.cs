@@ -8,9 +8,10 @@ namespace OceansApp.Models.Models
     public class Provider
     {
         [Key]
+        public int ProviderId { get; set; }
         [MaxLength(20)]
         [Required]
-        public string IdProvider { get; set; }
+        public string ProviderCode { get; set; }
         [MaxLength(150)]
         [Required]
         public string Name { get; set; }

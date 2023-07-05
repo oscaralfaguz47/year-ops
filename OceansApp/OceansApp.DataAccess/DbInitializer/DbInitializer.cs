@@ -61,27 +61,6 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
             }
-            //Create Accounting Accounts to Ignore
-
-            //if (_db.CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE.ToList().Count == 0)
-            //{
-            //    List<CalculatorAccountingAccountToIgnore> accountsList = new List<CalculatorAccountingAccountToIgnore>();
-            //    accountsList.Add(new CalculatorAccountingAccountToIgnore() { IdAccountingAccount = "5-01-01-000-000", ExpenseType = "Sales Cost" });
-            //    accountsList.Add(new CalculatorAccountingAccountToIgnore() { IdAccountingAccount = "5-01-02-000-000", ExpenseType = "Sales Cost" });
-            //    accountsList.Add(new CalculatorAccountingAccountToIgnore() { IdAccountingAccount = "5-01-06-000-000", ExpenseType = "Sales Cost" });
-            //    accountsList.Add(new CalculatorAccountingAccountToIgnore() { IdAccountingAccount = "5-01-22-000-000", ExpenseType = "Sales Cost" });
-            //    accountsList.Add(new CalculatorAccountingAccountToIgnore() { IdAccountingAccount = "5-01-16-000-000", ExpenseType = "Sales Cost" });
-            //    foreach (var account in accountsList)
-            //    {
-            //        CalculatorAccountingAccountToIgnore accountingAccountToIgnore = new()
-            //        {
-            //            IdAccountingAccount = account.IdAccountingAccount,
-            //            ExpenseType = account.ExpenseType
-            //        };
-            //        _db.CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE.Add(accountingAccountToIgnore);
-            //    }
-            //    _db.SaveChanges();
-            //}
 
             //Create Default Consultant Roles
 

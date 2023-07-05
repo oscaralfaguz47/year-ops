@@ -28,7 +28,7 @@ namespace OceansApp.DataAccess.Repository
 
             // Segunda consulta: obtener los proveedores por categoría
             var providerQuery = @"
-        SELECT P.IdProvider, P.Name, P.Occupation, PC.ProviderCategoryCode, P.CompanyId
+        SELECT P.ProviderCode, P.Name, P.Occupation, PC.ProviderCategoryCode, P.CompanyId
         FROM PROVIDER P
         JOIN PROVIDER_CATEGORY PC ON P.Id = PC.Id
         WHERE P.IsActive = @ProviderIsActive AND PC.ProviderCategoryCode NOT IN('PR', 'OCEANS')
@@ -95,7 +95,7 @@ namespace OceansApp.DataAccess.Repository
 
         public bool UpdateIfExistAddIfNot(Provider obj)
         {
-            var existingProvider = GetFirstOrDefault(u => u.IdProvider == obj.IdProvider && u.CompanyId == obj.CompanyId);
+            var existingProvider = GetFirstOrDefault(u => u.ProviderCode == obj.ProviderCode && u.CompanyId == obj.CompanyId);
             if (existingProvider == null)
             {
                 _db.PROVIDER.Add(obj);
