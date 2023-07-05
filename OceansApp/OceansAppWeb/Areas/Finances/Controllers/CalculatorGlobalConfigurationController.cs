@@ -57,7 +57,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     {
                         CostCenterId = costCenterIncreaseFromDB.CostCenterId,
                         Description = description.Description,
-                        Increase = costCenterIncreaseFromDB.Increase
+                        Increase = costCenterIncreaseFromDB.Increase, 
+                        CompanyId = costCenter.CompanyId
                     };
                     costCenterWithIncreaseList.Add(costCenterIncrease);
                 }
@@ -68,7 +69,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     {
                         CostCenterId = costCenter.CostCenterId,
                         Description = description.Description,
-                        Increase = 0
+                        Increase = 0, 
+                        CompanyId = costCenter.CompanyId
                     };
                     costCenterWithIncreaseList.Add(costCenterIncrease);
                 }

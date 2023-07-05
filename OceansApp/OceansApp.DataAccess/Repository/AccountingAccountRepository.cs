@@ -15,19 +15,19 @@ namespace OceansApp.DataAccess.Repository
         IEnumerable<AccountingAccount> IAccountingAccountRepository.GetCostOfSalesAccountingAccounts()
         {
             IEnumerable<AccountingAccount>? accountingAccountsList = _db.ACCOUNTING_ACCOUNT
-                .FromSqlRaw($"SELECT * FROM ACCOUNTING_ACCOUNT WHERE IdAccountingAccount LIKE '5%'").ToList();
+                .FromSqlRaw($"SELECT * FROM ACCOUNTING_ACCOUNT WHERE AccountingAccountCode LIKE '5%'").ToList();
             return accountingAccountsList;
         }
         IEnumerable<AccountingAccount> IAccountingAccountRepository.GetExpensesAccountingAccounts()
         {
             IEnumerable<AccountingAccount>? accountingAccountsList = _db.ACCOUNTING_ACCOUNT
-                .FromSqlRaw($"SELECT * FROM ACCOUNTING_ACCOUNT WHERE IdAccountingAccount LIKE '6%'").ToList();
+                .FromSqlRaw($"SELECT * FROM ACCOUNTING_ACCOUNT WHERE AccountingAccountCode LIKE '6%'").ToList();
             return accountingAccountsList;
         }
         public IEnumerable<AccountingAccount> GetReturnsAndDiscountsAccountingAccounts()
         {
             IEnumerable<AccountingAccount>? accountingAccountsList = _db.ACCOUNTING_ACCOUNT
-               .FromSqlRaw($"SELECT * FROM ACCOUNTING_ACCOUNT WHERE IdAccountingAccount LIKE '4-02-01%' OR IdAccountingAccount LIKE '4-03-01%'").ToList();
+               .FromSqlRaw($"SELECT * FROM ACCOUNTING_ACCOUNT WHERE AccountingAccountCode LIKE '4-02-01%' OR AccountingAccountCode LIKE '4-03-01%'").ToList();
             return accountingAccountsList;
         }
 

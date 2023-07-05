@@ -12,7 +12,7 @@ public class RequireTwoFactorEnabledAttribute : ActionFilterAttribute
             var signInManager = context.HttpContext.RequestServices.GetService<SignInManager<IdentityUser>>();
             var user = await userManager.GetUserAsync(context.HttpContext.User);
 
-            if (user != null && !await userManager.GetTwoFactorEnabledAsync(user) || user.LockoutEnd > DateTime.Now)
+            if (user != null && (!await userManager.GetTwoFactorEnabledAsync(user) || user.LockoutEnd > DateTime.Now))
             {
                 await userManager.ResetAuthenticatorKeyAsync(user);
                 await userManager.SetTwoFactorEnabledAsync(user, false);

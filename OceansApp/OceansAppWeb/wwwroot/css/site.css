@@ -30,7 +30,7 @@ body {
     margin-bottom: 60px;
 }
 .hide{
-    display: none;
+    display: none !important;
 }
 .show {
     display: block;

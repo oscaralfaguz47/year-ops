@@ -1,5 +1,7 @@
 ﻿
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OceansApp.Models.Models
 {
@@ -7,11 +9,11 @@ namespace OceansApp.Models.Models
     {
 
         [Key]
-        [MaxLength(25)]
-        public string? IdAccountingAccount { get; set; }
-        [Required]
-        [MaxLength(25)]
-        public string ExpenseType { get; set; }
+        public int AccountingAccountId { get; set; }
+        [ForeignKey("AccountingAccountId")]
+        [ValidateNever]
+        public AccountingAccount AccountingAccount { get; set; }
+        public DateTime CreationDate { get; set; }
 
     }
 }

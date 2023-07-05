@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230704044100_updateAll")]
+    partial class updateAll
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,13 +265,16 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
                 {
-                    b.Property<int>("AccountingAccountId")
-                        .HasColumnType("int");
+                    b.Property<string>("IdAccountingAccount")
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ExpenseType")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
-                    b.HasKey("AccountingAccountId");
+                    b.HasKey("IdAccountingAccount");
 
                     b.ToTable("CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE");
                 });
@@ -797,17 +802,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
-                        .WithMany()
-                        .HasForeignKey("AccountingAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AccountingAccount");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorCostCenterIncreaseConfiguration", b =>

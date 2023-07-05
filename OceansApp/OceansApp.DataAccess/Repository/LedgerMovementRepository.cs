@@ -19,17 +19,18 @@ namespace OceansApp.DataAccess.Repository
         {
             var query = @"
 SELECT
-LM.IdAccountingAccount
+LM.AccountingAccountId,
+AA.AccountingAccountCode
 ,AA.Description
-,LM.IdCostCenter
+,LM.CostCenterId
 ," + (balance == "D" ? "SUM(LM.LocalDebit) - SUM(LM.LocalCredit)" : "SUM(LM.LocalCredit) - SUM(LM.LocalDebit)") + @" AS TotalAmount
 FROM LEDGER_MOVEMENT LM
-JOIN ACCOUNTING_ACCOUNT AA ON LM.IdAccountingAccount = AA.IdAccountingAccount
-WHERE LM.IdAccountingAccount LIKE CONCAT(@accountingAccountIdBegin,'%')
+JOIN ACCOUNTING_ACCOUNT AA ON LM.AccountingAccountId = AA.AccountingAccountId
+WHERE AA.AccountingAccountCode LIKE CONCAT(@accountingAccountIdBegin,'%')
 AND (LM.Date >= @fechaInicial AND LM.Date <= @fechaFinal)
-" + (ignoreAccountingAccounts == 1 ? "AND LM.IdAccountingAccount NOT IN (SELECT IdAccountingAccount FROM CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE)" : "") + @"
-GROUP BY LM.IdAccountingAccount, AA.Description, LM.IdCostCenter 
-ORDER BY LM.IdAccountingAccount";
+" + (ignoreAccountingAccounts == 1 ? "AND LM.AccountingAccountId NOT IN (SELECT AccountingAccountId FROM CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE)" : "") + @"
+GROUP BY LM.AccountingAccountId, AA.AccountingAccountCode, AA.Description, LM.CostCenterId 
+ORDER BY AA.AccountingAccountCode";
 
             List<AccountingAccountWithBalanceVM> accountingAccountsList = new List<AccountingAccountWithBalanceVM>();
 
@@ -48,7 +49,8 @@ ORDER BY LM.IdAccountingAccount";
                     {
                         var accountingAccount = new AccountingAccountWithBalanceVM
                         {
-                            AccountingAccountCode = reader["IdAccountingAccount"].ToString(),
+                            AccountingAccountId = (int)reader["AccountingAccountId"],
+                            AccountingAccountCode = reader["AccountingAccountCode"].ToString(),
                             AccountingAccountName = reader["Description"].ToString(),
                             CostCenterId = (int)reader["CostCenterId"],
                             TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
@@ -68,16 +70,17 @@ ORDER BY LM.IdAccountingAccount";
         {
             var query = @"
         SELECT
-        LM.IdAccountingAccount
+        LM.AccountingAccountId,
+        AA.AccountingAccountCode
         ,AA.Description
         ,SUM(LM.LocalDebit) - SUM(LM.LocalCredit) AS TotalAmount
         FROM LEDGER_MOVEMENT LM
-        JOIN ACCOUNTING_ACCOUNT AA ON LM.IdAccountingAccount = AA.IdAccountingAccount
-        WHERE LM.IdAccountingAccount LIKE '4-02-01%' OR LM.IdAccountingAccount LIKE '4-03-01%'
+        JOIN ACCOUNTING_ACCOUNT AA ON LM.AccountingAccountId = AA.AccountingAccountId
+        WHERE AA.AccountingAccountCode LIKE '4-02-01%' OR AA.AccountingAccountCode LIKE '4-03-01%'
         AND (LM.Date >= @fechaInicial AND LM.Date <= @fechaFinal)
-        " + (ignoreAccountingAccounts == 1 ? "AND LM.IdAccountingAccount NOT IN (SELECT IdAccountingAccount FROM CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE)" : "") + @"
-        GROUP BY LM.IdAccountingAccount, AA.Description
-        ORDER BY LM.IdAccountingAccount";
+        " + (ignoreAccountingAccounts == 1 ? "AND LM.AccountingAccountId NOT IN (SELECT AccountingAccountId FROM CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE)" : "") + @"
+        GROUP BY LM.AccountingAccountId, AA.AccountingAccountCode, AA.Description
+        ORDER BY AA.AccountingAccountCode";
 
             List<AccountingAccountWithBalanceVM> accountingAccountsList = new List<AccountingAccountWithBalanceVM>();
 
@@ -95,7 +98,8 @@ ORDER BY LM.IdAccountingAccount";
                     {
                         var accountingAccount = new AccountingAccountWithBalanceVM
                         {
-                            AccountingAccountCode = reader["IdAccountingAccount"].ToString(),
+                            AccountingAccountId = (int)reader["AccountingAccountId"],
+                            AccountingAccountCode = reader["AccountingAccountCode"].ToString(),
                             AccountingAccountName = reader["Description"].ToString(),
                             TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
                         };

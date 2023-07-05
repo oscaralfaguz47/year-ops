@@ -1,10 +1,16 @@
 ﻿.red-text {
     color: red
 }
-
+.calcu-icon {
+    font-size: 60px;
+    color: var(--clr-grayDark);
+}
+.div-calc-simple-user{
+    margin-top: -130px;
+}
 .btn-submit {
     margin-top: 30px;
-    width: 100%
+    width: 100%;
 }
 
 .rb-container {
@@ -135,4 +141,11 @@ clients-profit .col-lg-4 {
 }
 #clients-profit .row {
     margin-bottom: 5px;
+}
+
+
+@media only screen and (max-width: 992px) {
+    .div-calc-simple-user {
+        margin-top: 0px;
+    }
 }

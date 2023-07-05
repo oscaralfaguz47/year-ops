@@ -24,10 +24,11 @@
                             {
                                 int count = 0;
                                 for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
-                                { 
+                                {
                                     @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
                                     @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
                                     @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
                                     if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
                                     {
                                         if (count == 0)
@@ -38,18 +39,20 @@
                                         }
                                         count++;
                                     }
-                                    <label>
+
+                                    <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
                                         <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
                                         <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
                                     </label>
-                                    <div class="tooltip-container">
+
+                                    <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
                                         <i class="bi bi-question-circle tooltip-target"></i>
                                         <div class="tooltip-content">
                                             <div class="tooltip-arrow"></div>
                                             @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
                                         </div>
                                     </div>
-                                    <br />
+                                    <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
                                 }
                             }
                             <br /><br />
@@ -57,8 +60,11 @@
                     }
                     else
                     {
-                        <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
-                       
+
+                        <div class="div-calc-simple-user">
+                            <i class="bi bi-info-square calcu-icon"></i> <br />
+                             <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
+                        </div>
                     }
                 </div>
                 <div class="col-lg-4">
@@ -280,6 +286,7 @@
                                 <th scope="col">% Aumento aplicado al Centro de Costo</th>
                                 <th scope="col">$ Aumento aplicado al Centro de Costo</th>
                                 <th scope="col">Centro de Costo</th>
+                                <th scope="col">Empresa del Gasto</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -288,12 +295,13 @@
                                 foreach (var item in Model.CalculatorExpensesCostsDistribution)
                                 {
                                     <tr class="table-light">
-                                        <td class="">@item.IdAccountingAccount</td>
+                                        <td class="">@item.AccountingAccountCode</td>
                                         <td class=""><strong>@item.AccountingAccountName</strong></td>
                                         <td class=""><strong>$@item.Amount.ToString("#,##0.00")</strong></td>
                                         <td class="">@item.increasePercentage.ToString("#,##0.0")%</td>
                                         <td class="">$@item.increaseAmount.ToString("#,##0.00")</td>
                                         <td class="">@item.CostCenterName</td>
+                                        <td class="">@item.CompanyId</td>
                                     </tr>
                                 }
                             }

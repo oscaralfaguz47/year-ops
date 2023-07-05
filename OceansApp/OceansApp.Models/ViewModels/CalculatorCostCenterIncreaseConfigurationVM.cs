@@ -9,6 +9,7 @@ namespace OceansApp.Models.ViewModels
         public string? Description { get; set; }
         [Required(ErrorMessage = "El número de porcentage es requerido")]
         public Double? Increase { get; set; }
+        public string? CompanyId { get; set; }
 
     }
 }

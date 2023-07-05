@@ -35,7 +35,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CostCenterId = costCenter.CostCenterId,
                     Description = costCenter.Description,
                     Detail = costCenter.Detail,
-                    Active = true
+                    Active = true,
+                    CompanyId = costCenter.CompanyId
                 };
                 costCenterUserList.Add(costCenterUserObj);
             }
@@ -168,12 +169,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                     {
                                         expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                         {
-                                            IdAccountingAccount = accountingAccount.AccountingAccountCode,
+                                            AccountingAccountId = accountingAccount.AccountingAccountId,
+                                            AccountingAccountCode = accountingAccount.AccountingAccountCode,
                                             AccountingAccountName = accountingAccount.AccountingAccountName,
                                             Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                             CostCenterName = costCenter.Description,
                                             increasePercentage = percentageIncrease,
-                                            increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber
+                                            increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                            CompanyId = costCenter.CompanyId
                                         });
                                     }
                                     totalCostOfSales = totalCostOfSales + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
@@ -198,12 +201,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                         {
                                             expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                             {
-                                                IdAccountingAccount = accountingAccount.AccountingAccountCode,
+                                                AccountingAccountId = accountingAccount.AccountingAccountId,
+                                                AccountingAccountCode = accountingAccount.AccountingAccountCode,
                                                 AccountingAccountName = accountingAccount.AccountingAccountName,
                                                 Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                                 CostCenterName = costCenter.Description,
                                                 increasePercentage = percentageIncrease,
-                                                increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber
+                                                increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                                CompanyId = costCenter.CompanyId
                                             });
                                         }
                                     }
@@ -224,12 +229,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             {
                                 expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                                 {
-                                    IdAccountingAccount = accountingAccount.AccountingAccountCode,
+                                    AccountingAccountId = accountingAccount.AccountingAccountId,
+                                    AccountingAccountCode = accountingAccount.AccountingAccountCode,
                                     AccountingAccountName = accountingAccount.AccountingAccountName,
                                     Amount = ((decimal)amount / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
                                     CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
                                     increasePercentage = 0,
-                                    increaseAmount = 0
+                                    increaseAmount = 0,
+                                    CompanyId = "OCE"
                                 });
                             }
                         }
@@ -499,46 +506,54 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         {
                             expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                             {
-                                IdAccountingAccount = "NO APLICA",
+                                AccountingAccountId = 0,
+                                AccountingAccountCode = "NO APLICA",
                                 AccountingAccountName = "Monto Aumento Global Aplicado",
                                 Amount = appliedAmountGlobalIncrease,
                                 CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
                                 increasePercentage = 0,
-                                increaseAmount = 0
+                                increaseAmount = 0,
+                                CompanyId = "OCE"
                             });
                         }
 
                         expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                         {
-                            IdAccountingAccount = "5-01-01-000-000",
+                            AccountingAccountId = 0,
+                            AccountingAccountCode = "5-01-01-000-000",
                             AccountingAccountName = "Horas de recursos",
                             Amount = consultantMonthlyPayment,
                             CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
                             increasePercentage = 0,
-                            increaseAmount = 0
+                            increaseAmount = 0,
+                            CompanyId = "OCE"
                         });
                         if (consultantVacationsAmount > 0)
                         {
                             expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                             {
-                                IdAccountingAccount = "5-01-02-000-000",
+                                AccountingAccountId = 0,
+                                AccountingAccountCode = "5-01-02-000-000",
                                 AccountingAccountName = "Vacaciones de recursos",
                                 Amount = (consultantVacationsAmount / 12),
                                 CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
                                 increasePercentage = 0,
-                                increaseAmount = 0
+                                increaseAmount = 0,
+                                CompanyId = "OCE"
                             });
                         }
                         expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
                         {
-                            IdAccountingAccount = "5-01-06-000-000",
+                            AccountingAccountId = 0,
+                            AccountingAccountCode = "5-01-06-000-000",
                             AccountingAccountName = "Días Feriados de Recursos",
                             Amount = (consultantHolidaysAmount / 12),
                             CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
                             increasePercentage = 0,
-                            increaseAmount = 0
+                            increaseAmount = 0,
+                            CompanyId = "OCE"
                         });
-                        expensesCostsDistributionList.Sort((p, q) => p.IdAccountingAccount.CompareTo(q.IdAccountingAccount));
+                        expensesCostsDistributionList.Sort((p, q) => p.AccountingAccountCode.CompareTo(q.AccountingAccountCode));
                     }
                     else
                     {
