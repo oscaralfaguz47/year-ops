@@ -41,7 +41,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 costCenterUserList.Add(costCenterUserObj);
             }
 
-            var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.IsActive == "S").Select(i => new SelectListItem
+            var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.IsActive == "S" && x.ClientCode != "OCELL_C0001").OrderBy(x=> x.Name).Select(i => new SelectListItem
             {
                 Text = i.Name,
                 Value = i.ClientId.ToString()
