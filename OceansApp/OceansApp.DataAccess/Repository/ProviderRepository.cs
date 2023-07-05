@@ -119,6 +119,7 @@ namespace OceansApp.DataAccess.Repository
                     existingProvider.IsActive = obj.IsActive;
                     existingProvider.DateLastUpdate = obj.DateLastUpdate;
                     existingProvider.CreationDate = obj.CreationDate;
+                    existingProvider.ClientId = obj.ClientId;
                     return true;
                 }
                 return false;

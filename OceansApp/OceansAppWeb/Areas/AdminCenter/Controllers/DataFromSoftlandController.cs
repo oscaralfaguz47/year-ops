@@ -282,7 +282,20 @@ namespace OceansApp.Areas.Admin.Controllers
                                     }
                                     var categoryProvider = _unitOfWork.ProviderCategory.GetFirstOrDefault(x => x.ProviderCategoryCode == categoryCode 
                                     && x.CompanyId == companyId);
-
+                                    int? clientId = null;
+                                    if (categoryProvider.Description.Length > 22)
+                                    {
+                                        var client = _unitOfWork.Client.GetFirstOrDefault(x => x.Name.Contains((categoryProvider.Description).Substring(22)) 
+                                        || x.Alias.Contains((categoryProvider.Description).Substring(22)));
+                                        if (client == null)
+                                        {
+                                            clientId = null;
+                                        }
+                                        else
+                                        {
+                                            clientId = client.ClientId;
+                                        }
+                                    }
                                     Provider provider = new()
                                     {
                                         ProviderCode = jsonMaster.PROVEEDOR,
@@ -300,7 +313,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                         IsActive = jsonMaster.ACTIVO,
                                         DateLastUpdate = lastUpdate,
                                         CreationDate = jsonMaster.CreateDate,
-                                        CompanyId = companyId
+                                        CompanyId = companyId, 
+                                        ClientId = clientId
                                     };
                                     if (_unitOfWork.Provider.UpdateIfExistAddIfNot(provider))
                                     {

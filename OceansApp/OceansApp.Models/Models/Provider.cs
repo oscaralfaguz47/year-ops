@@ -52,5 +52,9 @@ namespace OceansApp.Models.Models
         [MaxLength(8)]
         public string CompanyId { get; set; }
 
+        public int? ClientId { get; set; }
+        [ValidateNever]
+        public Client Client  { get; set; }
+
     }
 }
