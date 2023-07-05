@@ -8,6 +8,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<List<ProviderGroupByCategoryVM>> GetProvidersGroupByCategoryAsync(string providerIsActive);
         void Update(Provider obj);
-        public bool UpdateIfExistAddIfNot(Provider obj);
+        public int? UpdateIfExistAddIfNot(Provider obj);
     }
 }

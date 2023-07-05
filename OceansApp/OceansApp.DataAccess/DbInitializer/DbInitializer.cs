@@ -204,6 +204,27 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
             }
 
+            //Create Default Provider Events
+
+            if (_db.PROVIDER_EVENTS.ToList().Count == 0)
+            {
+                List<ProviderEvent> providerEventsList = new List<ProviderEvent>();
+                providerEventsList.Add(new ProviderEvent() { Name = "Entrada" });
+                providerEventsList.Add(new ProviderEvent() { Name = "Salida" });
+                providerEventsList.Add(new ProviderEvent() { Name = "Contrato Firmado por 1era vez" });
+                providerEventsList.Add(new ProviderEvent() { Name = "Contrato actualizado" });
+
+                foreach (var pEvent in providerEventsList)
+                {
+                    ProviderEvent providerEvent = new()
+                    {
+                        Name = pEvent.Name
+                    };
+                    _db.PROVIDER_EVENTS.Add(providerEvent);
+                }
+                _db.SaveChanges();
+            }
+
             return;
         }
     }

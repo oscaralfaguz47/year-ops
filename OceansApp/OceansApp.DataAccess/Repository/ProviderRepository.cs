@@ -93,18 +93,18 @@ namespace OceansApp.DataAccess.Repository
             _db.PROVIDER.Update(obj);
         }
 
-        public bool UpdateIfExistAddIfNot(Provider obj)
+        public int? UpdateIfExistAddIfNot(Provider obj)
         {
             var existingProvider = GetFirstOrDefault(u => u.ProviderCode == obj.ProviderCode && u.CompanyId == obj.CompanyId);
             if (existingProvider == null)
             {
                 _db.PROVIDER.Add(obj);
                 _db.SaveChanges();
-                return true;
+                return obj.ProviderId;
             }
             else
             {
-                if (existingProvider.DateLastUpdate != obj.DateLastUpdate)
+                if (!existingProvider.DateLastUpdate.Equals(obj.DateLastUpdate))
                 {
                     existingProvider.Name = obj.Name;
                     existingProvider.Alias = obj.Alias;
@@ -120,9 +120,9 @@ namespace OceansApp.DataAccess.Repository
                     existingProvider.DateLastUpdate = obj.DateLastUpdate;
                     existingProvider.CreationDate = obj.CreationDate;
                     existingProvider.ClientId = obj.ClientId;
-                    return true;
+                    return existingProvider.ProviderId;
                 }
-                return false;
+                return null;
             }
         }
 
