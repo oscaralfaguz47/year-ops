@@ -112,7 +112,6 @@
     overflow: hidden;
     border-radius: 5px;
     float: left;
-
 }
 
 .battery-level {
@@ -136,16 +135,6 @@
     font-weight: bold;
 }
 
-.battery-positive {
-    position: absolute;
-    top: -6px; /* Ajusta la posición vertical según sea necesario */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 12px;
-    height: 6px;
-    background-color: #000;
-    z-index: 1; /* Asegura que el cuadrito esté por encima de la batería */
-}
 
 .baterry-message-box {
     font-weight: bold;

@@ -137,7 +137,6 @@
                 {
                     <div class="container">
                         <div class="battery">
-                            <div class="battery-positive"></div>
                             <div class="battery-level"></div>
                             <div class="battery-label"></div>
                         </div>
@@ -360,16 +359,15 @@
             batteryLevel.style.backgroundColor = 'green';
             batteryMessageBox.textContent = 'Este % de carga está muy bien, sigue manteniendolo así!';
             batteryMessageBox.style.color = 'green';
-          } else if (batteryPercentage > 24) {
+          } else if (batteryPercentage > 22) {
             batteryLevel.style.backgroundColor = 'orange';
-            batteryMessageBox.textContent = 'Este % de carga está aceptable, pero procura siempre mantener un porcentage alto!';
+            batteryMessageBox.textContent = 'Este % de carga es aceptable, pero procura siempre mantener un porcentage alto!';
             batteryMessageBox.style.color = 'orange';
           } else {
             batteryLevel.style.backgroundColor = 'red';
             batteryMessageBox.textContent = 'Te sugiero que cambies el monto a pagar al consultor por uno más bajo!';
              batteryMessageBox.style.color = 'red';
           }
-
           // Actualiza el texto de la etiqueta de la batería con el formato adecuado
           batteryLabel.textContent = `${limitedPercentage.toFixed(0)}%`;
         }
