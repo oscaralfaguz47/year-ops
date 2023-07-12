@@ -21,6 +21,7 @@
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
+        IDocumentCCRepository DocumentCC { get; }
 
         void Save();
     }

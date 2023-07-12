@@ -29,6 +29,7 @@ namespace OceansApp.DataAccess.Repository
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ProviderEvent = new ProviderEventRepository(_db);
             ProviderEventDate = new ProviderEventDateRepository(_db);
+            DocumentCC = new DocumentCCRepository(_db);
         }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
@@ -48,6 +49,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; set; }
         public IProviderEventRepository ProviderEvent { get; set; }
         public IProviderEventDateRepository ProviderEventDate { get; set; }
+        public IDocumentCCRepository DocumentCC { get; set; }
 
         public void Save()
         {

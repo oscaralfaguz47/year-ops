@@ -57,5 +57,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
+        public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
     }
 }

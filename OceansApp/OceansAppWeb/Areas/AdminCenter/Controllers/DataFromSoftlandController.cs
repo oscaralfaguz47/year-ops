@@ -58,7 +58,8 @@ namespace OceansApp.Areas.Admin.Controllers
                             && validateCorrectJsonStructureClients(obj.DataToSave)
                             && validateCorrectJsonStructureProviderCategory(obj.DataToSave)
                             && validateCorrectJsonStructureCountry(obj.DataToSave)
-                            && validateCorrectJsonStructureProvider(obj.DataToSave))
+                            && validateCorrectJsonStructureProvider(obj.DataToSave)
+                            && validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
                         {
                             var updatedSections = "";
 
@@ -374,6 +375,55 @@ namespace OceansApp.Areas.Admin.Controllers
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
 
+                            //INSERT DOCUMENTS CC
+                            if (jsonFromInput.documentsCC != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.documentsCC)
+                                {
+                                    DateTime? lastUpdate = null;
+                                    if (jsonMaster.FECHA_ULT_MOD != "")
+                                    {
+                                        lastUpdate = jsonMaster.FECHA_ULT_MOD;
+                                    }
+                                    var clientCode = "";
+                                    var companyId = "";
+                                    if (jsonMaster.CLIENTE != null)
+                                    {
+                                        clientCode = jsonMaster.CLIENTE;
+                                        companyId = jsonMaster.CompanyId;
+                                    }
+                                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == clientCode
+                                    && x.CompanyId == companyId);
+            
+                                    DocumentCC document = new()
+                                    {
+                                        DocumentNumber = jsonMaster.DOCUMENTO,
+                                        DocumentType = jsonMaster.TIPO,
+                                        ApplicationDescription = jsonMaster.APLICACION,
+                                        DocumentDate = jsonMaster.FECHA_DOCUMENTO,
+                                        DocumentAmount = jsonMaster.MONTO,
+                                        BalanceAmount = jsonMaster.SALDO,
+                                        Canceled = jsonMaster.ANULADO,
+                                        IdSeat = jsonMaster.ASIENTO,
+                                        ClientId = client.ClientId,
+                                        DateLastUpdate = lastUpdate,
+                                        CreationDate = jsonMaster.CreateDate,
+                                        CompanyId = companyId
+                                    };
+                                    if (_unitOfWork.DocumentCC.UpdateIfExistAddIfNot(document))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                        _unitOfWork.Save();
+                                    }
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Documentos CC /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
                             if (updatedSections != "")
                             {
                                 //INSERT DATE
@@ -419,6 +469,10 @@ namespace OceansApp.Areas.Admin.Controllers
                             if (!validateCorrectJsonStructureProvider(obj.DataToSave))
                             {
                                 ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los proveedores");
+                            }
+                            if (!validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Documentos CC");
                             }
 
                             return View("Index");
@@ -740,6 +794,53 @@ namespace OceansApp.Areas.Admin.Controllers
                         if (provider.ProviderCode == null || provider.Name == null || provider.Occupation == null
                             || provider.AdmissionDate.ToString() == null || provider.IdCountry == null
                             || provider.IsActive == null || provider.CreationDate.ToString() == null || provider.CompanyId == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public bool validateCorrectJsonStructureDocumentsCC(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.documentsCC != null)
+                {
+                    foreach (var result in json.documentsCC)
+                    {
+                        DateTime? dateLastUpdate = null;
+                        if (result.FECHA_ULT_MOD != "")
+                        {
+                            dateLastUpdate = result.FECHA_ULT_MOD;
+                        }
+                        DocumentCC document = new()
+                        {
+                            DocumentNumber = result.DOCUMENTO,
+                            DocumentType = result.TIPO,
+                            DocumentDate = result.FECHA_DOCUMENTO,
+                            DocumentAmount = result.MONTO,
+                            BalanceAmount = result.SALDO,
+                            Canceled = result.ANULADO,
+                            DateLastUpdate = dateLastUpdate,
+                            CreationDate = result.CreateDate,
+                            CompanyId = result.CompanyId
+                        };
+                        if (document.DocumentNumber == null || document.DocumentType == null || document.DocumentDate.ToString() == null
+                            || document.DocumentAmount == null || document.BalanceAmount == null
+                            || document.Canceled == null || document.CreationDate.ToString() == null || document.CompanyId == null)
                         {
                             return false;
                         }
