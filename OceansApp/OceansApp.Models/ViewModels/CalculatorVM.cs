@@ -23,6 +23,10 @@ namespace OceansApp.Models.ViewModels
         public List<SelectListItem>? ClientList { get; set; }
         public List<SelectListItem>? ConsultantRoleList { get; set; }
         public List<SelectListItem>? ConsultantQualityLevelList { get; set; }
+        public Decimal MinProfitSetPercentage { get; set; }
+        public Decimal MaxProfitSetPercentage { get; set; }
+        public Decimal GreenPercentageInResults { get; set; } = 0;
+        public Decimal MaxProfitPercentageInResults { get; set; } = 0;
 
         public CalculatorCostCenterIncreaseConfiguration? CalculatorCostCenterIncreaseConfiguration { get; set; }
         public Collection<CalculatorCostCenterUserConfigurationVM>? CalculatorCostCenterUserConfigurationVM { get; set; }

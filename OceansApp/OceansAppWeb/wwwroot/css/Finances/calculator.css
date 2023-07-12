@@ -102,6 +102,65 @@
             color: var(--clr-yellow);
         }
 
+        /* BATERY ITEM */
+
+.battery {
+    width: 80px;
+    height: 90px;
+    border: 1px solid #fff;
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+    float: left;
+
+}
+
+.battery-level {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: green;
+    transition: height 0.3s;
+    box-sizing: border-box;
+    border-radius: 5px;
+}
+
+.battery-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.battery-positive {
+    position: absolute;
+    top: -6px; /* Ajusta la posición vertical según sea necesario */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 6px;
+    background-color: #000;
+    z-index: 1; /* Asegura que el cuadrito esté por encima de la batería */
+}
+
+.baterry-message-box {
+    font-weight: bold;
+    height: 90px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding-left: 10px;
+}
+
+
+
+
     /*GLOBAL CONFIGURATION*/
     #global-configuration label {
         font-weight: bold;
@@ -148,4 +207,12 @@ clients-profit .col-lg-4 {
     .div-calc-simple-user {
         margin-top: 0px;
     }
+    .battery {
+     
+        margin-top: 30px;
+    }
+    .baterry-message-box {
+        height: 120px;
+    }
+
 }

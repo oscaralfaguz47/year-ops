@@ -63,7 +63,7 @@
 
                         <div class="div-calc-simple-user">
                             <i class="bi bi-info-square calcu-icon"></i> <br />
-                             <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
+                            <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
                         </div>
                     }
                 </div>
@@ -133,6 +133,17 @@
                         <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="btn btn-submit cancel-btn"><i class="bi bi-eraser"></i>&nbsp;LIMPIAR DATOS</a>
                     </div>
                 </div>
+                @if (TempData["result"] != null)
+                {
+                    <div class="container">
+                        <div class="battery">
+                            <div class="battery-positive"></div>
+                            <div class="battery-level"></div>
+                            <div class="battery-label"></div>
+                        </div>
+                        <div class="baterry-message-box"></div>
+                    </div>
+                }
             </div>
         </form>
 
@@ -148,17 +159,8 @@
                         </p>
                         <ul>
                             <li>
-                                <i class="bi bi-check-lg"></i> Ofrecele un monto igual o menor a: <strong>$@TempData["recommendedAmountToPayToConsultant"]</strong> a pagar mensualmente.
+                                <i class="bi bi-check-lg"></i> Ofrecele un monto menor a: <strong>$@TempData["recommendedAmountToPayToConsultant"]</strong> a pagar mensualmente respetando un porcentage en amarillo o verde en la batería.
                             </li>
-                            <li>
-                                <i class="bi bi-info-lg"></i> Con ese monto que te recomendé pagaras adicionalmente un monto de <strong>$@TempData["recommendedAmountHolidaysToConsultant"]</strong> anualmente para Holidays.
-                            </li>
-                            @if (TempData["recommendedAmountVacationsToConsultant"] != null)
-                            {
-                                <li>
-                                    <i class="bi bi-info-lg"></i> Con ese monto que te recomendé pagaras adicionalmente un monto de <strong>$@TempData["recommendedAmountVacationsToConsultant"]</strong> anualmente para días de vacaciones.
-                                </li>
-                            }
                             <li>
                                 <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el consultor
                                 está pidiendo un monto alto, ya que esta oferta es la más alta y la utilidad que se obtiene es la más baja.
@@ -277,48 +279,108 @@
                         <p><strong>TOTAL GASTOS Y COSTOS APLICADOS: $@TempData["totalAmountOfExpensesAndCosts"]</strong></p>
                     </div>
                     <h4>DESGLOSE DE GASTOS Y COSTOS DETALLADO</h4>
-                    <table class="table">
-                        <thead>
-                            <tr class="table-header">
-                                <th scope="col">Cuenta Contable</th>
-                                <th scope="col">Descripción</th>
-                                <th scope="col">Monto aplicado</th>
-                                <th scope="col">% Aumento aplicado al Centro de Costo</th>
-                                <th scope="col">$ Aumento aplicado al Centro de Costo</th>
-                                <th scope="col">Centro de Costo</th>
-                                <th scope="col">Empresa del Gasto o Costo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.CalculatorExpensesCostsDistribution != null)
-                            {
-                                foreach (var item in Model.CalculatorExpensesCostsDistribution)
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr class="table-header">
+                                    <th scope="col">Cuenta Contable</th>
+                                    <th scope="col">Descripción</th>
+                                    <th scope="col">Monto aplicado</th>
+                                    <th scope="col">% Aumento aplicado al Centro de Costo</th>
+                                    <th scope="col">$ Aumento aplicado al Centro de Costo</th>
+                                    <th scope="col">Centro de Costo</th>
+                                    <th scope="col">Empresa del Gasto o Costo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.CalculatorExpensesCostsDistribution != null)
                                 {
-                                    <tr class="table-light">
-                                        <td class="">@item.AccountingAccountCode</td>
-                                        <td class=""><strong>@item.AccountingAccountName</strong></td>
-                                        <td class=""><strong>$@item.Amount.ToString("#,##0.00")</strong></td>
-                                        <td class="">@item.increasePercentage.ToString("#,##0.0")%</td>
-                                        <td class="">$@item.increaseAmount.ToString("#,##0.00")</td>
-                                        <td class="">@item.CostCenterName</td>
-                                        <td class="">@item.CompanyId</td>
-                                    </tr>
+                                    foreach (var item in Model.CalculatorExpensesCostsDistribution)
+                                    {
+                                        <tr class="table-light">
+                                            <td class="">@item.AccountingAccountCode</td>
+                                            <td class=""><strong>@item.AccountingAccountName</strong></td>
+                                            <td class=""><strong>$@item.Amount.ToString("#,##0.00")</strong></td>
+                                            <td class="">@item.increasePercentage.ToString("#,##0.0")%</td>
+                                            <td class="">$@item.increaseAmount.ToString("#,##0.00")</td>
+                                            <td class="">@item.CostCenterName</td>
+                                            <td class="">@item.CompanyId</td>
+                                        </tr>
+                                    }
                                 }
-                            }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             }
         }
-
         </>
     </div>
     @section Scripts{
     @{
         <partial name="_ValidationScriptsPartial" />
 
-
     }
+    <script>
+        // Obtén los elementos de la barra de nivel de batería y la etiqueta
+        var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
+        var maxProfitSetPercentage = '@Model.MaxProfitSetPercentage';
+        var greenPercentageInResults = '@Model.GreenPercentageInResults';
+        console.log(minProfitSetPercentage);
+        console.log(maxProfitSetPercentage);
+        const batteryLevel = document.querySelector('.battery-level');
+        const batteryLabel = document.querySelector('.battery-label');
+        const batteryMessageBox = document.querySelector('.baterry-message-box');
+
+        // Función para actualizar el nivel de la batería y su color
+        function updateBatteryLevel(percentage) {
+          // Verifica si el porcentaje está fuera del rango permitido
+          if (percentage < 0 || percentage > 100) {
+            console.error('El porcentaje debe estar entre 0 y 100.');
+            return;
+          }
+
+          // Calcula el porcentaje relativo dentro del rango de 16 a 33
+          const range = maxProfitSetPercentage - minProfitSetPercentage;
+          const relativePercentage = (percentage - minProfitSetPercentage) / range;
+
+          // Calcula el porcentaje de la batería en función del porcentaje relativo
+          const batteryPercentage = relativePercentage * 100;
+
+          // Limita el porcentaje dentro del rango entre 0 y 100
+          const limitedPercentage = Math.max(0, Math.min(100, batteryPercentage));
+
+          // Calcula el valor de altura en píxeles basado en el porcentaje
+          const height = limitedPercentage;
+
+          // Actualiza el nivel de la batería y su color
+          batteryLevel.style.height = `${height}%`;
+
+          if (batteryPercentage > 55) {
+            batteryLevel.style.backgroundColor = 'green';
+            batteryMessageBox.textContent = 'Este % de carga está muy bien, sigue manteniendolo así!';
+            batteryMessageBox.style.color = 'green';
+          } else if (batteryPercentage > 24) {
+            batteryLevel.style.backgroundColor = 'orange';
+            batteryMessageBox.textContent = 'Este % de carga está aceptable, pero procura siempre mantener un porcentage alto!';
+            batteryMessageBox.style.color = 'orange';
+          } else {
+            batteryLevel.style.backgroundColor = 'red';
+            batteryMessageBox.textContent = 'Te sugiero que cambies el monto a pagar al consultor por uno más bajo!';
+             batteryMessageBox.style.color = 'red';
+          }
+
+          // Actualiza el texto de la etiqueta de la batería con el formato adecuado
+          batteryLabel.textContent = `${limitedPercentage.toFixed(0)}%`;
+        }
+
+        // Ejemplo de uso: actualiza el nivel de la batería al 30%
+        updateBatteryLevel(greenPercentageInResults);
+
+
+
+
+    </script>
 
 
     }
