@@ -4,6 +4,9 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
+using OceansApp.Models.ViewModels.Providers;
+
+using Dapper;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -85,6 +88,63 @@ namespace OceansApp.DataAccess.Repository
             await connection.CloseAsync();
 
             return results;
+        }
+
+        public async Task<List<ProviderGetAllWithFiltersVM>> GetAllProviderWithFiltersAsync(ProviderFiltersGetAllVM filtersAndPagination)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var query = @"
+    DECLARE @pageNumberParam INT = @PageNumber;
+    DECLARE @pageSizeParam INT = @PageSize;
+    DECLARE @numRowsToSkip INT = ((@pageNumberParam - 1) * @pageSizeParam);
+    DECLARE @isActiveParam NVARCHAR(1) = @IsActive;
+    DECLARE @nameOrAliasParam NVARCHAR(150) = @NameOrAlias;
+    DECLARE @countryIdParam NVARCHAR(4) = @CountryId;
+    DECLARE @clientIdParam INT = @ClientId;
+    DECLARE @companyIdParam NVARCHAR(8) = @CompanyId;
+
+    SELECT P.Name,
+        P.Alias,
+        P.Occupation,
+        P.Address,
+        P.Email,
+        P.AdmissionDate,
+        P.Phone1,
+        P.Phone2,
+        P.IdCountry,
+        P.Notes,
+        P.IsActive,
+        CP.Description AS CategoryDescription ,
+        P.CompanyId,
+        C.Name AS ClientName
+    FROM PROVIDER P
+    JOIN PROVIDER_CATEGORY CP ON P.Id = CP.Id
+    JOIN CLIENT C ON P.ClientId = C.ClientId
+    WHERE (@isActiveParam IS NULL OR P.IsActive = @isActiveParam)
+    AND ((@nameOrAliasParam IS NULL OR LOWER(P.Name) LIKE '%' + LOWER(@nameOrAliasParam) + '%')
+        OR (@nameOrAliasParam IS NULL OR LOWER(P.Alias) LIKE '%' + LOWER(@nameOrAliasParam) + '%'))
+    AND (@countryIdParam IS NULL OR P.IdCountry = @countryIdParam)
+    AND (@clientIdParam IS NULL OR P.ClientId = @clientIdParam)
+    AND (@companyIdParam IS NULL OR P.CompanyId = @companyIdParam)
+    ORDER BY P.Name
+    OFFSET @numRowsToSkip ROWS
+    FETCH NEXT @pageSizeParam ROWS ONLY";
+
+            var parameters = new
+            {
+                PageNumber = filtersAndPagination.Pagination.PageNumber,
+                PageSize = filtersAndPagination.Pagination.PageSize,
+                IsActive = filtersAndPagination.IsActive,
+                NameOrAlias = filtersAndPagination.NameOrAlias,
+                CountryId = filtersAndPagination.CountryId,
+                ClientId = filtersAndPagination.ClientId,
+                CompanyId = filtersAndPagination.CompanyId
+            };
+
+            var results = await connection.QueryAsync<ProviderGetAllWithFiltersVM>(query, parameters);
+
+            return results.ToList();
         }
 
 

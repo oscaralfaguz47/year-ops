@@ -1,0 +1,18 @@
+﻿.table{
+    margin: 0 20px 0 20px;
+}
+.table td {
+    font-size: 13px;
+}
+.table-col-little{
+    width:150px;
+}
+.table-col-medium {
+    width: 250px;
+}
+.table-col-big {
+    width: 600px;
+}
+.table-responsive{
+    height: 530px;
+}
