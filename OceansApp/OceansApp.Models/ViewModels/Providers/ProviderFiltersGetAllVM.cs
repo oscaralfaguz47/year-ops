@@ -10,7 +10,5 @@ namespace OceansApp.Models.ViewModels.Providers
         public string? CountryId { get; set; }
         public int? ClientId { get; set; }
         public string? CompanyId { get; set; }
-        public Pagination Pagination { get; set; }
-        public List<ProviderGetAllWithFiltersVM>? ConsultantList { get; set; }
     }
 }

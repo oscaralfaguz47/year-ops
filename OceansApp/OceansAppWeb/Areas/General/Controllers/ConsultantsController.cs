@@ -17,30 +17,32 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            ProviderFiltersGetAllVM filters = new ProviderFiltersGetAllVM
+            ProviderGetAllForListVM model = new ProviderGetAllForListVM
             {
                 Pagination = new Pagination
                 {
                     PageNumber = 1,
                     PageSize = 10
                 },
-                IsActive = "S"
+                Filters = new ProviderFiltersGetAllVM
+                {
+                    IsActive = "S"
+                }
             };
+            var result = await _unitOfWork.Provider.GetAllProviderWithFiltersAsync(model);
 
-            var consultants = await _unitOfWork.Provider.GetAllProviderWithFiltersAsync(filters);
+            model.Pagination.TotalResults = result.totalCount;
 
-            ProviderFiltersGetAllVM viewModel = new ProviderFiltersGetAllVM
+            ProviderGetAllForListVM viewModel = new ProviderGetAllForListVM
             {
-                IsActive = filters.IsActive,
-                NameOrAlias = filters.NameOrAlias,
-                CountryId = filters.CountryId,
-                ClientId = filters.ClientId,
-                CompanyId = filters.CompanyId,
-                Pagination = filters.Pagination,
-                ConsultantList = consultants
+                ConsultantList = result.providers,
+                Pagination = model.Pagination,
+                Filters = model.Filters
             };
 
             return View(viewModel);
         }
+
+
     }
 }

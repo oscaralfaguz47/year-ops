@@ -7,6 +7,8 @@ using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Providers;
 
 using Dapper;
+using System.Text;
+using System.Data;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -90,62 +92,61 @@ namespace OceansApp.DataAccess.Repository
             return results;
         }
 
-        public async Task<List<ProviderGetAllWithFiltersVM>> GetAllProviderWithFiltersAsync(ProviderFiltersGetAllVM filtersAndPagination)
+        public async Task<(List<ProviderGetAllWithFiltersVM> providers, int totalCount)> GetAllProviderWithFiltersAsync(ProviderGetAllForListVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();
 
-            var query = @"
-    DECLARE @pageNumberParam INT = @PageNumber;
-    DECLARE @pageSizeParam INT = @PageSize;
-    DECLARE @numRowsToSkip INT = ((@pageNumberParam - 1) * @pageSizeParam);
-    DECLARE @isActiveParam NVARCHAR(1) = @IsActive;
-    DECLARE @nameOrAliasParam NVARCHAR(150) = @NameOrAlias;
-    DECLARE @countryIdParam NVARCHAR(4) = @CountryId;
-    DECLARE @clientIdParam INT = @ClientId;
-    DECLARE @companyIdParam NVARCHAR(8) = @CompanyId;
+            var queryBuilder = new StringBuilder();
+            var parameters = new DynamicParameters();
 
-    SELECT P.Name,
-        P.Alias,
-        P.Occupation,
-        P.Address,
-        P.Email,
-        P.AdmissionDate,
-        P.Phone1,
-        P.Phone2,
-        P.IdCountry,
-        P.Notes,
-        P.IsActive,
-        CP.Description AS CategoryDescription ,
-        P.CompanyId,
-        C.Name AS ClientName
-    FROM PROVIDER P
-    JOIN PROVIDER_CATEGORY CP ON P.Id = CP.Id
-    JOIN CLIENT C ON P.ClientId = C.ClientId
-    WHERE (@isActiveParam IS NULL OR P.IsActive = @isActiveParam)
-    AND ((@nameOrAliasParam IS NULL OR LOWER(P.Name) LIKE '%' + LOWER(@nameOrAliasParam) + '%')
-        OR (@nameOrAliasParam IS NULL OR LOWER(P.Alias) LIKE '%' + LOWER(@nameOrAliasParam) + '%'))
-    AND (@countryIdParam IS NULL OR P.IdCountry = @countryIdParam)
-    AND (@clientIdParam IS NULL OR P.ClientId = @clientIdParam)
-    AND (@companyIdParam IS NULL OR P.CompanyId = @companyIdParam)
-    ORDER BY P.Name
-    OFFSET @numRowsToSkip ROWS
-    FETCH NEXT @pageSizeParam ROWS ONLY";
+            queryBuilder.AppendLine("SELECT P.Name,");
+            queryBuilder.AppendLine("        P.Alias,");
+            queryBuilder.AppendLine("        P.Occupation,");
+            queryBuilder.AppendLine("        P.Address,");
+            queryBuilder.AppendLine("        P.Email,");
+            queryBuilder.AppendLine("        P.AdmissionDate,");
+            queryBuilder.AppendLine("        P.Phone1,");
+            queryBuilder.AppendLine("        P.Phone2,");
+            queryBuilder.AppendLine("        P.IdCountry,");
+            queryBuilder.AppendLine("        P.Notes,");
+            queryBuilder.AppendLine("        P.IsActive,");
+            queryBuilder.AppendLine("        CP.Description AS CategoryDescription,");
+            queryBuilder.AppendLine("        P.CompanyId,");
+            queryBuilder.AppendLine("        C.Name AS ClientName");
+            queryBuilder.AppendLine("FROM PROVIDER P");
+            queryBuilder.AppendLine("JOIN PROVIDER_CATEGORY CP ON P.Id = CP.Id");
+            queryBuilder.AppendLine("JOIN CLIENT C ON P.ClientId = C.ClientId");
+            queryBuilder.AppendLine("WHERE (@IsActive IS NULL OR P.IsActive = @IsActive)");
+            queryBuilder.AppendLine("    AND ((@NameOrAlias IS NULL OR LOWER(P.Name) LIKE '%' + LOWER(@NameOrAlias) + '%')");
+            queryBuilder.AppendLine("        OR (@NameOrAlias IS NULL OR LOWER(P.Alias) LIKE '%' + LOWER(@NameOrAlias) + '%'))");
+            queryBuilder.AppendLine("    AND (@CountryId IS NULL OR P.IdCountry = @CountryId)");
+            queryBuilder.AppendLine("    AND (@ClientId IS NULL OR P.ClientId = @ClientId)");
+            queryBuilder.AppendLine("    AND (@CompanyId IS NULL OR P.CompanyId = @CompanyId)");
 
-            var parameters = new
-            {
-                PageNumber = filtersAndPagination.Pagination.PageNumber,
-                PageSize = filtersAndPagination.Pagination.PageSize,
-                IsActive = filtersAndPagination.IsActive,
-                NameOrAlias = filtersAndPagination.NameOrAlias,
-                CountryId = filtersAndPagination.CountryId,
-                ClientId = filtersAndPagination.ClientId,
-                CompanyId = filtersAndPagination.CompanyId
-            };
+            parameters.Add("@IsActive", filtersAndPagination.Filters.IsActive, DbType.String);
+            parameters.Add("@NameOrAlias", filtersAndPagination.Filters.NameOrAlias, DbType.String);
+            parameters.Add("@CountryId", filtersAndPagination.Filters.CountryId, DbType.String);
+            parameters.Add("@ClientId", filtersAndPagination.Filters.ClientId, DbType.Int32);
+            parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
 
-            var results = await connection.QueryAsync<ProviderGetAllWithFiltersVM>(query, parameters);
+            // Cuenta el número total de resultados sin aplicar la paginación
+            var countQuery = "SELECT COUNT(*) FROM (" + queryBuilder.ToString() + ") AS TotalCountQuery;";
+            var totalCount = await connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
-            return results.ToList();
+            // Aplica la paginación a la consulta
+            queryBuilder.AppendLine("ORDER BY P.Name");
+            queryBuilder.AppendLine("OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;");
+
+            parameters.Add("@Skip", (filtersAndPagination.Pagination.PageNumber - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@Take", filtersAndPagination.Pagination.PageSize, DbType.Int32);
+
+            var results = await connection.QueryAsync<ProviderGetAllWithFiltersVM>(queryBuilder.ToString(), parameters);
+            var providers = results.ToList();
+
+            return (providers, totalCount);
         }
+
+
 
 
         public void Update(Provider obj)
@@ -180,6 +181,7 @@ namespace OceansApp.DataAccess.Repository
                     existingProvider.DateLastUpdate = obj.DateLastUpdate;
                     existingProvider.CreationDate = obj.CreationDate;
                     existingProvider.ClientId = obj.ClientId;
+                    existingProvider.Id = obj.Id;
                     return existingProvider.ProviderId;
                 }
                 return null;
