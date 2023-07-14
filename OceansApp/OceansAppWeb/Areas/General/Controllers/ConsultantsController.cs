@@ -15,23 +15,27 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             _unitOfWork = unitOrWork;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
             ProviderGetAllForListVM model = new ProviderGetAllForListVM
             {
                 Pagination = new Pagination
                 {
-                    PageNumber = 1,
-                    PageSize = 10
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    PageSizeOptions = new List<int> { 10, 30, 50, 100 },
+                    SelectedPageSize = pageSize
                 },
                 Filters = new ProviderFiltersGetAllVM
                 {
-                    IsActive = "S"
                 }
             };
             var result = await _unitOfWork.Provider.GetAllProviderWithFiltersAsync(model);
 
             model.Pagination.TotalResults = result.totalCount;
+
+            var totalPages = (int)Math.Ceiling((double)model.Pagination.TotalResults / model.Pagination.PageSize);
+            model.Pagination.PageNumber = Math.Max(1, Math.Min(model.Pagination.PageNumber, totalPages));
 
             ProviderGetAllForListVM viewModel = new ProviderGetAllForListVM
             {

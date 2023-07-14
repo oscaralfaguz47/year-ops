@@ -1,0 +1,86 @@
+﻿@using OceansApp.Utility
+@model Pagination
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+
+<div class="pagination-container">
+@if (Model != null)
+{
+    @if (Model.TotalResults > 0)
+    {
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando @((Model.PageNumber - 1) * Model.PageSize + 1) - @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalResults) de @Model.TotalResults resultados
+            </div>
+           
+            <ul class="pagination">
+                @if (Model.PageNumber > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber - 1, pageSize = Model.SelectedPageSize })">Anterior</a>
+                    </li>
+                }
+                @if (Model.PageNumber > 5)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = 1, pageSize = Model.SelectedPageSize })">1</a>
+                    </li>
+                    <li class="disabled">
+                        <a class="page-link">...</a>
+                    </li>
+                }
+                @for (int i = Math.Max(Model.PageNumber - 2, 1); i <= Math.Min(Model.PageNumber + 2, Math.Ceiling((double)Model.TotalResults / Model.PageSize)); i++)
+                {
+                    <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, pageSize = Model.SelectedPageSize })">@i</a>
+                    </li>
+                }
+                @if (Model.PageNumber < Math.Ceiling((double)Model.TotalResults / Model.PageSize) - 3)
+                {
+                    <li class="page-item disabled">
+                        <a class="page-link">...</a>
+                    </li>
+                }
+                @if (Model.PageNumber < Math.Ceiling((double)Model.TotalResults / Model.PageSize) && Model.PageNumber + 2 < Math.Ceiling((double)Model.TotalResults / Model.PageSize))
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Math.Ceiling((double)Model.TotalResults / Model.PageSize), pageSize = Model.SelectedPageSize })">@Math.Ceiling((double)Model.TotalResults / Model.PageSize)</a>
+                    </li>
+                }
+                @if (Model.PageNumber < Math.Ceiling((double)Model.TotalResults / Model.PageSize))
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Model.PageNumber + 1, pageSize = Model.SelectedPageSize })">Siguiente</a>
+                    </li>
+                }
+            </ul>
+             <div class="pagination-size-section">
+                                <span for="pageSizeSelect">Resultados por página</span>
+                <select id="pageSizeSelect" class="" onchange="changePageSize()">
+                    @foreach (var option in Model.PageSizeOptions)
+                    {
+                        <option value="@option" selected="@(Model.SelectedPageSize == option)">@option</option>
+                    }
+                </select>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p>No se encontraron resultados.</p>
+    }
+}
+</div>
+
+<script>
+    function changePageSize() {
+        var pageSize = document.getElementById("pageSizeSelect").value;
+        var currentPage = @Model.PageNumber;
+        var totalPages = Math.ceil(@Model.TotalResults / pageSize);
+
+        // Ajustar el número de página si está fuera de rango debido al cambio de tamaño de página
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
+
+        window.location.href = '@Url.Action("Index")?page=' + currentPage + '&pageSize=' + pageSize;
+    }
+</script>
