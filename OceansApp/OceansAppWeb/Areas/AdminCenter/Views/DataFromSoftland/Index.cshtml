@@ -20,11 +20,10 @@
                     <textarea asp-for="DataToSave" rows="3" class="form-control" placeholder="Inserta acá el JSON {} con los datos a actualizar"></textarea>
                     <span asp-validation-for="DataToSave" class="text-danger"></span>
                 </div>
-
-                <button type="submit" class="btn btn-primary" style="width:150px">Actualizar Datos</button> 
-                <a asp-area="AdminCenter" asp-controller="Home" asp-action="Index" class="btn cancel-btn" style="width:150px">
+                 <a asp-area="AdminCenter" asp-controller="Home" asp-action="Index" class="cancel-btn">
                     Cancelar
-                </a>
+                </a> &nbsp;
+                <button type="submit" class="btn-primary-submit">Actualizar Datos</button> 
             </div>
         </form>
     </div>

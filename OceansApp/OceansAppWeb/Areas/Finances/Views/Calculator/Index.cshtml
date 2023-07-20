@@ -3,7 +3,7 @@
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @model CalculatorVM
 
-<div class="text-center">
+<div>
     <div class="container">
         @if (User.IsInRole(SD.Role_User_Master))
         {
@@ -12,138 +12,236 @@
             </div>
         }
         <form asp-controller="Calculator" asp-action="Calculate" id="calculatorForm">
-            <h2 class="" style="font-weight: bold; color: var(--clr-yellow);">CALCULADORA FINANCIERA</h2>
-
+            <div class="calculator-title">
+                <img src="~/img/calculator/calc-icon.png" />
+                <h2>CALCULADORA DE RATES</h2>
+            </div>
+            <hr />
             <div class="row">
-                <div class="col-lg-4 checkboxes-box">
-                    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-                    {
-                        <div style="text-align:left">
-                            <label class="title-label"><strong>Areas</strong></label><br />
-                            @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                            {
-                                int count = 0;
-                                for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                <div class="col-lg-6 box-border-right">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="">
+                                <label for="role" class="form-label form-custom-label title-label">Puesto del consultor</label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select id="role" asp-for="ConsultantRoleId" asp-items="@Model.ConsultantRoleList" class="form-select">
+                                        <option disabled selected value="">Developer/Engineer</option>
+                                    </select>
+                                </div><br />
+                                <span asp-validation-for="ConsultantRoleId" class="text-danger"></span>
+                                @for (int i = 0; i < Model.ConsultantRoleList.Count; i++)
                                 {
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                    if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                    <input type="hidden" asp-for="ConsultantRoleList[i].Value" name="ConsultantRoleList[@i].Value" />
+                                    <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
+                                }
+                            </div>
+                            <div class="">
+                                <label for="qualityLevel" class="form-label form-custom-label title-label">Clasificación del consultor</label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select id="qualityLevel" asp-for="ConsultantQualityLevelId" asp-items="@Model.ConsultantQualityLevelList" class="form-select">
+                                        <option disabled selected value="">A - Base</option>
+                                    </select>
+                                </div><br />
+                                <span asp-validation-for="ConsultantQualityLevelId" class="text-danger"></span>
+                                @for (int i = 0; i < Model.ConsultantQualityLevelList.Count; i++)
+                                {
+                                    <input type="hidden" asp-for="ConsultantQualityLevelList[i].Value" name="ConsultantQualityLevelList[@i].Value" />
+                                    <input type="hidden" asp-for="ConsultantQualityLevelList[i].Text" name="ConsultantQualityLevelList[@i].Text" />
+                                }
+                            </div>
+                            <div class="form-group">
+                                <label for="amountToPay" class="form-label form-custom-label title-label">Expectativas del consultor</label>
+                                <div class="input-container">
+                                    <input asp-for="PaymentAmount" type="number" step="any" class="form-control" id="amountToPay" placeholder="$$$">
+                                    <img src="~/img/calculator/money-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                </div>
+                                <span asp-validation-for="PaymentAmount" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <fieldset>
+                                <div class="">
+                                    <label for="client" class="form-label form-custom-label title-label">Categoría del cliente</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select id="client" asp-for="Client" asp-items="@Model.ClientList" class="form-select">
+                                            <option disabled selected value="">XYZ Client Corp</option>
+                                        </select>
+                                    </div> <br />
+                                    <span asp-validation-for="Client" class="text-danger"></span>
+                                    @for (int i = 0; i < Model.ClientList.Count; i++)
                                     {
-                                        if (count == 0)
-                                        {
-                                            <label class="title-label"><strong>Gastos</strong></label>
-
-                                            <br />
-                                        }
-                                        count++;
+                                        <input type="hidden" asp-for="ClientList[i].Value" name="ClientList[@i].Value" />
+                                        <input type="hidden" asp-for="ClientList[i].Text" name="ClientList[@i].Text" />
                                     }
-
-                                    <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                        <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                    </label>
-
-                                    <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                        <i class="bi bi-question-circle tooltip-target"></i>
-                                        <div class="tooltip-content">
-                                            <div class="tooltip-arrow"></div>
-                                            @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                </div>
+                                <div class="form-group">
+                                    <label for="daysYear" class="form-label form-custom-label title-label">Días feriados pagos</label>
+                                    <div class="input-container">
+                                        <input asp-for="DaysYear" type="number" step="any" class="form-control" id="daysYear" placeholder="Dígita un número">
+                                        <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                    </div>
+                                </div>
+                                @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                                {
+                                    <div class="form-group">
+                                        <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
+                                        <div class="input-container">
+                                            <input asp-for="VacationDays" type="number" step="any" class="form-control" id="daysVacations" placeholder="Dígita un número">
+                                            <img src="~/img/calculator/vacation-icon.png" alt="Placeholder Image" class="placeholder-image" />
                                         </div>
                                     </div>
-                                    <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
                                 }
-                            }
-                            <br /><br />
+                            </fieldset>
                         </div>
-                    }
-                    else
-                    {
-
-                        <div class="div-calc-simple-user">
-                            <i class="bi bi-info-square calcu-icon"></i> <br />
-                            <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
-                        </div>
-                    }
+                    </div>
                 </div>
-                <div class="col-lg-4">
-                    <fieldset>
-                        <div class="">
-                            <label for="client" class="form-label mt-4 form-custom-label title-label">Cliente</label>
-                            <select id="client" asp-for="Client" asp-items="@Model.ClientList" class="form-select">
-                                <option value="">-- Selecciona un cliente --</option>
-                            </select>
-                            <span asp-validation-for="Client" class="text-danger"></span>
-                            @for (int i = 0; i < Model.ClientList.Count; i++)
-                            {
-                                <input type="hidden" asp-for="ClientList[i].Value" name="ClientList[@i].Value" />
-                                <input type="hidden" asp-for="ClientList[i].Text" name="ClientList[@i].Text" />
-                            }
-                        </div>
-                        <div class="form-group">
-                            <label for="daysYear" class="form-label mt-4 form-custom-label title-label">Días Feriados del Año</label>
-                            <input asp-for="DaysYear" type="number" step="any" class="form-control" id="daysYear" placeholder="Dígita un número">
-                            <span asp-validation-for="DaysYear" class="text-danger"></span>
-                        </div>
+                <div class="col-lg-6">
+                    <div class="checkboxes-box">
+
                         @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
                         {
-                            <div class="form-group">
-                                <label for="daysVacations" class="form-label mt-4 form-custom-label title-label">Días de Vacaciones</label>
-                                <input asp-for="VacationDays" type="number" step="any" class="form-control" id="daysVacations" placeholder="Dígita un número">
-                                <span asp-validation-for="VacationDays" class="text-danger"></span>
+                            <div class="col-lg-6">
+                                <div style="text-align:left">
+                                    <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
+                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                    {
+                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                        {
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                            if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                            {
+                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                                </label>
+
+                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                    <i class="bi bi-question-circle tooltip-target"></i>
+                                                    <div class="tooltip-content">
+                                                        <div class="tooltip-arrow"></div>
+                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                    </div>
+                                                </div>
+                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                            }
+                                        }
+                                    }
+                                    <br /><br />
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div style="text-align:left">
+                                    <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
+                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                    {
+                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                        {
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                            if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                            {
+                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                                </label>
+
+                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                    <i class="bi bi-question-circle tooltip-target"></i>
+                                                    <div class="tooltip-content">
+                                                        <div class="tooltip-arrow"></div>
+                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                    </div>
+                                                </div>
+                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                            }
+                                        }
+                                    }
+                                    <br /><br />
+                                </div>
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="div-calc-simple-user">
+                                <i class="bi bi-info-square calcu-icon"></i> <br />
+                                <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
                             </div>
                         }
-                    </fieldset>
-                </div>
-
-                <div class="col-lg-4">
-                    <div class="">
-                        <label for="role" class="form-label mt-4 form-custom-label title-label">Rol del Consultor</label>
-                        <select id="role" asp-for="ConsultantRoleId" asp-items="@Model.ConsultantRoleList" class="form-select">
-                            <option value="">-- Selecciona un rol para el consultor --</option>
-                        </select>
-                        <span asp-validation-for="ConsultantRoleId" class="text-danger"></span>
-                        @for (int i = 0; i < Model.ConsultantRoleList.Count; i++)
-                        {
-                            <input type="hidden" asp-for="ConsultantRoleList[i].Value" name="ConsultantRoleList[@i].Value" />
-                            <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
-                        }
-                    </div>
-                    <div class="">
-                        <label for="qualityLevel" class="form-label mt-4 form-custom-label title-label">Nivel del Consultor</label>
-                        <select id="qualityLevel" asp-for="ConsultantQualityLevelId" asp-items="@Model.ConsultantQualityLevelList" class="form-select">
-                            <option value="">-- Selecciona un nivel para el consultor --</option>
-                        </select>
-                        <span asp-validation-for="ConsultantQualityLevelId" class="text-danger"></span>
-                        @for (int i = 0; i < Model.ConsultantQualityLevelList.Count; i++)
-                        {
-                            <input type="hidden" asp-for="ConsultantQualityLevelList[i].Value" name="ConsultantQualityLevelList[@i].Value" />
-                            <input type="hidden" asp-for="ConsultantQualityLevelList[i].Text" name="ConsultantQualityLevelList[@i].Text" />
-                        }
-                    </div>
-                    <div class="form-group">
-                        <label for="amountToPay" class="form-label mt-4 form-custom-label title-label">$ Monto a Pagar al Consultor</label>
-                        <input asp-for="PaymentAmount" type="number" step="any" class="form-control" id="amountToPay" placeholder="Dígita un monto">
-                        <span asp-validation-for="PaymentAmount" class="text-danger"></span>
-                    </div>
-                    <br />
-                    <div class="btns-cont">
-                        <button id="submitBtn" type="submit" class="btn btn-primary btn-submit"><i class="bi bi-calculator"></i>&nbsp;CALCULAR</button>
-                        <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="btn btn-submit cancel-btn"><i class="bi bi-eraser"></i>&nbsp;LIMPIAR DATOS</a>
                     </div>
                 </div>
-                @if (TempData["result"] != null)
-                {
-                    <div class="container">
-                        <div class="battery">
-                            <div class="battery-level"></div>
-                            <div class="battery-label"></div>
-                        </div>
-                        <div class="baterry-message-box"></div>
-                    </div>
-                }
+                <div class="mt-4 text-center">
+                    <button id="submitBtn" type="submit" class="btn-primary-submit">CALCULAR</button>&nbsp;
+                    <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">REINICIAR</a>
+                </div>
             </div>
+            @if (TempData["result"] != null)
+            {
+                <hr />
+                <div class="row">
+                    <div class="col-lg-6 box-border-right">
+                        <div class="row">
+                            <div class="container financial-performance" style="display:flex">
+                                <div class="battery">
+                                    <div class="battery-level"></div>
+                                    <div class="battery-label"></div>
+                                </div>
+                                @*   <div class="baterry-message-box"></div>*@
+                                <div>
+                                    <h6>RENDIMIENTO FINANCIERO</h6>
+                                    <p>100% | Excelente</p>
+                                    <p>Indica una ganancia reducida, proceder en última instancia.</p>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="row">
+                            <div class="client-proposal" style="display:flex">
+                                <div>
+                                    <img src="~/img/calculator/proposal-icon.png" class="proposal-img" />
+                                </div>
+                                <div>
+                                    <h6>PROPUESTA PARA EL CLIENTE</h6>
+                                    <table>
+                                        <tr class="bg-gray">
+                                            <td>Categoría de cliente:</td>
+                                            <td>AAA</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Rate ideal:</td>
+                                            <td>$47</td>
+                                        </tr>
+                                        <tr class="bg-gray">
+                                            <td>Rate negociable:</td>
+                                            <td>$43 a $46</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Rate ideal (mensual):</td>
+                                            <td>$8102</td>
+                                        </tr>
+                                        <tr class="bg-gray">
+                                            <td>Rate negociable (mensual):</td>
+                                            <td>$7400 - $8100</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
         </form>
 
         @if (TempData["result"] != null)
@@ -151,6 +249,7 @@
             @if (TempData["messageProfitLessThanConfig"] != null)
             {
                 <div id="warning-message-cont">
+
                     <i class="bi bi-exclamation-triangle-fill"></i>
                     <div class="body-mess-cont">
                         <p>
@@ -329,7 +428,7 @@
         console.log(maxProfitSetPercentage);
         const batteryLevel = document.querySelector('.battery-level');
         const batteryLabel = document.querySelector('.battery-label');
-        const batteryMessageBox = document.querySelector('.baterry-message-box');
+        //const batteryMessageBox = document.querySelector('.baterry-message-box');
 
         // Función para actualizar el nivel de la batería y su color
         function updateBatteryLevel(percentage) {
@@ -353,20 +452,25 @@
           const height = limitedPercentage;
 
           // Actualiza el nivel de la batería y su color
-          batteryLevel.style.height = `${height}%`;
+          if(height >= 100){
+               batteryLevel.style.height = `${height-10}%`;
+          }else{
+               batteryLevel.style.height = `${height}%`;
+          }
+         
 
           if (batteryPercentage > 55) {
-            batteryLevel.style.backgroundColor = 'green';
-            batteryMessageBox.textContent = 'Este % de carga está muy bien, sigue manteniendolo así!';
-            batteryMessageBox.style.color = 'green';
+            batteryLevel.style.backgroundColor = '#0bfc08';
+           // batteryMessageBox.textContent = 'Este % de carga está muy bien, sigue manteniendolo así!';
+           // batteryMessageBox.style.color = '#0bfc08 ';
           } else if (batteryPercentage > 22) {
             batteryLevel.style.backgroundColor = 'orange';
-            batteryMessageBox.textContent = 'Este % de carga es aceptable, pero procura siempre mantener un porcentage alto!';
-            batteryMessageBox.style.color = 'orange';
+           // batteryMessageBox.textContent = 'Este % de carga es aceptable, pero procura siempre mantener un porcentage alto!';
+           // batteryMessageBox.style.color = 'orange';
           } else {
             batteryLevel.style.backgroundColor = 'red';
-            batteryMessageBox.textContent = 'Te sugiero que cambies el monto a pagar al consultor por uno más bajo!';
-             batteryMessageBox.style.color = 'red';
+           // batteryMessageBox.textContent = 'Te sugiero que cambies el monto a pagar al consultor por uno más bajo!';
+           //  batteryMessageBox.style.color = 'red';
           }
           // Actualiza el texto de la etiqueta de la batería con el formato adecuado
           batteryLabel.textContent = `${limitedPercentage.toFixed(0)}%`;

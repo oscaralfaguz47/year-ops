@@ -11,14 +11,14 @@ namespace OceansApp.Models.ViewModels
         public Double? DaysYear { get; set; } = 7;
         [Range(0, 20, ErrorMessage = "El valor debe de ser mayor o igual a 0 y menor o igual a 20")]
         public Double? VacationDays { get; set; } = 0;
-        [Required(ErrorMessage = "El monto a pagar al Consultor es requerido")]
+        [Required(ErrorMessage = "La expectativa del consultor es requerido")]
         [Range(500, 50000, ErrorMessage = "El valor debe de ser mayor o igual a $500 y menor o igual a $50,000")]
         public Double? PaymentAmount { get; set; } = null;
-        [Required(ErrorMessage = "El Cliente es requerido")]
+        [Required(ErrorMessage = "El cliente es requerido")]
         public String Client { get; set; }
-        [Required(ErrorMessage = "El rol del consultor es requerido")]
+        [Required(ErrorMessage = "El puesto del consultor es requerido")]
         public String ConsultantRoleId { get; set; }
-        [Required(ErrorMessage = "El nivel del consultor es requerido")]
+        [Required(ErrorMessage = "La clasificación del consultor es requerido")]
         public String ConsultantQualityLevelId { get; set; }
         public List<SelectListItem>? ClientList { get; set; }
         public List<SelectListItem>? ConsultantRoleList { get; set; }
