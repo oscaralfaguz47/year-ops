@@ -192,13 +192,11 @@
                             <div class="container financial-performance" style="display:flex">
                                 <div class="battery">
                                     <div class="battery-level"></div>
-                                    <div class="battery-label"></div>
                                 </div>
-                                @*   <div class="baterry-message-box"></div>*@
                                 <div>
                                     <h6>RENDIMIENTO FINANCIERO</h6>
-                                    <p>100% | Excelente</p>
-                                    <p>Indica una ganancia reducida, proceder en última instancia.</p>
+                                    <p class="battery-first-message"></p>
+                                    <p class="baterry-message-box"></p>
                                 </div>
                             </div>
 
@@ -214,26 +212,75 @@
                                 <div>
                                     <h6>PROPUESTA PARA EL CLIENTE</h6>
                                     <table>
-                                        <tr class="bg-gray">
-                                            <td>Categoría de cliente:</td>
-                                            <td>AAA</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal:</td>
-                                            <td>$47</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable:</td>
-                                            <td>$43 a $46</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal (mensual):</td>
-                                            <td>$8102</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable (mensual):</td>
-                                            <td>$7400 - $8100</td>
-                                        </tr>
+                                        @if (@TempData["hourRateGreenAAA"] != null)
+                                        {
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>AAA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal:</td>
+                                                <td>@TempData["hourRateGreenAAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable:</td>
+                                                <td>@TempData["hourRateYellowAAA"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal (mensual):</td>
+                                                <td>@TempData["monthlyRateGreenAAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable (mensual):</td>
+                                                <td>@TempData["monthlyRateYellowAAA"]</td>
+                                            </tr>
+                                        }
+                                        @if (@TempData["hourRateGreenAA"] != null)
+                                        {
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>AA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal:</td>
+                                                <td>@TempData["hourRateGreenAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable:</td>
+                                                <td>@TempData["hourRateYellowAA"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal (mensual):</td>
+                                                <td>@TempData["monthlyRateGreenAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable (mensual):</td>
+                                                <td>@TempData["monthlyRateYellowAA"]</td>
+                                            </tr>
+                                        }
+                                        @if (@TempData["hourRateGreenPartner"] != null)
+                                        {
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>Partner</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal:</td>
+                                                <td>@TempData["hourRateGreenPartner"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable:</td>
+                                                <td>@TempData["hourRateYellowPartner"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal (mensual):</td>
+                                                <td>@TempData["monthlyRateGreenPartner"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable (mensual):</td>
+                                                <td>@TempData["monthlyRateYellowPartner"]</td>
+                                            </tr>
+                                        }
                                     </table>
                                 </div>
                             </div>
@@ -268,55 +315,8 @@
 
                 </div>
             }
-            <div id="results-section">
-                <h4>PRECIOS PARA EL CLIENTE</h4>
-            </div>
-            <br />
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr class="table-header">
-                            <th scope="col">Tipo de Cliente</th>
-                            <th scope="col">Rate x Hora Verde</th>
-                            <th scope="col">Rate x Hora Amarillo</th>
-                            <th scope="col">Rate Mensual Verde</th>
-                            <th scope="col">Rate Mensual Amarillo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (@TempData["hourRateGreenAAA"] != null)
-                        {
-                            <tr class="table-light">
-                                <th>Cliente AAA</th>
-                                <td class="green-cell">@TempData["hourRateGreenAAA"] <i class="bi bi-arrow-up"></i></td>
-                                <td class="yellow-cell">@TempData["hourRateYellowAAA"]</td>
-                                <td class="green-cell">@TempData["monthlyRateGreenAAA"] <i class="bi bi-arrow-up"></i></td>
-                                <td class="yellow-cell">@TempData["monthlyRateYellowAAA"]</td>
-                            </tr>
-                        }
-                        @if (@TempData["hourRateGreenAA"] != null)
-                        {
-                            <tr class="table-light">
-                                <th>Cliente AA</th>
-                                <td class="green-cell">@TempData["hourRateGreenAA"] <i class="bi bi-arrow-up"></i></td>
-                                <td class="yellow-cell">@TempData["hourRateYellowAA"]</td>
-                                <td class="green-cell">@TempData["monthlyRateGreenAA"] <i class="bi bi-arrow-up"></i></td>
-                                <td class="yellow-cell">@TempData["monthlyRateYellowAA"]</td>
-                            </tr>
-                        }
-                        @if (@TempData["hourRateGreenPartner"] != null)
-                        {
-                            <tr class="table-light">
-                                <th scope="row">Partner</th>
-                                <td class="green-cell">@TempData["hourRateGreenPartner"] <i class="bi bi-arrow-up"></i></td>
-                                <td class="yellow-cell">@TempData["hourRateYellowPartner"]</td>
-                                <td class="green-cell">@TempData["monthlyRateGreenPartner"] <i class="bi bi-arrow-up"></i></td>
-                                <td class="yellow-cell">@TempData["monthlyRateYellowPartner"]</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+
+           
             @if (User.IsInRole(SD.Role_User_Master))
             {
                 <br />
@@ -424,19 +424,13 @@
         var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
         var maxProfitSetPercentage = '@Model.MaxProfitSetPercentage';
         var greenPercentageInResults = '@Model.GreenPercentageInResults';
-        console.log(minProfitSetPercentage);
-        console.log(maxProfitSetPercentage);
         const batteryLevel = document.querySelector('.battery-level');
-        const batteryLabel = document.querySelector('.battery-label');
-        //const batteryMessageBox = document.querySelector('.baterry-message-box');
+        const batteryMessage1 = document.querySelector('.baterry-message-box');
+        const batteryMessage2 = document.querySelector('.battery-first-message');
+        const battery = document.querySelector('.battery');
 
         // Función para actualizar el nivel de la batería y su color
         function updateBatteryLevel(percentage) {
-          // Verifica si el porcentaje está fuera del rango permitido
-          if (percentage < 0 || percentage > 100) {
-            console.error('El porcentaje debe estar entre 0 y 100.');
-            return;
-          }
 
           // Calcula el porcentaje relativo dentro del rango de 16 a 33
           const range = maxProfitSetPercentage - minProfitSetPercentage;
@@ -446,34 +440,41 @@
           const batteryPercentage = relativePercentage * 100;
 
           // Limita el porcentaje dentro del rango entre 0 y 100
-          const limitedPercentage = Math.max(0, Math.min(100, batteryPercentage));
+          const limitedPercentage = Math.max(0, Math.min(90, batteryPercentage));
 
           // Calcula el valor de altura en píxeles basado en el porcentaje
           const height = limitedPercentage;
-
-          // Actualiza el nivel de la batería y su color
-          if(height >= 100){
-               batteryLevel.style.height = `${height-10}%`;
-          }else{
-               batteryLevel.style.height = `${height}%`;
-          }
-         
+       
+           //if(height - 10 > 0 ){
+           //               batteryLevel.style.height = `${height-10}%`;
+           //               console.log(height-10);
+           //               console.log('menos');
+           //}else{
+           //    batteryLevel.style.height = `${height}%`;
+           //    console.log(height);
+           //    console.log('más');
+           //}
+            batteryLevel.style.height = `${height}%`;
+          
 
           if (batteryPercentage > 55) {
             batteryLevel.style.backgroundColor = '#0bfc08';
-           // batteryMessageBox.textContent = 'Este % de carga está muy bien, sigue manteniendolo así!';
-           // batteryMessageBox.style.color = '#0bfc08 ';
+            batteryMessage1.textContent += 'Indica el máximo margen de ganancia';
+            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Excelente';
+           battery.style.border = '4px solid #0bfc08';
           } else if (batteryPercentage > 22) {
-            batteryLevel.style.backgroundColor = 'orange';
-           // batteryMessageBox.textContent = 'Este % de carga es aceptable, pero procura siempre mantener un porcentage alto!';
-           // batteryMessageBox.style.color = 'orange';
+            batteryLevel.style.backgroundColor = '#f5a707 ';
+            batteryMessage1.textContent += 'Indica una ganancia moderada';
+            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Bueno';
+           battery.style.border = '4px solid #f5a707 ';
           } else {
             batteryLevel.style.backgroundColor = 'red';
-           // batteryMessageBox.textContent = 'Te sugiero que cambies el monto a pagar al consultor por uno más bajo!';
-           //  batteryMessageBox.style.color = 'red';
+            batteryMessage1.textContent += 'Indica una ganancia reducida, proceder en última instancia';
+            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Malo';
+           battery.style.border = '4px solid red';
           }
           // Actualiza el texto de la etiqueta de la batería con el formato adecuado
-          batteryLabel.textContent = `${limitedPercentage.toFixed(0)}%`;
+
         }
 
         // Ejemplo de uso: actualiza el nivel de la batería al 30%

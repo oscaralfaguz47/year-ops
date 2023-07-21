@@ -41,9 +41,7 @@
     .checkboxes-box span {
         color: #b3b9ba;
     }
-#results-section{
-    margin-top: 30px;
-}
+
 #calculatorForm {
     background-color: #fff;
     padding: 40px;
@@ -197,13 +195,23 @@
     float: left;
     transform: rotate(90deg);
 }
+    .battery::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30%;
+        height: 5px;
+        background-color: #000;
+    }
 
 .battery-level {
     position: absolute;
     bottom: 3px;
     left: 3px;
     width: 88%;
-    height: 100%;
+    height: 90%;
     background-color: #0bfc08;
     transition: height 0.3s;
     box-sizing: border-box;
@@ -219,16 +227,6 @@
 }
 
 
-.baterry-message-box {
-    font-weight: bold;
-    height: 90px;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-start;
-    padding-left: 10px;
-}
 
 
 
@@ -278,9 +276,6 @@ clients-profit .col-lg-4 {
 @media only screen and (max-width: 992px) {
     .div-calc-simple-user {
         margin-top: 0px;
-    }
-    .baterry-message-box {
-        height: 120px;
     }
     .box-border-right {
         border-right: none;
