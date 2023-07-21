@@ -200,6 +200,9 @@ nav {
 .tooltip-target:hover ~ .tooltip-content {
     opacity: 1;
 }
+.tooltip-target {
+    color: var(--clr-blueLight);
+}
 .input-container {
     position: relative;
     margin-top: 10px;

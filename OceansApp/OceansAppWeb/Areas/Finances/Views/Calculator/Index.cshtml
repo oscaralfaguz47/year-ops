@@ -101,81 +101,73 @@
                 <div class="col-lg-6">
                     <div class="checkboxes-box">
 
-                        @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-                        {
-                            <div class="col-lg-6">
-                                <div style="text-align:left">
-                                    <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
-                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                                    {
-                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
-                                        {
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                            if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
-                                            {
-                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                                </label>
 
-                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <i class="bi bi-question-circle tooltip-target"></i>
-                                                    <div class="tooltip-content">
-                                                        <div class="tooltip-arrow"></div>
-                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
-                                                    </div>
+                        <div class="col-lg-6">
+                            <div style="text-align:left">
+                                <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
+                                @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                {
+                                    for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                    {
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                        if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                        {
+                                            <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                            </label>
+
+                                            <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <i class="bi bi-question-circle tooltip-target"></i>
+                                                <div class="tooltip-content">
+                                                    <div class="tooltip-arrow"></div>
+                                                    @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
                                                 </div>
-                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
-                                            }
+                                            </div>
+                                            <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
                                         }
                                     }
-                                    <br /><br />
-                                </div>
+                                }
+                                <br /><br />
                             </div>
-                            <div class="col-lg-6">
-                                <div style="text-align:left">
-                                    <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
-                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                        </div>
+                        <div class="col-lg-6">
+                            <div style="text-align:left">
+                                <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
+                                @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                {
+                                    for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
                                     {
-                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                        if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
                                         {
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                            if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
-                                            {
-                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                                </label>
+                                            <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                            </label>
 
-                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <i class="bi bi-question-circle tooltip-target"></i>
-                                                    <div class="tooltip-content">
-                                                        <div class="tooltip-arrow"></div>
-                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
-                                                    </div>
+                                            <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <i class="bi bi-question-circle tooltip-target"></i>
+                                                <div class="tooltip-content">
+                                                    <div class="tooltip-arrow"></div>
+                                                    @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
                                                 </div>
-                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
-                                            }
+                                            </div>
+                                            <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
                                         }
                                     }
-                                    <br /><br />
-                                </div>
+                                }
+                                <br /><br />
                             </div>
+                        </div>
 
-                        }
-                        else
-                        {
-                            <div class="div-calc-simple-user">
-                                <i class="bi bi-info-square calcu-icon"></i> <br />
-                                <label style="padding: 0 20px 0 20px"><strong>Todos los Costos y Gastos están incluidos para el calculo del precio al cliente.</strong></label>
-                            </div>
-                        }
+
                     </div>
                 </div>
                 <div class="mt-4 text-center">
@@ -316,7 +308,7 @@
                 </div>
             }
 
-           
+
             @if (User.IsInRole(SD.Role_User_Master))
             {
                 <br />
@@ -420,67 +412,58 @@
 
     }
     <script>
-        // Obtén los elementos de la barra de nivel de batería y la etiqueta
-        var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
-        var maxProfitSetPercentage = '@Model.MaxProfitSetPercentage';
-        var greenPercentageInResults = '@Model.GreenPercentageInResults';
-        const batteryLevel = document.querySelector('.battery-level');
-        const batteryMessage1 = document.querySelector('.baterry-message-box');
-        const batteryMessage2 = document.querySelector('.battery-first-message');
-        const battery = document.querySelector('.battery');
-
-        // Función para actualizar el nivel de la batería y su color
-        function updateBatteryLevel(percentage) {
-
-          // Calcula el porcentaje relativo dentro del rango de 16 a 33
-          const range = maxProfitSetPercentage - minProfitSetPercentage;
-          const relativePercentage = (percentage - minProfitSetPercentage) / range;
-
-          // Calcula el porcentaje de la batería en función del porcentaje relativo
-          const batteryPercentage = relativePercentage * 100;
-
-          // Limita el porcentaje dentro del rango entre 0 y 100
-          const limitedPercentage = Math.max(0, Math.min(90, batteryPercentage));
-
-          // Calcula el valor de altura en píxeles basado en el porcentaje
-          const height = limitedPercentage;
-       
-           //if(height - 10 > 0 ){
-           //               batteryLevel.style.height = `${height-10}%`;
-           //               console.log(height-10);
-           //               console.log('menos');
-           //}else{
-           //    batteryLevel.style.height = `${height}%`;
-           //    console.log(height);
-           //    console.log('más');
-           //}
-            batteryLevel.style.height = `${height}%`;
-          
-
-          if (batteryPercentage > 55) {
-            batteryLevel.style.backgroundColor = '#0bfc08';
-            batteryMessage1.textContent += 'Indica el máximo margen de ganancia';
-            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Excelente';
-           battery.style.border = '4px solid #0bfc08';
-          } else if (batteryPercentage > 22) {
-            batteryLevel.style.backgroundColor = '#f5a707 ';
-            batteryMessage1.textContent += 'Indica una ganancia moderada';
-            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Bueno';
-           battery.style.border = '4px solid #f5a707 ';
-          } else {
-            batteryLevel.style.backgroundColor = 'red';
-            batteryMessage1.textContent += 'Indica una ganancia reducida, proceder en última instancia';
-            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Malo';
-           battery.style.border = '4px solid red';
-          }
-          // Actualiza el texto de la etiqueta de la batería con el formato adecuado
-
-        }
-
-        // Ejemplo de uso: actualiza el nivel de la batería al 30%
-        updateBatteryLevel(greenPercentageInResults);
+                         // Obtén los elementos de la barra de nivel de batería y la etiqueta
+                         var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
+                         var maxProfitSetPercentage = '@Model.MaxProfitSetPercentage';
+                         var greenPercentageInResults = '@Model.GreenPercentageInResults';
+                         const batteryLevel = document.querySelector('.battery-level');
+                         const batteryMessage1 = document.querySelector('.baterry-message-box');
+                         const batteryMessage2 = document.querySelector('.battery-first-message');
+                         const battery = document.querySelector('.battery');
 
 
+                         // Función para actualizar el nivel de la batería y su color
+                         function updateBatteryLevel(percentage) {
+
+                           // Calcula el porcentaje relativo dentro del rango de 16 a 33
+                           const range = maxProfitSetPercentage - minProfitSetPercentage;
+                           const relativePercentage = (percentage - minProfitSetPercentage) / range;
+
+                           // Calcula el porcentaje de la batería en función del porcentaje relativo
+                           const batteryPercentage = relativePercentage * 100;
+
+                           // Limita el porcentaje dentro del rango entre 0 y 100
+                           const limitedPercentage = Math.max(0, Math.min(100, batteryPercentage));
+
+                           // Calcula el valor de altura en píxeles basado en el porcentaje
+                           const height = limitedPercentage;
+
+                             batteryLevel.style.height = `${height}%`;
+
+
+                           if (batteryPercentage > 55) {
+                             batteryLevel.style.backgroundColor = '#0bfc08';
+                             batteryMessage1.textContent += 'Indica el máximo margen de ganancia';
+                             batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Excelente';
+                            battery.style.border = '4px solid #0bfc08';
+                            battery.classList.toggle('greenActive');
+                           } else if (batteryPercentage > 22) {
+                             batteryLevel.style.backgroundColor = '#f5a707 ';
+                             batteryMessage1.textContent += 'Indica una ganancia moderada';
+                             batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Bueno';
+                            battery.style.border = '4px solid #f5a707';
+                            battery.classList.toggle('orangeActive');
+                           } else {
+                             batteryLevel.style.backgroundColor = 'red';
+                             batteryMessage1.textContent += 'Indica una ganancia reducida, proceder en última instancia';
+                             batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Malo';
+                            battery.style.border = '4px solid red';
+                            battery.classList.toggle('redActive');
+                           }
+
+                         }
+
+                         updateBatteryLevel(greenPercentageInResults);
 
 
     </script>
