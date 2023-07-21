@@ -280,6 +280,16 @@ nav {
     }
 
     /*SHARED COMPONENTS*/
+.background-white {
+    background-color: #fff;
+    padding: 40px;
+    color: var(--clr-grayDark);
+    border-radius: 25px;
+}
+    .light-table{
+        width: 100%;
+        color: var(--clr-grayDark);
+    }
 
 /*FOOTER*/
 footer {

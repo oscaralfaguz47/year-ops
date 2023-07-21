@@ -3,15 +3,14 @@
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @model CalculatorVM
 
-<div>
-    <div class="container">
+    <div class="container" id="calculatorForm">
         @if (User.IsInRole(SD.Role_User_Master))
         {
             <div class="Manager-container">
                 <button onclick="location.href='@Url.Action("Index", "CalculatorGlobalConfiguration")'" id="btn-gc" class="btn btn-no-background"><i class="bi bi-gear"></i>&nbsp; Configuración Global</button>
             </div>
         }
-        <form asp-controller="Calculator" asp-action="Calculate" id="calculatorForm">
+        <form asp-controller="Calculator" asp-action="Calculate" class="background-white">
             <div class="calculator-title">
                 <img src="~/img/calculator/calc-icon.png" />
                 <h2>CALCULADORA DE RATES</h2>
@@ -183,6 +182,7 @@
                         <div class="row">
                             <div class="container financial-performance" style="display:flex">
                                 <div class="battery">
+                                    <div class="battery-border"></div>
                                     <div class="battery-level"></div>
                                 </div>
                                 <div>
@@ -312,52 +312,97 @@
             @if (User.IsInRole(SD.Role_User_Master))
             {
                 <br />
+                <div class="background-white">
+                     <div class="row">
+                         <div class="col-lg-6 box-border-rights">
+                              <h2>UTILIDADES APROXIMADAS</h2>
+                               <table class="light-table">
+                                        @if (@TempData["hourRateGreenAAA"] != null)
+                                        {
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>AAA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Utilidad ideal:</td>
+                                                <td>@TempData["greenProfitAAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>% Utilidad ideal:</td>
+                                                <td>@TempData["greenProfitPercentageAAA"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Utilidad negociable:</td>
+                                                <td>@TempData["averageYellowProfitAAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>% Utilidad negociable</td>
+                                                <td>@TempData["yellowProfitPercentageAAA"]</td>
+                                            </tr>
+                                        }
+                                        @if (@TempData["hourRateGreenAA"] != null)
+                                        {
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>AA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Utilidad ideal:</td>
+                                                <td>@TempData["greenProfitAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>% Utilidad ideal:</td>
+                                                <td>@TempData["greenProfitPercentageAA"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Utilidad negociable:</td>
+                                                <td>@TempData["averageYellowProfitAA"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>% Utilidad negociable</td>
+                                                <td>@TempData["yellowProfitPercentageAA"]</td>
+                                            </tr>
+                                        }
+                                         @if (@TempData["hourRateGreenPartner"] != null)
+                                        {
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>Partner</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Utilidad ideal:</td>
+                                                <td>@TempData["greenProfitPartner"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>% Utilidad ideal:</td>
+                                                <td>@TempData["greenProfitPercentagePartner"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Utilidad negociable:</td>
+                                                <td>@TempData["averageYellowProfitPartner"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>% Utilidad negociable</td>
+                                                <td>@TempData["yellowProfitPercentagePartner"]</td>
+                                            </tr>
+                                        }
+                                    </table>
+                         </div>
+                          <div class="col-lg-6">
+                               <h2>DESGLOSE DE GASTOS Y COSTOS</h2>
+                               <div style="text-align:left">
+                        <p><strong>Total gastos por centros de costo y descuentos:</strong> $@TempData["subtotalExpenses"]</p>
+                        <p><strong>Total costos directos (Pago al consultor, Holidays y vacaciones):</strong> $@TempData["totalCosts"]</p>
+                        <p><strong>Monto aumento global aplicado:</strong> @TempData["appliedAmountGlobalIncrease"]</p>
+                        <p><strong>TOTAL GASTOS Y COSTOS APLICADOS: $@TempData["totalAmountOfExpensesAndCosts"]</strong></p>
+                    </div>
+                         </div>
+                     </div>
+                </div>
                 <div class="table-responsive">
-                    <h4>UTILIDADES APROXIMADAS</h4>
+                   
                     <br />
-                    <table class="table">
-                        <thead>
-                            <tr class="table-header">
-                                <th scope="col">Tipo de Cliente</th>
-                                <th scope="col">Utilidad Verde</th>
-                                <th scope="col">% Utilidad Verde</th>
-                                <th scope="col">Utilidad Aprox. Amarillo</th>
-                                <th scope="col">% Utilidad Aprox. Amarillo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (@TempData["greenProfitAAA"] != null)
-                            {
-                                <tr class="table-light">
-                                    <th>Cliente AAA</th>
-                                    <td class="green-cell">@TempData["greenProfitAAA"]</td>
-                                    <td class="green-cell">@TempData["greenProfitPercentageAAA"]</td>
-                                    <td class="yellow-cell">@TempData["averageYellowProfitAAA"]</td>
-                                    <td class="yellow-cell">@TempData["yellowProfitPercentageAAA"]</td>
-                                </tr>
-                            }
-                            @if (@TempData["greenProfitAA"] != null)
-                            {
-                                <tr class="table-light">
-                                    <th>Cliente AA</th>
-                                    <td class="green-cell">@TempData["greenProfitAA"]</td>
-                                    <td class="green-cell">@TempData["greenProfitPercentageAA"]</td>
-                                    <td class="yellow-cell">@TempData["averageYellowProfitAA"]</td>
-                                    <td class="yellow-cell">@TempData["yellowProfitPercentageAA"]</td>
-                                </tr>
-                            }
-                            @if (@TempData["greenProfitPartner"] != null)
-                            {
-                                <tr class="table-light">
-                                    <th scope="row">Partner</th>
-                                    <td class="green-cell">@TempData["greenProfitPartner"]</td>
-                                    <td class="green-cell">@TempData["greenProfitPercentagePartner"]</td>
-                                    <td class="yellow-cell">@TempData["averageYellowProfitPartner"]</td>
-                                    <td class="yellow-cell">@TempData["yellowProfitPercentagePartner"]</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                   
                 </div>
                 <br />
                 <div>
@@ -412,58 +457,59 @@
 
     }
     <script>
-                         // Obtén los elementos de la barra de nivel de batería y la etiqueta
-                         var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
-                         var maxProfitSetPercentage = '@Model.MaxProfitSetPercentage';
-                         var greenPercentageInResults = '@Model.GreenPercentageInResults';
-                         const batteryLevel = document.querySelector('.battery-level');
-                         const batteryMessage1 = document.querySelector('.baterry-message-box');
-                         const batteryMessage2 = document.querySelector('.battery-first-message');
-                         const battery = document.querySelector('.battery');
+        // Obtén los elementos de la barra de nivel de batería y la etiqueta
+        var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
+        var maxProfitSetPercentage = '@Model.MaxProfitSetPercentage';
+        var greenPercentageInResults = '@Model.GreenPercentageInResults';
+        const batteryLevel = document.querySelector('.battery-level');
+        const batteryMessage1 = document.querySelector('.baterry-message-box');
+        const batteryMessage2 = document.querySelector('.battery-first-message');
+        const battery = document.querySelector('.battery');
+        const batteryBorder = document.querySelector('.battery-border');
 
 
-                         // Función para actualizar el nivel de la batería y su color
-                         function updateBatteryLevel(percentage) {
+        // Función para actualizar el nivel de la batería y su color
+        function updateBatteryLevel(percentage) {
 
-                           // Calcula el porcentaje relativo dentro del rango de 16 a 33
-                           const range = maxProfitSetPercentage - minProfitSetPercentage;
-                           const relativePercentage = (percentage - minProfitSetPercentage) / range;
+          // Calcula el porcentaje relativo dentro del rango de 16 a 33
+          const range = maxProfitSetPercentage - minProfitSetPercentage;
+          const relativePercentage = (percentage - minProfitSetPercentage) / range;
 
-                           // Calcula el porcentaje de la batería en función del porcentaje relativo
-                           const batteryPercentage = relativePercentage * 100;
+          // Calcula el porcentaje de la batería en función del porcentaje relativo
+          const batteryPercentage = relativePercentage * 100;
 
-                           // Limita el porcentaje dentro del rango entre 0 y 100
-                           const limitedPercentage = Math.max(0, Math.min(100, batteryPercentage));
+          // Limita el porcentaje dentro del rango entre 0 y 100
+          const limitedPercentage = Math.max(0, Math.min(100, batteryPercentage));
 
-                           // Calcula el valor de altura en píxeles basado en el porcentaje
-                           const height = limitedPercentage;
+          // Calcula el valor de altura en píxeles basado en el porcentaje
+          const height = limitedPercentage;
 
-                             batteryLevel.style.height = `${height}%`;
+            batteryLevel.style.height = `${height}%`;
 
 
-                           if (batteryPercentage > 55) {
-                             batteryLevel.style.backgroundColor = '#0bfc08';
-                             batteryMessage1.textContent += 'Indica el máximo margen de ganancia';
-                             batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Excelente';
-                            battery.style.border = '4px solid #0bfc08';
-                            battery.classList.toggle('greenActive');
-                           } else if (batteryPercentage > 22) {
-                             batteryLevel.style.backgroundColor = '#f5a707 ';
-                             batteryMessage1.textContent += 'Indica una ganancia moderada';
-                             batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Bueno';
-                            battery.style.border = '4px solid #f5a707';
-                            battery.classList.toggle('orangeActive');
-                           } else {
-                             batteryLevel.style.backgroundColor = 'red';
-                             batteryMessage1.textContent += 'Indica una ganancia reducida, proceder en última instancia';
-                             batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Malo';
-                            battery.style.border = '4px solid red';
-                            battery.classList.toggle('redActive');
-                           }
+          if (batteryPercentage > 55) {
+            batteryLevel.style.backgroundColor = '#0bfc08';
+            batteryMessage1.textContent += 'Indica el máximo margen de ganancia';
+            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Excelente';
+           batteryBorder.style.border = '4px solid #0bfc08';
+           battery.classList.toggle('greenActive');
+          } else if (batteryPercentage > 22) {
+            batteryLevel.style.backgroundColor = '#f5a707 ';
+            batteryMessage1.textContent += 'Indica una ganancia moderada';
+            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Bueno';
+           batteryBorder.style.border = '4px solid #f5a707';
+           battery.classList.toggle('orangeActive');
+          } else {
+            batteryLevel.style.backgroundColor = 'red';
+            batteryMessage1.textContent += 'Indica una ganancia reducida, proceder en última instancia';
+            batteryMessage2.textContent += parseInt(batteryPercentage.toFixed(0)) + '% | Malo';
+           batteryBorder.style.border = '4px solid red';
+           battery.classList.toggle('redActive');
+          }
 
-                         }
+        }
 
-                         updateBatteryLevel(greenPercentageInResults);
+        updateBatteryLevel(greenPercentageInResults);
 
 
     </script>

@@ -40,12 +40,7 @@
         color: #b3b9ba;
     }
 
-#calculatorForm {
-    background-color: #fff;
-    padding: 40px;
-    color: #fff;
-    border-radius: 25px;
-}
+
 .box-border-right {
     border-right: 2px solid var(--clr-grayLight);
 }
@@ -62,7 +57,7 @@
         font-weight: bold;
         color: var(--clr-blueLight);
         font-family: 'Montserrat Black';
-        margin: 0 0 0 15px;
+        margin: 0 0 0 38px;
     }
 .calculator-title{
     display:flex;
@@ -137,9 +132,10 @@
 
 .financial-performance{
     color: var(--clr-grayDark);
+    margin-left: 20px;
 }
 .financial-performance p {
-   margin: 0 0 2px 15px;
+   margin: 0 0 2px 38px;
 }
 .client-proposal{
     color: var(--clr-grayDark);
@@ -148,7 +144,7 @@
     margin: 0 0 0 15px;
     width: 500px;
 }
-    .client-proposal table .bg-gray {
+ .bg-gray {
         background-color: var(--clr-grayLight);
     }
 #warning-message-cont {
@@ -185,17 +181,14 @@
         /* BATERY ITEM */
 
 .battery {
-    width: 60px;
-    border: 4px solid #0bfc08;
+    width: 45px;
     position: relative;
-    border-radius: 5px;
-
     transform: rotate(90deg);
 }
     .battery::before {
         content: "";
         position: absolute;
-        top: -8px;
+        top: -12px;
         left: 50%;
         transform: translateX(-50%);
         width: 50%;
@@ -214,14 +207,22 @@
     }
 .battery-level {
     position: absolute;
-    bottom: 3px;
-    left: 3px;
-    width: 88%;
+    bottom: 0px;
+    width: 100%;
     background-color: #0bfc08;
     transition: height 0.3s;
     box-sizing: border-box;
 }
-
+.battery-border {
+    z-index: 3;
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border: 4px solid #0bfc08;
+    border-radius: 5px;
+}
 
 
     /*GLOBAL CONFIGURATION*/
@@ -280,3 +281,10 @@ clients-profit .col-lg-4 {
         width: auto;
     }
 }
+
+@media only screen and (max-width: 407px) {
+    .battery {
+        width: 100px;
+    }
+}
+
