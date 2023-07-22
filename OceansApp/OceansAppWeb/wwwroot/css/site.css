@@ -28,6 +28,7 @@ html {
 
 body {
     margin-bottom: 60px;
+    background-color: var(--clr-grayLight);
 }
 .hide{
     display: none !important;
@@ -54,17 +55,24 @@ nav {
 }
 
 .cancel-btn {
-    background-color: RGB(181, 19, 36, 0.6 );
-    color: #fff;
-    border-radius: 0;
+    border-radius: 25px;
+    padding: 12px 20px 12px 20px;
+    border: none;
+    font-family: 'Montserrat Black';
+    background-color: var(--clr-grayDark);
+    color: #fff !important;
+    text-decoration: none;
 }
-.btn-primary{
-    border-radius: 0;
+.btn-primary-submit {
+    border-radius: 25px;
+    padding: 10px 20px 10px 20px;
+    border: none;
+    font-family: 'Montserrat Black';
+    background-color: var(--clr-yellow);
+    color: #fff !important;
+    text-decoration: none;
 }
-    .cancel-btn:hover {
-        background-color: RGB(181, 19, 36, 0.4 );
-        color: #fff
-    }
+
 
 .btn-no-background {
     font-weight: bold;
@@ -188,8 +196,36 @@ nav {
     border-color: transparent transparent #333 transparent;
 }
 
+
 .tooltip-target:hover ~ .tooltip-content {
     opacity: 1;
+}
+.tooltip-target {
+    color: var(--clr-blueLight);
+}
+.input-container {
+    position: relative;
+    margin-top: 10px;
+}
+
+    .input-container input {
+        padding-left: 35px; /* Ajusta el valor según el ancho de tu imagen de placeholder */
+        background-color: #e6edee; /* Cambia el color aquí por el que desees */
+        border-radius: 10px;
+        color: var(--clr-grayDark);
+    }
+        .input-container input:not(:placeholder-shown) {
+            background-color: #e6edee !important;
+        }
+
+
+.placeholder-image {
+    position: absolute;
+    top: 50%;
+    left: 10px; /* Ajusta el valor para posicionar la imagen correctamente */
+    transform: translateY(-50%);
+    pointer-events: none; /* Evita que la imagen sea clickeable */
+    width: 20px;
 }
 .custom-box {
     display: flex;
@@ -197,16 +233,23 @@ nav {
     align-items:center;
 }
     .custom-box .sub-box {
-        background-color: var(--clr-dark1);
-        padding: 30px;
+        background-color: #fff;
+        padding: 60px 50px;
         display: flex;
         justify-content: center;
         align-items: center;
+        border-radius: 25px;
+    }
+    .custom-box .sub-box a{
+        color: var(--clr-blueLight);
     }
         .custom-box .sub-box h2 {
-            font-weight:bold;
-            font-size: 28px;
-            color: var(--clr-blueDark);
+            font-weight: bold;
+            font-size: 30px;
+            color: var(--clr-blueLight);
+            font-family: 'Montserrat Black';
+            letter-spacing: 0.05em; /* Adjust the value as needed */
+            margin-bottom: 1px;
         }
     .custom-box .sub-box a {
         margin-bottom: 0 !important;
@@ -217,10 +260,15 @@ nav {
         }
         .custom-box .sub-box p {
             font-size: 18px;
-            color: #fff;
+        }
+        .custom-box .sub-box .sub-title {
+            font-size: 20px;
+            color: 212121;
+            font-family: 'Montserrat';
+            letter-spacing: 0.04em; /* Adjust the value as needed */
         }
         .custom-box .sub-box label {
-            color: var(--clr-yellow);
+            color: var(--clr-grayDark);
             margin-bottom: 5px;
         }
 .validation-item{
@@ -232,18 +280,48 @@ nav {
     }
 
     /*SHARED COMPONENTS*/
-
+.background-white {
+    background-color: #fff;
+    padding: 40px;
+    color: var(--clr-grayDark);
+    border-radius: 25px;
+}
+    .light-table{
+        width: 100%;
+        color: var(--clr-grayDark);
+        margin-top: 10px;
+    }
+h2 {
+    font-weight: bold;
+    color: var(--clr-blueLight);
+    font-family: 'Montserrat Black';
+}
 /*FOOTER*/
 footer {
     position: fixed;
     width: 100%;
-    bottom: 0;
+    bottom: 22px;
     height: 35px !important;
-    background-color: var(--clr-navbar-background);
-    color: #fff;
+    color: var(--clr-grayDark);
     display: flex;
     align-items: center;
-    font-size: 13px !important;
+    font-size: 16px !important;
+    padding: 22px;
 }
 
 
+@media only screen and (max-width: 767px) {
+    .custom-box .sub-box {
+        padding: 40px;
+
+    }
+        .custom-box .sub-box h2 {
+            font-size: 25px;
+        }
+    footer {
+        bottom: 55px;
+        padding: 22px;
+        font-size: 14px !important;
+    }
+
+}

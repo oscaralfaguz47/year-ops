@@ -3,41 +3,31 @@
     height: 100%;
 }
 body {
-    background-image: url(../img/background.webp);
+    background-image: url(../img/bg-login-oc.png);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
 }
 @media only screen and (max-width: 767px) {
     body {
-        background-image: url(../img/background-mobile.webp);
+        background-image: url(../img/bg-login-oc.png);
     }
 }
 
-.custom-box .sub-box {
-    background-color: RGB(22, 22, 22, 0.9);
-    padding: 40px
-}
 .custom-checkbox{
     margin-top: 5px;
     text-align: center;
 }
+
 .form-group{
     text-align: left;
 }
 .form-control {
     border-radius: 0;
 }
-.form-group button {
-    border: 1px solid #666;
-}
-.form-group input {
-    background: RGB(22, 22, 22, 0.1);
-    color: var(--clr-yellow);
-}
 
-.form-group input::placeholder {
-    color: var(--clr-yellow);
+.input-short {
+    width: 270px !important;
 }
 
 /*ENABLE AUTHENTICATOR*/

@@ -14,7 +14,7 @@ namespace OceansApp.Models.ViewModels
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        [Display(Name = "¿Recordarme?")]
+        [Display(Name = "Recordarme en este dispositivo")]
         public bool RememberMe { get; set; }
     }
 }
