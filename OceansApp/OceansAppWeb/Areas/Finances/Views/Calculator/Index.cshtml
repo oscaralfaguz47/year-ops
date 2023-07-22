@@ -99,9 +99,8 @@
             </div>
             <div class="col-lg-6">
                 <div class="checkboxes-box">
-
-
-                    <div class="col-lg-6">
+               <div class="row">
+                        <div class="col-lg-6">
                         <div style="text-align:left">
                             <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
                             @if (Model.CalculatorCostCenterUserConfigurationVM != null)
@@ -130,7 +129,6 @@
                                     }
                                 }
                             }
-                            <br /><br />
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -162,11 +160,21 @@
                                     }
                                 }
                             }
-                            <br /><br />
                         </div>
                     </div>
-
-
+               </div>
+                @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                    {
+                        <div>
+                            <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
+                        </div>
+                    }
+                    else
+                    {
+                         <div>
+                            <p>Corresponde a los costos y gastos por area.</p>
+                        </div>
+                    }
                 </div>
             </div>
             <div class="mt-4 text-center">
@@ -443,7 +451,7 @@
                                 <i class="bi bi-exclamation-triangle-fill"></i>
                                 <div class="body-mess-cont">
                                     <h2>
-                                        Vaya!, parece que ingresaste un monto muy alto para el rol y el nivel que tiene el consultor, te recomiendo lo siguiente:
+                                        Vaya!, parece que ingresaste un monto muy alto para el puesto y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
                                     </h2>
                                     <ul>
                                         <li>

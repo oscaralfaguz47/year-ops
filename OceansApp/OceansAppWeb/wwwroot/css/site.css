@@ -291,7 +291,11 @@ nav {
         color: var(--clr-grayDark);
         margin-top: 10px;
     }
-
+h2 {
+    font-weight: bold;
+    color: var(--clr-blueLight);
+    font-family: 'Montserrat Black';
+}
 /*FOOTER*/
 footer {
     position: fixed;

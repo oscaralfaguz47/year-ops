@@ -33,8 +33,12 @@
     margin: 10px 0 0 0; 
 }
 .checkboxes-box {
-        text-align: center;
-        display:flex;
+        text-align: left;
+    }
+    .checkboxes-box p {
+        color: var(--clr-blueLight);
+        margin-bottom: 0;
+        margin-top: 43px;
     }
     .checkboxes-box span {
         color: #b3b9ba;
@@ -320,7 +324,7 @@ clients-profit .col-lg-4 {
 
 @media only screen and (max-width: 407px) {
     .battery {
-        width: 100px;
+        width: 150px;
     }
     .warning-message-container {
         width: 95%;
