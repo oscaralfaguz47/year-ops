@@ -1,6 +1,4 @@
 ﻿
-using OceansApp.Utility;
-
 namespace OceansApp.Models.ViewModels.Providers
 {
     public class ProviderFiltersGetAllVM

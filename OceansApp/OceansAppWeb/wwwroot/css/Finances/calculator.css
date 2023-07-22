@@ -77,57 +77,8 @@
 #calculatorForm .title-label {
     color: var(--clr-grayDark);
 }
-/* Estilos para el contenedor del select personalizado */
-/* Estilos para el contenedor del select personalizado */
-.custom-select {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    margin-top: 10px;
-}
 
-    /* Estilos para el select */
-#calculatorForm .custom-select select {
-    padding-left: 35px;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background: #ffffff;
-    border: 1px solid #ced4da;
-    border-radius: 10px;
-    outline: none;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-    color: var(--clr-grayDark);
-    width: 100%;
-}
 
-    /* Estilos para la flecha en el span */
-    .custom-select .arrow-down {
-        width: 0;
-        height: 0;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-top: 5px solid var(--clr-grayDark);
-        position: absolute;
-        left: 10px; /* Ajusta este valor para colocar la flecha a la derecha del select */
-        top: 50%; /* Centrar verticalmente la flecha */
-        transform: translateY(-50%); /* Centrar verticalmente la flecha */
-        pointer-events: none;
-    }
-
-    /* Estilos para la línea vertical */
-    .custom-select::after {
-        content: "";
-        position: absolute;
-        left: 28px; /* Ajusta este valor para colocar la línea al lado derecho del arrow-down */
-        top: 50%;
-        transform: translateY(-50%);
-        width: 1px; /* Ajusta el grosor de la línea vertical */
-        height: 25px; /* Ajusta la longitud de la línea vertical */
-        background-color: black; /* Cambia "black" al color que desees para la línea */
-        background-color: rgb(155, 168, 184, 0.5);
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-    }
 .proposal-img{
     width: 70px;
     height: 70px;

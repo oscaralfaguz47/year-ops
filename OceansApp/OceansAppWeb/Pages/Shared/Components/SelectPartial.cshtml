@@ -1,0 +1,8 @@
+﻿@model SelectList
+
+<div class="custom-select">
+    <span class="arrow-down"></span>
+    <select asp-for="@ViewData["selectedValue"]" asp-items="@Model" class="form-select">
+        <option value="">-- Selecciona una opción</option>
+    </select>
+</div>

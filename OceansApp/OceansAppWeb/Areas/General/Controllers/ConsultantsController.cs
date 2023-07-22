@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Providers;
 using OceansApp.Utility;
 using System.Collections.ObjectModel;
@@ -30,6 +32,16 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                 }
             };
+            var countries =  _unitOfWork.Country.GetAll();
+            List<SelectVM> countriesList = new List<SelectVM>();
+            if (countries !=null)
+            {
+                foreach (var country in countries)
+                {
+                    countriesList.Add(new SelectVM { Id = country.IdCountry, Name = country.Name });
+                }
+            }
+           
             var result = await _unitOfWork.Provider.GetAllProviderWithFiltersAsync(model);
 
             model.Pagination.TotalResults = result.totalCount;
@@ -41,7 +53,8 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 ConsultantList = result.providers,
                 Pagination = model.Pagination,
-                Filters = model.Filters
+                Filters = model.Filters,
+                CountriesList = countriesList
             };
 
             return View(viewModel);
