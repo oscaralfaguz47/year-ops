@@ -1,73 +1,113 @@
 ﻿@using OceansApp.Models.ViewModels.Providers
 @model ProviderGetAllForListVM
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <link rel="stylesheet" href="~/css/General/consultants.css" />
+
 <div class="filters-container">
     <div class="row">
         <div class="col-sm-2">
-            <div>
+            @* <div>
                 <label class="form-label form-custom-label title-label">País</label>
                 @await Html.PartialAsync("Components/SelectPartial", new SelectList(Model.CountriesList, "Id", "Name"))
-            </div>
+                </div>*@
+            <form asp-controller="Consultants" asp-action="Index">
+                @* <div>
+                    @{
+                    var inputModel = new OceansApp.Models.ViewModels.Components.InputTextVM
+                    {
+                    Value = Model.Filters.NameOrAlias,
+                    Placeholder = "Buscar...",
+                    Image = "ruta/de/imagen.png"
+                    };
+                    }
+                    @await Html.PartialAsync("Components/InputTextPartial", inputModel)
+
+                    </div>*@
+                   
+                <input type="text" asp-for="Filters.NameOrAlias" placeholder="Buscar" class="form-control">
+
+                <div>
+                    <span>
+                        <input type="radio" asp-for="Filters.IsActive" id="EmailYes" value="S" />
+                    </span>
+                </div>
+                <div>
+                    <span>
+                        <input type="radio" asp-for="Filters.IsActive" id="EmailNo" value="N" />
+                    </span>
+                </div>
+                 <button type="submit">submit</button> 
+            </form>
         </div>
     </div>
-
-
 </div>
-
-<div class="table-container">
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th class="table-col-big">Nombre</th>
-                    <th class="table-col-medium">Posición</th>
-                    <th class="table-col-big">Dirección</th>
-                    <th class="table-col-medium">Correo Interno</th>
-                    <th class="table-col-little">Fecha de Ingreso</th>
-                    <th class="table-col-little">Teléfono 1</th>
-                    <th class="table-col-little">Teléfono 2</th>
-                    <th class="table-col-little">País</th>
-                    <th class="table-col-big">Notas</th>
-                    <th class="table-col-little">Estado</th>
-                    <th class="table-col-little">Empresa</th>
-                    <th class="table-col-medium">Cliente</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.ConsultantList != null)
+<div class="global-table-container">
+    <div class="spacer"></div>
+    <table class="">
+        <thead>
+            <tr>
+                <th class="table-col-big">Nombre</th>
+                <th class="table-col-medium">Posición</th>
+                <th class="table-col-extra-big">Dirección</th>
+                <th class="table-col-medium">Correo Interno</th>
+                <th class="table-col-medium">Fecha de Ingreso</th>
+                <th class="table-col-medium">Teléfono 1</th>
+                <th class="table-col-medium">Teléfono 2</th>
+                <th class="table-col-little">País</th>
+                <th class="table-col-big">Notas</th>
+                <th class="table-col-little">Estado</th>
+                <th class="table-col-little">Empresa</th>
+                <th class="table-col-medium">Cliente</th>
+                <th class="table-col-big">Cliente</th>
+                <th class="table-col-big">Cliente</th>
+                <th class="table-col-big">Cliente</th>
+                <th class="table-col-big">Cliente</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.ConsultantList != null)
+            {
+                @foreach (var consultant in Model.ConsultantList)
                 {
-                    @foreach (var consultant in Model.ConsultantList)
-                    {
-                        <tr>
-                            <td>@consultant.Name</td>
-                            <td>@consultant.Occupation</td>
-                            <td>@consultant.Address</td>
-                            <td>@consultant.Email</td>
-                            <td>@consultant.AdmissionDate.ToString("dd/MM/yyyy")</td>
-                            <td>@consultant.Phone1</td>
-                            <td>@consultant.Phone2</td>
-                            <td>@consultant.IdCountry</td>
-                            <td>@consultant.Notes</td>
-                            @if (@consultant.IsActive == "S")
-                            {
-                                <td>Activo</td>
-                            }
-                            else
-                            {
-                                <td>Inactivo</td>
-                            }
-                            <td>@consultant.CompanyId</td>
-                            <td>@consultant.ClientName</td>
-                        </tr>
-                    }
+                    <tr>
+                        <td>@consultant.Name</td>
+                        <td>@consultant.Occupation</td>
+                        <td>@consultant.Address</td>
+                        <td>@consultant.Email</td>
+                        <td>@consultant.AdmissionDate.ToString("dd/MM/yyyy")</td>
+                        <td>@consultant.Phone1</td>
+                        <td>@consultant.Phone2</td>
+                        <td>@consultant.IdCountry</td>
+                        <td>@consultant.Notes</td>
+                        @if (@consultant.IsActive == "S")
+                        {
+                            <td>Activo</td>
+                        }
+                        else
+                        {
+                            <td>Inactivo</td>
+                        }
+                        <td>@consultant.CompanyId</td>
+                        <td>@consultant.ClientName</td>
+                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                    </tr>
                 }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
 </div>
 
 
 @Html.Partial("_Pagination", Model.Pagination)
 
 
+@section Scripts{
+    @{
+    <partial name="_ValidationScriptsPartial" />
+
+    }
+    }

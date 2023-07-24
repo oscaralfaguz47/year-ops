@@ -4,6 +4,8 @@
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 
 <div class="pagination-container">
+    @Html.TextBoxFor(m => m.PageNumber)
+    @Html.TextBoxFor(m => m.PageSize)
 @if (Model != null)
 {
     @if (Model.TotalResults > 0)

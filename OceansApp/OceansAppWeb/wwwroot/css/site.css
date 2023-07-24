@@ -27,8 +27,10 @@ html {
 }
 
 body {
-    margin-bottom: 60px;
     background-color: var(--clr-grayLight);
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 .hide{
     display: none !important;
@@ -299,36 +301,95 @@ h2 {
 
 .filters-container {
     width: 100%;
+    margin-top: -25px;
+    background-color: #fff;
+}
+.filters-container .row {
+    width: 100%;
 }
 
 /* Table */
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-}
-.table-responsive {
-    height: 610px;
-}   
+
 table {
     width: 100%;
-    border-collapse: collapse;
-}
 
-thead {
-    background-color: #f2f2f2;
-    position: sticky;
-    top: 0;
 }
+.global-table-container {
+    max-height: 70vh; /* Ajusta la altura máxima a la altura de la pantalla */
+    overflow: auto;
+    position: relative;
+    background-color: #fff;
+}
+.global-table-container table {
+    width: max-content;
+}
+    .global-table-container .table-col-little {
+        width: 100px;
+    }
 
-th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
+    .global-table-container .table-col-medium {
+        width: 150px;
+    }
 
-tbody tr:hover {
-    background-color: #f2f2f2;
-}
+    .global-table-container .table-col-big {
+        width: 250px;
+    }
+    .global-table-container .table-col-extra-big {
+        width: 350px;
+    }
+
+    .global-table-container td {
+        font-size: 13px;
+    }
+    .global-table-container th, .global-table-container td {
+        padding: 2px;
+        border: 1px solid #ccc;
+        text-align: left;
+    }
+    .global-table-container th {
+        position: sticky;
+        top: 0;
+        background-color: var(--clr-blueLight);
+        color: var(--clr-dark1);
+        z-index: 2;
+        text-align: center;
+    }
+        .global-table-container th:first-child {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background-color: var(--clr-blueLight);
+        }
+    .global-table-container td:first-child {
+        position: sticky;
+        left: 0;
+        background-color: #e3faf9;
+        z-index: 2;
+        font-weight: bold;
+    }
+    .global-table-container tbody th:first-child {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+    }
+    .global-table-container .spacer {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: #e3faf9;
+        z-index: 1;
+    }
+
+
+    .global-table-container td:first-child:hover ~ td {
+        background-color: #e3faf9;
+    }
+    .global-table-container tr:hover {
+        background-color: #e3faf9;
+    }
 /* Components */
 
 .custom-select {

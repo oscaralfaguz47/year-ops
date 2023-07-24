@@ -17,49 +17,83 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             _unitOfWork = unitOrWork;
         }
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
+
+        public async Task<IActionResult> Index(ProviderGetAllForListVM model, int page = 1, int pageSize = 30)
         {
-            ProviderGetAllForListVM model = new ProviderGetAllForListVM
+            ProviderFiltersGetAllVM filtersToSend = new ProviderFiltersGetAllVM();
+            if (model.Filters == null)
+            {
+                filtersToSend.IsActive = null;
+            }
+            else
+            {
+                filtersToSend = model.Filters;
+            }
+            ProviderGetAllForListVM modelToSend = new ProviderGetAllForListVM
             {
                 Pagination = new Pagination
                 {
                     PageNumber = page,
                     PageSize = pageSize,
-                    PageSizeOptions = new List<int> { 10, 30, 50, 100 },
+                    PageSizeOptions = new List<int> { 30, 50, 100, 300 },
                     SelectedPageSize = pageSize
                 },
-                Filters = new ProviderFiltersGetAllVM
-                {
-                }
+                Filters = filtersToSend
+
             };
-            var countries =  _unitOfWork.Country.GetAll();
+            var countries = _unitOfWork.Country.GetAll();
             List<SelectVM> countriesList = new List<SelectVM>();
-            if (countries !=null)
+            if (countries != null)
             {
                 foreach (var country in countries)
                 {
                     countriesList.Add(new SelectVM { Id = country.IdCountry, Name = country.Name });
                 }
             }
-           
-            var result = await _unitOfWork.Provider.GetAllProviderWithFiltersAsync(model);
 
-            model.Pagination.TotalResults = result.totalCount;
+            var result = await _unitOfWork.Provider.GetAllProviderWithFiltersAsync(modelToSend);
 
-            var totalPages = (int)Math.Ceiling((double)model.Pagination.TotalResults / model.Pagination.PageSize);
-            model.Pagination.PageNumber = Math.Max(1, Math.Min(model.Pagination.PageNumber, totalPages));
+            modelToSend.Pagination.TotalResults = result.totalCount;
+
+            var totalPages = (int)Math.Ceiling((double)modelToSend.Pagination.TotalResults / modelToSend.Pagination.PageSize);
+            modelToSend.Pagination.PageNumber = Math.Max(1, Math.Min(modelToSend.Pagination.PageNumber, totalPages));
 
             ProviderGetAllForListVM viewModel = new ProviderGetAllForListVM
             {
                 ConsultantList = result.providers,
-                Pagination = model.Pagination,
-                Filters = model.Filters,
+                Pagination = modelToSend.Pagination,
+                Filters = modelToSend.Filters,
                 CountriesList = countriesList
             };
-
             return View(viewModel);
         }
 
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GetFilteredConsultants(ProviderGetAllForListVM model)
+        {
+            try
+            {
+                int pageNumber = 1;
+                int pageSize = 30;
+                List<int> pageSizeOptions = new List<int> { 30, 50, 100, 300 };
+                ProviderGetAllForListVM modelToSend = new ProviderGetAllForListVM
+                {
+                    Pagination = new Pagination
+                    {
+                        PageNumber = pageNumber,
+                        PageSize = pageSize,
+                        PageSizeOptions = pageSizeOptions,
+                        SelectedPageSize = pageSize
+                    },
+                    Filters = model.Filters
+                };
+                return View("Index", modelToSend);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }

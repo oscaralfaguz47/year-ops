@@ -28,19 +28,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
- //TABLES
-window.addEventListener('scroll', function () {
-    const tableContainer = document.querySelector('.table-container');
-    const tableRect = tableContainer.getBoundingClientRect();
-    const tableTop = tableRect.top;
-
-    const tableHeader = document.querySelector('thead');
-    const isSticky = tableHeader.classList.contains('sticky');
-
-    if (tableTop <= 0 && !isSticky) {
-        tableHeader.classList.add('sticky');
-    } else if (tableTop > 0 && isSticky) {
-        tableHeader.classList.remove('sticky');
-    }
-});
-
