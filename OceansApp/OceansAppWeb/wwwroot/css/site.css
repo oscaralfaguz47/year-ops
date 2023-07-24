@@ -312,7 +312,6 @@ h2 {
 
 table {
     width: 100%;
-
 }
 .global-table-container {
     max-height: 70vh; /* Ajusta la altura máxima a la altura de la pantalla */
@@ -348,7 +347,7 @@ table {
     }
     .global-table-container th {
         position: sticky;
-        top: 0;
+        top: -2px;
         background-color: var(--clr-blueLight);
         color: var(--clr-dark1);
         z-index: 2;
@@ -373,23 +372,19 @@ table {
         top: 0;
         z-index: 3;
     }
-    .global-table-container .spacer {
-        position: sticky;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background-color: #e3faf9;
-        z-index: 1;
-    }
 
 
-    .global-table-container td:first-child:hover ~ td {
+    .global-table-container td:first-child:hover ~ .global-table-container td {
         background-color: #e3faf9;
     }
     .global-table-container tr:hover {
         background-color: #e3faf9;
     }
+        .global-table-container tr:hover td:first-child{
+            color: var(--clr-yellow);
+            font-size: 14px;
+            padding: 0px;
+        }
 /* Components */
 
 .custom-select {
