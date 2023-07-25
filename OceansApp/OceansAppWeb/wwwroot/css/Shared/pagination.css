@@ -1,4 +1,8 @@
-﻿.pagination-container div {
+﻿.pagination-container {
+    padding: 9px 0 2px 0;
+    border-top: var(--clr-grayLight) solid 2px;
+}
+.pagination-container div {
     display: flex;
     align-items: center;
     margin-top: -3px;
@@ -10,12 +14,18 @@
     margin-bottom: -5px;
 }
 
-
 .pagination-container label {
     white-space: nowrap;
     margin: 0 5px 0 5px;
+    font-size: 13px;
 }
 .pagination-container .pagination-button {
     margin: 0 1px 0 1px;
     padding: 2px 8px 2px 8px;
+}
+
+@media only screen and (max-width: 695px) {
+    .pagination-container div {
+        display: inline-block !important;
+    }
 }

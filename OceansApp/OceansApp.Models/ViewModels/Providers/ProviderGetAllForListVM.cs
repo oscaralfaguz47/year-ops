@@ -8,5 +8,6 @@ namespace OceansApp.Models.ViewModels.Providers
         public Pagination Pagination { get; set; }
         public List<ProviderGetAllWithFiltersVM>? ConsultantList { get; set; }
         public List<SelectVM>? CountriesList { get; set; }
+        public List<SelectVM>? ClientList { get; set; }
     }
 }

@@ -115,13 +115,14 @@ namespace OceansApp.DataAccess.Repository
             queryBuilder.AppendLine("        C.Name AS ClientName");
             queryBuilder.AppendLine("FROM PROVIDER P");
             queryBuilder.AppendLine("JOIN PROVIDER_CATEGORY CP ON P.Id = CP.Id");
-            queryBuilder.AppendLine("JOIN CLIENT C ON P.ClientId = C.ClientId");
+            queryBuilder.AppendLine("LEFT JOIN CLIENT C ON P.ClientId = C.ClientId");
             queryBuilder.AppendLine("WHERE (@IsActive IS NULL OR P.IsActive = @IsActive)");
             queryBuilder.AppendLine("    AND ((@NameOrAlias IS NULL OR LOWER(P.Name) LIKE '%' + LOWER(@NameOrAlias) + '%')");
             queryBuilder.AppendLine("        OR (@NameOrAlias IS NULL OR LOWER(P.Alias) LIKE '%' + LOWER(@NameOrAlias) + '%'))");
             queryBuilder.AppendLine("    AND (@CountryId IS NULL OR P.IdCountry = @CountryId)");
             queryBuilder.AppendLine("    AND (@ClientId IS NULL OR P.ClientId = @ClientId)");
             queryBuilder.AppendLine("    AND (@CompanyId IS NULL OR P.CompanyId = @CompanyId)");
+            queryBuilder.AppendLine("    AND CP.ProviderCategoryCode NOT IN('PR','PROV', 'OCEANS', 'BONOS S')");
 
             parameters.Add("@IsActive", filtersAndPagination.Filters.IsActive, DbType.String);
             parameters.Add("@NameOrAlias", filtersAndPagination.Filters.NameOrAlias, DbType.String);

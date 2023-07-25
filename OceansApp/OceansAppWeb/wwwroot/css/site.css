@@ -298,19 +298,112 @@ h2 {
     color: var(--clr-blueLight);
     font-family: 'Montserrat Black';
 }
-
+#more-filters {
+    padding-top: 5px;
+}
+#more-filters .row {
+    align-items: center;
+}
+#more-filters label{
+    font-size: 14px;
+    font-weight: bold;
+}
+#more-filters select {
+   width: 100%;
+   font-size: 13.5px;
+}
 .filters-container {
     width: 100%;
-    margin-top: -25px;
+    margin-top: -20px;
     background-color: #fff;
+    padding: 0 10px 0 10px;
+    border-radius: 15px;
+    margin-bottom: 5px;
 }
-    .filters-container .btn-primary-submit {
-        font-size: 12px;
-        padding: 7px 15px 7px 15px;
+
+.filters-container .search-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: var(--clr-grayLight) solid 2px;
+    padding-bottom: 5px;
+}
+    .filters-container .search-header-container a{
+        color: var(--clr-blueDark);
+        cursor: pointer;
+        text-decoration: underline;
     }
+        .filters-container .search-header-container a:hover {
+            color: var(--clr-blueLight);
+        }
+
+.filters-container form {
+    padding-right: 0;
+}
+    .filters-container .principal-buttons {
+        padding: 12px 0 8px 0;
+    }
+    .filters-container .principal-buttons .btn-primary-submit {
+        font-size: 12px;
+        padding: 6px 15px 6px 15px;
+    }
+        .filters-container .principal-buttons .cancel-btn {
+            font-size: 12px;
+            padding: 7px 15px 7px 15px;
+        }
 .filters-container .row {
     width: 100%;
 }
+
+/* Estilos para ocultar los inputs de radio */
+.radio-input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Estilos para el contenedor de los radio buttons */
+.radio-group {
+    flex-direction: row;
+    gap: 20px;
+}
+
+/* Estilos para el diseño personalizado del radio button */
+.radio-custom {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #2196F3; /* Color del borde */
+    background-color: #FFF; /* Color del fondo */
+}
+
+/* Estilos para cuando el radio button está seleccionado */
+.radio-input:checked ~ .radio-custom::after {
+    content: "";
+    position: absolute;
+    top: 2.3px;
+    left: 2.5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #2196F3; /* Color del punto interior */
+}
+
+/* Estilos para el texto de las opciones */
+.radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+    /* Estilos para cambiar el cursor al pasar por encima */
+    .radio-label:hover .radio-custom {
+        border-color: #64B5F6; /* Color del borde al pasar el cursor */
+    }
+
 
 /* Table */
 
@@ -318,7 +411,7 @@ table {
     width: 100%;
 }
 .global-table-container {
-    max-height: 70vh; /* Ajusta la altura máxima a la altura de la pantalla */
+    max-height: 63vh; 
     overflow: auto;
     position: relative;
     background-color: #fff;
@@ -345,7 +438,7 @@ table {
         font-size: 13px;
     }
     .global-table-container th, .global-table-container td {
-        padding: 2px;
+        padding: 2px 3px 2px 5px;
         border: 1px solid #ccc;
         text-align: left;
     }
@@ -356,6 +449,7 @@ table {
         color: var(--clr-dark1);
         z-index: 2;
         text-align: center;
+        font-size: 14px;
     }
         .global-table-container th:first-child {
             position: -webkit-sticky;
@@ -387,7 +481,7 @@ table {
         .global-table-container tr:hover td:first-child{
             color: var(--clr-yellow);
             font-size: 14px;
-            padding: 0px;
+            padding: 0 0 0 5px;
         }
 /* Components */
 

@@ -19,7 +19,13 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             ProviderFiltersGetAllVM filtersToSend = new ProviderFiltersGetAllVM();
             Pagination paginationToSend = new Pagination();
-
+            if (model.Filters != null)
+            {
+                if (WhereFiltersApplied(model.Filters, filtersToSend))
+                {
+                    ViewData["AppliedFilters"] = "filters where applied";
+                }
+            }
             if (model.Pagination == null)
             {
                 paginationToSend = new Pagination();
@@ -37,12 +43,14 @@ namespace OceansAppWeb.Areas.General.Controllers
             if (model.Filters == null)
             {
                 filtersToSend.IsActive = null;
+                filtersToSend.CompanyId = null;
             }
             else
             {
                 filtersToSend = model.Filters;
             }
-            
+
+
             ProviderGetAllForListVM modelToSend = new ProviderGetAllForListVM
             {
                 Pagination = paginationToSend,
@@ -56,6 +64,16 @@ namespace OceansAppWeb.Areas.General.Controllers
                 foreach (var country in countries)
                 {
                     countriesList.Add(new SelectVM { Value = country.IdCountry, Name = country.Name });
+                }
+            }
+            var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.ClientCode != "OCELL_C0001"
+            && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && x.ClientCode != "OCE_C0030");
+            List<SelectVM> clientList = new List<SelectVM>();
+            if (clients != null)
+            {
+                foreach (var client in clients)
+                {
+                    clientList.Add(new SelectVM { Value = client.ClientId.ToString(), Name = client.Name });
                 }
             }
 
@@ -76,11 +94,18 @@ namespace OceansAppWeb.Areas.General.Controllers
                 ConsultantList = totalResults.providers,
                 Pagination = modelToSend.Pagination,
                 Filters = modelToSend.Filters,
-                CountriesList = countriesList
+                CountriesList = countriesList,
+                ClientList = clientList
             };
             return View(viewModel);
         }
 
-       
+        private bool WhereFiltersApplied(ProviderFiltersGetAllVM model1, ProviderFiltersGetAllVM model2)
+        {
+            return !(model1.IsActive == model2.IsActive && model1.CountryId == model2.CountryId
+                && model1.ClientId == model2.ClientId && model1.CompanyId == model2.CompanyId);
+        }
+
+
     }
 }
