@@ -137,7 +137,7 @@ namespace OceansApp.DataAccess.Repository
             queryBuilder.AppendLine("ORDER BY P.Name");
             queryBuilder.AppendLine("OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;");
 
-            parameters.Add("@Skip", (filtersAndPagination.Pagination.PageNumber - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@Skip", (filtersAndPagination.Pagination.PageIndex - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
             parameters.Add("@Take", filtersAndPagination.Pagination.PageSize, DbType.Int32);
 
             var results = await connection.QueryAsync<ProviderGetAllWithFiltersVM>(queryBuilder.ToString(), parameters);

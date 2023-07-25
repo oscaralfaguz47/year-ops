@@ -1,6 +1,4 @@
-﻿using OceansApp.Models.Models;
-using OceansApp.Models.ViewModels.Components;
-using OceansApp.Utility;
+﻿using OceansApp.Models.ViewModels.Components;
 
 namespace OceansApp.Models.ViewModels.Providers
 {

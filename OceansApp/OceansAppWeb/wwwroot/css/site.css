@@ -304,6 +304,10 @@ h2 {
     margin-top: -25px;
     background-color: #fff;
 }
+    .filters-container .btn-primary-submit {
+        font-size: 12px;
+        padding: 7px 15px 7px 15px;
+    }
 .filters-container .row {
     width: 100%;
 }

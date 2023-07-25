@@ -3,30 +3,14 @@
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <link rel="stylesheet" href="~/css/General/consultants.css" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
 
-<div class="filters-container">
-    <div class="row">
-        <div class="col-sm-2">
-            @* <div>
-                <label class="form-label form-custom-label title-label">País</label>
-                @await Html.PartialAsync("Components/SelectPartial", new SelectList(Model.CountriesList, "Id", "Name"))
-                </div>*@
-            <form asp-controller="Consultants" asp-action="Index">
-                @* <div>
-                    @{
-                    var inputModel = new OceansApp.Models.ViewModels.Components.InputTextVM
-                    {
-                    Value = Model.Filters.NameOrAlias,
-                    Placeholder = "Buscar...",
-                    Image = "ruta/de/imagen.png"
-                    };
-                    }
-                    @await Html.PartialAsync("Components/InputTextPartial", inputModel)
-
-                    </div>*@
-                   
-                <input type="text" asp-for="Filters.NameOrAlias" placeholder="Buscar" class="form-control">
-
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+            <form id="filtersPaginationForm" asp-controller="Consultants" asp-action="Index">
+               <div class="col-sm-3">
+                    <input type="text" asp-for="Filters.NameOrAlias" placeholder="Buscar" class="form-control">
                 <div>
                     <span>
                         <input type="radio" asp-for="Filters.IsActive" id="EmailYes" value="S" />
@@ -37,71 +21,112 @@
                         <input type="radio" asp-for="Filters.IsActive" id="EmailNo" value="N" />
                     </span>
                 </div>
-                 <button type="submit">submit</button> 
+                <button class="btn-primary-submit" type="submit">Aplicar Filtros</button>
+               </div>
+
+                <div class="pagination-container">
+                    <hr />
+                    <div>
+                        <input type="hidden" asp-for="Pagination.PageIndex" />
+                        <label>Registros por página</label>
+                        <div class="">
+                            <select asp-for="Pagination.PageSize" class="form-select" onchange="paginationButtonActions('firstPage'); this.form.submit();">
+                                @foreach (var item in Model.Pagination.ItemsPerPageList)
+                                {
+                                    <option value="@item.Value">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" name="PageIndex" value="1" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('firstPage')"
+                                @(Model.Pagination.PageIndex == 1 ? "disabled" : "")>
+                            &laquo;&laquo;
+                        </button>
+
+                        <button type="submit" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('decrement')"
+                                @(Model.Pagination.PageIndex == 1 ? "disabled" : "")>
+                            &laquo;
+                        </button>
+
+                        <label>@Model.Pagination.PageIndex de @(Math.Ceiling((double)Model.Pagination.TotalResults / Model.Pagination.PageSize))</label>
+
+                        @if (ViewData["TotalPages"] != null)
+                        {
+                            <button type="submit" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('increment')"
+                                @(Model.Pagination.IsLastPage ? "disabled" : "")>
+                                &raquo;
+                            </button>
+
+                            <button type="submit" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('lastPage')"
+                                @(Model.Pagination.IsLastPage ? "disabled" : "")>
+                                &raquo;&raquo;
+                            </button>
+                        }
+                        <label><strong>Total Resultados: @Model.Pagination.TotalResults</strong></label>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
-</div>
-<div class="global-table-container">
-    <table class="">
-        <thead>
-            <tr>
-                <th class="table-col-big">Nombre</th>
-                <th class="table-col-medium">Posición</th>
-                <th class="table-col-extra-big">Dirección</th>
-                <th class="table-col-medium">Correo Interno</th>
-                <th class="table-col-medium">Fecha de Ingreso</th>
-                <th class="table-col-medium">Teléfono 1</th>
-                <th class="table-col-medium">Teléfono 2</th>
-                <th class="table-col-little">País</th>
-                <th class="table-col-big">Notas</th>
-                <th class="table-col-little">Estado</th>
-                <th class="table-col-little">Empresa</th>
-                <th class="table-col-medium">Cliente</th>
-                <th class="table-col-big">Cliente</th>
-                <th class="table-col-big">Cliente</th>
-                <th class="table-col-big">Cliente</th>
-                <th class="table-col-big">Cliente</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.ConsultantList != null)
-            {
-                @foreach (var consultant in Model.ConsultantList)
+    <div class="global-table-container">
+        <table class="">
+            <thead>
+                <tr>
+                    <th class="table-col-big">Nombre</th>
+                    <th class="table-col-medium">Posición</th>
+                    <th class="table-col-extra-big">Dirección</th>
+                    <th class="table-col-medium">Correo Interno</th>
+                    <th class="table-col-medium">Fecha de Ingreso</th>
+                    <th class="table-col-medium">Teléfono 1</th>
+                    <th class="table-col-medium">Teléfono 2</th>
+                    <th class="table-col-little">País</th>
+                    <th class="table-col-big">Notas</th>
+                    <th class="table-col-little">Estado</th>
+                    <th class="table-col-little">Empresa</th>
+                    <th class="table-col-medium">Cliente</th>
+                    <th class="table-col-big">Cliente</th>
+                    <th class="table-col-big">Cliente</th>
+                    <th class="table-col-big">Cliente</th>
+                    <th class="table-col-big">Cliente</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.ConsultantList != null)
                 {
-                    <tr>
-                        <td>@consultant.Name</td>
-                        <td>@consultant.Occupation</td>
-                        <td>@consultant.Address</td>
-                        <td>@consultant.Email</td>
-                        <td>@consultant.AdmissionDate.ToString("dd/MM/yyyy")</td>
-                        <td>@consultant.Phone1</td>
-                        <td>@consultant.Phone2</td>
-                        <td>@consultant.IdCountry</td>
-                        <td>@consultant.Notes</td>
-                        @if (@consultant.IsActive == "S")
-                        {
-                            <td>Activo</td>
-                        }
-                        else
-                        {
-                            <td>Inactivo</td>
-                        }
-                        <td>@consultant.CompanyId</td>
-                        <td>@consultant.ClientName</td>
-                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
-                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
-                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
-                        <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
-                    </tr>
+                    @foreach (var consultant in Model.ConsultantList)
+                    {
+                        <tr>
+                            <td>@consultant.Name</td>
+                            <td>@consultant.Occupation</td>
+                            <td>@consultant.Address</td>
+                            <td>@consultant.Email</td>
+                            <td>@consultant.AdmissionDate.ToString("dd/MM/yyyy")</td>
+                            <td>@consultant.Phone1</td>
+                            <td>@consultant.Phone2</td>
+                            <td>@consultant.IdCountry</td>
+                            <td>@consultant.Notes</td>
+                            @if (@consultant.IsActive == "S")
+                            {
+                                <td>Activo</td>
+                            }
+                            else
+                            {
+                                <td>Inactivo</td>
+                            }
+                            <td>@consultant.CompanyId</td>
+                            <td>@consultant.ClientName</td>
+                            <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                            <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                            <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                            <td>ljsdfl sfdkj aldfjl ksjdflkj lk kjl</td>
+                        </tr>
+                    }
                 }
-            }
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-
-@Html.Partial("_Pagination", Model.Pagination)
 
 
 @section Scripts{
@@ -109,4 +134,25 @@
     <partial name="_ValidationScriptsPartial" />
 
     }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function paginationButtonActions(action) {
+        console.log('entró');
+        if(action == 'increment'){
+             var currentValue = parseInt('@Model.Pagination.PageIndex');
+        currentValue++;
+        $('[name="Pagination.PageIndex"]').val(currentValue);
+        } else if(action == 'decrement'){
+             var currentValue = parseInt('@Model.Pagination.PageIndex');
+        currentValue--;
+         $('[name="Pagination.PageIndex"]').val(currentValue);
+        $('[name="Pagination.PageIndex"]').val(currentValue);
+        } else if(action == 'firstPage'){
+        $('[name="Pagination.PageIndex"]').val(1);
+        } else if(action == 'lastPage') {
+            var newValue = Math.ceil((parseInt('@Model.Pagination.TotalResults') / parseInt('@Model.Pagination.PageSize')));
+            $('[name="Pagination.PageIndex"]').val(newValue);
+        }
+    }
+</script>
     }

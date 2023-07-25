@@ -3,10 +3,10 @@ namespace OceansApp.Utility
 {
     public class Pagination
     {
-        public int PageNumber { get; set; }
-        public int PageSize { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 5;
         public int TotalResults { get; set; }
-        public List<int> PageSizeOptions { get; set; }
-        public int SelectedPageSize { get; set; }
+        public bool IsLastPage => (TotalResults - (PageIndex * PageSize)) <= 0;
+      
     }
 }

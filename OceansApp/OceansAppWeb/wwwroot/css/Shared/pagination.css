@@ -1,39 +1,21 @@
-﻿.pagination-container{
-    text-align: right;
-    padding-right: 10px;
-    position: relative;
+﻿.pagination-container div {
+    display: flex;
+    align-items: center;
+    margin-top: -3px;
+    margin-bottom: 3px;
 }
-.pagination-info {
-    font-size: 15px;
-    position: absolute;
-    left: 10px;
-    top:10px;
+.pagination-container .form-select {
+    width:65px;
+    padding: 1px 0 1px 6px;
+    margin-bottom: -5px;
 }
-.pagination-size-section{
-    font-size: 15px;
-    text-align:right;
-    position:absolute;
-    right:0;
-    top:10px;
+
+
+.pagination-container label {
+    white-space: nowrap;
+    margin: 0 5px 0 5px;
 }
-.pagination-size-section select{
-    width: 50px;
-}
-.pagination{
-    float: right;
-    position:absolute;
-    right: 210px;
-}
-.page-link {
-    background-color: var(--clr-blueDark);
-    font-size: 13px;
-}
-    .page-link:hover {
-        background-color: var(--clr-blueLight);
-    }
-.active .page-link {
-    background-color: var(--clr-dark3) !important;
-}
-.disabled .page-link {
-    background-color: var(--clr-blueLight) !important;
+.pagination-container .pagination-button {
+    margin: 0 1px 0 1px;
+    padding: 2px 8px 2px 8px;
 }
