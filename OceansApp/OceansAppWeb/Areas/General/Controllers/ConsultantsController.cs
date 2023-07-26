@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Providers;
+using OceansApp.Utility;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
     [Area("General")]
     [RequireTwoFactorEnabled]
+    [Authorize(Roles = SD.Role_User_Master)]
     public class ConsultantsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -57,7 +60,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 Filters = filtersToSend
 
             };
-            var countries = _unitOfWork.Country.GetAll();
+            var countries = _unitOfWork.Country.GetCountriesWhereConsultantsAre();
             List<SelectVM> countriesList = new List<SelectVM>();
             if (countries != null)
             {

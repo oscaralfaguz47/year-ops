@@ -1,4 +1,5 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 
@@ -11,8 +12,6 @@ namespace OceansApp.DataAccess.Repository
         {
             _db = db;
         }
-
-
         public void Update(Client obj)
         {
             _db.CLIENT.Update(obj);

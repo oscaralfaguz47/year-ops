@@ -19,7 +19,7 @@ namespace OceansApp.Models.ViewModels.Providers
 
         public string? Phone2 { get; set; }
 
-        public string IdCountry { get; set; }
+        public string CountryName { get; set; }
 
         public string? Notes { get; set; }
         public string IsActive { get; set; }
