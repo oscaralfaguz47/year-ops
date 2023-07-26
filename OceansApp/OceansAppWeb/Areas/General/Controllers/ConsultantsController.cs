@@ -37,7 +37,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 paginationToSend = model.Pagination;
 
-                if (model.Filters.NameOrAlias != filtersToSend.NameOrAlias)
+                if (model.Filters.SearchText != filtersToSend.SearchText)
                 {
                     paginationToSend.PageIndex = 1;
                 }

@@ -29,3 +29,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// COPY TEXT TO CLIPBOARD
+function copyToClipboard(text, messageSuccess) {
+    // Create a temporary input element
+    const tempInput = document.createElement('textarea');
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+
+    // Select the text inside the input element
+    tempInput.select();
+
+    try {
+        // Execute the "copy" command
+        document.execCommand('copy');
+        displayToasterSuccess(messageSuccess);
+    } catch (err) {
+        console.error('Unable to copy text to clipboard:', err);
+        toastr.error('Algo salió mal, reporta este issue a soporte.');
+    } finally {
+        // Remove the temporary input element
+        document.body.removeChild(tempInput);
+    }
+}
+
+function displayToasterSuccess(text) {
+    toastr.success(text);
+}
+function displayToasterError(text) {
+    toastr.error(text);
+}

@@ -28,6 +28,14 @@ namespace OceansApp.Models.ViewModels.Providers
         public string CompanyId { get; set; }
 
         public string ClientName { get; set; }
+        public string? PersonalEmail { get; set; }
+        public string? ConsultantCategory { get; set; }
+        public decimal? HourlySalary { get; set; }
+        public decimal? MonthlySalary { get; set; }
+        public decimal? HourlyClientRate { get; set; }
+        public decimal? MonthlyClientRate { get; set; }
+        public string? Location { get; set; }
+        public string? ShirtSize { get; set; }
 
     }
 }

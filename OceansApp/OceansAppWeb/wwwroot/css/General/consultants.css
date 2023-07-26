@@ -1,1 +1,21 @@
-﻿
+﻿.location-cont
+{
+    display: flex;
+    align-items: center;
+}
+.location-cont button {
+    padding: 5px 7px 5px 7px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+}
+    .location-cont button:hover {
+        background-color: #ADB0AD;
+    }
+    .location-cont button i {
+        color: var(--clr-yellow)
+    }
+    .location-cont a {
+        cursor: pointer;
+        font-weight: bold;
+    }

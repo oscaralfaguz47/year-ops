@@ -117,6 +117,9 @@ nav {
 .green-label {
     color: RGB(10, 187, 34) !important;
 }
+.red-label {
+    color: red !important;
+}
 
 .yellow-label {
     color: RGB(238,179,15);
@@ -451,6 +454,7 @@ table {
         z-index: 2;
         text-align: center;
         font-size: 14px;
+        padding: 6px 2px 6px 2px;
     }
         .global-table-container th:first-child {
             position: -webkit-sticky;

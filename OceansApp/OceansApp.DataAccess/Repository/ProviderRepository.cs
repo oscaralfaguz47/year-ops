@@ -101,21 +101,29 @@ namespace OceansApp.DataAccess.Repository
 
             queryBuilder.AppendLine(@"SELECT P.Name, P.Alias, P.Occupation, P.Address, P.Email, P.AdmissionDate, P.Phone1, P.Phone2, 
                         CO.Name AS CountryName, P.Notes, P.IsActive, CP.Description AS CategoryDescription, P.CompanyId, 
-                        C.Name AS ClientName
+                        C.Name AS ClientName, P.ConsultantCategory, P.HourlyClientRate, P.HourlySalary, P.Location, P.MonthlyClientRate,
+                        P.MonthlySalary, P.PersonalEmail, P.ShirtSize
                         FROM PROVIDER P
                         JOIN PROVIDER_CATEGORY CP ON P.Id = CP.Id
                         JOIN COUNTRY CO ON P.IdCountry = CO.IdCountry
                         LEFT JOIN CLIENT C ON P.ClientId = C.ClientId
                         WHERE (@IsActive IS NULL OR P.IsActive = @IsActive)
-                        AND ((@NameOrAlias IS NULL OR LOWER(P.Name) LIKE '%' + LOWER(@NameOrAlias) + '%')
-                        OR (@NameOrAlias IS NULL OR LOWER(P.Alias) LIKE '%' + LOWER(@NameOrAlias) + '%'))
+                        AND ((@SearchText IS NULL OR LOWER(P.Name) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Alias) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Occupation) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Address) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Email) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.PersonalEmail) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Notes) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Phone1) LIKE '%' + LOWER(@SearchText) + '%')
+                        OR (@SearchText IS NULL OR LOWER(P.Phone2) LIKE '%' + LOWER(@SearchText) + '%'))
                         AND (@CountryId IS NULL OR P.IdCountry = @CountryId)
                         AND (@ClientId IS NULL OR P.ClientId = @ClientId)
                         AND (@CompanyId IS NULL OR P.CompanyId = @CompanyId)
                         AND CP.ProviderCategoryCode NOT IN ('PR','PROV', 'OCEANS', 'BONOS S')");
 
             parameters.Add("@IsActive", filtersAndPagination.Filters.IsActive, DbType.String);
-            parameters.Add("@NameOrAlias", filtersAndPagination.Filters.NameOrAlias, DbType.String);
+            parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
             parameters.Add("@CountryId", filtersAndPagination.Filters.CountryId, DbType.String);
             parameters.Add("@ClientId", filtersAndPagination.Filters.ClientId, DbType.Int32);
             parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);

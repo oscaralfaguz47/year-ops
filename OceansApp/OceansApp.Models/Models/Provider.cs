@@ -55,6 +55,17 @@ namespace OceansApp.Models.Models
         public int? ClientId { get; set; }
         [ValidateNever]
         public Client Client  { get; set; }
-
+        [MaxLength(249)]
+        public string? PersonalEmail { get; set; }
+        [MaxLength(3)]
+        public string? ConsultantCategory { get; set; }
+        public decimal? HourlySalary { get; set; }
+        public decimal? MonthlySalary { get; set; }
+        public decimal? HourlyClientRate { get; set; }
+        public decimal? MonthlyClientRate { get; set; }
+        public bool? IsTheMonthlyClientRateCalculatePerHour { get; set; }
+        public string? Location { get; set; }
+        [MaxLength(20)]
+        public string? ShirtSize { get; set; }
     }
 }
