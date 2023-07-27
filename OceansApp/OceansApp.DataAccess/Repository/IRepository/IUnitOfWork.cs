@@ -22,6 +22,7 @@
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
         IDocumentCCRepository DocumentCC { get; }
+        INotificationTypeRepository NotificationType { get; }
 
         void Save();
     }

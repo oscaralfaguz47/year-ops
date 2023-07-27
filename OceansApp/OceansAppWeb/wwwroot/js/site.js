@@ -59,3 +59,31 @@ function displayToasterError(text) {
     toastr.error(text);
 }
 
+// CONFIRMATION CUSTOM MESSAGE
+function ConfirmationMessage(url, title) {
+    Swal.fire({
+        title: title,
+        text: "this is the text",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, continuar!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                type: 'POST',
+                success: function (data) {
+                    if (data.success) {
+                        dataTable.ajax.reload();
+                        toastr.success(data.message);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                }
+            })
+        }
+    })
+}

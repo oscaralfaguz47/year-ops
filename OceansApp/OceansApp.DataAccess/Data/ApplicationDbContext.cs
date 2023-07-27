@@ -58,5 +58,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
+        public DbSet<NotificationType> NOTIFICATION_TYPES { get; set; }
+        public DbSet<Notification> NOTIFICATIONS { get; set; }
     }
 }
