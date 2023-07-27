@@ -177,7 +177,14 @@
                     @foreach (var documentCC in Model.DocumentsCCList)
                     {
                         <tr>
-                            <td>@documentCC.ClientName</td>
+                            <td>
+                                <div class="cel-with-btns-cont">
+                                   <span> @documentCC.ClientName</span>
+                                @if(documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0){
+                                    <button><i class="bi bi-envelope"></i></button>
+                                }
+                                </div>
+                            </td>
                             <td>@documentCC.DocumentNumber</td>
                             <td>@documentCC.DocumentType</td>
                             <td>@documentCC.DocumentDate.ToString("dd/MM/yyyy")</td>

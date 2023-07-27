@@ -54,6 +54,7 @@ namespace OceansApp.DataAccess.Repository
                     ,DCC.Canceled
                     ,C.Name AS ClientName
                     ,DCC.CompanyId
+                    ,C.ClientCategory
                      FROM DOCUMENTS_CC DCC
                      JOIN CLIENT C ON DCC.ClientId = C.ClientId
                      WHERE ((@SearchText IS NULL OR LOWER(DCC.DocumentNumber) LIKE '%' + LOWER(@SearchText) + '%')

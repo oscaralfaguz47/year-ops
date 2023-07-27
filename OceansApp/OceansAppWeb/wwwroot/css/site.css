@@ -432,6 +432,19 @@ table {
     position: relative;
     background-color: #fff;
 }
+    .global-table-container  .cel-with-btns-cont {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .global-table-container .cel-with-btns-cont button {
+        border:none;
+        font-size: 15px;
+        color: #fff;
+        border-radius: 4px;
+        background-color: var(--clr-blueDark);
+        padding: 0 4px 0 4px;
+    }
 .global-table-container table {
     width: max-content;
 }
@@ -487,8 +500,6 @@ table {
         top: 0;
         z-index: 3;
     }
-
-
     .global-table-container td:first-child:hover ~ .global-table-container td {
         background-color: #e3faf9;
     }
@@ -498,7 +509,13 @@ table {
         .global-table-container tr:hover td:first-child{
             color: var(--clr-yellow);
             font-size: 14px;
-            padding: 0 0 0 5px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+        }
+        .global-table-container tr:hover ~ .cel-with-btns-cont button{
+            align-items: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
 /* Components */
 
