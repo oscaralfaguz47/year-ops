@@ -137,8 +137,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 return View(viewModel);
             }catch (Exception ex)
             {
-                TempData["error"] = "¡Algo salió mal!";
-                return RedirectToAction("Index");
+                return RedirectToAction("Error", "Home", new { area = "" });
             }
         }
 

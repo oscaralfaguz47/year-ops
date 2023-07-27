@@ -36,6 +36,10 @@ namespace OceansAppWeb.Controllers
             string jsonResult = JsonSerializer.Serialize(providerList);
             return Content(jsonResult, "application/json");
         }
+        public IActionResult Error()
+        {
+            return View("Error");
+        }
         public IActionResult AccessDenied()
         {
             return View();

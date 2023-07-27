@@ -330,8 +330,19 @@ h2 {
     align-items: center;
     justify-content: space-between;
     border-bottom: var(--clr-grayLight) solid 2px;
-    padding-bottom: 5px;
+    padding: 5px;
 }
+    .filters-container .search-header-container div {
+        display: flex;
+        align-items: center;
+    }
+    .filters-container .search-header-container h2 {
+        margin: 0 15px 0 0;
+
+    }
+    .filters-container .search-header-container .input-container {
+        margin-top: 0;
+    }
     .filters-container .search-header-container a{
         color: var(--clr-blueDark);
         cursor: pointer;

@@ -12,24 +12,27 @@
         <div class="row">
             <form id="filtersPaginationForm" asp-controller="DocumentsCC" asp-action="Index">
                 @*Send the DocumentsCCList back to the controller*@
-               @if (Model.DocumentsCCList != null)
+                @if (Model.DocumentsCCList != null)
                 {
-                     for (int i = 0; i < Model.DocumentsCCList.Count; i++)
-                {
-                    Type documentCCListProp = typeof(DocumentCCGetAllWithFiltersVM);
-                    PropertyInfo[] properties = documentCCListProp.GetProperties();
-
-                    for (int v = 0; v < properties.Length; v++)
+                    for (int i = 0; i < Model.DocumentsCCList.Count; i++)
                     {
-                        string propertyName = properties[v].Name;
-                        <input type="hidden" name="DocumentsCCList[@i].@propertyName" value="@properties[v].GetValue(Model.DocumentsCCList[i])" />
+                        Type documentCCListProp = typeof(DocumentCCGetAllWithFiltersVM);
+                        PropertyInfo[] properties = documentCCListProp.GetProperties();
+
+                        for (int v = 0; v < properties.Length; v++)
+                        {
+                            string propertyName = properties[v].Name;
+                            <input type="hidden" name="DocumentsCCList[@i].@propertyName" value="@properties[v].GetValue(Model.DocumentsCCList[i])" />
+                        }
                     }
                 }
-                }
                 <div class="search-header-container">
-                    <div class="input-container">
-                        <input onkeypress="enterInSearch(event)" type="text" asp-for="Filters.SearchText" placeholder="Buscar" class="form-control">
-                        <i class="bi bi-search placeholder-image"></i>
+                    <div>
+                        <h2>CUENTAS POR COBRAR</h2>
+                        <div class="input-container">
+                            <input onkeypress="enterInSearch(event)" type="text" asp-for="Filters.SearchText" placeholder="Buscar" class="form-control">
+                            <i class="bi bi-search placeholder-image"></i>
+                        </div>
                     </div>
                     <a onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Mas Filtros </a>
                 </div>
@@ -179,9 +182,17 @@
                             <td>@documentCC.DocumentType</td>
                             <td>@documentCC.DocumentDate.ToString("dd/MM/yyyy")</td>
                             <td>@documentCC.ExpirationDate.ToString("dd/MM/yyyy")</td>
-                            <td class="@(documentCC.NumDaysToExpire < 0 ? "red-label" : "green-label")">@documentCC.NumDaysToExpire</td>
+                            <td class="@(documentCC.NumDaysToExpire < 0 ? "red-label" : "green-label")">
+                                <strong>
+                                    @documentCC.NumDaysToExpire
+                                </strong>
+                            </td>
                             <td>@(documentCC.DocumentAmount.ToString("#,##0.00"))</td>
-                            <td class="@(documentCC.BalanceAmount > 0 ? "red-label" : "green-label")">@(documentCC.BalanceAmount.ToString("#,##0.00"))</td>
+                            <td class="@(documentCC.BalanceAmount > 0 ? "red-label" : "green-label")">
+                                <strong>
+                                    @(documentCC.BalanceAmount.ToString("#,##0.00"))
+                                </strong>
+                            </td>
                             <td>@documentCC.ApplicationDescription</td>
                             <td class="@(documentCC.Canceled == "S" ? "red-label" : "green-label")">
                                 @if (@documentCC.Canceled == "S")
