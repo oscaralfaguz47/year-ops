@@ -30,7 +30,6 @@ namespace OceansApp.DataAccess.Repository
                     Name = c.Name
                 })
                 .ToList();
-
             return countriesList;
         }
 

@@ -58,3 +58,4 @@ function displayToasterSuccess(text) {
 function displayToasterError(text) {
     toastr.error(text);
 }
+
