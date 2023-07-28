@@ -1,4 +1,3 @@
-using OceansApp.Utility;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.DataAccess.DbInitializer;
 using OceansApp.DataAccess.Repository;
+using OceansApp.Utility.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 

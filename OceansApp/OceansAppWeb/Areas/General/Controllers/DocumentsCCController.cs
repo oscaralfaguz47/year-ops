@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
@@ -13,9 +14,11 @@ namespace OceansAppWeb.Areas.General.Controllers
     public class DocumentsCCController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public DocumentsCCController(IUnitOfWork unitOrWork)
+        private readonly IEmailSender _emailSender;
+        public DocumentsCCController(IUnitOfWork unitOrWork, IEmailSender emailSender)
         {
             _unitOfWork = unitOrWork;
+            _emailSender = emailSender;
         }
 
         public async Task<IActionResult> Index(DocumentCCGetAllForListVM model)
@@ -140,6 +143,37 @@ namespace OceansAppWeb.Areas.General.Controllers
                 return RedirectToAction("Error", "Home", new { area = "" });
             }
         }
+
+        //POST
+        [HttpPost]
+        public IActionResult SendNotification(int documentId)
+        {
+            try
+            {
+                var documentCC = _unitOfWork.DocumentCC.GetFirstOrDefault(x => x.DocumentCCId == documentId);
+                if (documentCC == null)
+                {
+                    return BadRequest("El documento no fue encontrado.");
+                }
+
+                var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId);
+                if (client == null)
+                {
+                    return BadRequest("El cliente no fue encontrado.");
+                }
+
+
+
+                _emailSender.SendEmailAsync("oscar.alfaro@oceanscode.com", "Confirma tu cuenta - Oceans App", "Body");
+
+                return Json(new { success = true, message = "¡Bien, le acabas de enviar una notificación al cliente!" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         private bool WhereFiltersApplied(DocumentCCFiltersGetAllVM model1, DocumentCCFiltersGetAllVM model2)
         {

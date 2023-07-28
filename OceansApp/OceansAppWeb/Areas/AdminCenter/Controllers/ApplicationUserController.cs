@@ -1,6 +1,5 @@
 ﻿using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
-using OceansApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.ObjectModel;
 using OceansApp.Models.Models;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using OceansApp.Utility;
 
 namespace OceansApp.Areas.AdminCenter.Controllers
 {

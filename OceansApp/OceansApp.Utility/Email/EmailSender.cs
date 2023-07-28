@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.Net.Mail;
 
-namespace OceansApp.Utility
+namespace OceansApp.Utility.Email
 {
     public class EmailSender : IEmailSender
     {

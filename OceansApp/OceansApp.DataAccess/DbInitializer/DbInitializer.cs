@@ -84,6 +84,54 @@ namespace OceansApp.DataAccess.DbInitializer
                 _db.SaveChanges();
             }
 
+            //Create Default Notifications stuff
+
+            if (_db.NOTIFICATION_MEDIA.ToList().Count == 0)
+            {
+                List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
+                notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
+
+                foreach (var notMedia in notificatinMediaList)
+                {
+                    NotificationMedia notificationMedia = new()
+                    {
+                        Name = notMedia.Name
+                    };
+                    _db.NOTIFICATION_MEDIA.Add(notificationMedia);
+                }
+                _db.SaveChanges();
+            }
+            if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
+            {
+                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
+                foreach (var notStatus in notificatinStatusList)
+                {
+                    NotificationStatus notificationStatus = new()
+                    {
+                        Name = notStatus.Name
+                    };
+                    _db.NOTIFICATION_STATUS.Add(notificationStatus);
+                }
+                _db.SaveChanges();
+            }
+            if (_db.NOTIFICATION_TYPES.ToList().Count == 0)
+            {
+                List<NotificationType> notificationTypeList = new List<NotificationType>();
+                notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
+                foreach (var notType in notificationTypeList)
+                {
+                    NotificationType notificationType = new()
+                    {
+                        Name = notType.Name
+                    };
+                    _db.NOTIFICATION_TYPES.Add(notificationType);
+                }
+                _db.SaveChanges();
+            }
+
             return;
         }
     }
