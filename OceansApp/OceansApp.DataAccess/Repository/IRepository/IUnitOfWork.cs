@@ -4,7 +4,6 @@
     {
         IAccountingAccountRepository AccountingAccounts{ get; }
         ICostCenterRepository CenterOfCosts { get; }
-
         ILedgerMovementRepository LedgerMovements { get; }
         IDataUpdateDateRepository DataUpdateDates { get; }
         IApplicationUserRepository ApplicationUser { get; }

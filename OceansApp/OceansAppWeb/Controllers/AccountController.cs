@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
-using OceansApp.Utility;
+using OceansApp.Utility.Email;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
 
@@ -21,10 +21,12 @@ namespace OceansAppWeb.Account.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _config;
+        private readonly ISendEmailRepository _sendEmailRepository;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, IConfiguration config, ISendEmailRepository sendEmailRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -34,6 +36,8 @@ namespace OceansAppWeb.Account.Controllers
             _roleManager = roleManager;
             _unitOfWork = unitOrWork;
             _httpContextAccessor = httpContextAccessor;
+            _config = config;
+            _sendEmailRepository = sendEmailRepository;
         }
         public IActionResult Index()
         {
@@ -353,9 +357,17 @@ namespace OceansAppWeb.Account.Controllers
 
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                SendEmailVM emailModel = new()
+                {
+                    Subject = "Cambiar Contraseña",
+                    EmailTo = model.Email,
+                    Body = "Cambia tu contraseña haciendo click: <a href=\"" + callbackurl + "\">Aquí</a>",
+                    SharedEmailFrom = _config["sharedEmailOceansApp"]
+                };
 
-                await _emailSender.SendEmailAsync(model.Email, "Cambiar Contraseña - Oceans App",
-                    "Cambia tu contraseña haciendo click: <a href=\"" + callbackurl + "\">Aquí</a>");
+                string? result = await _sendEmailRepository.SendEmail(emailModel);
+                //await _emailSender.SendEmailAsync(model.Email, "Cambiar Contraseña",
+                //    "Cambia tu contraseña haciendo click: <a href=\"" + callbackurl + "\">Aquí</a>");
 
                 return RedirectToAction("ForgotPasswordConfirmation");
             }
