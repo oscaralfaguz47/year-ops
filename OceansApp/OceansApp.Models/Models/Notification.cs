@@ -21,7 +21,7 @@ namespace OceansApp.Models.Models
         public string Subject { get; set; }
         [Required]
         [MaxLength(150)]
-        public string SentFrom { get; set; }
+        public string Remitent { get; set; }
         [Required]
         public DateTime SentDate { get; set; }
     }

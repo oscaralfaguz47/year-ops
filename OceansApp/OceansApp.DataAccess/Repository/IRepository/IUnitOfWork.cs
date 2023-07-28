@@ -23,6 +23,10 @@
         IProviderEventDateRepository ProviderEventDate { get; }
         IDocumentCCRepository DocumentCC { get; }
         INotificationTypeRepository NotificationType { get; }
+        INotificationRepository Notification { get; }
+        INotificationStatusRepository NotificationStatus { get; }
+        INotificationMediaRepository NotificationMedia { get; }
+        INotificationRecipientRepository NotificationRecipient { get; }
 
         void Save();
     }
