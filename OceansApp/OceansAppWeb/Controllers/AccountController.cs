@@ -366,8 +366,6 @@ namespace OceansAppWeb.Account.Controllers
                 };
 
                 string? result = await _sendEmailRepository.SendEmail(emailModel);
-                //await _emailSender.SendEmailAsync(model.Email, "Cambiar Contraseña",
-                //    "Cambia tu contraseña haciendo click: <a href=\"" + callbackurl + "\">Aquí</a>");
 
                 return RedirectToAction("ForgotPasswordConfirmation");
             }
