@@ -32,10 +32,8 @@ namespace OceansApp.DataAccess.Repository
                 {
                     message.From.Add(new MailboxAddress(_config["internalEmailSenderName"], _config["internalEmail"]));
                 }
-
                 message.To.Add(new MailboxAddress("", emailModel.EmailTo));
                 message.Subject = emailModel.Subject;
-
                 var bodyBuilder = new BodyBuilder();
                 bodyBuilder.HtmlBody = emailModel.Body;
                 message.Body = bodyBuilder.ToMessageBody();
@@ -50,7 +48,6 @@ namespace OceansApp.DataAccess.Repository
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
                 }
-
                 return null;
             }
             catch (Exception ex)

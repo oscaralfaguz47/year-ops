@@ -138,7 +138,8 @@ namespace OceansAppWeb.Areas.General.Controllers
                     DocumentTypeList = (List<SelectVM>)documentTypes
                 };
                 return View(viewModel);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return RedirectToAction("Error", "Home", new { area = "" });
             }
@@ -161,10 +162,11 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     return BadRequest("El cliente no fue encontrado.");
                 }
+                var subject = "Invoice from June is still pending payment";
+                string nombreMes = documentCC.DocumentDate.ToString("MMM");
+                var body = emailBody();
 
-
-
-                _emailSender.SendEmailAsync("oscar.alfaro@oceanscode.com", "Confirma tu cuenta - Oceans App", "Body");
+                var emailSent = _emailSender.SendEmailAsync("oscar.alfaro@oceanscode.com", subject, body);
 
                 return Json(new { success = true, message = "¡Bien, le acabas de enviar una notificación al cliente!" });
             }
@@ -172,6 +174,71 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        private string emailBody()
+        {
+            var body = @"<!DOCTYPE html>
+                        <html>
+                        <head>
+                        <style>
+                          body {
+                            font-family: Arial, sans-serif;
+                          }
+                          .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 20px;
+                            border: 1px solid #ccc;
+                          }
+                          .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                          }
+                          .invoice-details {
+                            border: 1px solid #ccc;
+                            padding: 10px;
+                            margin-top: 20px;
+                          }
+                          .signature {
+                            text-align: left;
+                            margin-top: 20px;
+                          }
+                          .red-text{
+                            color: red;
+                          }
+                        </style>
+                        </head>
+                        <body>
+                        
+                        <div class=""container"">
+                          <div class=""header"">
+                           <div style=""display:inline-block; background-color:#fff;"">
+                             <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1612882702/logos/logo-color_xdip1b.png"" alt=""Oceans Code Experts"" width=""200"" style=""display:block; margin:0 auto;"">
+                             </div>
+                                   <h2>INVOICE PENDING [June 2023]</h2>
+                          </div>
+                          <p>Dear Emilio,</p>
+                          <p>We just want to remind you that there is currently an unpaid balance invoice for $1,000.00 corresponding to the month of June 2023.</p>
+                          <p>Please see the information below:</p>
+                          <div class=""invoice-details"">
+                            <p><strong>Invoice Number:</strong> 225</p>
+                            <p><strong>Amount:</strong> $1,000.00</p>
+                            <p><strong>Date:</strong> 06/30/2023</p>
+                            <p class=""red-text""><strong>Expiration Date:</strong> 07/07/2023</p>
+                            <p><strong>Details:</strong> Professional Services</p>
+                          </div>
+                          <p>You can reply to this email or contact directly with the Finance Manager Oscar Alfaro at oscar.alfaro@oceanscode.com</p>
+                          <p>Thanks!</p>
+                          
+                          <div class=""signature"">
+                            <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png"" alt=""Accounting"">
+                          </div>
+                        </div>
+                        
+                        </body>
+                        </html>";
+            return body;
         }
 
 
