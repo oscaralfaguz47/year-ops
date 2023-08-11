@@ -228,7 +228,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                             <p class=""red-text""><strong>Expiration Date:</strong> 07/07/2023</p>
                             <p><strong>Details:</strong> Professional Services</p>
                           </div>
-                          <p>You can reply to this email or contact directly with the Finance Manager Oscar Alfaro at oscar.alfaro@oceanscode.com</p>
+                          <p>You can reply to this email or contact directly with the Finance Manager Oscar Alfaro at oscar.alfaro@oceanscode.com.</p>
                           <p>Thanks!</p>
                           
                           <div class=""signature"">
