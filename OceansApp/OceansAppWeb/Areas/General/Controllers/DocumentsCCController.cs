@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.DocumentsCC;
 using OceansApp.Utility;
+using OceansApp.Utility.Email;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
@@ -14,11 +17,13 @@ namespace OceansAppWeb.Areas.General.Controllers
     public class DocumentsCCController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IEmailSender _emailSender;
-        public DocumentsCCController(IUnitOfWork unitOrWork, IEmailSender emailSender)
+        private readonly ISendEmailRepository _sendEmail;
+        private readonly IConfiguration _config;
+        public DocumentsCCController(IUnitOfWork unitOrWork, ISendEmailRepository sendEmail, IConfiguration config)
         {
             _unitOfWork = unitOrWork;
-            _emailSender = emailSender;
+            _sendEmail = sendEmail;
+            _config = config;
         }
 
         public async Task<IActionResult> Index(DocumentCCGetAllForListVM model)
@@ -156,17 +161,98 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     return BadRequest("El documento no fue encontrado.");
                 }
-
                 var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId);
                 if (client == null)
                 {
                     return BadRequest("El cliente no fue encontrado.");
                 }
-                var subject = "Invoice from June is still pending payment";
-                string nombreMes = documentCC.DocumentDate.ToString("MMM");
-                var body = emailBody();
+                var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x=>x.Name == "Cuentas por cobrar");
+                if (notificationType == null)
+                {
+                    return BadRequest("El tipo de notificación no fue encontrado.");
+                }
+                var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+                if (notificationMedia == null)
+                {
+                    return BadRequest("El Medio de notificación no fue encontrado.");
+                }
 
-                var emailSent = _emailSender.SendEmailAsync("oscar.alfaro@oceanscode.com", subject, body);
+                string documentMonth = documentCC.DocumentDate.ToString("MMMM");
+                string nombreMes = documentCC.DocumentDate.ToString("MMM");
+                DateTime docExpirationDate = documentCC.DocumentDate.AddDays(double.Parse(client.PaymentCondition));
+                var subject = "Invoice from " + documentMonth + " is still pending payment";
+                var emailRemitent = _config["internalEmail"];
+                var emailTo = "oscar.alfaguz47@gmail.com";
+
+                var body = emailBody(
+                    client.Name,
+                    documentCC.BalanceAmount, 
+                    documentCC.DocumentAmount,
+                    documentMonth,
+                    documentCC.DocumentDate.Year,
+                    documentCC.DocumentNumber,
+                    documentCC.DocumentDate,
+                    docExpirationDate);
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                DateTime costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                //Save notification
+                Notification notification = new Notification()
+                {
+                    NotificationTypeId = notificationType.NotificationTypeId,
+                    Body = body,
+                    Subject = subject,
+                    Remitent = emailRemitent,
+                    SentDate = costaRicaTime,
+                    SentByUser = claim.Value
+                };
+                _unitOfWork.Notification.Add(notification);
+                _unitOfWork.Save();
+
+                SendEmailVM emailToSend = new SendEmailVM()
+                {
+                    Subject = subject,
+                    Body = body,
+                    EmailTo = emailTo,
+                    SharedEmailFrom = emailRemitent
+                };
+                var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                if (notificationStatus == null)
+                {
+                    return BadRequest("El Estado no fue encontrado.");
+                }
+                try
+                {
+                    var emailSent = _sendEmail.SendEmail(emailToSend);
+                    DocumentsCCNotification documentNotification = new DocumentsCCNotification()
+                    {
+                        DocumentCCId = documentId,
+                        NotificationId = notification.NotificationId
+                    };
+                    _unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                    _unitOfWork.Save();
+                }
+                catch(Exception ex)
+                {
+                    notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                }
+                var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == emailTo);
+                string? recipientUserId = null;
+                if (recipientUser != null)
+                {
+                    recipientUserId = recipientUser.Id;
+                }
+                NotificationRecipient notificationRecipient = new NotificationRecipient()
+                {
+                    RecipientMediaInfo = emailTo,
+                    NotificationId = notification.NotificationId,
+                    NotificationMediaId = notificationMedia.NotificationMediaId,
+                    NotificationStatusId = notificationStatus.NotificationStatusId,
+                    RecipientUserId = recipientUserId
+                };
+                _unitOfWork.NotificationRecipient.Add(notificationRecipient);
+                _unitOfWork.Save();
 
                 return Json(new { success = true, message = "¡Bien, le acabas de enviar una notificación al cliente!" });
             }
@@ -176,7 +262,12 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        private string emailBody()
+        private string emailBody(string clientName, decimal totalAmountDue, decimal documentAmount, 
+            string month, 
+            int year, 
+            string documentNumber, 
+            DateTime documentDate,
+            DateTime docExpirationDate)
         {
             var body = @"<!DOCTYPE html>
                         <html>
@@ -216,17 +307,17 @@ namespace OceansAppWeb.Areas.General.Controllers
                            <div style=""display:inline-block; background-color:#fff;"">
                              <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1612882702/logos/logo-color_xdip1b.png"" alt=""Oceans Code Experts"" width=""200"" style=""display:block; margin:0 auto;"">
                              </div>
-                                   <h2>INVOICE PENDING [June 2023]</h2>
+                                   <h2>INVOICE PENDING [" + month + @" " + year + @"]</h2>
                           </div>
-                          <p>Dear Emilio,</p>
-                          <p>We just want to remind you that there is currently an unpaid balance invoice for $1,000.00 corresponding to the month of June 2023.</p>
+                          <p>Dear " + clientName + @",</p>
+                          <p>We just want to remind you that there is currently an unpaid balance invoice for $" + totalAmountDue.ToString("#,##0.00") + @" corresponding to the month of " + month + @" " + year + @".</p>
                           <p>Please see the information below:</p>
                           <div class=""invoice-details"">
-                            <p><strong>Invoice Number:</strong> 225</p>
-                            <p><strong>Amount:</strong> $1,000.00</p>
-                            <p><strong>Date:</strong> 06/30/2023</p>
-                            <p class=""red-text""><strong>Expiration Date:</strong> 07/07/2023</p>
-                            <p><strong>Details:</strong> Professional Services</p>
+                            <p><strong>Invoice Number:</strong> " + documentNumber + @"</p>
+                            <p><strong>Initial Invoice Amount:</strong> $" + documentAmount.ToString("#,##0.00") + @"</p>
+                            <p><strong>Invoice Amount Due:</strong> $" + totalAmountDue.ToString("#,##0.00") + @"</p>
+                            <p><strong>Date:</strong> " + documentDate.ToString("MM/dd/yyyy") + @"</p>
+                            <p class=""red-text""><strong>Expiration Date:</strong> " + docExpirationDate.ToString("MM/dd/yyyy") + @"</p>
                           </div>
                           <p>You can reply to this email or contact directly with the Finance Manager Oscar Alfaro at oscar.alfaro@oceanscode.com.</p>
                           <p>Thanks!</p>

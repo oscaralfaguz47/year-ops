@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230814190619_addSentByUserToNotificationsTable")]
+    partial class addSentByUserToNotificationsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -675,21 +677,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("DOCUMENTS_CC");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.DocumentsCCNotification", b =>
-                {
-                    b.Property<int>("DocumentCCId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NotificationId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DocumentCCId", "NotificationId");
-
-                    b.HasIndex("NotificationId");
-
-                    b.ToTable("DOCUMENTS_CC_NOTIFICATIONS");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>
                 {
                     b.Property<int>("Id")
@@ -1183,25 +1170,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.DocumentsCCNotification", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.DocumentCC", "DocumentCC")
-                        .WithMany()
-                        .HasForeignKey("DocumentCCId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.Notification", "Notification")
-                        .WithMany()
-                        .HasForeignKey("NotificationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DocumentCC");
-
-                    b.Navigation("Notification");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>

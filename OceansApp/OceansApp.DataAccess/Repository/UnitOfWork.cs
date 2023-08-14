@@ -30,6 +30,7 @@ namespace OceansApp.DataAccess.Repository
             ProviderEvent = new ProviderEventRepository(_db);
             ProviderEventDate = new ProviderEventDateRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
+            DocumentsCCNotification = new DocumentsCCNotificationRepository(_db);
             NotificationType = new NotificationTypeRepository(_db);
             Notification = new NotificationRepository(_db);
             NotificationStatus = new NotificationStatusRepository(_db);
@@ -55,6 +56,7 @@ namespace OceansApp.DataAccess.Repository
         public IProviderEventRepository ProviderEvent { get; set; }
         public IProviderEventDateRepository ProviderEventDate { get; set; }
         public IDocumentCCRepository DocumentCC { get; set; }
+        public IDocumentsCCNotificationRepository DocumentsCCNotification { get; set; }
         public INotificationTypeRepository NotificationType { get; set; }
         public INotificationRepository Notification { get; set; }
         public INotificationStatusRepository NotificationStatus { get; set; }

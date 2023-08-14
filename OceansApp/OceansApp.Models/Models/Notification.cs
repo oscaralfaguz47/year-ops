@@ -22,5 +22,12 @@ namespace OceansApp.Models.Models
         public string Remitent { get; set; }
         [Required]
         public DateTime SentDate { get; set; }
+        [Required]
+        [MaxLength(450)]
+        public string SentByUser { get; set; }
+
+        [ForeignKey("SentByUser")]
+        [ValidateNever]
+        public ApplicationUser ApplicationUser { get; set; }
     }
 }

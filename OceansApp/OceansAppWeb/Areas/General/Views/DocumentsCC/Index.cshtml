@@ -182,7 +182,7 @@
                                     <span> @documentCC.ClientName</span>
                                     @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0)
                                     {
-                                        <button onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', 'Enviar Notificación')"><i class="bi bi-envelope"></i></button>
+                                        <button onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)')"><i class="bi bi-envelope"></i></button>
                                     }
                                 </div>
                             </td>
@@ -269,16 +269,17 @@
       }
     }
 
-function SendNotification(url, title) {
+function SendNotification(url, clientName) {
     console.log(url);
     Swal.fire({
-        title: title,
-        text: "¿Quieres enviarle un recordatorio de pago a tu cliente?",
+        title: "Enviar recordatorio de pago",
+        text: "¿Quieres enviarle un recordatorio de pago a " + clientName + "?",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Si, continuar!'
+        confirmButtonText: 'Si, enviar!',
+        cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({

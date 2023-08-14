@@ -38,6 +38,8 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ConsultantRolesQualityLevels>()
                 .HasKey(rq => new {rq.ConsultantRoleId, rq.ConsultantQualityLevelId});
 
+            modelBuilder.Entity<DocumentsCCNotification>()
+               .HasKey(d => new { d.DocumentCCId, d.NotificationId });
         }
 
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
@@ -64,5 +66,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<NotificationStatus> NOTIFICATION_STATUS { get; set; }
         public DbSet<NotificationMedia> NOTIFICATION_MEDIA { get; set; }
         public DbSet<NotificationRecipient> NOTIFICATION_RECIPIENTS { get; set; }
+        public DbSet<DocumentsCCNotification> DOCUMENTS_CC_NOTIFICATIONS { get; set; }
     }
 }

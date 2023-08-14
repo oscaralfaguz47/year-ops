@@ -21,6 +21,7 @@
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
         IDocumentCCRepository DocumentCC { get; }
+        IDocumentsCCNotificationRepository DocumentsCCNotification { get; }
         INotificationTypeRepository NotificationType { get; }
         INotificationRepository Notification { get; }
         INotificationStatusRepository NotificationStatus { get; }
