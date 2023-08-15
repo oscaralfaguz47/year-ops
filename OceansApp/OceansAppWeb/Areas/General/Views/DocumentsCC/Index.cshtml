@@ -182,7 +182,10 @@
                                     <span> @documentCC.ClientName</span>
                                     @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0)
                                     {
-                                        <button onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)')"><i class="bi bi-envelope"></i></button>
+                                      <div class="send-btn-container">
+                                              <a id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
+                                            <button title="Enviar recordatorio de pago" onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
+                                      </div>
                                     }
                                 </div>
                             </td>
@@ -269,7 +272,7 @@
       }
     }
 
-function SendNotification(url, clientName) {
+function SendNotification(url, clientName, documentId) {
     console.log(url);
     Swal.fire({
         title: "Enviar recordatorio de pago",
@@ -287,7 +290,8 @@ function SendNotification(url, clientName) {
                 type: 'POST',
                 success: function (data) {
                     if (data.success) {
-                        toastr.success(data.message);
+                         toastr.success(data.message);
+                         updateNotificationCount(documentId);
                     }
                     else {
                         toastr.error(data.message);
@@ -296,6 +300,21 @@ function SendNotification(url, clientName) {
             })
         }
     })
+}
+
+function updateNotificationCount(documentId) {
+    // Get the current notification count element
+    const notificationCountElement = document.getElementById('count-' + documentId);
+    const notificationCountBtn = document.getElementById('count-btn-' + documentId);
+    
+    notificationCountBtn.classList.add("show-display-contents");
+    notificationCountBtn.classList.remove("hide");
+    // Increment the notification count by 1
+    const currentCount = parseInt(notificationCountElement.textContent, 10);
+    const updatedCount = currentCount + 1;
+    
+    // Update the content of the notification count element
+    notificationCountElement.textContent = updatedCount;
 }
 
 </script>

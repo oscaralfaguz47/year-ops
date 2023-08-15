@@ -38,6 +38,9 @@ body {
 .show {
     display: block;
 }
+.show-display-contents {
+    display: contents;
+}
 
 nav {
     position: fixed !important;
@@ -445,6 +448,12 @@ table {
         background-color: var(--clr-blueDark);
         padding: 0 4px 0 4px;
     }
+
+.global-table-container .cel-with-btns-cont .send-btn-num {
+    color:blue;
+    cursor: pointer;
+}
+
 .global-table-container table {
     width: max-content;
 }
@@ -508,15 +517,8 @@ table {
     }
         .global-table-container tr:hover td:first-child{
             color: var(--clr-yellow);
-            font-size: 14px;
-            padding-top: 1px;
-            padding-bottom: 1px;
         }
-        .global-table-container tr:hover ~ .cel-with-btns-cont button{
-            align-items: center;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
+
 /* Components */
 
 .custom-select {

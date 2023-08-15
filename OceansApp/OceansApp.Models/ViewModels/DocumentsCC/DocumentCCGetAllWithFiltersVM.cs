@@ -17,5 +17,6 @@ namespace OceansApp.Models.ViewModels.DocumentsCC
         public string ClientName { get; set; }
         public string CompanyId { get; set; }
         public string ClientCategory { get; set; }
+        public int NumNotificationsSent { get; set; }
     }
 }

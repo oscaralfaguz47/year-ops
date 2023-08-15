@@ -55,6 +55,7 @@ namespace OceansApp.DataAccess.Repository
                     ,C.Name AS ClientName
                     ,DCC.CompanyId
                     ,C.ClientCategory
+                    ,(SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) AS NumNotificationsSent
                      FROM DOCUMENTS_CC DCC
                      JOIN CLIENT C ON DCC.ClientId = C.ClientId
                      WHERE ((@SearchText IS NULL OR LOWER(DCC.DocumentNumber) LIKE '%' + LOWER(@SearchText) + '%')

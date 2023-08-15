@@ -254,7 +254,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 _unitOfWork.NotificationRecipient.Add(notificationRecipient);
                 _unitOfWork.Save();
 
-                return Json(new { success = true, message = "¡Bien, le acabas de enviar una notificación al cliente!" });
+                return Json(new { success = true, message = "¡Bien, le acabas de enviar una notificación a " + client.Name + "." });
             }
             catch (Exception e)
             {
