@@ -88,6 +88,31 @@ namespace OceansApp.DataAccess.Repository
             return (documents, totalCount);
         }
 
+        public async Task<List<DocumentCCGetNotificationsHistoryVM>> GetNotificationsHistoryByDocumentIdAsync(int documentId)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var queryBuilder = new StringBuilder();
+            var parameters = new DynamicParameters();
+
+            queryBuilder.AppendLine(@"SELECT 
+                                    N.NotificationId
+                                    ,N.SentDate 
+                                    ,U.Name + ' ' + U.LastName AS SentByUser
+                                    FROM DOCUMENTS_CC_NOTIFICATIONS DN
+                                    JOIN NOTIFICATIONS N ON DN.NotificationId = N.NotificationId
+                                    JOIN Users U ON N.SentByUser = U.Id
+                                    WHERE DN.DocumentCCId = @documentId
+                                    ORDER BY N.SentDate DESC");
+
+            parameters.Add("@documentId", documentId, DbType.String);
+
+            var results = await connection.QueryAsync<DocumentCCGetNotificationsHistoryVM>(queryBuilder.ToString(), parameters);
+            var documents = results.ToList();
+
+            return (documents);
+        }
+
         public void Update(DocumentCC obj)
         {
             _db.DOCUMENTS_CC.Update(obj);

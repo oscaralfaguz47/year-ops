@@ -3,9 +3,8 @@
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Reflection;
 
-
-<link rel="stylesheet" href="~/css/General/consultants.css" />
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/Finances/documentsCC.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -183,7 +182,7 @@
                                     @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC")
                                     {
                                         <div class="send-btn-container">
-                                            <a id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
+                                            <a onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
                                             <button title="Enviar recordatorio de pago" onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
                                         </div>
                                     }
@@ -224,6 +223,22 @@
     </div>
 </div>
 
+<div id="notificationModal" class="modal">
+    <div class="modal-content">
+       <div class="header">
+            <h2>Historial de Notificaciones</h2> <span class="close" onclick="closeModal()">&times;</span>
+       </div>
+        <table id="notificationTable">
+            <thead>
+                <tr>
+                    <th>Fecha de Envío</th>
+                    <th>Enviado por</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
 
 
 @section Scripts{
@@ -319,6 +334,57 @@
         // Update the content of the notification count element
         notificationCountElement.textContent = updatedCount;
     }
+    
+    function openModal() {
+    var modal = document.getElementById("notificationModal");
+    modal.style.display = "block";
+}
+
+function closeModal() {
+    var modal = document.getElementById("notificationModal");
+    modal.style.display = "none";
+}
+
+function getNotificationHistoryByDocument(documentId) {
+    openModal();
+    $.ajax({
+        url: 'DocumentsCC/GetNotificationsHistoryByDocument?documentId=' + documentId,
+        type: 'POST',
+        success: function (data) {
+            if (data.success) {
+                var tbody = document.querySelector("#notificationTable tbody");
+                tbody.innerHTML = "";
+
+                data.notificationHistory.result.forEach(function (notification) {
+                    var sentDate = new Date(notification.sentDate);
+
+                    var hours = sentDate.getHours();
+                    var minutes = sentDate.getMinutes();
+                    var ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12; // Si es 0, lo ajustamos a 12
+
+                    var formattedTime = `${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
+
+                    var row = `
+                        <tr>
+                            <td>${sentDate.getDate()}/${sentDate.getMonth() + 1}/${sentDate.getFullYear()} ${formattedTime}</td>
+                            <td>${notification.sentByUser}</td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML("beforeend", row);
+                });
+            } else {
+                toastr.error(data.error);
+            }
+        },
+        error: function () {
+            toastr.error("Error de conexión.");
+        }
+    });
+}
+
+
 
 </script>
     }

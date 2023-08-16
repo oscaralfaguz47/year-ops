@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -268,6 +267,19 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult GetNotificationsHistoryByDocument(int documentId)
+        {
+            try
+            {
+                var notificationsHistory = _unitOfWork.DocumentCC.GetNotificationsHistoryByDocumentIdAsync(documentId);
+                return Json(new { success = true, message = $"Bien!", notificationHistory = notificationsHistory });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
         private string emailBody(string clientName, decimal totalAmountDue, decimal documentAmount,
             string month,
