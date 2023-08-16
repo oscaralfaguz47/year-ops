@@ -150,82 +150,79 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        //POST
         [HttpPost]
         public IActionResult SendNotification(int documentId)
         {
             try
             {
                 var documentCC = _unitOfWork.DocumentCC.GetFirstOrDefault(x => x.DocumentCCId == documentId);
-                if (documentCC == null)
-                {
-                    return BadRequest("El documento no fue encontrado.");
-                }
-                var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId);
-                if (client == null)
-                {
-                    return BadRequest("El cliente no fue encontrado.");
-                }
-                var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x=>x.Name == "Cuentas por cobrar");
-                if (notificationType == null)
-                {
-                    return BadRequest("El tipo de notificación no fue encontrado.");
-                }
+                var client = documentCC != null ? _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId) : null;
+                var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Cuentas por cobrar");
                 var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
-                if (notificationMedia == null)
+
+                if (documentCC == null || client == null || notificationType == null || notificationMedia == null)
                 {
-                    return BadRequest("El Medio de notificación no fue encontrado.");
+                    return Json(new { success = false, error = "Error en la obtención de datos." });
                 }
 
                 string documentMonth = documentCC.DocumentDate.ToString("MMMM");
-                string nombreMes = documentCC.DocumentDate.ToString("MMM");
                 DateTime docExpirationDate = documentCC.DocumentDate.AddDays(double.Parse(client.PaymentCondition));
-                var subject = "Invoice from " + documentMonth + " is still pending payment";
-                var emailRemitent = _config["internalEmail"];
-                var emailTo = "oscar.alfaguz47@gmail.com";
+                var subject = $"Invoice from {documentMonth} is still pending payment";
+
+                var allEmails = client.Emails.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var emailTo = allEmails.FirstOrDefault();
+                var emailsCC = allEmails.Skip(1).ToList();
+
+                if (string.IsNullOrEmpty(emailTo))
+                {
+                    return Json(new { success = false, error = "El cliente no tiene correos electrónicos." });
+                }
 
                 var body = emailBody(
                     client.Name,
-                    documentCC.BalanceAmount, 
+                    documentCC.BalanceAmount,
                     documentCC.DocumentAmount,
                     documentMonth,
                     documentCC.DocumentDate.Year,
                     documentCC.DocumentNumber,
                     documentCC.DocumentDate,
                     docExpirationDate);
+
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
 
-                DateTime costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-                //Save notification
-                Notification notification = new Notification()
+                var notification = new Notification()
                 {
                     NotificationTypeId = notificationType.NotificationTypeId,
                     Body = body,
                     Subject = subject,
-                    Remitent = emailRemitent,
+                    Remitent = _config["internalEmail"],
                     SentDate = costaRicaTime,
                     SentByUser = claim.Value
                 };
                 _unitOfWork.Notification.Add(notification);
                 _unitOfWork.Save();
 
-                SendEmailVM emailToSend = new SendEmailVM()
+                var emailToSend = new SendEmailVM()
                 {
                     Subject = subject,
                     Body = body,
                     EmailTo = emailTo,
-                    SharedEmailFrom = emailRemitent
+                    SharedEmailFrom = _config["internalEmail"],
+                    EmailCcList = emailsCC
                 };
+
                 var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
                 if (notificationStatus == null)
                 {
-                    return BadRequest("El Estado no fue encontrado.");
+                    return Json(new { success = false, error = "Error en la obtención de datos." });
                 }
+
                 try
                 {
                     var emailSent = _sendEmail.SendEmail(emailToSend);
-                    DocumentsCCNotification documentNotification = new DocumentsCCNotification()
+                    var documentNotification = new DocumentsCCNotification()
                     {
                         DocumentCCId = documentId,
                         NotificationId = notification.NotificationId
@@ -233,17 +230,14 @@ namespace OceansAppWeb.Areas.General.Controllers
                     _unitOfWork.DocumentsCCNotification.Add(documentNotification);
                     _unitOfWork.Save();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
                 }
+
                 var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == emailTo);
-                string? recipientUserId = null;
-                if (recipientUser != null)
-                {
-                    recipientUserId = recipientUser.Id;
-                }
-                NotificationRecipient notificationRecipient = new NotificationRecipient()
+                var recipientUserId = recipientUser?.Id;
+                var notificationRecipient = new NotificationRecipient()
                 {
                     RecipientMediaInfo = emailTo,
                     NotificationId = notification.NotificationId,
@@ -254,7 +248,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 _unitOfWork.NotificationRecipient.Add(notificationRecipient);
                 _unitOfWork.Save();
 
-                return Json(new { success = true, message = "¡Bien, le acabas de enviar una notificación a " + client.Name + "." });
+                return Json(new { success = true, message = $"¡Bien, le acabas de enviar una notificación a {client.Name}." });
             }
             catch (Exception e)
             {
@@ -262,10 +256,11 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        private string emailBody(string clientName, decimal totalAmountDue, decimal documentAmount, 
-            string month, 
-            int year, 
-            string documentNumber, 
+
+        private string emailBody(string clientName, decimal totalAmountDue, decimal documentAmount,
+            string month,
+            int year,
+            string documentNumber,
             DateTime documentDate,
             DateTime docExpirationDate)
         {

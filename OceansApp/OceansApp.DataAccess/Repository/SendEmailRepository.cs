@@ -33,6 +33,13 @@ namespace OceansApp.DataAccess.Repository
                     message.From.Add(new MailboxAddress(_config["internalEmailSenderName"], _config["internalEmail"]));
                 }
                 message.To.Add(new MailboxAddress("", emailModel.EmailTo));
+                if (emailModel.EmailCcList !=null)
+                {
+                    foreach (var ccEmail in emailModel.EmailCcList)
+                    {
+                        message.Cc.Add(new MailboxAddress("", ccEmail));
+                    }
+                }
                 message.Subject = emailModel.Subject;
                 var bodyBuilder = new BodyBuilder();
                 bodyBuilder.HtmlBody = emailModel.Body;
