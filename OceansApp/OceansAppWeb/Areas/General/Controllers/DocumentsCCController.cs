@@ -234,20 +234,32 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
                 }
-
-                var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == emailTo);
-                var recipientUserId = recipientUser?.Id;
-                var notificationRecipient = new NotificationRecipient()
+                var recipientUserSendTo = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == emailTo);
+                var recipientUserIdSendTo = recipientUserSendTo?.Id;
+                var notificationRecipientSentTo = new NotificationRecipient()
                 {
                     RecipientMediaInfo = emailTo,
                     NotificationId = notification.NotificationId,
                     NotificationMediaId = notificationMedia.NotificationMediaId,
                     NotificationStatusId = notificationStatus.NotificationStatusId,
-                    RecipientUserId = recipientUserId
+                    RecipientUserId = recipientUserIdSendTo
                 };
-                _unitOfWork.NotificationRecipient.Add(notificationRecipient);
+                _unitOfWork.NotificationRecipient.Add(notificationRecipientSentTo);
+                foreach(var email in emailsCC)
+                {
+                    var recipientUserCC = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == email);
+                    var recipientUserIdCC = recipientUserCC?.Id;
+                    var notificationRecipientCC = new NotificationRecipient()
+                    {
+                        RecipientMediaInfo = email,
+                        NotificationId = notification.NotificationId,
+                        NotificationMediaId = notificationMedia.NotificationMediaId,
+                        NotificationStatusId = notificationStatus.NotificationStatusId,
+                        RecipientUserId = recipientUserIdCC
+                    };
+                    _unitOfWork.NotificationRecipient.Add(notificationRecipientCC);
+                }
                 _unitOfWork.Save();
-
                 return Json(new { success = true, message = $"¡Bien, le acabas de enviar una notificación a {client.Name}." });
             }
             catch (Exception e)

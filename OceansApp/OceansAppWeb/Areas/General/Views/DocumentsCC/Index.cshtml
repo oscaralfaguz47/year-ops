@@ -180,7 +180,7 @@
                             <td>
                                 <div class="cel-with-btns-cont">
                                     <span> @documentCC.ClientName</span>
-                                    @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0)
+                                    @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC")
                                     {
                                         <div class="send-btn-container">
                                             <a id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
@@ -193,13 +193,13 @@
                             <td>@documentCC.DocumentType</td>
                             <td>@documentCC.DocumentDate.ToString("dd/MM/yyyy")</td>
                             <td>@documentCC.ExpirationDate.ToString("dd/MM/yyyy")</td>
-                            <td class="@(documentCC.NumDaysToExpire < 0 ? "red-label" : "green-label")">
+                            <td class="@(documentCC.NumDaysToExpire < 0 && documentCC.DocumentType == "FAC"? "red-label" : "green-label")">
                                 <strong>
                                     @documentCC.NumDaysToExpire
                                 </strong>
                             </td>
                             <td>@(documentCC.DocumentAmount.ToString("#,##0.00"))</td>
-                            <td class="@(documentCC.BalanceAmount > 0 ? "red-label" : "green-label")">
+                            <td class="@(documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC" ? "red-label" : "green-label")">
                                 <strong>
                                     @(documentCC.BalanceAmount.ToString("#,##0.00"))
                                 </strong>
