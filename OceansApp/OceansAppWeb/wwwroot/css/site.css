@@ -458,7 +458,6 @@ table {
 }
         .global-table-container .cel-with-btns-cont .send-btn-num:hover {
             color: var(--clr-dark1);
-            box-shadow: red 2px 2px inset;
         }
 
 .global-table-container table {

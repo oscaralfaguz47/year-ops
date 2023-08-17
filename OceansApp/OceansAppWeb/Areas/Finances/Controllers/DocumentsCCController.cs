@@ -8,9 +8,9 @@ using OceansApp.Utility;
 using OceansApp.Utility.Email;
 using System.Security.Claims;
 
-namespace OceansAppWeb.Areas.General.Controllers
+namespace OceansAppWeb.Areas.Finances.Controllers
 {
-    [Area("General")]
+    [Area("Finances")]
     [RequireTwoFactorEnabled]
     [Authorize(Roles = SD.Role_User_Master)]
     public class DocumentsCCController : Controller

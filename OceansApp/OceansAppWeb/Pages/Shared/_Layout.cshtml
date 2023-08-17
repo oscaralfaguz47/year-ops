@@ -49,21 +49,30 @@
                                     @if (SignInManager.IsSignedIn(User))
                                     {
                                         <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">Dashboard</a>
+                                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="Finances" asp-controller="Calculator" asp-action="Index">Calculadora</a>
+                                            <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index"><i class="bi bi-calculator"></i> Calculadora</a>
                                         </li>
                                         @if (User.IsInRole(SD.Role_User_Master))
                                         {
-                                            <li class="nav-item">
-                                                <a class="nav-link text-dark" asp-area="AdminCenter" asp-controller="Home" asp-action="Index">Administrador</a>
+                                             <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-house-heart-fill"></i> General</a>
+                                                <div class="dropdown-menu">
+                                                    <a id="manage" class="nav-link text-dark" asp-area="General" asp-controller="Consultants" asp-action="Index">Consultores</a>
+                                                </div>
                                             </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link text-dark" asp-area="General" asp-controller="Consultants" asp-action="Index">Consultores</a>
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finanzas</a>
+                                                <div class="dropdown-menu">
+                                                    <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Cuentas por Cobrar</a>
+                                                </div>
                                             </li>
-                                             <li class="nav-item">
-                                                <a class="nav-link text-dark" asp-area="General" asp-controller="DocumentsCC" asp-action="Index">Cuentas por Cobrar</a>
+                                             <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrador</a>
+                                                <div class="dropdown-menu">
+                                                    <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="Home" asp-action="Index">Admin Center</a>
+                                                </div>
                                             </li>
                                         }
                                     }

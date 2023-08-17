@@ -105,7 +105,7 @@
                             </div>
                         </div>
                         <div class="principal-buttons">
-                            <a asp-area="General" asp-controller="DocumentsCC" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
+                            <a asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
                         </div>
                     </div>
                 </div>
@@ -183,7 +183,7 @@
                                     {
                                         <div class="send-btn-container">
                                             <a title="Ver historial de notificaciones" onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
-                                            <button title="Enviar recordatorio de pago" onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
+                                            <button title="Enviar recordatorio de pago" onclick="SendNotification('/Finances/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
                                         </div>
                                     }
                                 </div>
