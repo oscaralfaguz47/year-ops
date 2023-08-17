@@ -182,7 +182,7 @@
                                     @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC")
                                     {
                                         <div class="send-btn-container">
-                                            <a onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
+                                            <a title="Ver historial de notificaciones" onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
                                             <button title="Enviar recordatorio de pago" onclick="SendNotification('/General/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
                                         </div>
                                     }

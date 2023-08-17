@@ -166,11 +166,14 @@ namespace OceansAppWeb.Areas.General.Controllers
 
                 string documentMonth = documentCC.DocumentDate.ToString("MMMM");
                 DateTime docExpirationDate = documentCC.DocumentDate.AddDays(double.Parse(client.PaymentCondition));
-                var subject = $"Invoice from {documentMonth} is still pending payment";
+                var subject = $"Invoice from {documentMonth} is still pending payment.";
 
                 var allEmails = client.Emails.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 var emailTo = allEmails.FirstOrDefault();
                 var emailsCC = allEmails.Skip(1).ToList();
+                emailsCC.Add("oscar.alfaro@oceanscode.com");
+                emailsCC.Add("eder.rodriguez@oceanscode.com");
+                emailsCC.Add("priscila.zamora@oceanscode.com");
 
                 if (string.IsNullOrEmpty(emailTo))
                 {
@@ -342,7 +345,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                           <p>Thanks!</p>
                           
                           <div class=""signature"">
-                            <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png"" alt=""Accounting"">
+                            <img width=""100%"" src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png"" alt=""Accounting"">
                           </div>
                         </div>
                         

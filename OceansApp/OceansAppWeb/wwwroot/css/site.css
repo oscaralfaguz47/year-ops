@@ -442,17 +442,24 @@ table {
     }
     .global-table-container .cel-with-btns-cont button {
         border:none;
-        font-size: 15px;
-        color: #fff;
+        font-size: 14px;
+        color: blue;
         border-radius: 4px;
-        background-color: var(--clr-blueDark);
+        background-color: var(--clr-grayLight);
         padding: 0 4px 0 4px;
     }
+        .global-table-container .cel-with-btns-cont button:hover {
+            background-color: var(--clr-blueDark);
+        }
 
 .global-table-container .cel-with-btns-cont .send-btn-num {
     color:blue;
     cursor: pointer;
 }
+        .global-table-container .cel-with-btns-cont .send-btn-num:hover {
+            color: var(--clr-dark1);
+            box-shadow: red 2px 2px inset;
+        }
 
 .global-table-container table {
     width: max-content;
