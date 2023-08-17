@@ -287,7 +287,23 @@ nav {
         list-style-type: none;
         padding: 0;
     }
-
+    /* NAV BAR */
+.dropdown-menu{
+    background-color: var(--clr-grayDark);
+    color: #fff !important;
+}
+.dropdown-menu .nav-link {
+    color: #fff !important;
+}
+    .dropdown-menu .nav-link:hover {
+        color: var(--clr-yellow) !important;
+    }
+.nav-link {
+    color: var(--clr-blueLight) !important;
+}
+.nav-link:hover {
+    color: #fff !important;
+}
     /*SHARED COMPONENTS*/
 .background-white {
     background-color: #fff;
