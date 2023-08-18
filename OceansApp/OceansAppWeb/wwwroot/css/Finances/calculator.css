@@ -21,7 +21,7 @@
 }
 
 .table-header {
-    background-color: RGB(29,29,29);
+    background-color: var(--clr-grayLight);
     color: RGB(5,137,147)
 }
 .Manager-container{
