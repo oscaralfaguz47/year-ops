@@ -24,13 +24,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 ProviderFiltersGetAllVM filtersToSend = new ProviderFiltersGetAllVM();
                 Pagination paginationToSend = new Pagination();
-                if (model.Filters != null)
-                {
-                    if (WhereFiltersApplied(model.Filters, filtersToSend))
-                    {
-                        ViewData["AppliedFilters"] = "filters where applied";
-                    }
-                }
+               
                 if (model.Pagination == null)
                 {
                     paginationToSend = new Pagination();

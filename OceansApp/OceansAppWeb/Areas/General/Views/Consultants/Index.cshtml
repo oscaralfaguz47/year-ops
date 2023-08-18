@@ -19,10 +19,10 @@
                             <i class="bi bi-search placeholder-image"></i>
                         </div>
                     </div>
-                    <a onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Mas Filtros </a>
+                    <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Ocultar Filtros </a>
                 </div>
                 <div class="more-filters-cont">
-                    <div id="more-filters" class="@(ViewData["AppliedFilters"] == null ? "hide" : "show")">
+                    <div id="more-filters">
                         <div class="row">
                             <div class="col-sm-1">
                                 <div class="radio-group">
@@ -245,16 +245,6 @@
               $('[name="Pagination.PageIndex"]').val(newValue);
           }
       }
-       var moreFiltersDiv = document.getElementById("more-filters");
-      function hideShowFilters() {
-      if (moreFiltersDiv.classList.contains('hide')) {
-          moreFiltersDiv.classList.remove('hide')
-          moreFiltersDiv.classList.add('show')
-      } else {
-          moreFiltersDiv.classList.add('hide')
-          moreFiltersDiv.classList.remove('show')
-      }
-      }
 
       function submitFiltersForm(){
           paginationButtonActions('firstPage');
@@ -263,7 +253,6 @@
       }
       function enterInSearch(event) {
       if (event.keyCode === 13 || event.which === 13) {
-        // Llamar a la función que deseas ejecutar cuando se presiona "Enter"
         submitFiltersForm();
       }
     }

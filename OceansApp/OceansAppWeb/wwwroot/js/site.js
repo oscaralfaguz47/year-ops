@@ -58,3 +58,18 @@ function displayToasterSuccess(text) {
 function displayToasterError(text) {
     toastr.error(text);
 }
+
+//FILTERS
+function hideShowFilters() {
+    var moreFiltersDiv = document.getElementById("more-filters");
+    var hideShowFiltersBtn = document.getElementById("show-hide-filters-btn");
+    if (moreFiltersDiv.classList.contains('hide')) {
+        moreFiltersDiv.classList.remove('hide')
+        moreFiltersDiv.classList.add('show')
+        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel-fill"></i> Ocultar Filtros';
+    } else {
+        moreFiltersDiv.classList.add('hide')
+        moreFiltersDiv.classList.remove('show')
+        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel"></i> Mostrar Filtros';
+    }
+}

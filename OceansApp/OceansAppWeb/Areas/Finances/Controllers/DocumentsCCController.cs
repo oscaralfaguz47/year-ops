@@ -34,10 +34,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     if (model.Filters != null)
                     {
                         DocumentCCFiltersGetAllVM filtersToSend2 = new DocumentCCFiltersGetAllVM();
-                        if (WhereFiltersApplied(model.Filters, filtersToSend2))
-                        {
-                            ViewData["AppliedFilters"] = "filters where applied";
-                        }
+                       
                         if (model.Filters.StartDate != null || model.Filters.EndDate != null)
                         {
                             if (model.Filters.StartDate != null && model.Filters.EndDate == null)
@@ -70,13 +67,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 DocumentCCFiltersGetAllVM filtersToSend = new DocumentCCFiltersGetAllVM();
                 Pagination paginationToSend = new Pagination();
 
-                if (model.Filters != null)
-                {
-                    if (WhereFiltersApplied(model.Filters, filtersToSend))
-                    {
-                        ViewData["AppliedFilters"] = "filters where applied";
-                    }
-                }
                 if (model.Pagination == null)
                 {
                     paginationToSend = new Pagination();
@@ -145,7 +135,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
             catch (Exception ex)
             {
-                return RedirectToAction("Error", "Home", new { area = "" });
+                    return RedirectToAction("Error", "Home", new { area = "" });
             }
         }
 
@@ -352,14 +342,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         </body>
                         </html>";
             return body;
-        }
-
-
-        private bool WhereFiltersApplied(DocumentCCFiltersGetAllVM model1, DocumentCCFiltersGetAllVM model2)
-        {
-            return !(model1.DocumentType == model2.DocumentType && model1.StartDate == model2.StartDate
-                && model1.EndDate == model2.EndDate && model1.ClientId == model2.ClientId
-                && model1.CompanyId == model2.CompanyId);
         }
 
     }

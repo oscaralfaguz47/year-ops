@@ -11,7 +11,7 @@
         <div class="row">
             <form id="filtersPaginationForm" asp-controller="DocumentsCC" asp-action="Index">
                 @*Send the DocumentsCCList back to the controller*@
-                @if (Model.DocumentsCCList != null)
+               @* @if (Model.DocumentsCCList != null)
                 {
                     for (int i = 0; i < Model.DocumentsCCList.Count; i++)
                     {
@@ -24,7 +24,7 @@
                             <input type="hidden" name="DocumentsCCList[@i].@propertyName" value="@properties[v].GetValue(Model.DocumentsCCList[i])" />
                         }
                     }
-                }
+                }*@
                 <div class="search-header-container">
                     <div>
                         <h2>CUENTAS POR COBRAR</h2>
@@ -33,10 +33,10 @@
                             <i class="bi bi-search placeholder-image"></i>
                         </div>
                     </div>
-                    <a onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Mas Filtros </a>
+                    <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Ocultar Filtros </a>
                 </div>
                 <div class="more-filters-cont">
-                    <div id="more-filters" class="@(ViewData["AppliedFilters"] == null ? "hide" : "show")">
+                    <div id="more-filters">
                         <div class="row">
                             <div class="col-sm-2">
                                 <label for="documentType" class="select-label">Tipo de Documento</label>
@@ -179,10 +179,10 @@
                             <td>
                                 <div class="cel-with-btns-cont">
                                     <span> @documentCC.ClientName</span>
-                                    @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC")
+                                    @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC" && documentCC.NumDaysToExpire < 0)
                                     {
                                         <div class="send-btn-container">
-                                            <a title="Ver historial de notificaciones" onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
+                                            <a title="Ver historial de envío de recordatorios" onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
                                             <button title="Enviar recordatorio de pago" onclick="SendNotification('/Finances/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
                                         </div>
                                     }
@@ -225,12 +225,12 @@
 
 <div id="notificationModal" class="modal">
     <div class="modal-content">
-       <div class="header">
-            <h2>Historial de Notificaciones</h2> <span class="close" onclick="closeModal()">&times;</span>
-       </div>
-        <table id="notificationTable">
+        <div class="header">
+            <h2>Historial de envío de recordatorios</h2> <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <table id="notificationTable" class="table light-table">
             <thead>
-                <tr>
+                <tr class="table-header">
                     <th>Fecha de Envío</th>
                     <th>Enviado por</th>
                 </tr>
@@ -248,7 +248,7 @@
     }
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-          function paginationButtonActions(action) {
+               function paginationButtonActions(action) {
               if(action == 'increment'){
                    var currentValue = parseInt('@Model.Pagination.PageIndex');
               currentValue++;
@@ -265,124 +265,115 @@
                   $('[name="Pagination.PageIndex"]').val(newValue);
               }
           }
-           var moreFiltersDiv = document.getElementById("more-filters");
-          function hideShowFilters() {
-          if (moreFiltersDiv.classList.contains('hide')) {
-              moreFiltersDiv.classList.remove('hide')
-              moreFiltersDiv.classList.add('show')
-          } else {
-              moreFiltersDiv.classList.add('hide')
-              moreFiltersDiv.classList.remove('show')
-          }
-          }
+            
 
-          function submitFiltersForm(){
-              paginationButtonActions('firstPage');
-               const form = document.getElementById('filtersPaginationForm');
-          form.submit();
-          }
-          function enterInSearch(event) {
-          if (event.keyCode === 13 || event.which === 13) {
-            submitFiltersForm();
-          }
-        }
-
-    function SendNotification(url, clientName, documentId) {
-        console.log(url);
-        Swal.fire({
-            title: "Enviar recordatorio de pago",
-            text: "¿Quieres enviarle un recordatorio de pago a " + clientName + "?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Si, enviar!',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    success: function (data) {
-                        if (data.success) {
-                             toastr.success(data.message);
-                             updateNotificationCount(documentId);
-                        }
-                        else {
-                            toastr.error(data.error);
-                        }
-                    },
-        error: function () {
-            toastr.error("Error de conexión.");
-        }
-                })
+              function submitFiltersForm(){
+                  paginationButtonActions('firstPage');
+                   const form = document.getElementById('filtersPaginationForm');
+              form.submit();
+              }
+              function enterInSearch(event) {
+              if (event.keyCode === 13 || event.which === 13) {
+                submitFiltersForm();
+              }
             }
-        })
+
+        function SendNotification(url, clientName, documentId) {
+            console.log(url);
+            Swal.fire({
+                title: "Enviar recordatorio de pago",
+                text: "¿Quieres enviarle un recordatorio de pago a " + clientName + "?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Si, enviar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        success: function (data) {
+                            if (data.success) {
+                                 toastr.success(data.message);
+                                 updateNotificationCount(documentId);
+                            }
+                            else {
+                                toastr.error(data.error);
+                            }
+                        },
+            error: function () {
+                toastr.error("Error de conexión.");
+            }
+                    })
+                }
+            })
+        }
+
+        function updateNotificationCount(documentId) {
+            // Get the current notification count element
+            const notificationCountElement = document.getElementById('count-' + documentId);
+            const notificationCountBtn = document.getElementById('count-btn-' + documentId);
+
+            notificationCountBtn.classList.add("show-display-contents");
+            notificationCountBtn.classList.remove("hide");
+            // Increment the notification count by 1
+            const currentCount = parseInt(notificationCountElement.textContent, 10);
+            const updatedCount = currentCount + 1;
+
+            // Update the content of the notification count element
+            notificationCountElement.textContent = updatedCount;
+        }
+
+        function openModal() {
+        var modal = document.getElementById("notificationModal");
+        modal.style.display = "block";
     }
 
-    function updateNotificationCount(documentId) {
-        // Get the current notification count element
-        const notificationCountElement = document.getElementById('count-' + documentId);
-        const notificationCountBtn = document.getElementById('count-btn-' + documentId);
-
-        notificationCountBtn.classList.add("show-display-contents");
-        notificationCountBtn.classList.remove("hide");
-        // Increment the notification count by 1
-        const currentCount = parseInt(notificationCountElement.textContent, 10);
-        const updatedCount = currentCount + 1;
-
-        // Update the content of the notification count element
-        notificationCountElement.textContent = updatedCount;
+    function closeModal() {
+        var modal = document.getElementById("notificationModal");
+        modal.style.display = "none";
     }
-    
-    function openModal() {
-    var modal = document.getElementById("notificationModal");
-    modal.style.display = "block";
-}
 
-function closeModal() {
-    var modal = document.getElementById("notificationModal");
-    modal.style.display = "none";
-}
+    function getNotificationHistoryByDocument(documentId) {
+        openModal();
+        $.ajax({
+            url: 'DocumentsCC/GetNotificationsHistoryByDocument?documentId=' + documentId,
+            type: 'POST',
+            success: function (data) {
+                if (data.success) {
+                    var tbody = document.querySelector("#notificationTable tbody");
+                    tbody.innerHTML = "";
 
-function getNotificationHistoryByDocument(documentId) {
-    openModal();
-    $.ajax({
-        url: 'DocumentsCC/GetNotificationsHistoryByDocument?documentId=' + documentId,
-        type: 'POST',
-        success: function (data) {
-            if (data.success) {
-                var tbody = document.querySelector("#notificationTable tbody");
-                tbody.innerHTML = "";
+                    data.notificationHistory.result.forEach(function (notification) {
+                        var sentDate = new Date(notification.sentDate);
 
-                data.notificationHistory.result.forEach(function (notification) {
-                    var sentDate = new Date(notification.sentDate);
+                        var hours = sentDate.getHours();
+                        var minutes = sentDate.getMinutes();
+                        var ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12; // Si es 0, lo ajustamos a 12
 
-                    var hours = sentDate.getHours();
-                    var minutes = sentDate.getMinutes();
-                    var ampm = hours >= 12 ? 'PM' : 'AM';
-                    hours = hours % 12;
-                    hours = hours ? hours : 12; // Si es 0, lo ajustamos a 12
+                        var formattedTime = `${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
 
-                    var formattedTime = `${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
-
-                    var row = `
-                        <tr>
-                            <td>${sentDate.getDate()}/${sentDate.getMonth() + 1}/${sentDate.getFullYear()} ${formattedTime}</td>
-                            <td>${notification.sentByUser}</td>
-                        </tr>
-                    `;
-                    tbody.insertAdjacentHTML("beforeend", row);
-                });
-            } else {
-                toastr.error(data.error);
+                        var row = `
+                            <tr>
+                                <td>${sentDate.getDate()}/${sentDate.getMonth() + 1}/${sentDate.getFullYear()} ${formattedTime}</td>
+                                <td>${notification.sentByUser}</td>
+                            </tr>
+                        `;
+                        tbody.insertAdjacentHTML("beforeend", row);
+                    });
+                } else {
+                    toastr.error(data.error);
+                }
+            },
+            error: function () {
+                toastr.error("Error de conexión.");
             }
-        },
-        error: function () {
-            toastr.error("Error de conexión.");
-        }
-    });
-}
+        });
+    }
 
 
 

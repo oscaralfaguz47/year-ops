@@ -76,7 +76,7 @@ namespace OceansApp.DataAccess.Repository
             var totalCount = await connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             // Aplica pagination to the query
-            queryBuilder.AppendLine("ORDER BY NumDaysToExpire ASC");
+            queryBuilder.AppendLine("ORDER BY DCC.DocumentType, NumDaysToExpire ASC");
             queryBuilder.AppendLine("OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;");
 
             parameters.Add("@Skip", (filtersAndPagination.Pagination.PageIndex - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
@@ -129,7 +129,9 @@ namespace OceansApp.DataAccess.Repository
             }
             else
             {
-                if (existingDoc.DateLastUpdate != obj.DateLastUpdate)
+                if (existingDoc.DateLastUpdate != obj.DateLastUpdate
+                    || existingDoc.BalanceAmount != obj.BalanceAmount
+                    || existingDoc.Canceled != obj.Canceled)
                 {
                     existingDoc.DocumentNumber = obj.DocumentNumber;
                     existingDoc.DocumentType = obj.DocumentType;
