@@ -34,7 +34,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     if (model.Filters != null)
                     {
                         DocumentCCFiltersGetAllVM filtersToSend2 = new DocumentCCFiltersGetAllVM();
-                       
+
                         if (model.Filters.StartDate != null || model.Filters.EndDate != null)
                         {
                             if (model.Filters.StartDate != null && model.Filters.EndDate == null)
@@ -135,7 +135,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
             catch (Exception ex)
             {
-                    return RedirectToAction("Error", "Home", new { area = "" });
+                return RedirectToAction("Error", "Home", new { area = "" });
             }
         }
 
@@ -161,7 +161,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var allEmails = client.Emails.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 var emailTo = allEmails.FirstOrDefault();
                 var emailsCC = allEmails.Skip(1).ToList();
+                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                int numDaysExpired = (int)(costaRicaTime - documentCC.DocumentDate).TotalDays - int.Parse(client.PaymentCondition);
                 emailsCC.Add("oscar.alfaro@oceanscode.com");
+                var body = "";
                 emailsCC.Add("eder.rodriguez@oceanscode.com");
                 emailsCC.Add("priscila.zamora@oceanscode.com");
 
@@ -169,20 +172,36 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     return Json(new { success = false, error = "El cliente no tiene correos electrónicos." });
                 }
-
-                var body = emailBody(
-                    client.Name,
-                    documentCC.BalanceAmount,
-                    documentCC.DocumentAmount,
-                    documentMonth,
-                    documentCC.DocumentDate.Year,
-                    documentCC.DocumentNumber,
-                    documentCC.DocumentDate,
-                    docExpirationDate);
-
+                var alreadyNotificationSent = _unitOfWork.DocumentsCCNotification.GetAll(x=>x.DocumentCCId == documentId);
+                if (alreadyNotificationSent.Count() > 0)
+                {
+                   body = emailBodyRed(
+                   client.Name,
+                   documentCC.BalanceAmount,
+                   documentCC.DocumentAmount,
+                   documentMonth,
+                   documentCC.DocumentDate.Year,
+                   documentCC.DocumentNumber,
+                   documentCC.DocumentDate,
+                   docExpirationDate,
+                   numDaysExpired);
+                }
+                else
+                {
+                   body = emailBodyYellow(
+                   client.Name,
+                   documentCC.BalanceAmount,
+                   documentCC.DocumentAmount,
+                   documentMonth,
+                   documentCC.DocumentDate.Year,
+                   documentCC.DocumentNumber,
+                   documentCC.DocumentDate,
+                   docExpirationDate,
+                   numDaysExpired);
+                }
+                  
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
 
                 var notification = new Notification()
                 {
@@ -237,7 +256,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     RecipientUserId = recipientUserIdSendTo
                 };
                 _unitOfWork.NotificationRecipient.Add(notificationRecipientSentTo);
-                foreach(var email in emailsCC)
+                foreach (var email in emailsCC)
                 {
                     var recipientUserCC = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == email);
                     var recipientUserIdCC = recipientUserCC?.Id;
@@ -274,73 +293,236 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        private string emailBody(string clientName, decimal totalAmountDue, decimal documentAmount,
+        private string emailBodyYellow(string clientName, decimal totalAmountDue, decimal documentAmount,
             string month,
             int year,
             string documentNumber,
             DateTime documentDate,
-            DateTime docExpirationDate)
+            DateTime docExpirationDate, int numDaysExpired)
         {
             var body = @"<!DOCTYPE html>
-                        <html>
-                        <head>
-                        <style>
-                          body {
-                            font-family: Arial, sans-serif;
-                          }
-                          .container {
-                            max-width: 600px;
-                            margin: 0 auto;
-                            padding: 20px;
-                            border: 1px solid #ccc;
-                          }
-                          .header {
-                            text-align: center;
-                            margin-bottom: 20px;
-                          }
-                          .invoice-details {
-                            border: 1px solid #ccc;
-                            padding: 10px;
-                            margin-top: 20px;
-                          }
-                          .signature {
-                            text-align: left;
-                            margin-top: 20px;
-                          }
-                          .red-text{
-                            color: red;
-                          }
-                        </style>
-                        </head>
-                        <body>
-                        
-                        <div class=""container"">
-                          <div class=""header"">
-                           <div style=""display:inline-block; background-color:#fff;"">
-                             <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1612882702/logos/logo-color_xdip1b.png"" alt=""Oceans Code Experts"" width=""200"" style=""display:block; margin:0 auto;"">
-                             </div>
-                                   <h2>INVOICE PENDING [" + month + @" " + year + @"]</h2>
-                          </div>
-                          <p>Dear " + clientName + @",</p>
-                          <p>We just want to remind you that there is currently an unpaid balance invoice for $" + totalAmountDue.ToString("#,##0.00") + @" corresponding to the month of " + month + @" " + year + @".</p>
-                          <p>Please see the information below:</p>
-                          <div class=""invoice-details"">
-                            <p><strong>Invoice Number:</strong> " + documentNumber + @"</p>
-                            <p><strong>Initial Invoice Amount:</strong> $" + documentAmount.ToString("#,##0.00") + @"</p>
-                            <p><strong>Invoice Amount Due:</strong> $" + totalAmountDue.ToString("#,##0.00") + @"</p>
-                            <p><strong>Date:</strong> " + documentDate.ToString("MM/dd/yyyy") + @"</p>
-                            <p class=""red-text""><strong>Expiration Date:</strong> " + docExpirationDate.ToString("MM/dd/yyyy") + @"</p>
-                          </div>
-                          <p>You can reply to this email or contact directly with the Finance Manager Oscar Alfaro at oscar.alfaro@oceanscode.com.</p>
-                          <p>Thanks!</p>
-                          
-                          <div class=""signature"">
-                            <img width=""100%"" src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png"" alt=""Accounting"">
-                          </div>
-                        </div>
-                        
-                        </body>
-                        </html>";
+<html>
+<head>
+</head>
+<body>
+    <div style=""max-width: 600px;
+        margin: 0 auto;
+        background-color: #f5f6f7;
+        border-radius: 10px;
+        position: relative;
+        box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);"">
+         <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693322491/logos/email-header.png""
+            alt=""Oceans Code Experts"" width=""100%""
+            style=""position: absolute; top: 0; margin-left: -30px; border-top-left-radius: 10px; border-top-right-radius: 10px;"" />
+       <div style=""padding: 30px;"">
+            <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                 <tr>
+                     <td>
+                         <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                    <tr>
+                                        <td>
+                                            <hr />
+                                            <h2 style=""text-align: left;""> OVERDUE INVOICE PAYMENT</h2>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p>Dear " + clientName + @",</p>
+                                    <p>Your attention is needed regarding an overdue balance of <strong>$" + totalAmountDue.ToString("#,##0.00")
+                        + @"</strong> for services delivered in the period of <strong>" + month + @" " + year + @".</strong></p>
+                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                        <tr>
+                            <td style=""border-left: 8px solid #eeb30f; padding-left: 10px; margin-top: 20px;"">
+                                 <p style=""color: #eeb30f; margin: 0 0 10px 0; font-size: 18px;""><strong> INVOICE
+                                        NUMBER:</strong> " + documentNumber + @" </p>
+                                <table cellspacing=""0"" cellpadding=""0"" style=""font-size: 14px;"">
+                                         <tr>
+                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                  <strong> TOTAL AMOUNT</strong>
+                                                </td>
+                                                <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                     $" + documentAmount.ToString("#,##0.00") + @"
+                                        </td>
+                                             </tr>
+                                             <tr>
+                                                 <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                      <strong> TOTAL AMOUNT DUE</strong>
+                                                    </td>
+                                                    <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                         $" + totalAmountDue.ToString("#,##0.00") + @"
+                                        </td>
+                                                 </tr>
+                                                 <tr>
+                                                     <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                          <strong>DATE</strong>
+                                                        </td>
+                                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                             " + documentDate.ToString("MM/dd/yyyy") + @"
+                                                             </td>
+                                                         </tr>
+                                                         <tr>
+                                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                  <strong> EXPIRATION DATE</strong>
+                                                                  </td>
+                                                                  <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                       <span style=""color: red;""> " + docExpirationDate.ToString("MM/dd/yyyy") +
+                                                @"</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                            <strong> DAYS EXPIRED</strong>
+                                        </td>
+                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                             <span style=""color: red;""> " + numDaysExpired + @" </span>
+                                          </td>
+                                      </tr>
+                                  </table>
+                              </td>
+                          </tr>
+                      </table>
+                      <p> Please return confirmation upon receipt of this message and let us know if you need further
+                        clarification or assistance by replying to this email or at <a href=""mailto:oscar.alfaro@oceanscode.com"">oscar.alfaro@oceanscode.com</a>. Your
+                         prompt response is appreciated.</p>
+                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                              <tr>
+                                  <td style=""text-align: left;"">
+                                       <p style=""margin-top: 8px; margin-bottom: 5px;""> Thank you,</p>
+                                            <p style=""margin-top: 2px;""> Oscar Alfaro, Finance Manager.</p>
+                                             </td>
+                                         </tr>
+                                     </table>
+                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                              <tr>
+                                                  <td style=""text-align: left;"">
+                                                       <img width=""100%""
+                                    src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                    alt=""Accounting"" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+       </div>
+    </div>
+</body>
+</html>";
+            return body;
+        }
+
+        private string emailBodyRed(string clientName, decimal totalAmountDue, decimal documentAmount,
+            string month,
+            int year,
+            string documentNumber,
+            DateTime documentDate,
+            DateTime docExpirationDate, int numDaysExpired)
+        {
+            var body = @"<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <div style=""max-width: 600px;
+        margin: 0 auto;
+        background-color: #f5f6f7;
+        border-radius: 10px;
+        position: relative;
+        box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);"">
+         <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693329272/logos/email-header-red.png""
+            alt=""Oceans Code Experts"" width=""100%""
+            style=""position: absolute; top: 0; margin-left: -30px; border-top-left-radius: 10px; border-top-right-radius: 10px;"" />
+       <div style=""padding: 30px;"">
+            <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                 <tr>
+                     <td>
+                         <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                    <tr>
+                                        <td>
+                                            <hr />
+                                            <h2 style=""text-align: left;""> OVERDUE PAYMENT REQUIRED</h2>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p>Dear " + clientName + @",</p>
+                                    <p>Your immediate attention is needed regarding an overdue balance of <strong>$" + totalAmountDue.ToString("#,##0.00")
+                        + @"</strong> for services delivered in the period of <strong>" + month + @" " + year + @".</strong></p>
+                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                        <tr>
+                            <td style=""border-left: 8px solid red; padding-left: 10px; margin-top: 20px;"">
+                                 <p style=""color: red; margin: 0 0 10px 0; font-size: 18px;""><strong> INVOICE
+                                        NUMBER:</strong> " + documentNumber + @" </p>
+                                <table cellspacing=""0"" cellpadding=""0"" style=""font-size: 14px;"">
+                                         <tr>
+                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                  <strong> TOTAL AMOUNT</strong>
+                                                </td>
+                                                <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                     $" + documentAmount.ToString("#,##0.00") + @"
+                                        </td>
+                                             </tr>
+                                             <tr>
+                                                 <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                      <strong> TOTAL AMOUNT DUE</strong>
+                                                    </td>
+                                                    <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                         $" + totalAmountDue.ToString("#,##0.00") + @"
+                                        </td>
+                                                 </tr>
+                                                 <tr>
+                                                     <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                          <strong>DATE</strong>
+                                                        </td>
+                                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                             " + documentDate.ToString("MM/dd/yyyy") + @"
+                                                             </td>
+                                                         </tr>
+                                                         <tr>
+                                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                  <strong> EXPIRATION DATE</strong>
+                                                                  </td>
+                                                                  <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                       <span style=""color: red;""> " + docExpirationDate.ToString("MM/dd/yyyy") +
+                                                @"</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                            <strong> DAYS EXPIRED</strong>
+                                        </td>
+                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                             <span style=""color: red;""> " + numDaysExpired + @" </span>
+                                          </td>
+                                      </tr>
+                                  </table>
+                              </td>
+                          </tr>
+                      </table>
+                      <p> Please provide payment confirmation or contact us at your earliest convenience by replying to this email or at <a href=""mailto:oscar.alfaro@oceanscode.com"">oscar.alfaro@oceanscode.com</a>. To
+                         prevent service disruption.</p>
+                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                              <tr>
+                                  <td style=""text-align: left;"">
+                                       <p style=""margin-top: 8px; margin-bottom: 5px;""> Thank you,</p>
+                                            <p style=""margin-top: 2px;""> Oscar Alfaro, Finance Manager.</p>
+                                             </td>
+                                         </tr>
+                                     </table>
+                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                              <tr>
+                                                  <td style=""text-align: left;"">
+                                                       <img width=""100%""
+                                    src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                    alt=""Accounting"" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+       </div>
+    </div>
+</body>
+</html>";
             return body;
         }
 
