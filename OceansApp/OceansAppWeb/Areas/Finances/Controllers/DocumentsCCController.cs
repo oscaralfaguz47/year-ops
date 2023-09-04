@@ -300,112 +300,172 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             DateTime documentDate,
             DateTime docExpirationDate, int numDaysExpired)
         {
-            var body = @"<!DOCTYPE html>
+            var body = @"
+<!DOCTYPE html>
 <html>
+
 <head>
 </head>
+
 <body>
-    <div style=""max-width: 600px;
-        margin: 0 auto;
-        background-color: #f5f6f7;
-        border-radius: 10px;
-        position: relative;
-        box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);"">
-         <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693322491/logos/email-header.png""
-            alt=""Oceans Code Experts"" width=""100%""
-            style=""position: absolute; top: 0; margin-left: -30px; border-top-left-radius: 10px; border-top-right-radius: 10px;"" />
-       <div style=""padding: 30px;"">
-            <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                 <tr>
-                     <td>
-                         <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                                    <tr>
-                                        <td>
-                                            <hr />
-                                            <h2 style=""text-align: left;""> OVERDUE INVOICE PAYMENT</h2>
+    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+        <tr>
+            <td>
+                <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                style=""background-color: #fff; border: #000 solid 2px; padding: 10px;"">
+                <tr>
+                    <td>
+                        <table cellspacing=""0"" cellpadding=""0"" width=""500"">
+                            <tr>
+                                <td align=""left"">
+                                    <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                                        style=""background-color: #f5f6f7; margin: 0 auto; position: relative;z-index: 1; border-top-left-radius: 10px; border-top-right-radius: 10px;"">
+                                        <tr>
+                                            <td>
+                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693322491/logos/email-header.png""
+                                                    alt=""Oceans Code Experts"" width=""100%"" />
                                             </td>
                                         </tr>
                                     </table>
-                                    <p>Dear " + clientName + @",</p>
-                                    <p>Your attention is needed regarding an overdue balance of <strong>$" + totalAmountDue.ToString("#,##0.00")
-                        + @"</strong> for services delivered in the period of <strong>" + month + @" " + year + @".</strong></p>
-                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                        <tr>
-                            <td style=""border-left: 8px solid #eeb30f; padding-left: 10px; margin-top: 20px;"">
-                                 <p style=""color: #eeb30f; margin: 0 0 10px 0; font-size: 18px;""><strong> INVOICE
-                                        NUMBER:</strong> " + documentNumber + @" </p>
-                                <table cellspacing=""0"" cellpadding=""0"" style=""font-size: 14px;"">
-                                         <tr>
-                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                  <strong> TOTAL AMOUNT</strong>
-                                                </td>
-                                                <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                     $" + documentAmount.ToString("#,##0.00") + @"
-                                        </td>
-                                             </tr>
-                                             <tr>
-                                                 <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                      <strong> TOTAL AMOUNT DUE</strong>
-                                                    </td>
-                                                    <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                         $" + totalAmountDue.ToString("#,##0.00") + @"
-                                        </td>
-                                                 </tr>
-                                                 <tr>
-                                                     <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                          <strong>DATE</strong>
-                                                        </td>
-                                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                             " + documentDate.ToString("MM/dd/yyyy") + @"
-                                                             </td>
-                                                         </tr>
-                                                         <tr>
-                                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                                  <strong> EXPIRATION DATE</strong>
-                                                                  </td>
-                                                                  <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                                       <span style=""color: red;""> " + docExpirationDate.ToString("MM/dd/yyyy") +
-                                                @"</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                            <strong> DAYS EXPIRED</strong>
-                                        </td>
-                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                             <span style=""color: red;""> " + numDaysExpired + @" </span>
-                                          </td>
-                                      </tr>
-                                  </table>
-                              </td>
-                          </tr>
-                      </table>
-                      <p> Please return confirmation upon receipt of this message and let us know if you need further
-                        clarification or assistance by replying to this email or at <a href=""mailto:oscar.alfaro@oceanscode.com"">oscar.alfaro@oceanscode.com</a>. Your
-                         prompt response is appreciated.</p>
-                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                              <tr>
-                                  <td style=""text-align: left;"">
-                                       <p style=""margin-top: 8px; margin-bottom: 5px;""> Thank you,</p>
-                                            <p style=""margin-top: 2px;""> Oscar Alfaro, Finance Manager.</p>
-                                             </td>
-                                         </tr>
-                                     </table>
-                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                                              <tr>
-                                                  <td style=""text-align: left;"">
-                                                       <img width=""100%""
-                                    src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
-                                    alt=""Accounting"" />
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-       </div>
-    </div>
+                                    <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                                        style=""background-color: #f5f6f7; margin: 0 auto; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; position: relative; padding: 0 30px 30px 30px"">
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <div>
+                                                        <table cellspacing=""0"" cellpadding=""0"" width=""100%""
+                                                            style=""font-family: 'nexa', Arial, sans-serif;"">
+                                                            <tr>
+                                                                <td>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td>
+                                                                                <hr style=""margin:0"" />
+                                                                                <h2 style=""text-align: left; margin-bottom: 0;"">
+                                                                                    OVERDUE
+                                                                                    INVOICE PAYMENT</h2>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <p>Dear " + clientName + @",</p>
+                                                                    <p>Your attention is needed regarding an overdue balance of
+                                                                        <strong>$" + totalAmountDue.ToString("#,##0.00") + @"</strong> for services
+                                                                        delivered in the
+                                                                        period of <strong>" + month + @" " + year + @"</strong>.
+                                                                    </p>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td
+                                                                                style=""border-left: 8px solid #eeb30f; padding-left: 10px; margin-top: 20px;"">
+                                                                                <p
+                                                                                    style=""color: #eeb30f; margin: 0 0 10px 0; font-size: 18px;"">
+                                                                                    <strong> INVOICE
+                                                                                        NUMBER:</strong> " + documentNumber + @"
+                                                                                </p>
+                                                                                <table cellspacing=""0"" cellpadding=""0""
+                                                                                    style=""font-size: 14px;"">
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> TOTAL AMOUNT</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            $" + documentAmount.ToString("#,##0.00") + @"
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> TOTAL AMOUNT DUE</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            $" + totalAmountDue.ToString("#,##0.00") + @"
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong>DATE</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            " + documentDate.ToString("MM/dd/yyyy") + @"
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> EXPIRATION DATE</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            <span
+                                                                                                style=""color: red;"">" + docExpirationDate.ToString("MM/dd/yyyy") + @"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> DAYS EXPIRED</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            <span
+                                                                                                style=""color: red;"">" + numDaysExpired + @"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <p> Please return confirmation upon receipt of this message
+                                                                        and let us
+                                                                        know if you need further clarification or assistance by
+                                                                        replying to
+                                                                        this email or at <a
+                                                                            href=""mailto:oscar.alfaro@oceanscode.com"">oscar.alfaro@oceanscode.com</a>.
+                                                                        Your prompt response is appreciated.</p>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td style=""text-align: left;"">
+                                                                                <p style=""margin-top: 8px; margin-bottom: 5px;"">
+                                                                                    Thank you,
+                                                                                </p>
+                                                                                <p style=""margin-top: 2px;""> Oscar Alfaro,
+                                                                                    Finance Manager.
+                                                                                </p>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td style=""text-align: left;"">
+                                                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                                                                    width=""100%"" alt=""Accounting"" />
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            </td>
+        </tr>
+    </table>
 </body>
+
 </html>";
             return body;
         }
@@ -417,110 +477,164 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             DateTime documentDate,
             DateTime docExpirationDate, int numDaysExpired)
         {
-            var body = @"<!DOCTYPE html>
+            var body = @"
+<!DOCTYPE html>
 <html>
+
 <head>
 </head>
+
 <body>
-    <div style=""max-width: 600px;
-        margin: 0 auto;
-        background-color: #f5f6f7;
-        border-radius: 10px;
-        position: relative;
-        box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);"">
-         <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693329272/logos/email-header-red.png""
-            alt=""Oceans Code Experts"" width=""100%""
-            style=""position: absolute; top: 0; margin-left: -30px; border-top-left-radius: 10px; border-top-right-radius: 10px;"" />
-       <div style=""padding: 30px;"">
-            <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                 <tr>
-                     <td>
-                         <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                                    <tr>
-                                        <td>
-                                            <hr />
-                                            <h2 style=""text-align: left;""> OVERDUE PAYMENT REQUIRED</h2>
+    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+        <tr>
+            <td>
+                <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                style=""background-color: #fff; border: #000 solid 2px; padding: 10px;"">
+                <tr>
+                    <td>
+                        <table cellspacing=""0"" cellpadding=""0"" width=""500"">
+                            <tr>
+                                <td align=""left"">
+                                    <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                                        style=""background-color: #f5f6f7; margin: 0 auto; position: relative;z-index: 1; border-top-left-radius: 10px; border-top-right-radius: 10px;"">
+                                        <tr>
+                                            <td>
+                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693329272/logos/email-header-red.png""
+                                                    alt=""Oceans Code Experts"" width=""100%"" />
                                             </td>
                                         </tr>
                                     </table>
-                                    <p>Dear " + clientName + @",</p>
-                                    <p>Your immediate attention is needed regarding an overdue balance of <strong>$" + totalAmountDue.ToString("#,##0.00")
-                        + @"</strong> for services delivered in the period of <strong>" + month + @" " + year + @".</strong></p>
-                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                        <tr>
-                            <td style=""border-left: 8px solid red; padding-left: 10px; margin-top: 20px;"">
-                                 <p style=""color: red; margin: 0 0 10px 0; font-size: 18px;""><strong> INVOICE
-                                        NUMBER:</strong> " + documentNumber + @" </p>
-                                <table cellspacing=""0"" cellpadding=""0"" style=""font-size: 14px;"">
-                                         <tr>
-                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                  <strong> TOTAL AMOUNT</strong>
-                                                </td>
-                                                <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                     $" + documentAmount.ToString("#,##0.00") + @"
-                                        </td>
-                                             </tr>
-                                             <tr>
-                                                 <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                      <strong> TOTAL AMOUNT DUE</strong>
-                                                    </td>
-                                                    <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                         $" + totalAmountDue.ToString("#,##0.00") + @"
-                                        </td>
-                                                 </tr>
-                                                 <tr>
-                                                     <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                          <strong>DATE</strong>
-                                                        </td>
-                                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                             " + documentDate.ToString("MM/dd/yyyy") + @"
-                                                             </td>
-                                                         </tr>
-                                                         <tr>
-                                                             <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                                  <strong> EXPIRATION DATE</strong>
-                                                                  </td>
-                                                                  <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                                       <span style=""color: red;""> " + docExpirationDate.ToString("MM/dd/yyyy") +
-                                                @"</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                            <strong> DAYS EXPIRED</strong>
-                                        </td>
-                                        <td style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                             <span style=""color: red;""> " + numDaysExpired + @" </span>
-                                          </td>
-                                      </tr>
-                                  </table>
-                              </td>
-                          </tr>
-                      </table>
-                      <p> Please provide payment confirmation or contact us at your earliest convenience by replying to this email or at <a href=""mailto:oscar.alfaro@oceanscode.com"">oscar.alfaro@oceanscode.com</a>. To
-                         prevent service disruption.</p>
-                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                              <tr>
-                                  <td style=""text-align: left;"">
-                                       <p style=""margin-top: 8px; margin-bottom: 5px;""> Thank you,</p>
-                                            <p style=""margin-top: 2px;""> Oscar Alfaro, Finance Manager.</p>
-                                             </td>
-                                         </tr>
-                                     </table>
-                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
-                                              <tr>
-                                                  <td style=""text-align: left;"">
-                                                       <img width=""100%""
-                                    src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
-                                    alt=""Accounting"" />
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-       </div>
-    </div>
+                                    <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                                        style=""background-color: #f5f6f7; margin: 0 auto; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; position: relative; padding: 0 30px 30px 30px"">
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <div>
+                                                        <table cellspacing=""0"" cellpadding=""0"" width=""100%""
+                                                            style=""font-family: 'nexa', Arial, sans-serif;"">
+                                                            <tr>
+                                                                <td>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td>
+                                                                                <hr style=""margin:0"" />
+                                                                                <h2 style=""text-align: left; margin-bottom: 0;"">OVERDUE PAYMENT REQUIRED</h2>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <p>Dear " + clientName + @",</p>
+                                                                    <p>Your immediate attention is needed regarding an overdue balance of 
+                                                                        <strong>$" + totalAmountDue.ToString("#,##0.00") + @"</strong> for services
+                                                                        delivered in the
+                                                                        period of <strong>" + month + @" " + year + @"</strong>.
+                                                                    </p>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td
+                                                                                style=""border-left: 8px solid red; padding-left: 10px; margin-top: 20px;"">
+                                                                                <p
+                                                                                    style=""color: red; margin: 0 0 10px 0; font-size: 18px;"">
+                                                                                    <strong> INVOICE
+                                                                                        NUMBER:</strong> " + documentNumber + @"
+                                                                                </p>
+                                                                                <table cellspacing=""0"" cellpadding=""0""
+                                                                                    style=""font-size: 14px;"">
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> TOTAL AMOUNT</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            $" + documentAmount.ToString("#,##0.00") + @"
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> TOTAL AMOUNT DUE</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            $" + totalAmountDue.ToString("#,##0.00") + @"
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong>DATE</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            " + documentDate.ToString("MM/dd/yyyy") + @"
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> EXPIRATION DATE</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            <span
+                                                                                                style=""color: red;"">" + docExpirationDate.ToString("MM/dd/yyyy") + @"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                                                                            <strong> DAYS EXPIRED</strong>
+                                                                                        </td>
+                                                                                        <td
+                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                                                                            <span
+                                                                                                style=""color: red;"">" + numDaysExpired + @"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <p> Please provide payment confirmation or contact us at your earliest convenience by replying to this email or at <a
+                                                                            href=""mailto:oscar.alfaro@oceanscode.com"">oscar.alfaro@oceanscode.com</a>.
+                                                                        To prevent service disruption.</p>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td style=""text-align: left;"">
+                                                                                <p style=""margin-top: 8px; margin-bottom: 5px;"">
+                                                                                    Thank you,
+                                                                                </p>
+                                                                                <p style=""margin-top: 2px;""> Oscar Alfaro,
+                                                                                    Finance Manager.
+                                                                                </p>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                                                                        <tr>
+                                                                            <td style=""text-align: left;"">
+                                                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                                                                    width=""100%"" alt=""Accounting"" />
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>";
             return body;
