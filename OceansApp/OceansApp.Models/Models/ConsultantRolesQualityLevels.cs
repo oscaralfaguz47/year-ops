@@ -1,6 +1,4 @@
-﻿
-
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -22,5 +20,15 @@ namespace OceansApp.Models.Models
         public decimal ClientRateMaximumAmount { get; set; }
         [Required]
         public DateTime UpdatedDate { get; set; }
+        [MaxLength(450)]
+        public string? CreatedBy { get; set; }
+
+        [ForeignKey("CreatedBy")]
+        [ValidateNever]
+        public string? UpdatedBy { get; set; }
+
+        [ForeignKey("UpdatedBy")]
+        [ValidateNever]
+        public ApplicationUser ApplicationUser { get; set; }
     }
 }
