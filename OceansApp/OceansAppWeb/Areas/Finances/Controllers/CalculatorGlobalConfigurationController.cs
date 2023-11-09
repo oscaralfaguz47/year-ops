@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
 using System.Security.Claims;
+using OceansApp.Models.ViewModels.ConsultantRolesQualityLevels;
 
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
@@ -23,6 +24,10 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         public IActionResult Index()
         {
             IEnumerable<CostCenter> costCenterList = (IEnumerable<CostCenter>)_unitOfWork.CenterOfCosts.GetCostCenterOfExpenses();
+            List<ConsultantRole> consultantRolesList = (List<ConsultantRole>)_unitOfWork.ConsultantRole.GetAll();
+            List<ConsultantQualityLevel> consultantQualityLevelsList = (List<ConsultantQualityLevel>)_unitOfWork.ConsultantQualityLevel.GetAll();
+            List<ConsultantSeniority> consultantSenioritisList = (List<ConsultantSeniority>)_unitOfWork.ConsultantSeniority.GetAll();
+            List<GetConsultantRolesQualityLevelsVM> consultantRolesQualityLevelsList = (List <GetConsultantRolesQualityLevelsVM>) _unitOfWork.ConsultantRoleQualityLevel.GetConsultantRoleQualityLevelsList();
             CalculatorGlobalConfiguration currentConfig = _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefault(x => x.Id == "Configuration1");
             if (currentConfig == null)
             {
@@ -79,7 +84,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             CalculatorGlobalConfigurationVM cvm = new()
             {
                 CalculatorGlobalConfiguration = currentConfig,
-                CalculatorCostCenterIncreaseConfigurationVM = costCenterWithIncreaseList
+                CalculatorCostCenterIncreaseConfigurationVM = costCenterWithIncreaseList,
+                ConsultantRolesQualityLevels = consultantRolesQualityLevelsList,
+                ConsultantRolesList = consultantRolesList,
+                ConsultantQualityLevelsList = consultantQualityLevelsList,
+                ConsultantSenioritisList = consultantSenioritisList
             };
             return View("Index", cvm);
         }
@@ -95,6 +104,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
 
                     if (obj.CalculatorCostCenterIncreaseConfigurationVM != null)
                     {
@@ -109,7 +119,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                     CostCenterId = (int)costCenterIncrease.CostCenterId,
                                     Increase = costCenterIncrease.Increase,
                                     IdUserUpdatedBy = claim.Value,
-                                    DateLastUpdate = DateTime.Now
+                                    DateLastUpdate = costaRicaTime
                                 };
                                 _unitOfWork.CalculatorCostCenterIncreaseConfiguration.Add(costCenterIncreaseConfigToSave);
                             }
@@ -117,11 +127,44 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             {
                                 existingCostCenterFormDB.Increase = costCenterIncrease.Increase;
                                 existingCostCenterFormDB.IdUserUpdatedBy = claim.Value;
-                                existingCostCenterFormDB.DateLastUpdate = DateTime.Now;
+                                existingCostCenterFormDB.DateLastUpdate = costaRicaTime;
                                 _unitOfWork.CalculatorCostCenterIncreaseConfiguration.Update(existingCostCenterFormDB);
                             }
                             _unitOfWork.Save();
                         }
+                    }
+                    foreach (var consultantQualityRole in obj.ConsultantRolesQualityLevels)
+                    {
+                        var existingCQFromDB = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
+                        x.ConsultantRoleId == consultantQualityRole.ConsultantRoleId 
+                        && x.ConsultantQualityLevelId == consultantQualityRole.ConsultantQualityLevelId
+                        && x.ConsultantSeniorityId == consultantQualityRole.ConsultantSeniorityId);
+                        if (existingCQFromDB == null)
+                        {
+                            ConsultantRolesQualityLevels consultantQRToSave = new()
+                            {
+                                ConsultantRoleId = consultantQualityRole.ConsultantRoleId,
+                                ConsultantQualityLevelId = consultantQualityRole.ConsultantQualityLevelId,
+                                ConsultantSeniorityId = consultantQualityRole.ConsultantSeniorityId,
+                                ClientRateMaximumAmount = consultantQualityRole.ClientRateMaximumAmount,
+                                ConsultantMaximumAmount = consultantQualityRole.ConsultantMaximumAmount,
+                                UpdatedBy = claim.Value,
+                                UpdatedDate = costaRicaTime
+                            };
+                            _unitOfWork.ConsultantRoleQualityLevel.Add(consultantQRToSave);
+                        }
+                        else
+                        {
+                            existingCQFromDB.ConsultantRoleId = consultantQualityRole.ConsultantRoleId;
+                            existingCQFromDB.ConsultantQualityLevelId = consultantQualityRole.ConsultantQualityLevelId;
+                            existingCQFromDB.ConsultantSeniorityId = consultantQualityRole.ConsultantSeniorityId;
+                            existingCQFromDB.ClientRateMaximumAmount = consultantQualityRole.ClientRateMaximumAmount;
+                            existingCQFromDB.ConsultantMaximumAmount = consultantQualityRole.ConsultantMaximumAmount;
+                            existingCQFromDB.UpdatedBy = claim.Value;
+                            existingCQFromDB.UpdatedDate = costaRicaTime;
+                            _unitOfWork.ConsultantRoleQualityLevel.Update(existingCQFromDB);
+                        }
+                        _unitOfWork.Save();
                     }
                     var globalConfig = _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefault(x => x.Id == "Configuration1");
                     if (globalConfig != null)
@@ -152,5 +195,16 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             }
             return View("Index", obj);
         }
+        //GET
+        //[HttpGet]
+        //public async Task<IEnumerable<GetCareersPrincipalDataLandingViewModel>> GetCareersPrincipalDataEsp()
+        //{
+        //    var data = await _context.CareersPagesPrincipal.ToListAsync();
+        //    return data.Select(d => new GetCareersPrincipalDataLandingViewModel
+        //    {
+        //        Title = d.TitleEsp,
+        //        Intro = d.IntroEsp,
+        //    });
+        //}
     }
 }

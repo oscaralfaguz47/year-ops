@@ -35,7 +35,7 @@
                 <input asp-for="CalculatorGlobalConfiguration.AdditionalGlobalIncrease" type="number" step="any" class="form-control" id="aditionalIncrease" placeholder="Dígita un número">
                 <span asp-validation-for="CalculatorGlobalConfiguration.AdditionalGlobalIncrease" class="text-danger"></span>
             </div>
-             <div class="col-lg-3">
+            <div class="col-lg-3">
                 <label for="minimumGlobalProfit" class="form-label mt-4">% Utilidad Neta Mínima</label>
                 <input asp-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" type="number" step="any" class="form-control" id="minimumGlobalProfit" placeholder="Dígita un número">
                 <span asp-validation-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" class="text-danger"></span>
@@ -89,8 +89,71 @@
         </div> <br />
         <div>
             <h5 class="config-sub-title">Categorización de los Consultores</h5>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre del Rol</th>
+                        <th>Nivel de Calidad</th>
+                        <th>Seniority</th>
+                        <th>Rate Máximo para el cliente</th>
+                        <th>Monto Máximo a pagar al consultor</th>
+                        <th>Fecha de actualización</th>
+                        <th>Actualizado por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.ConsultantRolesQualityLevels.Count; i++)
+                    {
+                        @Html.Hidden("ConsultantRolesQualityLevels[" + i + "].ConsultantRoleId", Model.ConsultantRolesQualityLevels[i].ConsultantRoleId)
+                        @Html.Hidden("ConsultantRolesQualityLevels[" + i + "].ConsultantQualityLevelId", Model.ConsultantRolesQualityLevels[i].ConsultantQualityLevelId)
+                        @Html.Hidden("ConsultantRolesQualityLevels[" + i + "].ConsultantSeniorityId", Model.ConsultantRolesQualityLevels[i].ConsultantSeniorityId)
+                        <tr>
+                            <td>
+                                <select disabled asp-for="@Model.ConsultantRolesQualityLevels[i].ConsultantRoleId" asp-items="@(new SelectList(Model.ConsultantRolesList, "ConsultantRoleId", "Name"))" class="form-select">
+                                </select>
+                                @for (int y = 0; y < Model.ConsultantRolesList.Count; y++)
+                                {
+                                    <input type="hidden" asp-for="ConsultantRolesList[y].ConsultantRoleId" name="ConsultantRolesList[@y].ConsultantRoleId" />
+                                    <input type="hidden" asp-for="ConsultantRolesList[y].Name" name="ConsultantRolesList[@y].Name" />
+                                }
+                            </td>
+                            <td>
+                                <select disabled asp-for="@Model.ConsultantRolesQualityLevels[i].ConsultantQualityLevelId" asp-items="@(new SelectList(Model.ConsultantQualityLevelsList, "ConsultantQualityLevelId", "Name"))" class="form-select">
+                                </select>
+                                @for (int y = 0; y < Model.ConsultantQualityLevelsList.Count; y++)
+                                {
+                                    <input type="hidden" asp-for="ConsultantQualityLevelsList[y].ConsultantQualityLevelId" name="ConsultantQualityLevelsList[@y].ConsultantQualityLevelId" />
+                                    <input type="hidden" asp-for="ConsultantQualityLevelsList[y].Name" name="ConsultantQualityLevelsList[@y].Name" />
+                                }
+                            </td>
+                            <td>
+                                <select asp-for="@Model.ConsultantRolesQualityLevels[i].ConsultantSeniorityId" asp-items="@(new SelectList(Model.ConsultantSenioritisList, "ConsultantSeniorityId", "Name"))" class="form-select">
+                                </select>
+                                @for (int y = 0; y < Model.ConsultantSenioritisList.Count; y++)
+                                {
+                                    <input type="hidden" asp-for="ConsultantSenioritisList[y].ConsultantSeniorityId" name="ConsultantSenioritisList[@y].ConsultantSeniorityId" />
+                                    <input type="hidden" asp-for="ConsultantSenioritisList[y].Name" name="ConsultantSenioritisList[@y].Name" />
+                                }
+                            </td>
+                            <td>
+                                <input asp-for="@Model.ConsultantRolesQualityLevels[i].ClientRateMaximumAmount" type="number" step="any" class="form-control" />
+                            </td>
+                            <td>
+                                <input asp-for="@Model.ConsultantRolesQualityLevels[i].ConsultantMaximumAmount" type="number" step="any" class="form-control" />
+                            </td>
+                            <td>
+                                @Model.ConsultantRolesQualityLevels[i].UpdatedDate
+                            </td>
+                            <td>
+                                @Html.Hidden("ConsultantRolesQualityLevels[" + i + "].UpdatedByName", Model.ConsultantRolesQualityLevels[i].UpdatedByName)
+                                @Model.ConsultantRolesQualityLevels[i].UpdatedByName
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-        <div class="cost-center-container">
+        <div class="cost-center-container mt-5">
             <h5 class="config-sub-title">Porcentages de riesgo por centros de costo</h5>
             @if (Model.CalculatorCostCenterIncreaseConfigurationVM != null)
             {
@@ -115,7 +178,7 @@
             <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">
                 Cancelar
             </a> &nbsp;
-             <button type="submit" class="btn-primary-submit"><i class="bi bi-device-ssd-fill"></i>&nbsp;Guardar Cambios</button>
+            <button type="submit" class="btn-primary-submit"><i class="bi bi-device-ssd-fill"></i>&nbsp;Guardar Cambios</button>
         </div>
 
     </form>

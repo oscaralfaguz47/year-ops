@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231108200418_UpdateConsultantSeniorityTableName")]
+    partial class UpdateConsultantSeniorityTableName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -517,10 +519,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<decimal>("ConsultantMaximumAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ConsultantSeniorityId")
-                        .IsRequired()
-                        .HasColumnType("int");
-
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
@@ -534,8 +532,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("ConsultantRoleId", "ConsultantQualityLevelId");
 
                     b.HasIndex("ConsultantQualityLevelId");
-
-                    b.HasIndex("ConsultantSeniorityId");
 
                     b.HasIndex("UpdatedBy");
 
@@ -1191,12 +1187,6 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OceansApp.Models.Models.ConsultantSeniority", "ConsultantSeniority")
-                        .WithMany()
-                        .HasForeignKey("ConsultantSeniorityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("UpdatedBy");
@@ -1206,8 +1196,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantQualityLevel");
 
                     b.Navigation("ConsultantRole");
-
-                    b.Navigation("ConsultantSeniority");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.DataUpdateDate", b =>

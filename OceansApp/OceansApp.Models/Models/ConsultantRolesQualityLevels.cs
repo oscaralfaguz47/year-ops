@@ -30,5 +30,9 @@ namespace OceansApp.Models.Models
         [ForeignKey("UpdatedBy")]
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
+        public int? ConsultantSeniorityId { get; set; } 
+        [ForeignKey("ConsultantSeniorityId")]
+        [ValidateNever]
+        public ConsultantSeniority ConsultantSeniority { get; set; }
     }
 }
