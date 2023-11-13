@@ -57,12 +57,18 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 Text = i.Name,
                 Value = i.ConsultantQualityLevelId.ToString()
             });
+            var consultantSenioritis = _unitOfWork.ConsultantSeniority.GetAll().Select(i => new SelectListItem
+            {
+                Text = i.Name,
+                Value = i.ConsultantSeniorityId.ToString()
+            });
 
             CalculatorVM cvm = new()
             {
                 ClientList = clients.ToList(),
                 ConsultantRoleList = roles.ToList(),
                 ConsultantQualityLevelList = qualityLevels.ToList(),
+                ConsultantSeniorityList = consultantSenioritis.ToList(),
                 CalculatorCostCenterUserConfigurationVM = costCenterUserList
             };
             return View("Index", cvm);
@@ -264,7 +270,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
 
                     var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
-                    x.ConsultantRoleId == int.Parse(model.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.ConsultantQualityLevelId));
+                    x.ConsultantRoleId == int.Parse(model.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.ConsultantQualityLevelId)
+                    && x.ConsultantSeniorityId == int.Parse(model.ConsultantSeniorityId));
                     bool isProfitLessThanConfig = false;
                     Decimal recommendedAmountToPayToConsultant = 0;
                     Decimal recommendedAmountHolidaysToConsultant = 0;
@@ -555,12 +562,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         Client = model.Client,
                         ConsultantRoleId = model.ConsultantRoleId,
                         ConsultantQualityLevelId = model.ConsultantQualityLevelId,
+                        ConsultantSeniorityId = model.ConsultantSeniorityId,
                         GreenPercentageInResults = greenProfitPercentage,
                         MinProfitSetPercentage = (decimal)globalConfiguration.MinimumGlobalProfit,
                         MaxProfitSetPercentage = maxProfitSetPercentage,
                         ClientList = model.ClientList,
                         ConsultantRoleList = model.ConsultantRoleList,
                         ConsultantQualityLevelList = model.ConsultantQualityLevelList,
+                        ConsultantSeniorityList = model.ConsultantSeniorityList,
                         CalculatorCostCenterUserConfigurationVM = model.CalculatorCostCenterUserConfigurationVM,
                         CalculatorExpensesCostsDistribution = expensesCostsDistributionList
                     };
@@ -582,9 +591,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Client = model.Client,
                     ConsultantRoleId = model.ConsultantRoleId,
                     ConsultantQualityLevelId = model.ConsultantQualityLevelId,
+                    ConsultantSeniorityId = model.ConsultantSeniorityId,
                     ClientList = model.ClientList,
                     ConsultantRoleList = model.ConsultantRoleList,
                     ConsultantQualityLevelList = model.ConsultantQualityLevelList,
+                    ConsultantSeniorityList = model.ConsultantSeniorityList,
                     CalculatorCostCenterUserConfigurationVM = model.CalculatorCostCenterUserConfigurationVM
                 };
                 return View("Index", cvm);

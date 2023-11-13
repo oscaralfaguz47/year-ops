@@ -36,7 +36,12 @@ namespace OceansApp.DataAccess.Data
                 .HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
 
             modelBuilder.Entity<ConsultantRolesQualityLevels>()
-                .HasKey(rq => new {rq.ConsultantRoleId, rq.ConsultantQualityLevelId});
+                .HasKey(rq => new { rq.ConsultantRoleId, rq.ConsultantQualityLevelId, rq.ConsultantSeniorityId });
+            modelBuilder.Entity<ConsultantRolesQualityLevels>()
+                .HasOne(rq => rq.ConsultantSeniority)
+                .WithMany()
+                .HasForeignKey(rq => rq.ConsultantSeniorityId)
+                .IsRequired();
 
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });

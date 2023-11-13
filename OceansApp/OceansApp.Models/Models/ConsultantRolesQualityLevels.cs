@@ -6,14 +6,21 @@ namespace OceansApp.Models.Models
 {
     public class ConsultantRolesQualityLevels
     {
+        [Required]
         public int ConsultantRoleId { get; set; }
         [ForeignKey("ConsultantRoleId")]
         [ValidateNever]
         public ConsultantRole ConsultantRole { get; set; }
+        [Required]
         public int ConsultantQualityLevelId { get; set; }
         [ForeignKey("ConsultantQualityLevelId")]
         [ValidateNever]
         public ConsultantQualityLevel ConsultantQualityLevel { get; set; }
+        [Required]
+        public int ConsultantSeniorityId { get; set; }
+        [ForeignKey("ConsultantSeniorityId")]
+        [ValidateNever]
+        public ConsultantSeniority ConsultantSeniority { get; set; }
         [Required]
         public decimal ConsultantMaximumAmount { get; set; }
         [Required]
@@ -30,9 +37,5 @@ namespace OceansApp.Models.Models
         [ForeignKey("UpdatedBy")]
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
-        public int? ConsultantSeniorityId { get; set; } 
-        [ForeignKey("ConsultantSeniorityId")]
-        [ValidateNever]
-        public ConsultantSeniority ConsultantSeniority { get; set; }
     }
 }

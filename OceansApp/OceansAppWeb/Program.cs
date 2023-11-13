@@ -7,6 +7,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.DataAccess.DbInitializer;
 using OceansApp.DataAccess.Repository;
 using OceansApp.Utility.Email;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,13 @@ builder.Services.Configure<IdentityOptions>(opt =>
     opt.Password.RequireLowercase = true;
     opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
     opt.Lockout.MaxFailedAccessAttempts = 5;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueCountLimit = int.MaxValue; // Límite de cantidad de valores
+    options.ValueLengthLimit = int.MaxValue; // Límite de longitud de valor
+    options.MultipartBodyLengthLimit = long.MaxValue; // Límite de tamaño total de la solicitud
 });
 
 builder.Services.Configure<CookiePolicyOptions>(options =>

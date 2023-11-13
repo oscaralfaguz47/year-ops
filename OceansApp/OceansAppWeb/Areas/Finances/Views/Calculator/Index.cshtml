@@ -35,6 +35,21 @@
                                 <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
                             }
                         </div>
+                                   <div class="">
+                            <label for="con-seniority" class="form-label form-custom-label title-label">Seniority del consultor</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select id="con-seniority" asp-for="ConsultantSeniorityId" asp-items="@Model.ConsultantSeniorityList" class="form-select">
+                                    <option disabled selected value="">Senior/Mid</option>
+                                </select>
+                            </div><br />
+                            <span asp-validation-for="ConsultantSeniorityId" class="text-danger"></span>
+                            @for (int i = 0; i < Model.ConsultantSeniorityList.Count; i++)
+                            {
+                                <input type="hidden" asp-for="ConsultantSeniorityList[i].Value" name="ConsultantSeniorityList[@i].Value" />
+                                <input type="hidden" asp-for="ConsultantSeniorityList[i].Text" name="ConsultantSeniorityList[@i].Text" />
+                            }
+                        </div>
                         <div class="">
                             <label for="qualityLevel" class="form-label form-custom-label title-label">Clasificación del consultor</label>
                             <div class="custom-select">
@@ -58,6 +73,7 @@
                             </div>
                             <span asp-validation-for="PaymentAmount" class="text-danger"></span>
                         </div>
+
                     </div>
                     <div class="col-lg-6">
                         <fieldset>
@@ -99,71 +115,71 @@
             </div>
             <div class="col-lg-6">
                 <div class="checkboxes-box">
-               <div class="row">
+                    <div class="row">
                         <div class="col-lg-6">
-                        <div style="text-align:left">
-                            <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
-                            @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                            {
-                                for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                            <div style="text-align:left">
+                                <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
+                                @if (Model.CalculatorCostCenterUserConfigurationVM != null)
                                 {
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                    if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                    for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
                                     {
-                                        <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                            <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                            <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                        </label>
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                        if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                        {
+                                            <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                            </label>
 
-                                        <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                            <i class="bi bi-question-circle tooltip-target"></i>
-                                            <div class="tooltip-content">
-                                                <div class="tooltip-arrow"></div>
-                                                @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                            <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <i class="bi bi-question-circle tooltip-target"></i>
+                                                <div class="tooltip-content">
+                                                    <div class="tooltip-arrow"></div>
+                                                    @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                </div>
                                             </div>
-                                        </div>
-                                        <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                            <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                        }
                                     }
                                 }
-                            }
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div style="text-align:left">
-                            <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
-                            @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                            {
-                                for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                        <div class="col-lg-6">
+                            <div style="text-align:left">
+                                <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
+                                @if (Model.CalculatorCostCenterUserConfigurationVM != null)
                                 {
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                    @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                    if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                    for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
                                     {
-                                        <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                            <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                            <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                        </label>
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                        @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                        if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                        {
+                                            <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                            </label>
 
-                                        <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                            <i class="bi bi-question-circle tooltip-target"></i>
-                                            <div class="tooltip-content">
-                                                <div class="tooltip-arrow"></div>
-                                                @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                            <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                <i class="bi bi-question-circle tooltip-target"></i>
+                                                <div class="tooltip-content">
+                                                    <div class="tooltip-arrow"></div>
+                                                    @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                </div>
                                             </div>
-                                        </div>
-                                        <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                            <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                        }
                                     }
                                 }
-                            }
+                            </div>
                         </div>
                     </div>
-               </div>
-                @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
                     {
                         <div>
                             <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
@@ -171,7 +187,7 @@
                     }
                     else
                     {
-                         <div>
+                        <div>
                             <p>Corresponde a los costos y gastos por area.</p>
                         </div>
                     }
@@ -536,15 +552,14 @@
 
 </script>
 <script>
-console.log("HOLA" + "@TempData["messageProfitLessThanConfig"]");
-    if("@TempData["messageProfitLessThanConfig"]" != ""){
+        if("@TempData["messageProfitLessThanConfig"]" != ""){
+             const modal = document.getElementById("warning-message");
+                    modal.style.display = "block";
+        }
+    function hideWarningMessage(){
          const modal = document.getElementById("warning-message");
-                modal.style.display = "block";
+                    modal.style.display = "none";
     }
-function hideWarningMessage(){
-     const modal = document.getElementById("warning-message");
-                modal.style.display = "none";
-}
 </script>
 
 

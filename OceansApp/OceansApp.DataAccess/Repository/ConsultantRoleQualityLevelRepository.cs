@@ -36,7 +36,7 @@ namespace OceansApp.DataAccess.Repository
             JOIN CONSULTANT_ROLES CR ON CRQ.ConsultantRoleId = CR.ConsultantRoleId
             LEFT JOIN Users U ON CRQ.UpdatedBy = U.Id
             LEFT JOIN CONSULTANT_SENIORITIS CS ON CRQ.ConsultantSeniorityId = CS.ConsultantSeniorityId
-            ORDER BY CR.NAME";
+            ORDER BY CR.Name, CQL.Name";
 
             using (var connection = new SqlConnection(_db.Database.GetConnectionString()))
             {

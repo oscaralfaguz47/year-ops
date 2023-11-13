@@ -20,9 +20,12 @@ namespace OceansApp.Models.ViewModels
         public String ConsultantRoleId { get; set; }
         [Required(ErrorMessage = "La clasificación del consultor es requerido")]
         public String ConsultantQualityLevelId { get; set; }
+        [Required(ErrorMessage = "El Seniority del consultor es requerido")]
+        public String ConsultantSeniorityId { get; set; }
         public List<SelectListItem>? ClientList { get; set; }
         public List<SelectListItem>? ConsultantRoleList { get; set; }
         public List<SelectListItem>? ConsultantQualityLevelList { get; set; }
+        public List<SelectListItem>? ConsultantSeniorityList { get; set; }
         public Decimal MinProfitSetPercentage { get; set; }
         public Decimal MaxProfitSetPercentage { get; set; }
         public Decimal GreenPercentageInResults { get; set; } = 0;

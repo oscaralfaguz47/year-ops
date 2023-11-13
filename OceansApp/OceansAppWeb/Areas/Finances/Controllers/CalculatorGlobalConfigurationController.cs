@@ -27,7 +27,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             List<ConsultantRole> consultantRolesList = (List<ConsultantRole>)_unitOfWork.ConsultantRole.GetAll();
             List<ConsultantQualityLevel> consultantQualityLevelsList = (List<ConsultantQualityLevel>)_unitOfWork.ConsultantQualityLevel.GetAll();
             List<ConsultantSeniority> consultantSenioritisList = (List<ConsultantSeniority>)_unitOfWork.ConsultantSeniority.GetAll();
-            List<GetConsultantRolesQualityLevelsVM> consultantRolesQualityLevelsList = (List <GetConsultantRolesQualityLevelsVM>) _unitOfWork.ConsultantRoleQualityLevel.GetConsultantRoleQualityLevelsList();
+            List<GetConsultantRolesQualityLevelsVM> consultantRolesQualityLevelsList = (List<GetConsultantRolesQualityLevelsVM>)_unitOfWork.ConsultantRoleQualityLevel.GetConsultantRoleQualityLevelsList();
             CalculatorGlobalConfiguration currentConfig = _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefault(x => x.Id == "Configuration1");
             if (currentConfig == null)
             {
@@ -62,7 +62,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     {
                         CostCenterId = costCenterIncreaseFromDB.CostCenterId,
                         Description = description.Description,
-                        Increase = costCenterIncreaseFromDB.Increase, 
+                        Increase = costCenterIncreaseFromDB.Increase,
                         CompanyId = costCenter.CompanyId
                     };
                     costCenterWithIncreaseList.Add(costCenterIncrease);
@@ -74,7 +74,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     {
                         CostCenterId = costCenter.CostCenterId,
                         Description = description.Description,
-                        Increase = 0, 
+                        Increase = 0,
                         CompanyId = costCenter.CompanyId
                     };
                     costCenterWithIncreaseList.Add(costCenterIncrease);
@@ -136,7 +136,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     foreach (var consultantQualityRole in obj.ConsultantRolesQualityLevels)
                     {
                         var existingCQFromDB = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
-                        x.ConsultantRoleId == consultantQualityRole.ConsultantRoleId 
+                        x.ConsultantRoleId == consultantQualityRole.ConsultantRoleId
                         && x.ConsultantQualityLevelId == consultantQualityRole.ConsultantQualityLevelId
                         && x.ConsultantSeniorityId == consultantQualityRole.ConsultantSeniorityId);
                         if (existingCQFromDB == null)
@@ -145,7 +145,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             {
                                 ConsultantRoleId = consultantQualityRole.ConsultantRoleId,
                                 ConsultantQualityLevelId = consultantQualityRole.ConsultantQualityLevelId,
-                                ConsultantSeniorityId = consultantQualityRole.ConsultantSeniorityId,
+                                ConsultantSeniorityId = (int)consultantQualityRole.ConsultantSeniorityId,
                                 ClientRateMaximumAmount = consultantQualityRole.ClientRateMaximumAmount,
                                 ConsultantMaximumAmount = consultantQualityRole.ConsultantMaximumAmount,
                                 UpdatedBy = claim.Value,
@@ -155,14 +155,25 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         }
                         else
                         {
-                            existingCQFromDB.ConsultantRoleId = consultantQualityRole.ConsultantRoleId;
-                            existingCQFromDB.ConsultantQualityLevelId = consultantQualityRole.ConsultantQualityLevelId;
-                            existingCQFromDB.ConsultantSeniorityId = consultantQualityRole.ConsultantSeniorityId;
-                            existingCQFromDB.ClientRateMaximumAmount = consultantQualityRole.ClientRateMaximumAmount;
-                            existingCQFromDB.ConsultantMaximumAmount = consultantQualityRole.ConsultantMaximumAmount;
-                            existingCQFromDB.UpdatedBy = claim.Value;
-                            existingCQFromDB.UpdatedDate = costaRicaTime;
-                            _unitOfWork.ConsultantRoleQualityLevel.Update(existingCQFromDB);
+                            if (existingCQFromDB.ConsultantRoleId == consultantQualityRole.ConsultantRoleId &&
+                                 existingCQFromDB.ConsultantQualityLevelId == consultantQualityRole.ConsultantQualityLevelId &&
+                                 existingCQFromDB.ConsultantSeniorityId == consultantQualityRole.ConsultantSeniorityId &&
+                                 existingCQFromDB.ClientRateMaximumAmount == consultantQualityRole.ClientRateMaximumAmount &&
+                                 existingCQFromDB.ConsultantMaximumAmount == consultantQualityRole.ConsultantMaximumAmount)
+                            {
+
+                            }
+                            else
+                            {
+                                existingCQFromDB.ConsultantRoleId = consultantQualityRole.ConsultantRoleId;
+                                existingCQFromDB.ConsultantQualityLevelId = consultantQualityRole.ConsultantQualityLevelId;
+                                existingCQFromDB.ConsultantSeniorityId = (int)consultantQualityRole.ConsultantSeniorityId;
+                                existingCQFromDB.ClientRateMaximumAmount = consultantQualityRole.ClientRateMaximumAmount;
+                                existingCQFromDB.ConsultantMaximumAmount = consultantQualityRole.ConsultantMaximumAmount;
+                                existingCQFromDB.UpdatedBy = claim.Value;
+                                existingCQFromDB.UpdatedDate = costaRicaTime;
+                                _unitOfWork.ConsultantRoleQualityLevel.Update(existingCQFromDB);
+                            }
                         }
                         _unitOfWork.Save();
                     }
@@ -186,7 +197,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     }
 
                     TempData["success"] = "¡Los cambios fueron guardados con Éxito!";
-                    return RedirectToAction("Index", "Calculator");
+                    return RedirectToAction("Index", "CalculatorGlobalConfiguration");
                 }
                 catch (Exception e)
                 {
@@ -195,6 +206,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             }
             return View("Index", obj);
         }
+
+     
         //GET
         //[HttpGet]
         //public async Task<IEnumerable<GetCareersPrincipalDataLandingViewModel>> GetCareersPrincipalDataEsp()
