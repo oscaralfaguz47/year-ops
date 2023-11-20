@@ -27,7 +27,7 @@
 
         <!-- Calculate price to Client by Consultant value -->
         <div id="results-by-consultant">
-            <form id="calculateForm1" asp-controller="Calculator" asp-action="Calculate">
+            <form id="calculateForm1" asp-controller="Calculator" asp-action="CalculatePriceToClient">
                 <div class="text-center"> <H4>Calcular el precio al cliente</H4></div>
                 <div class="row">
                     <div class="col-lg-6 box-border-right">
@@ -503,7 +503,7 @@
 
         <!-- Calculate price to Consultant by Client value -->
         <div id="results-by-client" style="display:none">
-            <form id="calculateForm2" asp-controller="Calculator" asp-action="Calculate">
+            <form id="calculateForm2" asp-controller="Calculator" asp-action="CalculatePriceToConsultant">
                 <div class="text-center"> <H4>Calcular el precio al consultor</H4></div>
                 <div class="row">
                     <div class="col-lg-6 box-border-right">
@@ -842,9 +842,13 @@
       if (this.checked) {
         opcion1.style.display = 'block';
         opcion2.style.display = 'none';
+                  var formulario1 = document.getElementById("calculateForm1");
+                  formulario1.reset();
       } else {
         opcion1.style.display = 'none';
         opcion2.style.display = 'block';
+        var formulario2 = document.getElementById("calculateForm2");
+        formulario2.reset();
       }
     });
 </script>
