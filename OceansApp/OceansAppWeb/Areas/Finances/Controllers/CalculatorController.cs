@@ -57,30 +57,50 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 Text = i.Name,
                 Value = i.ConsultantQualityLevelId.ToString()
             });
-            var consultantSenioritis = _unitOfWork.ConsultantSeniority.GetAll().Select(i => new SelectListItem
-            {
-                Text = i.Name,
-                Value = i.ConsultantSeniorityId.ToString()
-            });
 
             CalculatorVM cvm = new()
             {
                 ClientList = clients.ToList(),
                 ConsultantRoleList = roles.ToList(),
                 ConsultantQualityLevelList = qualityLevels.ToList(),
-                ConsultantSeniorityList = consultantSenioritis.ToList(),
                 CalculatorCostCenterUserConfigurationVM = costCenterUserList
             };
             return View("Index", cvm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetOptionsForSeniorityDropdownAsync(int roleId)
+        {
+            // Lógica para obtener las opciones correspondientes a selectedOption1
+            // Puedes llamar a tu servicio o base de datos aquí para obtener los datos.
 
+            var senioritisList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(roleId);
+
+            return Json(senioritisList);
+        }
 
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Calculate(CalculatorVM model)
         {
+            if(model.ConsultantRoleId != null)
+            {
+                try
+                {
+                    var seniorityList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(int.Parse(model.ConsultantRoleId));
+                    foreach(var seniority in seniorityList)
+                    {
+                        model.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Name, Value = seniority.Value });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            }
+          
+            TempData["formSubmited"] = "submited";
             if (ModelState.IsValid)
             {
                 try

@@ -10,7 +10,8 @@
             <button onclick="location.href='@Url.Action("Index", "CalculatorGlobalConfiguration")'" id="btn-gc" class="btn btn-no-background"><i class="bi bi-gear"></i>&nbsp; Configuración Global</button>
         </div>
     }
-    <form asp-controller="Calculator" asp-action="Calculate" class="background-white">
+
+    <div class="background-white">
         <div class="calculator-title">
             <img src="~/img/calculator/calc-icon.png" />
             <h2>CALCULADORA DE RATES</h2>
@@ -23,666 +24,670 @@
             </label>
             <label>Calcular precio a pagar al cliente</label>
         </div>
-        <!-- Calculate Client by Consultant -->
+
+        <!-- Calculate price to Client by Consultant value -->
         <div id="results-by-consultant">
-            <div class="text-center"> <H4>Calcular el precio al cliente</H4></div>
-            <div class="row">
-                <div class="col-lg-6 box-border-right">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="">
-                                <label for="role" class="form-label form-custom-label title-label">Puesto del consultor</label>
-                                <div class="custom-select">
-                                    <span class="arrow-down"></span>
-                                    <select id="role" asp-for="ConsultantRoleId" asp-items="@Model.ConsultantRoleList" class="form-select">
-                                        <option disabled selected value="">Developer/Engineer</option>
-                                    </select>
-                                </div><br />
-                                <span asp-validation-for="ConsultantRoleId" class="text-danger"></span>
-                                @for (int i = 0; i < Model.ConsultantRoleList.Count; i++)
-                                {
-                                    <input type="hidden" asp-for="ConsultantRoleList[i].Value" name="ConsultantRoleList[@i].Value" />
-                                    <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
-                                }
-                            </div>
-                            <div class="">
-                                <label for="con-seniority" class="form-label form-custom-label title-label">Seniority del consultor</label>
-                                <div class="custom-select">
-                                    <span class="arrow-down"></span>
-                                    <select id="con-seniority" asp-for="ConsultantSeniorityId" asp-items="@Model.ConsultantSeniorityList" class="form-select">
-                                        <option disabled selected value="">Senior/Mid</option>
-                                    </select>
-                                </div><br />
-                                <span asp-validation-for="ConsultantSeniorityId" class="text-danger"></span>
-                                @for (int i = 0; i < Model.ConsultantSeniorityList.Count; i++)
-                                {
-                                    <input type="hidden" asp-for="ConsultantSeniorityList[i].Value" name="ConsultantSeniorityList[@i].Value" />
-                                    <input type="hidden" asp-for="ConsultantSeniorityList[i].Text" name="ConsultantSeniorityList[@i].Text" />
-                                }
-                            </div>
-                            <div class="">
-                                <label for="qualityLevel" class="form-label form-custom-label title-label">Clasificación del consultor</label>
-                                <div class="custom-select">
-                                    <span class="arrow-down"></span>
-                                    <select id="qualityLevel" asp-for="ConsultantQualityLevelId" asp-items="@Model.ConsultantQualityLevelList" class="form-select">
-                                        <option disabled selected value="">A - Base</option>
-                                    </select>
-                                </div><br />
-                                <span asp-validation-for="ConsultantQualityLevelId" class="text-danger"></span>
-                                @for (int i = 0; i < Model.ConsultantQualityLevelList.Count; i++)
-                                {
-                                    <input type="hidden" asp-for="ConsultantQualityLevelList[i].Value" name="ConsultantQualityLevelList[@i].Value" />
-                                    <input type="hidden" asp-for="ConsultantQualityLevelList[i].Text" name="ConsultantQualityLevelList[@i].Text" />
-                                }
-                            </div>
-                            <div class="form-group">
-                                <label for="amountToPay" class="form-label form-custom-label title-label">Expectativas del consultor</label>
-                                <div class="input-container">
-                                    <input asp-for="PaymentAmount" type="number" step="any" class="form-control" id="amountToPay" placeholder="$$$">
-                                    <img src="~/img/calculator/money-icon.png" alt="Placeholder Image" class="placeholder-image" />
-                                </div>
-                                <span asp-validation-for="PaymentAmount" class="text-danger"></span>
-                            </div>
-
-                        </div>
-                        <div class="col-lg-6">
-                            <fieldset>
-                                <div class="">
-                                    <label for="client" class="form-label form-custom-label title-label">Categoría del cliente</label>
-                                    <div class="custom-select">
-                                        <span class="arrow-down"></span>
-                                        <select id="client" asp-for="Client" asp-items="@Model.ClientList" class="form-select">
-                                            <option disabled selected value="">XYZ Client Corp</option>
-                                        </select>
-                                    </div> <br />
-                                    <span asp-validation-for="Client" class="text-danger"></span>
-                                    @for (int i = 0; i < Model.ClientList.Count; i++)
-                                    {
-                                        <input type="hidden" asp-for="ClientList[i].Value" name="ClientList[@i].Value" />
-                                        <input type="hidden" asp-for="ClientList[i].Text" name="ClientList[@i].Text" />
-                                    }
-                                </div>
-                                <div class="form-group">
-                                    <label for="daysYear" class="form-label form-custom-label title-label">Días feriados pagos</label>
-                                    <div class="input-container">
-                                        <input asp-for="DaysYear" type="number" step="any" class="form-control" id="daysYear" placeholder="Dígita un número">
-                                        <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
-                                    </div>
-                                </div>
-                                @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-                                {
-                                    <div class="form-group">
-                                        <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
-                                        <div class="input-container">
-                                            <input asp-for="VacationDays" type="number" step="any" class="form-control" id="daysVacations" placeholder="Dígita un número">
-                                            <img src="~/img/calculator/vacation-icon.png" alt="Placeholder Image" class="placeholder-image" />
-                                        </div>
-                                    </div>
-                                }
-                            </fieldset>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="checkboxes-box">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div style="text-align:left">
-                                    <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
-                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                                    {
-                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
-                                        {
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                            if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
-                                            {
-                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                                </label>
-
-                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <i class="bi bi-question-circle tooltip-target"></i>
-                                                    <div class="tooltip-content">
-                                                        <div class="tooltip-arrow"></div>
-                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
-                                                    </div>
-                                                </div>
-                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
-                                            }
-                                        }
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div style="text-align:left">
-                                    <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
-                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                                    {
-                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
-                                        {
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                            if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
-                                            {
-                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                                </label>
-
-                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <i class="bi bi-question-circle tooltip-target"></i>
-                                                    <div class="tooltip-content">
-                                                        <div class="tooltip-arrow"></div>
-                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
-                                                    </div>
-                                                </div>
-                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
-                                            }
-                                        }
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-                        {
-                            <div>
-                                <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div>
-                                <p>Corresponde a los costos y gastos por area.</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-                <div class="mt-4 text-center">
-                    <button id="submitBtn" type="submit" class="btn-primary-submit">CALCULAR</button>&nbsp;
-                    <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">REINICIAR</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Calculate Consultant by Client -->
-        <div id="results-by-client" style="display: none;">
-            <div class="text-center"> <H4>Calcular el pago al consultor</H4></div>
-            <div class="row">
-                <div class="col-lg-6 box-border-right">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="">
-                                <label for="role" class="form-label form-custom-label title-label">Puesto del consultor</label>
-                                <div class="custom-select">
-                                    <span class="arrow-down"></span>
-                                    <select id="role" asp-for="ConsultantRoleId" asp-items="@Model.ConsultantRoleList" class="form-select">
-                                        <option disabled selected value="">Developer/Engineer</option>
-                                    </select>
-                                </div><br />
-                                <span asp-validation-for="ConsultantRoleId" class="text-danger"></span>
-                                @for (int i = 0; i < Model.ConsultantRoleList.Count; i++)
-                                {
-                                    <input type="hidden" asp-for="ConsultantRoleList[i].Value" name="ConsultantRoleList[@i].Value" />
-                                    <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
-                                }
-                            </div>
-                            <div class="">
-                                <label for="con-seniority" class="form-label form-custom-label title-label">Seniority del consultor</label>
-                                <div class="custom-select">
-                                    <span class="arrow-down"></span>
-                                    <select id="con-seniority" asp-for="ConsultantSeniorityId" asp-items="@Model.ConsultantSeniorityList" class="form-select">
-                                        <option disabled selected value="">Senior/Mid</option>
-                                    </select>
-                                </div><br />
-                                <span asp-validation-for="ConsultantSeniorityId" class="text-danger"></span>
-                                @for (int i = 0; i < Model.ConsultantSeniorityList.Count; i++)
-                                {
-                                    <input type="hidden" asp-for="ConsultantSeniorityList[i].Value" name="ConsultantSeniorityList[@i].Value" />
-                                    <input type="hidden" asp-for="ConsultantSeniorityList[i].Text" name="ConsultantSeniorityList[@i].Text" />
-                                }
-                            </div>
-                            <div class="">
-                                <label for="qualityLevel" class="form-label form-custom-label title-label">Clasificación del consultor</label>
-                                <div class="custom-select">
-                                    <span class="arrow-down"></span>
-                                    <select id="qualityLevel" asp-for="ConsultantQualityLevelId" asp-items="@Model.ConsultantQualityLevelList" class="form-select">
-                                        <option disabled selected value="">A - Base</option>
-                                    </select>
-                                </div><br />
-                                <span asp-validation-for="ConsultantQualityLevelId" class="text-danger"></span>
-                                @for (int i = 0; i < Model.ConsultantQualityLevelList.Count; i++)
-                                {
-                                    <input type="hidden" asp-for="ConsultantQualityLevelList[i].Value" name="ConsultantQualityLevelList[@i].Value" />
-                                    <input type="hidden" asp-for="ConsultantQualityLevelList[i].Text" name="ConsultantQualityLevelList[@i].Text" />
-                                }
-                            </div>
-                            <div class="form-group">
-                                <label for="amountToPay" class="form-label form-custom-label title-label">Expectativas del consultor</label>
-                                <div class="input-container">
-                                    <input asp-for="PaymentAmount" type="number" step="any" class="form-control" id="amountToPay" placeholder="$$$">
-                                    <img src="~/img/calculator/money-icon.png" alt="Placeholder Image" class="placeholder-image" />
-                                </div>
-                                <span asp-validation-for="PaymentAmount" class="text-danger"></span>
-                            </div>
-
-                        </div>
-                        <div class="col-lg-6">
-                            <fieldset>
-                                <div class="">
-                                    <label for="client" class="form-label form-custom-label title-label">Categoría del cliente</label>
-                                    <div class="custom-select">
-                                        <span class="arrow-down"></span>
-                                        <select id="client" asp-for="Client" asp-items="@Model.ClientList" class="form-select">
-                                            <option disabled selected value="">XYZ Client Corp</option>
-                                        </select>
-                                    </div> <br />
-                                    <span asp-validation-for="Client" class="text-danger"></span>
-                                    @for (int i = 0; i < Model.ClientList.Count; i++)
-                                    {
-                                        <input type="hidden" asp-for="ClientList[i].Value" name="ClientList[@i].Value" />
-                                        <input type="hidden" asp-for="ClientList[i].Text" name="ClientList[@i].Text" />
-                                    }
-                                </div>
-                                <div class="form-group">
-                                    <label for="daysYear" class="form-label form-custom-label title-label">Días feriados pagos</label>
-                                    <div class="input-container">
-                                        <input asp-for="DaysYear" type="number" step="any" class="form-control" id="daysYear" placeholder="Dígita un número">
-                                        <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
-                                    </div>
-                                </div>
-                                @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-                                {
-                                    <div class="form-group">
-                                        <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
-                                        <div class="input-container">
-                                            <input asp-for="VacationDays" type="number" step="any" class="form-control" id="daysVacations" placeholder="Dígita un número">
-                                            <img src="~/img/calculator/vacation-icon.png" alt="Placeholder Image" class="placeholder-image" />
-                                        </div>
-                                    </div>
-                                }
-                            </fieldset>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="checkboxes-box">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div style="text-align:left">
-                                    <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
-                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                                    {
-                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
-                                        {
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                            if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
-                                            {
-                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                                </label>
-
-                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <i class="bi bi-question-circle tooltip-target"></i>
-                                                    <div class="tooltip-content">
-                                                        <div class="tooltip-arrow"></div>
-                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
-                                                    </div>
-                                                </div>
-                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
-                                            }
-                                        }
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div style="text-align:left">
-                                    <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
-                                    @if (Model.CalculatorCostCenterUserConfigurationVM != null)
-                                    {
-                                        for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
-                                        {
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
-                                            @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
-                                            if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
-                                            {
-                                                <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
-                                                    <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
-                                                </label>
-
-                                                <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                    <i class="bi bi-question-circle tooltip-target"></i>
-                                                    <div class="tooltip-content">
-                                                        <div class="tooltip-arrow"></div>
-                                                        @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
-                                                    </div>
-                                                </div>
-                                                <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
-                                            }
-                                        }
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-                        {
-                            <div>
-                                <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div>
-                                <p>Corresponde a los costos y gastos por area.</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-                <div class="mt-4 text-center">
-                    <button id="submitBtn" type="submit" class="btn-primary-submit">CALCULAR</button>&nbsp;
-                    <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">REINICIAR</a>
-                </div>
-            </div>
-        </div>
-        @if (TempData["result"] != null)
-        {
-            <hr />
-            <div class="row">
-                <div class="col-lg-6 box-border-right">
-                    <div class="row">
-                        <div class="container financial-performance" style="display:flex">
-                            <div class="battery">
-                                <div class="battery-border"></div>
-                                <div class="battery-level"></div>
-                            </div>
-                            <div>
-                                <h6>RENDIMIENTO FINANCIERO</h6>
-                                <p class="battery-first-message"></p>
-                                <p class="baterry-message-box"></p>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="row">
-                        <div class="client-proposal" style="display:flex">
-                            <div>
-                                <img src="~/img/calculator/proposal-icon.png" class="proposal-img" />
-                            </div>
-                            <div>
-                                <h6>PROPUESTA PARA EL CLIENTE</h6>
-                                <table>
-                                    @if (@TempData["hourRateGreenAAA"] != null)
-                                    {
-                                        <tr class="bg-gray">
-                                            <td>Categoría de cliente:</td>
-                                            <td>AAA</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal:</td>
-                                            <td>@TempData["hourRateGreenAAA"]</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable:</td>
-                                            <td>@TempData["hourRateYellowAAA"]</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal (mensual):</td>
-                                            <td>@TempData["monthlyRateGreenAAA"]</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable (mensual):</td>
-                                            <td>@TempData["monthlyRateYellowAAA"]</td>
-                                        </tr>
-                                    }
-                                    @if (@TempData["hourRateGreenAA"] != null)
-                                    {
-                                        <tr class="bg-gray">
-                                            <td>Categoría de cliente:</td>
-                                            <td>AA</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal:</td>
-                                            <td>@TempData["hourRateGreenAA"]</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable:</td>
-                                            <td>@TempData["hourRateYellowAA"]</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal (mensual):</td>
-                                            <td>@TempData["monthlyRateGreenAA"]</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable (mensual):</td>
-                                            <td>@TempData["monthlyRateYellowAA"]</td>
-                                        </tr>
-                                    }
-                                    @if (@TempData["hourRateGreenPartner"] != null)
-                                    {
-                                        <tr class="bg-gray">
-                                            <td>Categoría de cliente:</td>
-                                            <td>Partner</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal:</td>
-                                            <td>@TempData["hourRateGreenPartner"]</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable:</td>
-                                            <td>@TempData["hourRateYellowPartner"]</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Rate ideal (mensual):</td>
-                                            <td>@TempData["monthlyRateGreenPartner"]</td>
-                                        </tr>
-                                        <tr class="bg-gray">
-                                            <td>Rate negociable (mensual):</td>
-                                            <td>@TempData["monthlyRateYellowPartner"]</td>
-                                        </tr>
-                                    }
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-
-    </form>
-
-    @if (TempData["result"] != null)
-    {
-        @if (User.IsInRole(SD.Role_User_Master))
-        {
-            <br />
-            <div class="background-white">
+            <form id="calculateForm1" asp-controller="Calculator" asp-action="Calculate">
+                <div class="text-center"> <H4>Calcular el precio al cliente</H4></div>
                 <div class="row">
                     <div class="col-lg-6 box-border-right">
-                        <h2>UTILIDADES APROXIMADAS</h2>
-                        <table class="light-table">
-                            @if (@TempData["hourRateGreenAAA"] != null)
-                            {
-                                <tr class="bg-gray">
-                                    <td>Categoría de cliente:</td>
-                                    <td>AAA</td>
-                                </tr>
-                                <tr>
-                                    <td>Utilidad ideal:</td>
-                                    <td>@TempData["greenProfitAAA"]</td>
-                                </tr>
-                                <tr class="bg-gray">
-                                    <td>% Utilidad ideal:</td>
-                                    <td>@TempData["greenProfitPercentageAAA"]</td>
-                                </tr>
-                                <tr>
-                                    <td>Utilidad negociable:</td>
-                                    <td>@TempData["averageYellowProfitAAA"]</td>
-                                </tr>
-                                <tr class="bg-gray">
-                                    <td>% Utilidad negociable</td>
-                                    <td>@TempData["yellowProfitPercentageAAA"]</td>
-                                </tr>
-                            }
-                            @if (@TempData["hourRateGreenAA"] != null)
-                            {
-                                <tr class="bg-gray">
-                                    <td>Categoría de cliente:</td>
-                                    <td>AA</td>
-                                </tr>
-                                <tr>
-                                    <td>Utilidad ideal:</td>
-                                    <td>@TempData["greenProfitAA"]</td>
-                                </tr>
-                                <tr class="bg-gray">
-                                    <td>% Utilidad ideal:</td>
-                                    <td>@TempData["greenProfitPercentageAA"]</td>
-                                </tr>
-                                <tr>
-                                    <td>Utilidad negociable:</td>
-                                    <td>@TempData["averageYellowProfitAA"]</td>
-                                </tr>
-                                <tr class="bg-gray">
-                                    <td>% Utilidad negociable</td>
-                                    <td>@TempData["yellowProfitPercentageAA"]</td>
-                                </tr>
-                            }
-                            @if (@TempData["hourRateGreenPartner"] != null)
-                            {
-                                <tr class="bg-gray">
-                                    <td>Categoría de cliente:</td>
-                                    <td>Partner</td>
-                                </tr>
-                                <tr>
-                                    <td>Utilidad ideal:</td>
-                                    <td>@TempData["greenProfitPartner"]</td>
-                                </tr>
-                                <tr class="bg-gray">
-                                    <td>% Utilidad ideal:</td>
-                                    <td>@TempData["greenProfitPercentagePartner"]</td>
-                                </tr>
-                                <tr>
-                                    <td>Utilidad negociable:</td>
-                                    <td>@TempData["averageYellowProfitPartner"]</td>
-                                </tr>
-                                <tr class="bg-gray">
-                                    <td>% Utilidad negociable</td>
-                                    <td>@TempData["yellowProfitPercentagePartner"]</td>
-                                </tr>
-                            }
-                        </table>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="">
+                                    <label for="role" class="form-label form-custom-label title-label">Puesto del consultor</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select onchange="loadOptionsForSeniority()" id="role" asp-for="ConsultantRoleId" asp-items="@Model.ConsultantRoleList" class="form-select">
+                                            <option disabled selected value="">Developer/Engineer</option>
+                                        </select>
+                                    </div><br />
+                                    <span asp-validation-for="ConsultantRoleId" class="text-danger"></span>
+                                    @for (int i = 0; i < Model.ConsultantRoleList.Count; i++)
+                                    {
+                                        <input type="hidden" asp-for="ConsultantRoleList[i].Value" name="ConsultantRoleList[@i].Value" />
+                                        <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
+                                    }
+                                </div>
+                                <div class="">
+                                    <label for="con-seniority" class="form-label form-custom-label title-label">Seniority del consultor</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select id="con-seniority"
+                                                asp-for="ConsultantSeniorityId"
+                                                asp-items="@Model.ConsultantSeniorityList"
+                                                class="form-select"
+                                                disabled="@(TempData["formSubmited"] == null ? "disabled" : null)">
+                                            <option disabled selected value="">Senior/Mid</option>
+                                        </select>
+                                    </div><br />
+                                    <span asp-validation-for="ConsultantSeniorityId" class="text-danger"></span>
+
+                                </div>
+                                <div class="">
+                                    <label for="qualityLevel" class="form-label form-custom-label title-label">Clasificación del consultor</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select id="qualityLevel" asp-for="ConsultantQualityLevelId" asp-items="@Model.ConsultantQualityLevelList" class="form-select">
+                                            <option disabled selected value="">A - Base</option>
+                                        </select>
+                                    </div><br />
+                                    <span asp-validation-for="ConsultantQualityLevelId" class="text-danger"></span>
+                                    @for (int i = 0; i < Model.ConsultantQualityLevelList.Count; i++)
+                                    {
+                                        <input type="hidden" asp-for="ConsultantQualityLevelList[i].Value" name="ConsultantQualityLevelList[@i].Value" />
+                                        <input type="hidden" asp-for="ConsultantQualityLevelList[i].Text" name="ConsultantQualityLevelList[@i].Text" />
+                                    }
+                                </div>
+                                <div class="form-group">
+                                    <label for="amountToPay" class="form-label form-custom-label title-label">Expectativas del consultor</label>
+                                    <div class="input-container">
+                                        <input asp-for="PaymentAmount" type="number" step="any" class="form-control" id="amountToPay" placeholder="$$$">
+                                        <img src="~/img/calculator/money-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                    </div>
+                                    <span asp-validation-for="PaymentAmount" class="text-danger"></span>
+                                </div>
+
+                            </div>
+                            <div class="col-lg-6">
+                                <fieldset>
+                                    <div class="">
+                                        <label for="client" class="form-label form-custom-label title-label">Categoría del cliente</label>
+                                        <div class="custom-select">
+                                            <span class="arrow-down"></span>
+                                            <select id="client" asp-for="Client" asp-items="@Model.ClientList" class="form-select">
+                                                <option disabled selected value="">XYZ Client Corp</option>
+                                            </select>
+                                        </div> <br />
+                                        <span asp-validation-for="Client" class="text-danger"></span>
+                                        @for (int i = 0; i < Model.ClientList.Count; i++)
+                                        {
+                                            <input type="hidden" asp-for="ClientList[i].Value" name="ClientList[@i].Value" />
+                                            <input type="hidden" asp-for="ClientList[i].Text" name="ClientList[@i].Text" />
+                                        }
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="daysYear" class="form-label form-custom-label title-label">Días feriados pagos</label>
+                                        <div class="input-container">
+                                            <input asp-for="DaysYear" type="number" step="any" class="form-control" id="daysYear" placeholder="Dígita un número">
+                                            <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                        </div>
+                                    </div>
+                                    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                                    {
+                                        <div class="form-group">
+                                            <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
+                                            <div class="input-container">
+                                                <input asp-for="VacationDays" type="number" step="any" class="form-control" id="daysVacations" placeholder="Dígita un número">
+                                                <img src="~/img/calculator/vacation-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                            </div>
+                                        </div>
+                                    }
+                                </fieldset>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-lg-6">
-                        <h2>DESGLOSE DE GASTOS Y COSTOS</h2>
+                        <div class="checkboxes-box">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div style="text-align:left">
+                                        <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
+                                        @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                        {
+                                            for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                            {
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                                if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                                {
+                                                    <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                                    </label>
+
+                                                    <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <i class="bi bi-question-circle tooltip-target"></i>
+                                                        <div class="tooltip-content">
+                                                            <div class="tooltip-arrow"></div>
+                                                            @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                        </div>
+                                                    </div>
+                                                    <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                                }
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div style="text-align:left">
+                                        <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
+                                        @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                        {
+                                            for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                            {
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                                if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                                {
+                                                    <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                                    </label>
+
+                                                    <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <i class="bi bi-question-circle tooltip-target"></i>
+                                                        <div class="tooltip-content">
+                                                            <div class="tooltip-arrow"></div>
+                                                            @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                        </div>
+                                                    </div>
+                                                    <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                                }
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                            {
+                                <div>
+                                    <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    <p>Corresponde a los costos y gastos por area.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button id="submitBtn" type="submit" class="btn-primary-submit">CALCULAR</button>&nbsp;
+                        <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">REINICIAR</a>
+                    </div>
+                </div>
+                @if (TempData["result"] != null)
+                {
+                    <hr />
+                    <div class="row">
+                        <div class="col-lg-6 box-border-right">
+                            <div class="row">
+                                <div class="container financial-performance" style="display:flex">
+                                    <div class="battery">
+                                        <div class="battery-border"></div>
+                                        <div class="battery-level"></div>
+                                    </div>
+                                    <div>
+                                        <h6>RENDIMIENTO FINANCIERO</h6>
+                                        <p class="battery-first-message"></p>
+                                        <p class="baterry-message-box"></p>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="row">
+                                <div class="client-proposal" style="display:flex">
+                                    <div>
+                                        <img src="~/img/calculator/proposal-icon.png" class="proposal-img" />
+                                    </div>
+                                    <div>
+                                        <h6>PROPUESTA PARA EL CLIENTE</h6>
+                                        <table>
+                                            @if (@TempData["hourRateGreenAAA"] != null)
+                                            {
+                                                <tr class="bg-gray">
+                                                    <td>Categoría de cliente:</td>
+                                                    <td>AAA</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rate ideal:</td>
+                                                    <td>@TempData["hourRateGreenAAA"]</td>
+                                                </tr>
+                                                <tr class="bg-gray">
+                                                    <td>Rate negociable:</td>
+                                                    <td>@TempData["hourRateYellowAAA"]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rate ideal (mensual):</td>
+                                                    <td>@TempData["monthlyRateGreenAAA"]</td>
+                                                </tr>
+                                                <tr class="bg-gray">
+                                                    <td>Rate negociable (mensual):</td>
+                                                    <td>@TempData["monthlyRateYellowAAA"]</td>
+                                                </tr>
+                                            }
+                                            @if (@TempData["hourRateGreenAA"] != null)
+                                            {
+                                                <tr class="bg-gray">
+                                                    <td>Categoría de cliente:</td>
+                                                    <td>AA</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rate ideal:</td>
+                                                    <td>@TempData["hourRateGreenAA"]</td>
+                                                </tr>
+                                                <tr class="bg-gray">
+                                                    <td>Rate negociable:</td>
+                                                    <td>@TempData["hourRateYellowAA"]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rate ideal (mensual):</td>
+                                                    <td>@TempData["monthlyRateGreenAA"]</td>
+                                                </tr>
+                                                <tr class="bg-gray">
+                                                    <td>Rate negociable (mensual):</td>
+                                                    <td>@TempData["monthlyRateYellowAA"]</td>
+                                                </tr>
+                                            }
+                                            @if (@TempData["hourRateGreenPartner"] != null)
+                                            {
+                                                <tr class="bg-gray">
+                                                    <td>Categoría de cliente:</td>
+                                                    <td>Partner</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rate ideal:</td>
+                                                    <td>@TempData["hourRateGreenPartner"]</td>
+                                                </tr>
+                                                <tr class="bg-gray">
+                                                    <td>Rate negociable:</td>
+                                                    <td>@TempData["hourRateYellowPartner"]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rate ideal (mensual):</td>
+                                                    <td>@TempData["monthlyRateGreenPartner"]</td>
+                                                </tr>
+                                                <tr class="bg-gray">
+                                                    <td>Rate negociable (mensual):</td>
+                                                    <td>@TempData["monthlyRateYellowPartner"]</td>
+                                                </tr>
+                                            }
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </form>
+        </div>
+
+        @if (TempData["result"] != null)
+        {
+            @if (User.IsInRole(SD.Role_User_Master))
+            {
+                <br />
+                <div class="background-white">
+                    <div class="row">
+                        <div class="col-lg-6 box-border-right">
+                            <h2>UTILIDADES APROXIMADAS</h2>
+                            <table class="light-table">
+                                @if (@TempData["hourRateGreenAAA"] != null)
+                                {
+                                    <tr class="bg-gray">
+                                        <td>Categoría de cliente:</td>
+                                        <td>AAA</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitAAA"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitPercentageAAA"]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad negociable:</td>
+                                        <td>@TempData["averageYellowProfitAAA"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad negociable</td>
+                                        <td>@TempData["yellowProfitPercentageAAA"]</td>
+                                    </tr>
+                                }
+                                @if (@TempData["hourRateGreenAA"] != null)
+                                {
+                                    <tr class="bg-gray">
+                                        <td>Categoría de cliente:</td>
+                                        <td>AA</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitAA"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitPercentageAA"]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad negociable:</td>
+                                        <td>@TempData["averageYellowProfitAA"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad negociable</td>
+                                        <td>@TempData["yellowProfitPercentageAA"]</td>
+                                    </tr>
+                                }
+                                @if (@TempData["hourRateGreenPartner"] != null)
+                                {
+                                    <tr class="bg-gray">
+                                        <td>Categoría de cliente:</td>
+                                        <td>Partner</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitPartner"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitPercentagePartner"]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad negociable:</td>
+                                        <td>@TempData["averageYellowProfitPartner"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad negociable</td>
+                                        <td>@TempData["yellowProfitPercentagePartner"]</td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                        <div class="col-lg-6">
+                            <h2>DESGLOSE DE GASTOS Y COSTOS</h2>
+                            <table class="light-table">
+                                <tr class="bg-gray">
+                                    <td>Total gastos por centros de costo y descuentos:</td>
+                                    <td>$@TempData["subtotalExpenses"]</td>
+                                </tr>
+                                <tr>
+                                    <td>Total costos directos (Pago al consultor, Holidays y vacaciones):</td>
+                                    <td>$@TempData["totalCosts"]</td>
+                                </tr>
+                                <tr class="bg-gray">
+                                    <td>Monto aumento global aplicado:</td>
+                                    <td>@TempData["appliedAmountGlobalIncrease"]</td>
+                                </tr>
+                                <tr style="color:#fff">
+                                    <td>o</td>
+                                    <td>o</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TOTAL GASTOS Y COSTOS APLICADOS:</strong></td>
+                                    <td><strong>$@TempData["totalAmountOfExpensesAndCosts"]</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="background-white">
+                    <h2>DESGLOSE DE GASTOS Y COSTOS DETALLADO</h2>
+                    <div class="table-responsive">
                         <table class="light-table">
-                            <tr class="bg-gray">
-                                <td>Total gastos por centros de costo y descuentos:</td>
-                                <td>$@TempData["subtotalExpenses"]</td>
-                            </tr>
-                            <tr>
-                                <td>Total costos directos (Pago al consultor, Holidays y vacaciones):</td>
-                                <td>$@TempData["totalCosts"]</td>
-                            </tr>
-                            <tr class="bg-gray">
-                                <td>Monto aumento global aplicado:</td>
-                                <td>@TempData["appliedAmountGlobalIncrease"]</td>
-                            </tr>
-                            <tr style="color:#fff">
-                                <td>o</td>
-                                <td>o</td>
-                            </tr>
-                            <tr>
-                                <td><strong>TOTAL GASTOS Y COSTOS APLICADOS:</strong></td>
-                                <td><strong>$@TempData["totalAmountOfExpensesAndCosts"]</strong></td>
-                            </tr>
+                            <thead>
+                                <tr class="table-header">
+                                    <th scope="col">Cuenta Contable</th>
+                                    <th scope="col">Descripción</th>
+                                    <th scope="col">Monto aplicado</th>
+                                    <th scope="col">% Aumento aplicado al Centro de Costo</th>
+                                    <th scope="col">$ Aumento aplicado al Centro de Costo</th>
+                                    <th scope="col">Centro de Costo</th>
+                                    <th scope="col">Empresa del Gasto o Costo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.CalculatorExpensesCostsDistribution != null)
+                                {
+                                    foreach (var item in Model.CalculatorExpensesCostsDistribution)
+                                    {
+                                        <tr class="table-light">
+                                            <td class="">@item.AccountingAccountCode</td>
+                                            <td class=""><strong>@item.AccountingAccountName</strong></td>
+                                            <td class=""><strong>$@item.Amount.ToString("#,##0.00")</strong></td>
+                                            <td class="">@item.increasePercentage.ToString("#,##0.0")%</td>
+                                            <td class="">$@item.increaseAmount.ToString("#,##0.00")</td>
+                                            <td class="">@item.CostCenterName</td>
+                                            <td class="">@item.CompanyId</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-            <br />
-            <div class="background-white">
-                <h2>DESGLOSE DE GASTOS Y COSTOS DETALLADO</h2>
-                <div class="table-responsive">
-                    <table class="light-table">
-                        <thead>
-                            <tr class="table-header">
-                                <th scope="col">Cuenta Contable</th>
-                                <th scope="col">Descripción</th>
-                                <th scope="col">Monto aplicado</th>
-                                <th scope="col">% Aumento aplicado al Centro de Costo</th>
-                                <th scope="col">$ Aumento aplicado al Centro de Costo</th>
-                                <th scope="col">Centro de Costo</th>
-                                <th scope="col">Empresa del Gasto o Costo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.CalculatorExpensesCostsDistribution != null)
+            }
+        }
+
+        <div id="warning-message">
+            <div class="container">
+                <div class="warning-message-container">
+                    <div>
+                        @if (TempData["result"] != null)
+                        {
+                            @if (TempData["messageProfitLessThanConfig"] != null)
                             {
-                                foreach (var item in Model.CalculatorExpensesCostsDistribution)
-                                {
-                                    <tr class="table-light">
-                                        <td class="">@item.AccountingAccountCode</td>
-                                        <td class=""><strong>@item.AccountingAccountName</strong></td>
-                                        <td class=""><strong>$@item.Amount.ToString("#,##0.00")</strong></td>
-                                        <td class="">@item.increasePercentage.ToString("#,##0.0")%</td>
-                                        <td class="">$@item.increaseAmount.ToString("#,##0.00")</td>
-                                        <td class="">@item.CostCenterName</td>
-                                        <td class="">@item.CompanyId</td>
-                                    </tr>
-                                }
+                                <div id="warning-message-cont">
+
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <div class="body-mess-cont">
+                                        <h2>
+                                            Vaya!, parece que ingresaste un monto muy alto para el puesto y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
+                                        </h2>
+                                        <ul>
+                                            <li>
+                                                <i class="bi bi-check-lg"></i> Ofrecele un monto menor a: <strong>$@TempData["recommendedAmountToPayToConsultant"]</strong> a pagar mensualmente respetando un porcentage aceptable en la batería.
+                                            </li>
+                                            <li>
+                                                <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el consultor
+                                                está pidiendo un monto alto, ya que esta oferta es la más alta y la utilidad que se obtiene es la más baja.
+                                            </li>
+                                        </ul>
+                                        <button onclick="hideWarningMessage()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                    </div>
+                                </div>
                             }
-                        </tbody>
-                    </table>
+                        }
+                    </div>
                 </div>
             </div>
-        }
-    }
+        </div>
 
-    <div id="warning-message">
-        <div class="container">
-            <div class="warning-message-container">
-                <div>
-                    @if (TempData["result"] != null)
-                    {
-                        @if (TempData["messageProfitLessThanConfig"] != null)
-                        {
-                            <div id="warning-message-cont">
+        <!-- Calculate price to Consultant by Client value -->
+        <div id="results-by-client" style="display:none">
+            <form id="calculateForm2" asp-controller="Calculator" asp-action="Calculate">
+                <div class="text-center"> <H4>Calcular el precio al consultor</H4></div>
+                <div class="row">
+                    <div class="col-lg-6 box-border-right">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="">
+                                    <label for="role" class="form-label form-custom-label title-label">Puesto del consultor</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select onchange="loadOptionsForSeniority2()" id="role2" asp-for="ConsultantRoleId" asp-items="@Model.ConsultantRoleList" class="form-select">
+                                            <option disabled selected value="">Developer/Engineer</option>
+                                        </select>
+                                    </div><br />
+                                    <span asp-validation-for="ConsultantRoleId" class="text-danger"></span>
+                                    @for (int i = 0; i < Model.ConsultantRoleList.Count; i++)
+                                    {
+                                        <input type="hidden" asp-for="ConsultantRoleList[i].Value" name="ConsultantRoleList[@i].Value" />
+                                        <input type="hidden" asp-for="ConsultantRoleList[i].Text" name="ConsultantRoleList[@i].Text" />
+                                    }
+                                </div>
+                                <div class="">
+                                    <label for="con-seniority" class="form-label form-custom-label title-label">Seniority del consultor</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select id="con-seniority2"
+                                                asp-for="ConsultantSeniorityId"
+                                                asp-items="@Model.ConsultantSeniorityList"
+                                                class="form-select"
+                                                disabled="@(TempData["formSubmited"] == null ? "disabled" : null)">
+                                            <option disabled selected value="">Senior/Mid</option>
+                                        </select>
+                                    </div><br />
+                                    <span asp-validation-for="ConsultantSeniorityId" class="text-danger"></span>
 
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                <div class="body-mess-cont">
-                                    <h2>
-                                        Vaya!, parece que ingresaste un monto muy alto para el puesto y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
-                                    </h2>
-                                    <ul>
-                                        <li>
-                                            <i class="bi bi-check-lg"></i> Ofrecele un monto menor a: <strong>$@TempData["recommendedAmountToPayToConsultant"]</strong> a pagar mensualmente respetando un porcentage aceptable en la batería.
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el consultor
-                                            está pidiendo un monto alto, ya que esta oferta es la más alta y la utilidad que se obtiene es la más baja.
-                                        </li>
-                                    </ul>
-                                    <button onclick="hideWarningMessage()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                </div>
+                                <div class="">
+                                    <label for="qualityLevel" class="form-label form-custom-label title-label">Clasificación del consultor</label>
+                                    <div class="custom-select">
+                                        <span class="arrow-down"></span>
+                                        <select id="qualityLevel" asp-for="ConsultantQualityLevelId" asp-items="@Model.ConsultantQualityLevelList" class="form-select">
+                                            <option disabled selected value="">A - Base</option>
+                                        </select>
+                                    </div><br />
+                                    <span asp-validation-for="ConsultantQualityLevelId" class="text-danger"></span>
+                                    @for (int i = 0; i < Model.ConsultantQualityLevelList.Count; i++)
+                                    {
+                                        <input type="hidden" asp-for="ConsultantQualityLevelList[i].Value" name="ConsultantQualityLevelList[@i].Value" />
+                                        <input type="hidden" asp-for="ConsultantQualityLevelList[i].Text" name="ConsultantQualityLevelList[@i].Text" />
+                                    }
+                                </div>
+                                <div class="form-group">
+                                    <label for="amountToPay" class="form-label form-custom-label title-label">Expectativas del consultor</label>
+                                    <div class="input-container">
+                                        <input asp-for="PaymentAmount" type="number" step="any" class="form-control" id="amountToPay" placeholder="$$$">
+                                        <img src="~/img/calculator/money-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                    </div>
+                                    <span asp-validation-for="PaymentAmount" class="text-danger"></span>
+                                </div>
+
+                            </div>
+                            <div class="col-lg-6">
+                                <fieldset>
+                                    <div class="">
+                                        <label for="client" class="form-label form-custom-label title-label">Categoría del cliente</label>
+                                        <div class="custom-select">
+                                            <span class="arrow-down"></span>
+                                            <select id="client" asp-for="Client" asp-items="@Model.ClientList" class="form-select">
+                                                <option disabled selected value="">XYZ Client Corp</option>
+                                            </select>
+                                        </div> <br />
+                                        <span asp-validation-for="Client" class="text-danger"></span>
+                                        @for (int i = 0; i < Model.ClientList.Count; i++)
+                                        {
+                                            <input type="hidden" asp-for="ClientList[i].Value" name="ClientList[@i].Value" />
+                                            <input type="hidden" asp-for="ClientList[i].Text" name="ClientList[@i].Text" />
+                                        }
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="daysYear" class="form-label form-custom-label title-label">Días feriados pagos</label>
+                                        <div class="input-container">
+                                            <input asp-for="DaysYear" type="number" step="any" class="form-control" id="daysYear" placeholder="Dígita un número">
+                                            <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                        </div>
+                                    </div>
+                                    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                                    {
+                                        <div class="form-group">
+                                            <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
+                                            <div class="input-container">
+                                                <input asp-for="VacationDays" type="number" step="any" class="form-control" id="daysVacations" placeholder="Dígita un número">
+                                                <img src="~/img/calculator/vacation-icon.png" alt="Placeholder Image" class="placeholder-image" />
+                                            </div>
+                                        </div>
+                                    }
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="checkboxes-box">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div style="text-align:left">
+                                        <label class="form-label form-custom-label title-label"><strong>Áreas y departamentos</strong></label><br />
+                                        @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                        {
+                                            for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                            {
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                                if (@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                                {
+                                                    <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                                    </label>
+
+                                                    <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <i class="bi bi-question-circle tooltip-target"></i>
+                                                        <div class="tooltip-content">
+                                                            <div class="tooltip-arrow"></div>
+                                                            @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                        </div>
+                                                    </div>
+                                                    <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                                }
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div style="text-align:left">
+                                        <label class="form-label form-custom-label title-label"><strong>Gastos y costos adicionales</strong></label><br />
+                                        @if (Model.CalculatorCostCenterUserConfigurationVM != null)
+                                        {
+                                            for (int i = 0; i < Model.CalculatorCostCenterUserConfigurationVM.Count; i++)
+                                            {
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CostCenterId", Model.CalculatorCostCenterUserConfigurationVM[i].CostCenterId)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Description", Model.CalculatorCostCenterUserConfigurationVM[i].Description)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].Detail", Model.CalculatorCostCenterUserConfigurationVM[i].Detail)
+                                                @Html.Hidden("CalculatorCostCenterUserConfigurationVM[" + i + "].CompanyId", Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId)
+                                                if (!@Model.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
+                                                {
+                                                    <label class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <span class="Some-other-style">@Model.CalculatorCostCenterUserConfigurationVM[i].Description</span>
+                                                    </label>
+
+                                                    <div class="tooltip-container @(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
+                                                        <i class="bi bi-question-circle tooltip-target"></i>
+                                                        <div class="tooltip-content">
+                                                            <div class="tooltip-arrow"></div>
+                                                            @Model.CalculatorCostCenterUserConfigurationVM[i].Detail
+                                                        </div>
+                                                    </div>
+                                                    <br class="@(Model.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")" />
+                                                }
+                                            }
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                        }
-                    }
+                            @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                            {
+                                <div>
+                                    <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    <p>Corresponde a los costos y gastos por area.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button id="submitBtn" type="submit" class="btn-primary-submit">CALCULAR</button>&nbsp;
+                        <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">REINICIAR</a>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -693,6 +698,79 @@
     <partial name="_ValidationScriptsPartial" />
 
     }
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    function loadOptionsForSeniority() {
+          var dropdown1 = $("#role");
+          var dropdown2 = $("#con-seniority");
+
+          // Limpiar el segundo dropdown
+          dropdown2.empty().append('<option value="">Senior/Mid</option>');
+
+          // Obtener la opción seleccionada en el primer dropdown
+          var roleId = dropdown1.val();
+
+          // Si se selecciona una opción en el primer dropdown, hacer la llamada AJAX
+          if (roleId !== "") {
+              $.ajax({
+                  url: '/Finances/Calculator/GetOptionsForSeniorityDropdown',
+                  type: 'GET',
+                  data: { roleId: roleId },
+                  success: function (data) {
+                      // Llenar el segundo dropdown con las opciones recibidas
+                      $.each(data, function (index, option) {
+                          dropdown2.append('<option value="' + option.value + '">' + option.name + '</option>');
+                      });
+
+                      // Habilitar el segundo dropdown
+                      dropdown2.prop('disabled', false);
+                  },
+                  error: function () {
+                      console.error('Error al cargar opciones para el segundo dropdown.');
+                  }
+              });
+          } else {
+              // Si no se selecciona ninguna opción en el primer dropdown, deshabilitar el segundo dropdown
+              dropdown2.prop('disabled', true);
+          }
+      }
+</script>
+<script>
+    function loadOptionsForSeniority2() {
+          var dropdown1 = $("#role2");
+          var dropdown2 = $("#con-seniority2");
+
+          // Limpiar el segundo dropdown
+          dropdown2.empty().append('<option value="">Senior/Mid</option>');
+
+          // Obtener la opción seleccionada en el primer dropdown
+          var roleId = dropdown1.val();
+
+          // Si se selecciona una opción en el primer dropdown, hacer la llamada AJAX
+          if (roleId !== "") {
+              $.ajax({
+                  url: '/Finances/Calculator/GetOptionsForSeniorityDropdown',
+                  type: 'GET',
+                  data: { roleId: roleId },
+                  success: function (data) {
+                      // Llenar el segundo dropdown con las opciones recibidas
+                      $.each(data, function (index, option) {
+                          dropdown2.append('<option value="' + option.value + '">' + option.name + '</option>');
+                      });
+
+                      // Habilitar el segundo dropdown
+                      dropdown2.prop('disabled', false);
+                  },
+                  error: function () {
+                      console.error('Error al cargar opciones para el segundo dropdown.');
+                  }
+              });
+          } else {
+              // Si no se selecciona ninguna opción en el primer dropdown, deshabilitar el segundo dropdown
+              dropdown2.prop('disabled', true);
+          }
+      }
+</script>
 <script>
     // Obtén los elementos de la barra de nivel de batería y la etiqueta
     var minProfitSetPercentage = '@Model.MinProfitSetPercentage';
@@ -746,7 +824,6 @@
     }
 
     updateBatteryLevel(greenPercentageInResults);
-
 
 </script>
 <script>

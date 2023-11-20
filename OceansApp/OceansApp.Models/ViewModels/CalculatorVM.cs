@@ -7,6 +7,10 @@ namespace OceansApp.Models.ViewModels
 {
     public class CalculatorVM
     {
+        public CalculatorVM()
+        {
+            ConsultantSeniorityList = new List<SelectListItem>();
+        }
         [Range(0, 20, ErrorMessage = "El valor debe de ser mayor o igual a 0 y menor o igual a 20")]
         public Double? DaysYear { get; set; } = 7;
         [Range(0, 20, ErrorMessage = "El valor debe de ser mayor o igual a 0 y menor o igual a 20")]
