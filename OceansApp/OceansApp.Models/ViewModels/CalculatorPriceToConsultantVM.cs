@@ -5,9 +5,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OceansApp.Models.ViewModels
 {
-    public class CalculatorVM
+    public class CalculatorPriceToConsultantVM
     {
-        public CalculatorVM()
+        public CalculatorPriceToConsultantVM()
         {
             ConsultantSeniorityList = new List<SelectListItem>();
         }
@@ -16,8 +16,8 @@ namespace OceansApp.Models.ViewModels
         [Range(0, 20, ErrorMessage = "El valor debe de ser mayor o igual a 0 y menor o igual a 20")]
         public Double? VacationDays { get; set; } = 0;
         [Required(ErrorMessage = "La expectativa del consultor es requerido")]
-        [Range(500, 50000, ErrorMessage = "El valor debe de ser mayor o igual a $500 y menor o igual a $50,000")]
-        public Double? PaymentAmount { get; set; } = null;
+        [Range(5, 1000, ErrorMessage = "El valor debe de ser mayor o igual a $5 y menor o igual a $1000")]
+        public Double? ClientAmount { get; set; } = null;
         [Required(ErrorMessage = "El cliente es requerido")]
         public String Client { get; set; }
         [Required(ErrorMessage = "El puesto del consultor es requerido")]
