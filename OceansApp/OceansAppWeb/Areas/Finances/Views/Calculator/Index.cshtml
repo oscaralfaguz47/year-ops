@@ -28,7 +28,7 @@
         <!-- Calculate price to Client by Consultant value -->
         <div id="results-by-consultant" style="@(Model.CalculatorClient ? "display:block;" : "display:none;")">
             <form id="calculateForm1" asp-controller="Calculator" asp-action="CalculatePriceToClient">
-                 <input type="hidden" asp-for="CalculatorClient" value="true" />
+                <input type="hidden" asp-for="CalculatorClient" value="true" />
                 <div class="text-center"> <H4>Calcular el precio al cliente</H4></div>
                 <div class="row">
                     <div class="col-lg-6 box-border-right">
@@ -233,8 +233,6 @@
                                         <p class="baterry-message-box"></p>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                         <div class="col-lg-6">
@@ -471,7 +469,8 @@
                 }
             }
 
-            <div id="warning-message">
+            <div id="warning-message-client" style="display:none">
+                <div id="warning-message">
                 <div class="container">
                     <div class="warning-message-container">
                         <div>
@@ -495,7 +494,7 @@
                                                     está pidiendo un monto alto, ya que esta oferta es la más alta y la utilidad que se obtiene es la más baja.
                                                 </li>
                                             </ul>
-                                            <button onclick="hideWarningMessage()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                            <button onclick="hideWarningMessageClient()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
                                         </div>
                                     </div>
                                 }
@@ -504,10 +503,11 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
 
         <!-- Calculate price to Consultant by Client value -->
-        <div id="results-by-client" style="@(Model.CalculatorClient ? "display:none;" : "display:block;")")>
+        <div id="results-by-client" style="@(Model.CalculatorClient ? "display:none;" : "display:block;")" )>
             <form id="calculateForm2" asp-controller="Calculator" asp-action="CalculatePriceToConsultant">
                 <input type="hidden" asp-for="CalculatorClient" value="false" />
                 <div class="text-center"> <H4>Calcular el precio al consultor</H4></div>
@@ -693,7 +693,177 @@
                         <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">REINICIAR</a>
                     </div>
                 </div>
+                @if (TempData["resultConsultant"] != null)
+                {
+                    <hr />
+                    <div class="row">
+                     @*   <div class="col-lg-6 box-border-right">
+                            <div class="row">
+                                <div class="container financial-performance" style="display:flex">
+                                    <div class="battery">
+                                        <div class="battery-border"></div>
+                                        <div class="battery-level"></div>
+                                    </div>
+                                    <div>
+                                        <h6>RENDIMIENTO FINANCIERO</h6>
+                                        <p class="battery-first-message"></p>
+                                        <p class="baterry-message-box"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>*@
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="client-proposal" style="display:flex; justify-content: center;">
+                                    <div>
+                                        <img src="~/img/calculator/proposal-icon.png" class="proposal-img" />
+                                    </div>
+                                    <div>
+                                        <h6>PROPUESTA PARA EL CONSULTOR</h6>
+                                        <table>
+                                            <tr class="bg-gray">
+                                                <td>Categoría de cliente:</td>
+                                                <td>@TempData["clientCategory"]</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rate ideal mensual:</td>
+                                                <td>@TempData["resultMontlyAmountToPayToConsultantGreen"]</td>
+                                            </tr>
+                                            <tr class="bg-gray">
+                                                <td>Rate negociable mensual:</td>
+                                                <td>@TempData["resultMontlyAmountToPayToConsultantYellow"]</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </form>
+            @if (TempData["resultConsultant"] != null)
+            {
+                @if (User.IsInRole(SD.Role_User_Master))
+                {
+                    <br />
+                    <div class="background-white">
+                        <div class="row">
+                            <div class="col-lg-6 box-border-right">
+                                <h2>UTILIDADES APROXIMADAS</h2>
+                                <table class="light-table">
+                                    <tr class="bg-gray">
+                                        <td>Categoría de cliente:</td>
+                                        <td>@TempData["clientCategory"]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitPercentage"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad ideal:</td>
+                                        <td>@TempData["greenProfitPercentage"]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilidad negociable:</td>
+                                        <td>@TempData["yellowProfitPercentage"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>% Utilidad negociable</td>
+                                        <td>@TempData["yellowProfitPercentage"]</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-lg-6">
+                                <h2>DESGLOSE DE GASTOS Y COSTOS</h2>
+                                <table class="light-table">
+                                    <tr class="bg-gray">
+                                        <td>Total gastos por centros de costo y descuentos:</td>
+                                        <td>$@TempData["subtotalExpenses"]</td>
+                                    </tr>
+                                    <tr class="bg-gray">
+                                        <td>Monto aumento global aplicado:</td>
+                                        <td>@TempData["appliedAmountGlobalIncrease"]</td>
+                                    </tr>
+                                    <tr style="color:#fff">
+                                        <td>o</td>
+                                        <td>o</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>TOTAL GASTOS Y COSTOS APLICADOS:</strong></td>
+                                        <td><strong>$@TempData["totalAmountOfExpensesAndCosts"]</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="background-white">
+                        <h2>DESGLOSE DE GASTOS Y COSTOS DETALLADO</h2>
+                        <div class="table-responsive">
+                            <table class="light-table">
+                                <thead>
+                                    <tr class="table-header">
+                                        <th scope="col">Cuenta Contable</th>
+                                        <th scope="col">Descripción</th>
+                                        <th scope="col">Monto aplicado</th>
+                                        <th scope="col">% Aumento aplicado al Centro de Costo</th>
+                                        <th scope="col">$ Aumento aplicado al Centro de Costo</th>
+                                        <th scope="col">Centro de Costo</th>
+                                        <th scope="col">Empresa del Gasto o Costo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.CalculatorPriceToConsultant.CalculatorExpensesCostsDistribution != null)
+                                    {
+                                        foreach (var item in Model.CalculatorPriceToConsultant.CalculatorExpensesCostsDistribution)
+                                        {
+                                            <tr class="table-light">
+                                                <td class="">@item.AccountingAccountCode</td>
+                                                <td class=""><strong>@item.AccountingAccountName</strong></td>
+                                                <td class=""><strong>$@item.Amount.ToString("#,##0.00")</strong></td>
+                                                <td class="">@item.increasePercentage.ToString("#,##0.0")%</td>
+                                                <td class="">$@item.increaseAmount.ToString("#,##0.00")</td>
+                                                <td class="">@item.CostCenterName</td>
+                                                <td class="">@item.CompanyId</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            }
+
+           <div id="warning-message-consultant" style="display:none">
+                <div id="warning-message">
+                <div class="container">
+                    <div class="warning-message-container">
+                        <div>
+                            <div id="warning-message-cont">
+
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <div class="body-mess-cont">
+                                    <h2>
+                                        Vaya!, parece que tenemos una alerta, ingresaste un monto muy alto para este cliente y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
+                                    </h2>
+                                    <ul>
+                                        <li>
+                                            <i class="bi bi-check-lg"></i> Ofrecele un monto menor o igual a: <strong>@TempData["recommendedAmountToPayToConsultant"]</strong> a cobrar por hora respetando un porcentage aceptable en la batería.
+                                        </li>
+                                        <li>
+                                            <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el cliente
+                                            está pidiendo algún tipo de descuento, ya que esta oferta es la más baja y la utilidad que se obtiene es la más baja.
+                                        </li>
+                                    </ul>
+                                    <button onclick="hideWarningMessageConsultant()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           </div>
         </div>
 
     </div>
@@ -779,7 +949,6 @@
       }
 </script>
 <script>
-    // Obtén los elementos de la barra de nivel de batería y la etiqueta
     var minProfitSetPercentage = '@Model.CalculatorPriceToClient.MinProfitSetPercentage';
     var maxProfitSetPercentage = '@Model.CalculatorPriceToClient.MaxProfitSetPercentage';
     var greenPercentageInResults = '@Model.CalculatorPriceToClient.GreenPercentageInResults';
@@ -788,7 +957,6 @@
     const batteryMessage2 = document.querySelector('.battery-first-message');
     const battery = document.querySelector('.battery');
     const batteryBorder = document.querySelector('.battery-border');
-
 
     // Función para actualizar el nivel de la batería y su color
     function updateBatteryLevel(percentage) {
@@ -805,10 +973,7 @@
 
       // Calcula el valor de altura en píxeles basado en el porcentaje
       const height = limitedPercentage;
-
         batteryLevel.style.height = `${height}%`;
-
-
       if (batteryPercentage > 55) {
         batteryLevel.style.backgroundColor = '#0bfc08';
         batteryMessage1.textContent += 'Indica el máximo margen de ganancia';
@@ -829,27 +994,37 @@
        battery.classList.toggle('orangeActive');
       }
     }
-
     updateBatteryLevel(greenPercentageInResults);
-
 </script>
+
 <script>
         if("@TempData["messageProfitLessThanConfig"]" != ""){
-             const modal = document.getElementById("warning-message");
+             const modal = document.getElementById("warning-message-client");
                     modal.style.display = "block";
         }
-    function hideWarningMessage(){
-         const modal = document.getElementById("warning-message");
+    function hideWarningMessageClient(){
+         const modal = document.getElementById("warning-message-client");
                     modal.style.display = "none";
     }
 </script>
 
 <script>
+        if("@TempData["warningMessageConsultant"]" != ""){
+             const modal = document.getElementById("warning-message-consultant");
+                    modal.style.display = "block";
+        }
+    function hideWarningMessageConsultant(){
+         const modal = document.getElementById("warning-message-consultant");
+                    modal.style.display = "none";
+    }
+</script>
 
+
+//Change Calculator Type
+<script>
               document.getElementById('toggle').addEventListener('change', function() {
              var value = $(this).prop('checked');
           var token = $('[name="__RequestVerificationToken"]').val();
-
           $.ajax({
               url: '@Url.Action("ChangeCalculatorType", "Calculator")',
               type: 'POST',
@@ -860,7 +1035,7 @@
                    var consultantDiv = document.getElementById("results-by-consultant");
     if (response) {
                           $('#results-by-client').hide();
-                           $('#results-by-consultant').show();  
+                           $('#results-by-consultant').show();
                        } else {
                            $('#results-by-client').show();
                            $('#results-by-consultant').hide();
@@ -871,7 +1046,6 @@
               }
           });
                  });
-
 </script>
 
     }
