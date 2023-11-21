@@ -75,7 +75,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             CalculatorCCVM cvm = new()
             {
                 CalculatorPriceToClient = cptc,
-                CalculatorPriceToConsultant = cptcon
+                CalculatorPriceToConsultant = cptcon,
+                CalculatorClient = true
             };
             return View("Index", cvm);
         }
@@ -89,9 +90,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult ChangeCalculatorType(string calculatorType)
+        public ActionResult ChangeCalculatorType(bool calculatorType)
         {
-            return Content(calculatorType);
+            return Json(calculatorType);
         }
 
         //POST
@@ -99,7 +100,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CalculatePriceToClient(CalculatorCCVM model)
         {
-            if(model.CalculatorPriceToClient.ConsultantRoleId != null)
+            TempData["calculatorType"] = "Client";
+            if (model.CalculatorPriceToClient.ConsultantRoleId != null)
             {
                 try
                 {
@@ -629,7 +631,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CalculatorCCVM cvm = new()
                     {
                         CalculatorPriceToClient = cptc,
-                        CalculatorPriceToConsultant = cptco
+                        CalculatorPriceToConsultant = cptco,
+                        CalculatorClient = model.CalculatorClient
                     };
 
                     TempData["result"] = "success";
@@ -671,7 +674,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 CalculatorCCVM cvm = new()
                 {
                     CalculatorPriceToClient = cptc,
-                    CalculatorPriceToConsultant = cptco
+                    CalculatorPriceToConsultant = cptco,
+                    CalculatorClient = model.CalculatorClient
                 };
                 return View("Index", cvm);
             }
@@ -682,6 +686,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CalculatePriceToConsultant(CalculatorCCVM model)
         {
+            TempData["calculatorType"] = "Consultant";
             if (model.CalculatorPriceToConsultant.ConsultantRoleId != null)
             {
                 try
@@ -698,7 +703,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 }
             }
 
-            if (model.CalculatorPriceToClient.ConsultantRoleId != null)
+            if (model.CalculatorPriceToConsultant.ConsultantRoleId != null)
             {
                 TempData["formSubmited"] = "submited";
             }
@@ -937,7 +942,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CalculatorCCVM cvm = new()
                     {
                         CalculatorPriceToClient = cptc,
-                        CalculatorPriceToConsultant = cptco
+                        CalculatorPriceToConsultant = cptco,
+                        CalculatorClient = model.CalculatorClient
                     };
 
                     TempData["result"] = "success";
@@ -979,7 +985,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 CalculatorCCVM cvm = new()
                 {
                     CalculatorPriceToClient = cptc,
-                    CalculatorPriceToConsultant = cptco
+                    CalculatorPriceToConsultant = cptco,
+                    CalculatorClient = model.CalculatorClient
                 };
                 return View("Index", cvm);
             }

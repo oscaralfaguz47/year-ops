@@ -5,5 +5,6 @@ namespace OceansApp.Models.ViewModels
     {
         public CalculatorPriceToClientVM? CalculatorPriceToClient { get; set; }
         public CalculatorPriceToConsultantVM? CalculatorPriceToConsultant { get; set; }
+        public bool CalculatorClient { get; set; }
     }
 }
