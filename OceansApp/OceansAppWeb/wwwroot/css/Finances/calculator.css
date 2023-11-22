@@ -11,7 +11,7 @@
     position: relative;
     display: inline-block;
     width: 60px;
-    height: 34px;
+    height: 25px;
 }
 
     .switch input {
@@ -36,10 +36,10 @@
     .slider:before {
         position: absolute;
         content: "";
-        height: 26px;
+        height: 18px;
         width: 26px;
         left: 4px;
-        bottom: 4px;
+        bottom: 3px;
         background-color: white;
         -webkit-transition: .4s;
         transition: .4s;
@@ -47,7 +47,7 @@
     }
 
 input:checked + .slider {
-    background-color: #2196F3;
+    background-color: var(--clr-yellow);
 }
 
     input:checked + .slider:before {

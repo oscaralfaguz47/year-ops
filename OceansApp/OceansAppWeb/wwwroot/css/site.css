@@ -335,7 +335,7 @@ nav {
 /*SHARED COMPONENTS*/
 .background-white {
     background-color: #fff;
-    padding: 40px;
+    padding: 25px;
     color: var(--clr-grayDark);
     border-radius: 25px;
 }
