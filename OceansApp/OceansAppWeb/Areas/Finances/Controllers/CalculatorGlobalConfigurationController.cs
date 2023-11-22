@@ -11,7 +11,7 @@ using OceansApp.Models.ViewModels.ConsultantRolesQualityLevels;
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
-    [Authorize(Roles = SD.Role_User_Master)]
+    [Authorize(Roles = SD.Role_User_Master + "," + SD.Role_User_Admin)]
     [RequireTwoFactorEnabled]
     public class CalculatorGlobalConfigurationController : Controller
     {
@@ -105,6 +105,15 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                    var userRoles = HttpContext.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
+                    int userIsMaster = 0;
+                    foreach (var role in userRoles)
+                    {
+                        if (role == SD.Role_User_Master)
+                        {
+                            userIsMaster++;
+                        }
+                    }
 
                     if (obj.CalculatorCostCenterIncreaseConfigurationVM != null)
                     {
@@ -185,13 +194,16 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         globalConfig.PeopleNumber = obj.CalculatorGlobalConfiguration.PeopleNumber;
                         globalConfig.NumLaborDaysInMonth = obj.CalculatorGlobalConfiguration.NumLaborDaysInMonth;
                         globalConfig.AdditionalGlobalIncrease = obj.CalculatorGlobalConfiguration.AdditionalGlobalIncrease;
-                        globalConfig.ProfitGreenClientAAA = obj.CalculatorGlobalConfiguration.ProfitGreenClientAAA;
-                        globalConfig.ProfitGreenClientAA = obj.CalculatorGlobalConfiguration.ProfitGreenClientAA;
-                        globalConfig.ProfitGreenPartner = obj.CalculatorGlobalConfiguration.ProfitGreenPartner;
-                        globalConfig.ProfitYellowClientAAA = obj.CalculatorGlobalConfiguration.ProfitYellowClientAAA;
-                        globalConfig.ProfitYellowClientAA = obj.CalculatorGlobalConfiguration.ProfitYellowClientAA;
-                        globalConfig.ProfitYellowPartner = obj.CalculatorGlobalConfiguration.ProfitYellowPartner;
-                        globalConfig.MinimumGlobalProfit = obj.CalculatorGlobalConfiguration.MinimumGlobalProfit;
+                        if (userIsMaster > 0)
+                        {
+                            globalConfig.ProfitGreenClientAAA = obj.CalculatorGlobalConfiguration.ProfitGreenClientAAA;
+                            globalConfig.ProfitGreenClientAA = obj.CalculatorGlobalConfiguration.ProfitGreenClientAA;
+                            globalConfig.ProfitGreenPartner = obj.CalculatorGlobalConfiguration.ProfitGreenPartner;
+                            globalConfig.ProfitYellowClientAAA = obj.CalculatorGlobalConfiguration.ProfitYellowClientAAA;
+                            globalConfig.ProfitYellowClientAA = obj.CalculatorGlobalConfiguration.ProfitYellowClientAA;
+                            globalConfig.ProfitYellowPartner = obj.CalculatorGlobalConfiguration.ProfitYellowPartner;
+                            globalConfig.MinimumGlobalProfit = obj.CalculatorGlobalConfiguration.MinimumGlobalProfit;
+                        }
                         _unitOfWork.CalculatorGlobalConfiguration.Update(globalConfig);
                         _unitOfWork.Save();
                     }

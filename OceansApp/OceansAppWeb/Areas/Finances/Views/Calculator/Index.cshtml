@@ -4,7 +4,7 @@
 @model CalculatorCCVM
 
 <div class="container" id="calculatorForm">
-    @if (User.IsInRole(SD.Role_User_Master))
+    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
     {
         <div class="Manager-container">
             <button onclick="location.href='@Url.Action("Index", "CalculatorGlobalConfiguration")'" id="btn-gc" class="btn btn-no-background"><i class="bi bi-gear"></i>&nbsp; Configuración Global</button>
