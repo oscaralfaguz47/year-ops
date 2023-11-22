@@ -589,7 +589,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CalculatorSearchHistory searchHistory = new()
                     {
                         SearchDate = DateTime.Now,
-                        SearchByUserId = claim.Value
+                        SearchByUserId = claim.Value,
+                        SearchFrom = "Calcula rate al cliente"
                     };
                     _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
                     _unitOfWork.Save();
@@ -989,7 +990,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CalculatorSearchHistory searchHistory = new()
                     {
                         SearchDate = DateTime.Now,
-                        SearchByUserId = claim.Value
+                        SearchByUserId = claim.Value,
+                        SearchFrom = "Calcula pago al consultor"
                     };
                     _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
                     _unitOfWork.Save();
