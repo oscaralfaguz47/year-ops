@@ -58,23 +58,67 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 Value = i.ConsultantQualityLevelId.ToString()
             });
 
-            CalculatorVM cvm = new()
+            CalculatorPriceToClientVM cptc = new()
             {
                 ClientList = clients.ToList(),
                 ConsultantRoleList = roles.ToList(),
                 ConsultantQualityLevelList = qualityLevels.ToList(),
                 CalculatorCostCenterUserConfigurationVM = costCenterUserList
             };
+            CalculatorPriceToConsultantVM cptcon = new()
+            {
+                ClientList = clients.ToList(),
+                ConsultantRoleList = roles.ToList(),
+                ConsultantQualityLevelList = qualityLevels.ToList(),
+                CalculatorCostCenterUserConfigurationVM = costCenterUserList
+            };
+            CalculatorCCVM cvm = new()
+            {
+                CalculatorPriceToClient = cptc,
+                CalculatorPriceToConsultant = cptcon,
+                CalculatorClient = true
+            };
             return View("Index", cvm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetOptionsForSeniorityDropdownAsync(int roleId)
+        {
+            var senioritisList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(roleId);
+            return Json(senioritisList);
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangeCalculatorType(bool calculatorType)
+        {
+            return Json(calculatorType);
+        }
 
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Calculate(CalculatorVM model)
+        public async Task<IActionResult> CalculatePriceToClient(CalculatorCCVM model)
         {
+            if (model.CalculatorPriceToClient.ConsultantRoleId != null)
+            {
+                try
+                {
+                    var seniorityList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(int.Parse(model.CalculatorPriceToClient.ConsultantRoleId));
+                    foreach (var seniority in seniorityList)
+                    {
+                        model.CalculatorPriceToClient.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Name, Value = seniority.Value });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            }
+            if (model.CalculatorPriceToClient.ConsultantRoleId != null)
+            {
+                TempData["formSubmited"] = "submited";
+            }
             if (ModelState.IsValid)
             {
                 try
@@ -110,7 +154,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 
                     if (userIsMasterOrAdmin > 0)
                     {
-                        costCenterList = model.CalculatorCostCenterUserConfigurationVM;
+                        costCenterList = model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM;
                     }
                     else
                     {
@@ -243,16 +287,16 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         totalReturnsAndDiscounts = totalReturnsAndDiscounts + amount;
                     }
                     //PRINCIPAL COST OF SALES
-                    Decimal consultantMonthlyPayment = (decimal)model.PaymentAmount;
+                    Decimal consultantMonthlyPayment = (decimal)model.CalculatorPriceToClient.PaymentAmount;
                     double daysYear = 0;
                     double vacationDays = 0;
-                    if (model.DaysYear != null)
+                    if (model.CalculatorPriceToClient.DaysYear != null)
                     {
-                        daysYear = (double)model.DaysYear;
+                        daysYear = (double)model.CalculatorPriceToClient.DaysYear;
                     }
-                    if (model.VacationDays != null)
+                    if (model.CalculatorPriceToClient.VacationDays != null)
                     {
-                        vacationDays = (double)model.VacationDays;
+                        vacationDays = (double)model.CalculatorPriceToClient.VacationDays;
                     }
                     Decimal consultantHolidaysAmount = ((decimal)consultantMonthlyPayment / (decimal)globalConfiguration.NumLaborDaysInMonth) * (decimal)daysYear;
                     Decimal consultantVacationsAmount = ((decimal)consultantMonthlyPayment / (decimal)globalConfiguration.NumLaborDaysInMonth) * (decimal)vacationDays;
@@ -264,7 +308,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
 
                     var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
-                    x.ConsultantRoleId == int.Parse(model.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.ConsultantQualityLevelId));
+                    x.ConsultantRoleId == int.Parse(model.CalculatorPriceToClient.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.CalculatorPriceToClient.ConsultantQualityLevelId)
+                    && x.ConsultantSeniorityId == int.Parse(model.CalculatorPriceToClient.ConsultantSeniorityId));
                     bool isProfitLessThanConfig = false;
                     Decimal recommendedAmountToPayToConsultant = 0;
                     Decimal recommendedAmountHolidaysToConsultant = 0;
@@ -276,7 +321,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal yellowProfitAmount = 0;
                     Decimal yellowProfitPercentage = 0;
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == int.Parse(model.Client));
+                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == int.Parse(model.CalculatorPriceToClient.Client));
                     if (client != null)
                     {
                         if (client.ClientClass == "A")
@@ -465,7 +510,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         {
                             TempData["recommendedAmountToPayToConsultant"] = recommendedAmountToPayToConsultant.ToString("#,##0.00");
                             TempData["recommendedAmountHolidaysToConsultant"] = recommendedAmountHolidaysToConsultant.ToString("#,##0.00");
-                            if (model.VacationDays > 0)
+                            if (model.CalculatorPriceToClient.VacationDays > 0)
                             {
                                 TempData["recommendedAmountVacationsToConsultant"] = recommendedAmountVacationsToConsultant.ToString("#,##0.00");
                             }
@@ -544,25 +589,50 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     CalculatorSearchHistory searchHistory = new()
                     {
                         SearchDate = DateTime.Now,
-                        SearchByUserId = claim.Value
+                        SearchByUserId = claim.Value,
+                        SearchFrom = "Calcula rate al cliente"
                     };
                     _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
                     _unitOfWork.Save();
 
                     //MODEL TO RETURN
-                    CalculatorVM cvm = new()
+                    CalculatorPriceToClientVM cptc = new()
                     {
-                        Client = model.Client,
-                        ConsultantRoleId = model.ConsultantRoleId,
-                        ConsultantQualityLevelId = model.ConsultantQualityLevelId,
+                        Client = model.CalculatorPriceToClient.Client,
+                        ConsultantRoleId = model.CalculatorPriceToClient.ConsultantRoleId,
+                        ConsultantQualityLevelId = model.CalculatorPriceToClient.ConsultantQualityLevelId,
+                        ConsultantSeniorityId = model.CalculatorPriceToClient.ConsultantSeniorityId,
                         GreenPercentageInResults = greenProfitPercentage,
                         MinProfitSetPercentage = (decimal)globalConfiguration.MinimumGlobalProfit,
                         MaxProfitSetPercentage = maxProfitSetPercentage,
-                        ClientList = model.ClientList,
-                        ConsultantRoleList = model.ConsultantRoleList,
-                        ConsultantQualityLevelList = model.ConsultantQualityLevelList,
-                        CalculatorCostCenterUserConfigurationVM = model.CalculatorCostCenterUserConfigurationVM,
+                        ClientList = model.CalculatorPriceToClient.ClientList,
+                        ConsultantRoleList = model.CalculatorPriceToClient.ConsultantRoleList,
+                        ConsultantQualityLevelList = model.CalculatorPriceToClient.ConsultantQualityLevelList,
+                        ConsultantSeniorityList = model.CalculatorPriceToClient.ConsultantSeniorityList,
+                        CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM,
                         CalculatorExpensesCostsDistribution = expensesCostsDistributionList
+                    };
+                    CalculatorPriceToConsultantVM cptco = new()
+                    {
+                        Client = model.CalculatorPriceToClient.Client,
+                        ConsultantRoleId = model.CalculatorPriceToClient.ConsultantRoleId,
+                        ConsultantQualityLevelId = model.CalculatorPriceToClient.ConsultantQualityLevelId,
+                        ConsultantSeniorityId = model.CalculatorPriceToClient.ConsultantSeniorityId,
+                        GreenPercentageInResults = greenProfitPercentage,
+                        MinProfitSetPercentage = (decimal)globalConfiguration.MinimumGlobalProfit,
+                        MaxProfitSetPercentage = maxProfitSetPercentage,
+                        ClientList = model.CalculatorPriceToClient.ClientList,
+                        ConsultantRoleList = model.CalculatorPriceToClient.ConsultantRoleList,
+                        ConsultantQualityLevelList = model.CalculatorPriceToClient.ConsultantQualityLevelList,
+                        ConsultantSeniorityList = model.CalculatorPriceToClient.ConsultantSeniorityList,
+                        CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM,
+                        CalculatorExpensesCostsDistribution = expensesCostsDistributionList
+                    };
+                    CalculatorCCVM cvm = new()
+                    {
+                        CalculatorPriceToClient = cptc,
+                        CalculatorPriceToConsultant = cptco,
+                        CalculatorClient = model.CalculatorClient
                     };
 
                     TempData["result"] = "success";
@@ -577,15 +647,429 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             else
             {
                 //MODEL TO RETURN
-                CalculatorVM cvm = new()
+                CalculatorPriceToClientVM cptc = new()
                 {
-                    Client = model.Client,
-                    ConsultantRoleId = model.ConsultantRoleId,
-                    ConsultantQualityLevelId = model.ConsultantQualityLevelId,
-                    ClientList = model.ClientList,
-                    ConsultantRoleList = model.ConsultantRoleList,
-                    ConsultantQualityLevelList = model.ConsultantQualityLevelList,
-                    CalculatorCostCenterUserConfigurationVM = model.CalculatorCostCenterUserConfigurationVM
+                    Client = model.CalculatorPriceToClient.Client,
+                    ConsultantRoleId = model.CalculatorPriceToClient.ConsultantRoleId,
+                    ConsultantQualityLevelId = model.CalculatorPriceToClient.ConsultantQualityLevelId,
+                    ConsultantSeniorityId = model.CalculatorPriceToClient.ConsultantSeniorityId,
+                    ClientList = model.CalculatorPriceToClient.ClientList,
+                    ConsultantRoleList = model.CalculatorPriceToClient.ConsultantRoleList,
+                    ConsultantQualityLevelList = model.CalculatorPriceToClient.ConsultantQualityLevelList,
+                    ConsultantSeniorityList = model.CalculatorPriceToClient.ConsultantSeniorityList,
+                    CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM
+                };
+                CalculatorPriceToConsultantVM cptco = new()
+                {
+                    Client = model.CalculatorPriceToClient.Client,
+                    ConsultantRoleId = model.CalculatorPriceToClient.ConsultantRoleId,
+                    ConsultantQualityLevelId = model.CalculatorPriceToClient.ConsultantQualityLevelId,
+                    ConsultantSeniorityId = model.CalculatorPriceToClient.ConsultantSeniorityId,
+                    ClientList = model.CalculatorPriceToClient.ClientList,
+                    ConsultantRoleList = model.CalculatorPriceToClient.ConsultantRoleList,
+                    ConsultantQualityLevelList = model.CalculatorPriceToClient.ConsultantQualityLevelList,
+                    ConsultantSeniorityList = model.CalculatorPriceToClient.ConsultantSeniorityList,
+                    CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM
+                };
+                CalculatorCCVM cvm = new()
+                {
+                    CalculatorPriceToClient = cptc,
+                    CalculatorPriceToConsultant = cptco,
+                    CalculatorClient = model.CalculatorClient
+                };
+                return View("Index", cvm);
+            }
+        }
+
+        //POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CalculatePriceToConsultant(CalculatorCCVM model)
+        {
+            if (model.CalculatorPriceToConsultant.ConsultantRoleId != null)
+            {
+                try
+                {
+                    var seniorityList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(int.Parse(model.CalculatorPriceToConsultant.ConsultantRoleId));
+                    foreach (var seniority in seniorityList)
+                    {
+                        model.CalculatorPriceToConsultant.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Name, Value = seniority.Value });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            }
+
+            if (model.CalculatorPriceToConsultant.ConsultantRoleId != null)
+            {
+                TempData["formSubmited"] = "submited";
+            }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var claimsIdentity = (ClaimsIdentity)User.Identity;
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var globalConfiguration = _unitOfWork.CalculatorGlobalConfiguration.GetGlobalConfiguration();
+                    DateTime finalDate = Convert.ToDateTime("" + globalConfiguration.EndDate.Month + "/" + globalConfiguration.EndDate.Day + "/" + globalConfiguration.EndDate.Year + " 11:59:59 pm");
+                    var costOfSalesAccountingAccounts = await _unitOfWork.LedgerMovements
+                                   .GetAccountingAccountsWithBalance("5", globalConfiguration.StartDate, finalDate, 1, "D");
+                    var expensesAccountingAccounts = await _unitOfWork.LedgerMovements
+                                   .GetAccountingAccountsWithBalance("6", globalConfiguration.StartDate, finalDate, 1, "D");
+                    var returnsAndDiscountsAccountingAccounts = await _unitOfWork.LedgerMovements.GetAccountingAccountsReturnsAndDiscountsWithBalance(
+                        globalConfiguration.StartDate, finalDate, 1);
+                    Decimal totalCostOfSales = 0;
+                    Decimal totalExpenses = 0;
+                    Decimal totalReturnsAndDiscounts = 0;
+                    int userIsMasterOrAdmin = 0;
+                    var userRoles = HttpContext.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
+
+                    Double numMonths = ((finalDate - globalConfiguration.StartDate).TotalDays) / 30;
+
+                    List<CalculatorExpensesCostsDistribution> expensesCostsDistributionList = new List<CalculatorExpensesCostsDistribution>();
+
+                    foreach (var role in userRoles)
+                    {
+                        if (role == SD.Role_User_Master || role == SD.Role_User_Admin)
+                        {
+                            userIsMasterOrAdmin++;
+                        }
+                    }
+                    Collection<CalculatorCostCenterUserConfigurationVM> costCenterList = new Collection<CalculatorCostCenterUserConfigurationVM>();
+
+                    if (userIsMasterOrAdmin > 0)
+                    {
+                        costCenterList = model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM;
+                    }
+                    else
+                    {
+                        var costsCenters = _unitOfWork.CenterOfCosts.GetCostCenterOfExpenses();
+                        foreach (var costCenter in costsCenters)
+                        {
+                            CalculatorCostCenterUserConfigurationVM costC = new()
+                            {
+                                CostCenterId = costCenter.CostCenterId,
+                                Description = costCenter.Description,
+                                Active = true
+                            };
+                            costCenterList.Add(costC);
+                        }
+                    }
+
+                    foreach (var costCenter in costCenterList)
+                    {
+                        bool validateCostCenter = false;
+                        int? idCostCenter = null;
+                        if (userIsMasterOrAdmin > 0)
+                        {
+                            validateCostCenter = true;
+                        }
+                        if (validateCostCenter)
+                        {
+                            if (costCenter.Active)
+                            {
+                                idCostCenter = costCenter.CostCenterId;
+                            }
+                            else
+                            {
+                                idCostCenter = null;
+                            }
+                        }
+                        else
+                        {
+                            idCostCenter = costCenter.CostCenterId;
+                        }
+                        if (idCostCenter != null)
+                        {
+                            //CALCULATE TOTAL COST OF SALES
+                            foreach (var accountingAccount in costOfSalesAccountingAccounts)
+                            {
+                                if (accountingAccount.CostCenterId == idCostCenter)
+                                {
+                                    Decimal amountByCostCenter = 0;
+                                    Decimal totalAmountByCostCenterAfterPercentage = 0;
+
+                                    amountByCostCenter += accountingAccount.TotalAmount;
+                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
+                                    totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
+                                        + (amountByCostCenter
+                                        * ((decimal)percentageIncrease / 100));
+                                    if (amountByCostCenter > 0)
+                                    {
+                                        expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
+                                        {
+                                            AccountingAccountId = accountingAccount.AccountingAccountId,
+                                            AccountingAccountCode = accountingAccount.AccountingAccountCode,
+                                            AccountingAccountName = accountingAccount.AccountingAccountName,
+                                            Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                            CostCenterName = costCenter.Description,
+                                            increasePercentage = percentageIncrease,
+                                            increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                            CompanyId = costCenter.CompanyId
+                                        });
+                                    }
+                                    totalCostOfSales = totalCostOfSales + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
+                                }
+                            }
+                            //CALCULATE TOTAL EXPENSES
+                            foreach (var accountingAccount in expensesAccountingAccounts)
+                            {
+                                if (accountingAccount.CostCenterId == idCostCenter)
+                                {
+                                    Decimal amountByCostCenter = 0;
+                                    Decimal totalAmountByCostCenterAfterPercentage = 0;
+
+                                    amountByCostCenter += accountingAccount.TotalAmount;
+
+                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
+                                    totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
+                                        + (amountByCostCenter * ((decimal)percentageIncrease / 100));
+                                    if (amountByCostCenter > 0)
+                                    {
+                                        if (userIsMasterOrAdmin > 0)
+                                        {
+                                            expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
+                                            {
+                                                AccountingAccountId = accountingAccount.AccountingAccountId,
+                                                AccountingAccountCode = accountingAccount.AccountingAccountCode,
+                                                AccountingAccountName = accountingAccount.AccountingAccountName,
+                                                Amount = (((decimal)amountByCostCenter + (decimal)totalAmountByCostCenterAfterPercentage) / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                                CostCenterName = costCenter.Description,
+                                                increasePercentage = percentageIncrease,
+                                                increaseAmount = ((decimal)totalAmountByCostCenterAfterPercentage / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                                CompanyId = costCenter.CompanyId
+                                            });
+                                        }
+                                    }
+                                    totalExpenses = totalExpenses + amountByCostCenter + totalAmountByCostCenterAfterPercentage;
+                                }
+                            }
+                        }
+                    }
+                    //CALCULATE TOTAL RETURNS AND DISCOUNTS
+                    foreach (var accountingAccount in returnsAndDiscountsAccountingAccounts)
+                    {
+                        Decimal amount = 0;
+
+                        amount += accountingAccount.TotalAmount;
+                        if (amount > 0)
+                        {
+                            if (userIsMasterOrAdmin > 0)
+                            {
+                                expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
+                                {
+                                    AccountingAccountId = accountingAccount.AccountingAccountId,
+                                    AccountingAccountCode = accountingAccount.AccountingAccountCode,
+                                    AccountingAccountName = accountingAccount.AccountingAccountName,
+                                    Amount = ((decimal)amount / (decimal)numMonths) / (decimal)globalConfiguration.PeopleNumber,
+                                    CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
+                                    increasePercentage = 0,
+                                    increaseAmount = 0,
+                                    CompanyId = "OCE"
+                                });
+                            }
+                        }
+                        totalReturnsAndDiscounts = totalReturnsAndDiscounts + amount;
+                    }
+
+                    double daysYear = 0;
+                    double vacationDays = 0;
+                    if (model.CalculatorPriceToConsultant.DaysYear != null)
+                    {
+                        daysYear = (double)model.CalculatorPriceToConsultant.DaysYear;
+                    }
+                    if (model.CalculatorPriceToConsultant.VacationDays != null)
+                    {
+                        vacationDays = (double)model.CalculatorPriceToConsultant.VacationDays;
+                    }
+
+                    Decimal subtotalExpenses = ((totalCostOfSales + totalExpenses + totalReturnsAndDiscounts) / (decimal)numMonths) / globalConfiguration.PeopleNumber;
+                    TempData["subtotalExpenses"] = subtotalExpenses.ToString("#,##0.00");
+                    Decimal appliedAmountGlobalIncrease = ((subtotalExpenses) * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100));
+                    TempData["appliedAmountGlobalIncrease"] = appliedAmountGlobalIncrease.ToString("#,##0.00");
+                    Decimal totalAmountOfExpensesAndCosts = subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
+
+                    TempData["totalAmountOfExpensesAndCosts"] = (subtotalExpenses + appliedAmountGlobalIncrease).ToString("#,##0.00");
+
+                    var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
+                    x.ConsultantRoleId == int.Parse(model.CalculatorPriceToConsultant.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.CalculatorPriceToConsultant.ConsultantQualityLevelId)
+                    && x.ConsultantSeniorityId == int.Parse(model.CalculatorPriceToConsultant.ConsultantSeniorityId));
+
+                    //GET PRICE TO CONSULTANT
+                    Decimal amountToChargeToClient = (((Decimal)globalConfiguration.NumLaborDaysInMonth * 8) * (Decimal)model.CalculatorPriceToConsultant.ClientAmount);
+
+                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == int.Parse(model.CalculatorPriceToConsultant.Client));
+                    if (client != null)
+                    {
+                        Decimal percentageProfitGreen = 0;
+                        Decimal percentageProfitYellow = 0;
+                        if (client.ClientClass == "A")
+                        {
+                            percentageProfitGreen = (decimal)globalConfiguration.ProfitGreenClientAAA / 100;
+                            percentageProfitYellow = (decimal)globalConfiguration.ProfitYellowClientAAA / 100;
+                            TempData["clientCategory"] = "AAA";
+                        }
+                        else if (client.ClientClass == "B")
+                        {
+                            percentageProfitGreen = (decimal)globalConfiguration.ProfitGreenClientAA / 100;
+                            percentageProfitYellow = (decimal)globalConfiguration.ProfitYellowClientAA / 100;
+                            TempData["clientCategory"] = "AA";
+                        }
+                        else if (client.ClientClass == "C")
+                        {
+                            percentageProfitGreen = (decimal)globalConfiguration.ProfitGreenPartner / 100;
+                            percentageProfitYellow = (decimal)globalConfiguration.ProfitYellowPartner / 100;
+                            TempData["clientCategory"] = "Partner";
+                        }
+
+                        TempData["greenProfitPercentage"] = (percentageProfitGreen * 100).ToString("#,##0.00");
+                        TempData["yellowProfitPercentage"] = (percentageProfitYellow * 100).ToString("#,##0.00");
+
+                        Decimal totalMonthlyAmountToPayToConsultantGreen = (amountToChargeToClient - (amountToChargeToClient * percentageProfitGreen));
+                        Decimal hourlyRateToPayToConsultantGreen = (totalMonthlyAmountToPayToConsultantGreen / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
+                        Decimal vacationsMonthlyAmountGreen = ((((decimal)vacationDays * 8) * hourlyRateToPayToConsultantGreen) / 12);
+                        Decimal holidaysMonthlyAmountGreen = ((((decimal)daysYear * 8) * hourlyRateToPayToConsultantGreen) / 12);
+                        Decimal resultMontlyAmountToPayToConsultantGreen = totalMonthlyAmountToPayToConsultantGreen - vacationsMonthlyAmountGreen - holidaysMonthlyAmountGreen - totalAmountOfExpensesAndCosts;
+                        TempData["resultMontlyAmountToPayToConsultantGreen"] = resultMontlyAmountToPayToConsultantGreen.ToString("#,##0.00");
+                        TempData["greenProfitAmount"] = (amountToChargeToClient * percentageProfitGreen).ToString("#,##0.00");
+
+                        Decimal totalMonthlyAmountToPayToConsultantYellow = (amountToChargeToClient - (amountToChargeToClient * percentageProfitYellow));
+                        Decimal hourlyRateToPayToConsultantYellow = (totalMonthlyAmountToPayToConsultantYellow / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
+                        Decimal vacationsMonthlyAmountYellow = ((((decimal)vacationDays * 8) * hourlyRateToPayToConsultantYellow) / 12);
+                        Decimal holidaysMonthlyAmountYellow = ((((decimal)daysYear * 8) * hourlyRateToPayToConsultantYellow) / 12);
+                        Decimal resultMontlyAmountToPayToConsultantYellow = totalMonthlyAmountToPayToConsultantYellow - vacationsMonthlyAmountYellow - holidaysMonthlyAmountYellow - totalAmountOfExpensesAndCosts;
+                        TempData["resultMontlyAmountToPayToConsultantYellow"] = "$" + (resultMontlyAmountToPayToConsultantGreen + 1).ToString("#,##0.00") + " - " + "$" + resultMontlyAmountToPayToConsultantYellow.ToString("#,##0.00");
+                        TempData["yellowProfitAmount"] = (amountToChargeToClient * percentageProfitYellow).ToString("#,##0.00");
+
+                        TempData["maxAmountToPayToConsultant"] = "$" + clientRateAndConsultantAmount.ConsultantMaximumAmount.ToString("#,##0.00");
+                        TempData["maximumRateToChargeClient"] = "$" + clientRateAndConsultantAmount.ClientRateMaximumAmount.ToString("#,##0.00");
+
+                        if (resultMontlyAmountToPayToConsultantYellow > clientRateAndConsultantAmount.ConsultantMaximumAmount)
+                        {
+                            TempData["warningMessageConsultant"] = "success";
+                            TempData["recommendedAmountToPayToConsultant2"] = "$" + clientRateAndConsultantAmount.ConsultantMaximumAmount.ToString("#,##0.00");
+                        }
+                        if ((decimal)model.CalculatorPriceToConsultant.ClientAmount > clientRateAndConsultantAmount.ClientRateMaximumAmount)
+                        {
+                            TempData["warningMessageConsultant"] = "success";
+                            TempData["maximumClientRate"] = "$" + clientRateAndConsultantAmount.ClientRateMaximumAmount.ToString("#,##0.00");
+                        }
+                    }
+                    else
+                    {
+                        TempData["error"] = "El cliente no fue encontrado";
+                        return View("Index", model);
+                    }
+
+                    if (userIsMasterOrAdmin > 0)
+                    {
+                        TempData["subtotalExpenses"] = subtotalExpenses.ToString("#,##0.00");
+                        TempData["appliedAmountGlobalIncrease"] = "(" + globalConfiguration.AdditionalGlobalIncrease + "%): $" + appliedAmountGlobalIncrease.ToString("#,##0.00");
+                        TempData["totalAmountOfExpensesAndCosts"] = totalAmountOfExpensesAndCosts.ToString("#,##0.00");
+
+                        if (appliedAmountGlobalIncrease > 0)
+                        {
+                            expensesCostsDistributionList.Add(new CalculatorExpensesCostsDistribution
+                            {
+                                AccountingAccountId = 0,
+                                AccountingAccountCode = "NO APLICA",
+                                AccountingAccountName = "Monto Aumento Global Aplicado",
+                                Amount = appliedAmountGlobalIncrease,
+                                CostCenterName = "NO ASIGNADO A CENTRO DE COSTO",
+                                increasePercentage = 0,
+                                increaseAmount = 0,
+                                CompanyId = "OCE"
+                            });
+                        }
+                        expensesCostsDistributionList.Sort((p, q) => p.AccountingAccountCode.CompareTo(q.AccountingAccountCode));
+                    }
+
+                    // SAVE SEARCH HISTORY
+                    CalculatorSearchHistory searchHistory = new()
+                    {
+                        SearchDate = DateTime.Now,
+                        SearchByUserId = claim.Value,
+                        SearchFrom = "Calcula pago al consultor"
+                    };
+                    _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
+                    _unitOfWork.Save();
+
+                    //MODEL TO RETURN
+                    CalculatorPriceToConsultantVM cptco = new()
+                    {
+                        Client = model.CalculatorPriceToConsultant.Client,
+                        ConsultantRoleId = model.CalculatorPriceToConsultant.ConsultantRoleId,
+                        ConsultantQualityLevelId = model.CalculatorPriceToConsultant.ConsultantQualityLevelId,
+                        ConsultantSeniorityId = model.CalculatorPriceToConsultant.ConsultantSeniorityId,
+                        ClientList = model.CalculatorPriceToConsultant.ClientList,
+                        ConsultantRoleList = model.CalculatorPriceToConsultant.ConsultantRoleList,
+                        ConsultantQualityLevelList = model.CalculatorPriceToConsultant.ConsultantQualityLevelList,
+                        ConsultantSeniorityList = model.CalculatorPriceToConsultant.ConsultantSeniorityList,
+                        CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM,
+                        CalculatorExpensesCostsDistribution = expensesCostsDistributionList
+                    };
+                    CalculatorPriceToClientVM cptc = new()
+                    {
+                        Client = model.CalculatorPriceToConsultant.Client,
+                        ConsultantRoleId = model.CalculatorPriceToConsultant.ConsultantRoleId,
+                        ConsultantQualityLevelId = model.CalculatorPriceToConsultant.ConsultantQualityLevelId,
+                        ConsultantSeniorityId = model.CalculatorPriceToConsultant.ConsultantSeniorityId,
+                        ClientList = model.CalculatorPriceToConsultant.ClientList,
+                        ConsultantRoleList = model.CalculatorPriceToConsultant.ConsultantRoleList,
+                        ConsultantQualityLevelList = model.CalculatorPriceToConsultant.ConsultantQualityLevelList,
+                        ConsultantSeniorityList = model.CalculatorPriceToConsultant.ConsultantSeniorityList,
+                        CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM,
+                    };
+                    CalculatorCCVM cvm = new()
+                    {
+                        CalculatorPriceToClient = cptc,
+                        CalculatorPriceToConsultant = cptco,
+                        CalculatorClient = model.CalculatorClient
+                    };
+
+                    TempData["resultConsultant"] = "success";
+
+                    return View("Index", cvm);
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
+            }
+            else
+            {
+                //MODEL TO RETURN
+                CalculatorPriceToConsultantVM cptco = new()
+                {
+                    Client = model.CalculatorPriceToConsultant.Client,
+                    ConsultantRoleId = model.CalculatorPriceToConsultant.ConsultantRoleId,
+                    ConsultantQualityLevelId = model.CalculatorPriceToConsultant.ConsultantQualityLevelId,
+                    ConsultantSeniorityId = model.CalculatorPriceToConsultant.ConsultantSeniorityId,
+                    ClientList = model.CalculatorPriceToConsultant.ClientList,
+                    ConsultantRoleList = model.CalculatorPriceToConsultant.ConsultantRoleList,
+                    ConsultantQualityLevelList = model.CalculatorPriceToConsultant.ConsultantQualityLevelList,
+                    ConsultantSeniorityList = model.CalculatorPriceToConsultant.ConsultantSeniorityList,
+                    CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM
+                };
+                CalculatorPriceToClientVM cptc = new()
+                {
+                    Client = model.CalculatorPriceToConsultant.Client,
+                    ConsultantRoleId = model.CalculatorPriceToConsultant.ConsultantRoleId,
+                    ConsultantQualityLevelId = model.CalculatorPriceToConsultant.ConsultantQualityLevelId,
+                    ConsultantSeniorityId = model.CalculatorPriceToConsultant.ConsultantSeniorityId,
+                    ClientList = model.CalculatorPriceToConsultant.ClientList,
+                    ConsultantRoleList = model.CalculatorPriceToConsultant.ConsultantRoleList,
+                    ConsultantQualityLevelList = model.CalculatorPriceToConsultant.ConsultantQualityLevelList,
+                    ConsultantSeniorityList = model.CalculatorPriceToConsultant.ConsultantSeniorityList,
+                    CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM,
+                };
+                CalculatorCCVM cvm = new()
+                {
+                    CalculatorPriceToClient = cptc,
+                    CalculatorPriceToConsultant = cptco,
+                    CalculatorClient = model.CalculatorClient
                 };
                 return View("Index", cvm);
             }

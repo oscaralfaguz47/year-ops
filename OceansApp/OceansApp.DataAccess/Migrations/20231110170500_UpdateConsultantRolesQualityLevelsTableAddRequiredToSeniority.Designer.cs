@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231110170500_UpdateConsultantRolesQualityLevelsTableAddRequiredToSeniority")]
+    partial class UpdateConsultantRolesQualityLevelsTableAddRequiredToSeniority
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -370,10 +372,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("SearchDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SearchFrom")
-                        .HasMaxLength(35)
-                        .HasColumnType("nvarchar(35)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SearchByUserId");
@@ -515,14 +513,14 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("ConsultantQualityLevelId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ConsultantSeniorityId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("ClientRateMaximumAmount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ConsultantMaximumAmount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ConsultantSeniorityId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(450)
@@ -534,7 +532,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("ConsultantRoleId", "ConsultantQualityLevelId", "ConsultantSeniorityId");
+                    b.HasKey("ConsultantRoleId", "ConsultantQualityLevelId");
 
                     b.HasIndex("ConsultantQualityLevelId");
 

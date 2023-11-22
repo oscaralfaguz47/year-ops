@@ -10,6 +10,8 @@ namespace OceansApp.Models.Models
         public int Id { get; set; }
         [Required]
         public DateTime SearchDate { get; set; }
+        [MaxLength(35)]
+        public string? SearchFrom { get; set; }
         [Required]
         [MaxLength(450)]
         public string SearchByUserId { get; set; }

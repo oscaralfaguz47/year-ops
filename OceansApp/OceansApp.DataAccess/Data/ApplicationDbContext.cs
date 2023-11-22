@@ -36,7 +36,12 @@ namespace OceansApp.DataAccess.Data
                 .HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
 
             modelBuilder.Entity<ConsultantRolesQualityLevels>()
-                .HasKey(rq => new {rq.ConsultantRoleId, rq.ConsultantQualityLevelId});
+                .HasKey(rq => new { rq.ConsultantRoleId, rq.ConsultantQualityLevelId, rq.ConsultantSeniorityId });
+            modelBuilder.Entity<ConsultantRolesQualityLevels>()
+                .HasOne(rq => rq.ConsultantSeniority)
+                .WithMany()
+                .HasForeignKey(rq => rq.ConsultantSeniorityId)
+                .IsRequired();
 
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
@@ -58,6 +63,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
+        public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }

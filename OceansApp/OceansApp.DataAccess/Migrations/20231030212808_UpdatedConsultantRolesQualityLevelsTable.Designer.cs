@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231030212808_UpdatedConsultantRolesQualityLevelsTable")]
+    partial class UpdatedConsultantRolesQualityLevelsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -370,10 +372,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("SearchDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SearchFrom")
-                        .HasMaxLength(35)
-                        .HasColumnType("nvarchar(35)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SearchByUserId");
@@ -515,9 +513,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("ConsultantQualityLevelId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ConsultantSeniorityId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("ClientRateMaximumAmount")
                         .HasColumnType("decimal(18,2)");
 
@@ -534,33 +529,13 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("ConsultantRoleId", "ConsultantQualityLevelId", "ConsultantSeniorityId");
+                    b.HasKey("ConsultantRoleId", "ConsultantQualityLevelId");
 
                     b.HasIndex("ConsultantQualityLevelId");
-
-                    b.HasIndex("ConsultantSeniorityId");
 
                     b.HasIndex("UpdatedBy");
 
                     b.ToTable("CONSULTANT_ROLES_QUALITY_LEVELS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantSeniority", b =>
-                {
-                    b.Property<int>("ConsultantSeniorityId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantSeniorityId"), 1L, 1);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("ConsultantSeniorityId");
-
-                    b.ToTable("CONSULTANT_SENIORITIS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CostCenter", b =>
@@ -1194,12 +1169,6 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OceansApp.Models.Models.ConsultantSeniority", "ConsultantSeniority")
-                        .WithMany()
-                        .HasForeignKey("ConsultantSeniorityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("UpdatedBy");
@@ -1209,8 +1178,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantQualityLevel");
 
                     b.Navigation("ConsultantRole");
-
-                    b.Navigation("ConsultantSeniority");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.DataUpdateDate", b =>
