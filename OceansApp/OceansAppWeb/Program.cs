@@ -8,6 +8,8 @@ using OceansApp.DataAccess.DbInitializer;
 using OceansApp.DataAccess.Repository;
 using OceansApp.Utility.Email;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Antiforgery;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,8 +28,12 @@ builder.Services.Configure<IdentityOptions>(opt =>
 {
     opt.Password.RequiredLength = 8;
     opt.Password.RequireLowercase = true;
+    opt.Password.RequireUppercase = true;
+    opt.Password.RequireDigit = true;
+    opt.Password.RequireNonAlphanumeric = true;
+    opt.Password.RequiredUniqueChars = 6;
     opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-    opt.Lockout.MaxFailedAccessAttempts = 5;
+    opt.Lockout.MaxFailedAccessAttempts = 7;
 });
 
 builder.Services.Configure<FormOptions>(options =>
@@ -46,25 +52,34 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Utiliza 'Always' para forzar cookies seguras en producción.
-    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // secured coolies on production 
+    options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.IsEssential = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(500); // Establece la duración de la sesión según sea necesario.
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(500); 
     options.SlidingExpiration = true;
     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
 });
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5); // Ajusta el tiempo según tus necesidades
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // Ajusta el tiempo según tus necesidades
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5); 
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
+    options.AddServerHeader = false;
 });
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // ajusta el valor según tus necesidades
+    options.IdleTimeout = TimeSpan.FromMinutes(30); 
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
+
+// CORS configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://oceansapp.azurewebsites.net/"));
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -79,6 +94,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("AllowSpecificOrigin");
+
 SeedDatabase();
 app.UseMiddleware<RedirectToDashboardMiddleware>();
 
