@@ -22,7 +22,7 @@
                 <input type="checkbox" id="toggle" @(Model.CalculatorClient ? "checked" : "")>
                 <span class="slider"></span>
             </label>
-            <label>Apaga para calcular el rate a pagar al consultor</label>
+            <label id="switch-label">Apaga para calcular el rate al Consultor</label>
         </div>
 
         <!-- Calculate price to Client by Consultant value -->
@@ -471,38 +471,38 @@
 
             <div id="warning-message-client" style="display:none">
                 <div id="warning-message">
-                <div class="container">
-                    <div class="warning-message-container">
-                        <div>
-                            @if (TempData["result"] != null)
-                            {
-                                @if (TempData["messageProfitLessThanConfig"] != null)
+                    <div class="container">
+                        <div class="warning-message-container">
+                            <div>
+                                @if (TempData["result"] != null)
                                 {
-                                    <div id="warning-message-cont">
+                                    @if (TempData["messageProfitLessThanConfig"] != null)
+                                    {
+                                        <div id="warning-message-cont">
 
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                        <div class="body-mess-cont">
-                                            <h2>
-                                                Vaya!, parece que ingresaste un monto muy alto para el puesto y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
-                                            </h2>
-                                            <ul>
-                                                <li>
-                                                    <i class="bi bi-check-lg"></i> Ofrecele un monto menor a: <strong>$@TempData["recommendedAmountToPayToConsultant"]</strong> a pagar mensualmente respetando un porcentage aceptable en la batería.
-                                                </li>
-                                                <li>
-                                                    <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el consultor
-                                                    está pidiendo un monto alto, ya que esta oferta es la más alta y la utilidad que se obtiene es la más baja.
-                                                </li>
-                                            </ul>
-                                            <button onclick="hideWarningMessageClient()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            <div class="body-mess-cont">
+                                                <h2>
+                                                    Vaya!, parece que ingresaste un monto muy alto para el puesto y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
+                                                </h2>
+                                                <ul>
+                                                    <li>
+                                                        <i class="bi bi-check-lg"></i> Ofrecele un monto menor a: <strong>$@TempData["recommendedAmountToPayToConsultant"]</strong> a pagar mensualmente respetando un porcentage aceptable en la batería.
+                                                    </li>
+                                                    <li>
+                                                        <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el consultor
+                                                        está pidiendo un monto alto, ya que esta oferta es la más alta y la utilidad que se obtiene es la más baja.
+                                                    </li>
+                                                </ul>
+                                                <button onclick="hideWarningMessageClient()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    }
                                 }
-                            }
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
 
@@ -697,22 +697,22 @@
                 {
                     <hr />
                     <div class="row">
-                     @*   <div class="col-lg-6 box-border-right">
+                        @*   <div class="col-lg-6 box-border-right">
                             <div class="row">
-                                <div class="container financial-performance" style="display:flex">
-                                    <div class="battery">
-                                        <div class="battery-border"></div>
-                                        <div class="battery-level"></div>
-                                    </div>
-                                    <div>
-                                        <h6>RENDIMIENTO FINANCIERO</h6>
-                                        <p class="battery-first-message"></p>
-                                        <p class="baterry-message-box"></p>
-                                    </div>
-                                </div>
+                            <div class="container financial-performance" style="display:flex">
+                            <div class="battery">
+                            <div class="battery-border"></div>
+                            <div class="battery-level"></div>
                             </div>
-                        </div>*@
-                        <div class="col-lg-12">
+                            <div>
+                            <h6>RENDIMIENTO FINANCIERO</h6>
+                            <p class="battery-first-message"></p>
+                            <p class="baterry-message-box"></p>
+                            </div>
+                            </div>
+                            </div>
+                            </div>*@
+                        <div class="col-lg-6">
                             <div class="row">
                                 <div class="client-proposal" style="display:flex; justify-content: center;">
                                     <div>
@@ -727,7 +727,7 @@
                                             </tr>
                                             <tr>
                                                 <td>Rate ideal mensual:</td>
-                                                <td>@TempData["resultMontlyAmountToPayToConsultantGreen"]</td>
+                                                <td>$@TempData["resultMontlyAmountToPayToConsultantGreen"]</td>
                                             </tr>
                                             <tr class="bg-gray">
                                                 <td>Rate negociable mensual:</td>
@@ -736,6 +736,15 @@
                                         </table>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                             <h6 style="margin-left:0">NOTAS PARA GUÍAS</h6>
+                            <div>
+                                 <p>El monto MÁXIMO a pagar al consultor según la administración de acuerdo a las características del consultor que seleccionaste,
+                                     es de: <strong>@TempData["maxAmountToPayToConsultant"]</strong>, siempre y cuando le cobres al cliente: 
+                                     <strong>@TempData["maximumRateToChargeClient"]</strong> o más. Procura no ofrecerle al consultor más de eso.
+                                 </p>
                             </div>
                         </div>
                     </div>
@@ -757,19 +766,19 @@
                                     </tr>
                                     <tr>
                                         <td>Utilidad ideal:</td>
-                                        <td>@TempData["greenProfitPercentage"]</td>
+                                        <td>@TempData["greenProfitAmount"]</td>
                                     </tr>
                                     <tr class="bg-gray">
                                         <td>% Utilidad ideal:</td>
-                                        <td>@TempData["greenProfitPercentage"]</td>
+                                        <td>@TempData["greenProfitPercentage"]%</td>
                                     </tr>
                                     <tr>
                                         <td>Utilidad negociable:</td>
-                                        <td>@TempData["yellowProfitPercentage"]</td>
+                                        <td>@TempData["yellowProfitAmount"]</td>
                                     </tr>
                                     <tr class="bg-gray">
                                         <td>% Utilidad negociable</td>
-                                        <td>@TempData["yellowProfitPercentage"]</td>
+                                        <td>@TempData["yellowProfitPercentage"]%</td>
                                     </tr>
                                 </table>
                             </div>
@@ -835,35 +844,42 @@
                 }
             }
 
-           <div id="warning-message-consultant" style="display:none">
+            <div id="warning-message-consultant" style="display:none">
                 <div id="warning-message">
-                <div class="container">
-                    <div class="warning-message-container">
-                        <div>
-                            <div id="warning-message-cont">
+                    <div class="container">
+                        <div class="warning-message-container">
+                            <div>
+                                <div id="warning-message-cont">
 
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                <div class="body-mess-cont">
-                                    <h2>
-                                        Vaya!, parece que tenemos una alerta, ingresaste un monto muy alto para este cliente y la clasificación del consultor que seleccionaste, te recomiendo lo siguiente:
-                                    </h2>
-                                    <ul>
-                                        <li>
-                                            <i class="bi bi-check-lg"></i> Ofrecele un monto menor o igual a: <strong>@TempData["recommendedAmountToPayToConsultant"]</strong> a cobrar por hora respetando un porcentage aceptable en la batería.
-                                        </li>
-                                        <li>
-                                            <i class="bi bi-exclamation-triangle"></i> Por favor ten presente que esta recomendación es para el último de los casos, aplica solamente si el cliente
-                                            está pidiendo algún tipo de descuento, ya que esta oferta es la más baja y la utilidad que se obtiene es la más baja.
-                                        </li>
-                                    </ul>
-                                    <button onclick="hideWarningMessageConsultant()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <div class="body-mess-cont">
+                                        <h2>
+                                            Vaya!, parece que tenemos una alerta, por favor mira los siguientes puntos:
+                                        </h2>
+                                        <ul>
+                                            @if (TempData["recommendedAmountToPayToConsultant2"] != null)
+                                            {
+                                                <li>
+                                                    <i class="bi bi-exclamation-triangle"></i>Puedo ver que la mejor oferta a ofrecer al consultor sobrepasa el monto establecido por la administración para su rol, Seniority y clasificación, considera no pagarle más de:
+                                                    <strong>@TempData["recommendedAmountToPayToConsultant2"]</strong> mensual.
+                                                </li>
+                                            }
+                                            @if (TempData["maximumClientRate"] != null)
+                                            {
+                                                <li>
+                                                    <i class="bi bi-exclamation-triangle"></i>Puedo ver que el precio que ingresaste a cobrar al cliente sobrepasa el monto establecido por la administración para el rol, Seniority y clasificación del consultor seleccionado, considera no cobrarle al cliente más de:
+                                                    <strong>@TempData["maximumClientRate"]</strong> por hora. Si estás consciente de que a este cliente se le puede cobrar más de lo indicado puedes proceder con el monto que ingresaste.
+                                                </li>
+                                            }
+                                        </ul>
+                                        <button onclick="hideWarningMessageConsultant()" class="btn-primary-submit"><i class="bi bi-hand-thumbs-up"></i> ENTENDIDO</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-           </div>
         </div>
 
     </div>
@@ -1020,7 +1036,6 @@
 </script>
 
 
-//Change Calculator Type
 <script>
               document.getElementById('toggle').addEventListener('change', function() {
              var value = $(this).prop('checked');
@@ -1030,15 +1045,16 @@
               type: 'POST',
               data: { calculatorType: value, __RequestVerificationToken: token },
               success: function (response) {
-                  console.log(response);
-                   var clientDiv = document.getElementById("results-by-client");
-                   var consultantDiv = document.getElementById("results-by-consultant");
+                   var switchLabel = document.getElementById("switch-label");
+
     if (response) {
                           $('#results-by-client').hide();
                            $('#results-by-consultant').show();
+                           switchLabel.textContent = "Apaga para calcular el rate al Consultor";
                        } else {
                            $('#results-by-client').show();
                            $('#results-by-consultant').hide();
+                           switchLabel.textContent = "Enciende para calcular el rate al Cliente";
                        }
               },
               error: function (error) {

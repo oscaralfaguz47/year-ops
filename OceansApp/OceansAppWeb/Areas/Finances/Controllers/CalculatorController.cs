@@ -895,8 +895,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
                     x.ConsultantRoleId == int.Parse(model.CalculatorPriceToConsultant.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.CalculatorPriceToConsultant.ConsultantQualityLevelId)
                     && x.ConsultantSeniorityId == int.Parse(model.CalculatorPriceToConsultant.ConsultantSeniorityId));
-                    bool isProfitLessThanConfig = false;
-                    Decimal recommendedAmountToPayToConsultant = 0;
 
                     //GET PRICE TO CONSULTANT
                     Decimal amountToChargeToClient = (((Decimal)globalConfiguration.NumLaborDaysInMonth * 8) * (Decimal)model.CalculatorPriceToConsultant.ClientAmount);
@@ -925,27 +923,37 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             TempData["clientCategory"] = "Partner";
                         }
 
-                        TempData["greenProfitPercentage"] = percentageProfitGreen;
-                        TempData["yellowProfitPercentage"] = percentageProfitYellow;
+                        TempData["greenProfitPercentage"] = (percentageProfitGreen * 100).ToString("#,##0.00");
+                        TempData["yellowProfitPercentage"] = (percentageProfitYellow * 100).ToString("#,##0.00");
 
                         Decimal totalMonthlyAmountToPayToConsultantGreen = (amountToChargeToClient - (amountToChargeToClient * percentageProfitGreen));
                         Decimal hourlyRateToPayToConsultantGreen = (totalMonthlyAmountToPayToConsultantGreen / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
-                        Decimal vacationsMonthlyAmountGreen = ((((decimal)model.CalculatorPriceToConsultant.VacationDays * 8) * hourlyRateToPayToConsultantGreen) / 12);
-                        Decimal holidaysMonthlyAmountGreen = ((((decimal)model.CalculatorPriceToConsultant.DaysYear * 8) * hourlyRateToPayToConsultantGreen) / 12);
+                        Decimal vacationsMonthlyAmountGreen = ((((decimal)vacationDays * 8) * hourlyRateToPayToConsultantGreen) / 12);
+                        Decimal holidaysMonthlyAmountGreen = ((((decimal)daysYear * 8) * hourlyRateToPayToConsultantGreen) / 12);
                         Decimal resultMontlyAmountToPayToConsultantGreen = totalMonthlyAmountToPayToConsultantGreen - vacationsMonthlyAmountGreen - holidaysMonthlyAmountGreen - totalAmountOfExpensesAndCosts;
-                        TempData["resultMontlyAmountToPayToConsultantGreen"] = resultMontlyAmountToPayToConsultantGreen;
+                        TempData["resultMontlyAmountToPayToConsultantGreen"] = resultMontlyAmountToPayToConsultantGreen.ToString("#,##0.00");
+                        TempData["greenProfitAmount"] = (amountToChargeToClient * percentageProfitGreen).ToString("#,##0.00");
 
                         Decimal totalMonthlyAmountToPayToConsultantYellow = (amountToChargeToClient - (amountToChargeToClient * percentageProfitYellow));
                         Decimal hourlyRateToPayToConsultantYellow = (totalMonthlyAmountToPayToConsultantYellow / ((decimal)globalConfiguration.NumLaborDaysInMonth * 8));
-                        Decimal vacationsMonthlyAmountYellow = ((((decimal)model.CalculatorPriceToConsultant.VacationDays * 8) * hourlyRateToPayToConsultantYellow) / 12);
-                        Decimal holidaysMonthlyAmountYellow = ((((decimal)model.CalculatorPriceToConsultant.DaysYear * 8) * hourlyRateToPayToConsultantYellow) / 12);
+                        Decimal vacationsMonthlyAmountYellow = ((((decimal)vacationDays * 8) * hourlyRateToPayToConsultantYellow) / 12);
+                        Decimal holidaysMonthlyAmountYellow = ((((decimal)daysYear * 8) * hourlyRateToPayToConsultantYellow) / 12);
                         Decimal resultMontlyAmountToPayToConsultantYellow = totalMonthlyAmountToPayToConsultantYellow - vacationsMonthlyAmountYellow - holidaysMonthlyAmountYellow - totalAmountOfExpensesAndCosts;
-                        TempData["resultMontlyAmountToPayToConsultantYellow"] = resultMontlyAmountToPayToConsultantYellow;
+                        TempData["resultMontlyAmountToPayToConsultantYellow"] = "$" + (resultMontlyAmountToPayToConsultantGreen + 1).ToString("#,##0.00") + " - " + "$" + resultMontlyAmountToPayToConsultantYellow.ToString("#,##0.00");
+                        TempData["yellowProfitAmount"] = (amountToChargeToClient * percentageProfitYellow).ToString("#,##0.00");
+
+                        TempData["maxAmountToPayToConsultant"] = "$" + clientRateAndConsultantAmount.ConsultantMaximumAmount.ToString("#,##0.00");
+                        TempData["maximumRateToChargeClient"] = "$" + clientRateAndConsultantAmount.ClientRateMaximumAmount.ToString("#,##0.00");
 
                         if (resultMontlyAmountToPayToConsultantYellow > clientRateAndConsultantAmount.ConsultantMaximumAmount)
                         {
                             TempData["warningMessageConsultant"] = "success";
-                            TempData["recommendedAmountToPayToConsultant"] = "$" + clientRateAndConsultantAmount.ConsultantMaximumAmount.ToString("#,##0.00");
+                            TempData["recommendedAmountToPayToConsultant2"] = "$" + clientRateAndConsultantAmount.ConsultantMaximumAmount.ToString("#,##0.00");
+                        }
+                        if ((decimal)model.CalculatorPriceToConsultant.ClientAmount > clientRateAndConsultantAmount.ClientRateMaximumAmount)
+                        {
+                            TempData["warningMessageConsultant"] = "success";
+                            TempData["maximumClientRate"] = "$" + clientRateAndConsultantAmount.ClientRateMaximumAmount.ToString("#,##0.00");
                         }
                     }
                     else
@@ -959,7 +967,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         TempData["subtotalExpenses"] = subtotalExpenses.ToString("#,##0.00");
                         TempData["appliedAmountGlobalIncrease"] = "(" + globalConfiguration.AdditionalGlobalIncrease + "%): $" + appliedAmountGlobalIncrease.ToString("#,##0.00");
                         TempData["totalAmountOfExpensesAndCosts"] = totalAmountOfExpensesAndCosts.ToString("#,##0.00");
-
 
                         if (appliedAmountGlobalIncrease > 0)
                         {
@@ -976,10 +983,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             });
                         }
                         expensesCostsDistributionList.Sort((p, q) => p.AccountingAccountCode.CompareTo(q.AccountingAccountCode));
-                    }
-                    else
-                    {
-                        expensesCostsDistributionList = null;
                     }
 
                     // SAVE SEARCH HISTORY
@@ -1003,9 +1006,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         ConsultantQualityLevelList = model.CalculatorPriceToConsultant.ConsultantQualityLevelList,
                         ConsultantSeniorityList = model.CalculatorPriceToConsultant.ConsultantSeniorityList,
                         CalculatorCostCenterUserConfigurationVM = model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM,
-                        GreenPercentageInResults = 0.33M,
-                        MinProfitSetPercentage = (decimal)globalConfiguration.MinimumGlobalProfit,
-                        MaxProfitSetPercentage = 0.50M,
                         CalculatorExpensesCostsDistribution = expensesCostsDistributionList
                     };
                     CalculatorPriceToClientVM cptc = new()
