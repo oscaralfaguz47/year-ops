@@ -1,5 +1,4 @@
 ﻿
-
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 
@@ -16,6 +15,7 @@ namespace OceansApp.DataAccess.Repository
             LedgerMovements = new LedgerMovementRepository(_db);
             DataUpdateDates = new DataUpdateRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
+            ApplicationSystemClaim = new ApplicationSystemClaimRepository(_db);
             CalculatorGlobalConfiguration = new CalculatorGlobalConfigurationRepository(_db);
             CalculatorCostCenterIncreaseConfiguration = new CalculatorCostCenterIncreaseConfigurationRepository(_db);
             CalculatorSearchHistory = new CalculatorSearchHistoryRepository(_db);
@@ -37,7 +37,10 @@ namespace OceansApp.DataAccess.Repository
             NotificationStatus = new NotificationStatusRepository(_db);
             NotificationMedia = new NotificationMediaRepository(_db);
             NotificationRecipient = new NotificationRecipientRepository(_db);
+            SystemArea = new SystemAreaRepository(_db);
+            SystemSubArea = new SystemSubAreaRepository(_db);
         }
+        public IApplicationSystemClaimRepository ApplicationSystemClaim { get; private set; }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
         public ILedgerMovementRepository LedgerMovements { get; private set; }
@@ -64,6 +67,8 @@ namespace OceansApp.DataAccess.Repository
         public INotificationStatusRepository NotificationStatus { get; set; }
         public INotificationMediaRepository NotificationMedia { get; set; }
         public INotificationRecipientRepository NotificationRecipient { get; set; }
+        public ISystemAreaRepository SystemArea { get; set; }
+        public ISystemSubAreaRepository SystemSubArea { get; set; }
 
         public void Save()
         {

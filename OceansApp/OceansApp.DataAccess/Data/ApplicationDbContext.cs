@@ -52,6 +52,9 @@ namespace OceansApp.DataAccess.Data
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
         public DbSet<DataUpdateDate> DATA_UPDATE_DATES { get; set; }
         public DbSet<ApplicationUser> AspNetUsers { get; set; }
+        public DbSet<ApplicationRoleClaim> ApplicationRoleClaims { get; set; }
+        public DbSet<ApplicationUserClaim> ApplicationUserClaims { get; set; }
+        public DbSet<ApplicationSystemClaim> APPLICATION_SYSTEM_CLAIMS { get; set; }
         public DbSet<CalculatorGlobalConfiguration> CALCULATOR_GLOBAL_CONFIGURATIONS { get; set; }
         public DbSet<CalculatorCostCenterIncreaseConfiguration> CALCULATOR_COST_CENTER_INCREASE_CONFIGURATIONS { get; set; }
         public DbSet<CalculatorSearchHistory> CALCULATOR_SEARCH_HISTORY { get; set; }
@@ -73,5 +76,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<NotificationMedia> NOTIFICATION_MEDIA { get; set; }
         public DbSet<NotificationRecipient> NOTIFICATION_RECIPIENTS { get; set; }
         public DbSet<DocumentsCCNotification> DOCUMENTS_CC_NOTIFICATIONS { get; set; }
+        public DbSet<SystemArea> SYSTEM_AREAS { get; set; }
+        public DbSet<SystemSubArea> SYSTEM_SUB_AREAS { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
+using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 
 namespace OceansApp.DataAccess.DbInitializer
 {
@@ -40,7 +41,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
             }
 
-            bool createDefaultDataToDatabase = false;
+            bool createDefaultDataToDatabase = true;
 
             if (createDefaultDataToDatabase)
             {
@@ -132,6 +133,75 @@ namespace OceansApp.DataAccess.DbInitializer
                             Name = notType.Name
                         };
                         _db.NOTIFICATION_TYPES.Add(notificationType);
+                    }
+                    _db.SaveChanges();
+                }
+                //Create System Areaas
+
+                if (_db.SYSTEM_AREAS.ToList().Count == 0)
+                {
+                    List<SystemArea> systemAreasList = new List<SystemArea>();
+                    systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
+                    systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
+                    systemAreasList.Add(new SystemArea() { Name = "General" });
+                    systemAreasList.Add(new SystemArea() { Name = "Reporte de Horas" });
+                    systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
+                    systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
+
+                    foreach (var area in systemAreasList)
+                    {
+                        SystemArea sa = new()
+                        {
+                            Name = area.Name
+                        };
+                        _db.SYSTEM_AREAS.Add(sa);
+                    }
+                    _db.SaveChanges();
+                }
+                //Create System Sub Areaas
+
+                if (_db.SYSTEM_SUB_AREAS.ToList().Count == 0)
+                {
+                    List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>();
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Reporte de Horas" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
+
+                    foreach (var subArea in systemSubAreasList)
+                    {
+                        SystemSubArea ssa = new()
+                        {
+                            Name = subArea.Name,
+                            SystemAreaId = subArea.SystemAreaId
+                        };
+                        _db.SYSTEM_SUB_AREAS.Add(ssa);
+                    }
+                    _db.SaveChanges();
+                }
+                //Create Claims
+
+                if (_db.APPLICATION_SYSTEM_CLAIMS.ToList().Count == 0)
+                {
+                    var softlandSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Actualizar Datos desde Softland");
+                    List<ApplicationSystemClaim> systemClaimsList = new List<ApplicationSystemClaim>();
+                    systemClaimsList.Add(new ApplicationSystemClaim() { ClaimType = "DatosSoftland", ClaimValue = "Have access to the update data from Softland section", 
+                        Description = "Tiene acceso a poder actualizar los datos extraídos desde Softland", SystemSubAreaId =  softlandSubAreaId.SystemSubAreaId});
+
+                    foreach (var claim in systemClaimsList)
+                    {
+                        ApplicationSystemClaim asc = new()
+                        {
+                           ClaimType = claim.ClaimType,
+                           ClaimValue = claim.ClaimValue,
+                           Description = claim.Description,
+                           SystemSubAreaId = claim.SystemSubAreaId
+                        };
+                        _db.APPLICATION_SYSTEM_CLAIMS.Add(asc);
                     }
                     _db.SaveChanges();
                 }

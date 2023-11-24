@@ -8,7 +8,6 @@ using OceansApp.DataAccess.DbInitializer;
 using OceansApp.DataAccess.Repository;
 using OceansApp.Utility.Email;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Antiforgery;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +19,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
     ));
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AccessToUpdateDataFromSoftlandSection", policy =>
+        policy.RequireClaim("DatosSoftland", "Have access to the update data from Softland section"));
+});
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<ISendEmailRepository, SendEmailRepository>();

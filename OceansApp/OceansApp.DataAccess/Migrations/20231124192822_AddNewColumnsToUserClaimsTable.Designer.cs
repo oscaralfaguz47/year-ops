@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231124192822_AddNewColumnsToUserClaimsTable")]
+    partial class AddNewColumnsToUserClaimsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,37 +273,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("AccountingAccountId");
 
                     b.ToTable("ACCOUNTING_ACCOUNT");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
-                {
-                    b.Property<int>("ClaimId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClaimId"), 1L, 1);
-
-                    b.Property<string>("ClaimType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ClaimValue")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("SystemSubAreaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ClaimId");
-
-                    b.HasIndex("SystemSubAreaId");
-
-                    b.ToTable("APPLICATION_SYSTEM_CLAIMS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
@@ -1157,47 +1128,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("PROVIDER_EVENT_DATES");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.SystemArea", b =>
-                {
-                    b.Property<int>("SystemAreaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SystemAreaId"), 1L, 1);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("SystemAreaId");
-
-                    b.ToTable("SYSTEM_AREAS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.SystemSubArea", b =>
-                {
-                    b.Property<int>("SystemSubAreaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SystemSubAreaId"), 1L, 1);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("SystemAreaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SystemSubAreaId");
-
-                    b.HasIndex("SystemAreaId");
-
-                    b.ToTable("SYSTEM_SUB_AREAS");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationRoleClaim", b =>
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>");
@@ -1263,17 +1193,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasDiscriminator().HasValue("ApplicationUserClaim");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.SystemSubArea", "SystemSubArea")
-                        .WithMany()
-                        .HasForeignKey("SystemSubAreaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SystemSubArea");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
@@ -1512,17 +1431,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("Provider");
 
                     b.Navigation("ProviderEvent");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.SystemSubArea", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.SystemArea", "SystemArea")
-                        .WithMany()
-                        .HasForeignKey("SystemAreaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SystemArea");
                 });
 #pragma warning restore 612, 618
         }

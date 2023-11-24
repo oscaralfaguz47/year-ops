@@ -10,7 +10,7 @@ using System.Text.Json.Nodes;
 namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
-    [Authorize(Roles = SD.Role_User_Master)]
+    [Authorize(Policy = "AccessToUpdateDataFromSoftlandSection")]
     public class DataFromSoftlandController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

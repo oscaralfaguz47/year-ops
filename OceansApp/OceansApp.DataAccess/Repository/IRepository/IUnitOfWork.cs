@@ -7,6 +7,7 @@
         ILedgerMovementRepository LedgerMovements { get; }
         IDataUpdateDateRepository DataUpdateDates { get; }
         IApplicationUserRepository ApplicationUser { get; }
+        IApplicationSystemClaimRepository ApplicationSystemClaim { get; }
         ICalculatorGlobalConfigurationRepository CalculatorGlobalConfiguration { get; }
         ICalculatorCostCenterIncreaseConfigurationRepository CalculatorCostCenterIncreaseConfiguration { get; }
         ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; }
@@ -28,6 +29,8 @@
         INotificationStatusRepository NotificationStatus { get; }
         INotificationMediaRepository NotificationMedia { get; }
         INotificationRecipientRepository NotificationRecipient { get; }
+        ISystemAreaRepository SystemArea { get; }
+        ISystemSubAreaRepository SystemSubArea { get; }
 
         void Save();
     }

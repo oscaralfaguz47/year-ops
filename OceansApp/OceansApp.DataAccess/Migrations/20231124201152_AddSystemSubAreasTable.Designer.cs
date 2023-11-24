@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231124201152_AddSystemSubAreasTable")]
+    partial class AddSystemSubAreasTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,37 +273,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("AccountingAccountId");
 
                     b.ToTable("ACCOUNTING_ACCOUNT");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
-                {
-                    b.Property<int>("ClaimId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClaimId"), 1L, 1);
-
-                    b.Property<string>("ClaimType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ClaimValue")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("SystemSubAreaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ClaimId");
-
-                    b.HasIndex("SystemSubAreaId");
-
-                    b.ToTable("APPLICATION_SYSTEM_CLAIMS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
@@ -1263,17 +1234,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasDiscriminator().HasValue("ApplicationUserClaim");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.SystemSubArea", "SystemSubArea")
-                        .WithMany()
-                        .HasForeignKey("SystemSubAreaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SystemSubArea");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
