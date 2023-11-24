@@ -40,98 +40,102 @@ namespace OceansApp.DataAccess.DbInitializer
 
             }
 
-            //Create Roles if they are not created
-            if (!_roleManager.RoleExistsAsync(SD.Role_User_Master).GetAwaiter().GetResult())
+            bool createDefaultDataToDatabase = false;
+
+            if (createDefaultDataToDatabase)
             {
-                _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Master)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Admin)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Simple)).GetAwaiter().GetResult();
-
-                //If Roles are not created, then we will create Master user as well
-                _userManager.CreateAsync(new ApplicationUser
+                //Create Roles if they are not created
+                if (!_roleManager.RoleExistsAsync(SD.Role_User_Master).GetAwaiter().GetResult())
                 {
-                    UserName = _config["MasterUserEmail"],
-                    Email = _config["MasterUserEmail"],
-                    Name = _config["MasterUserName"],
-                    LastName = _config["MasterUserLastName"],
-                    IsActive = true,
-                    DeactivationDate = null
-                }, _config["MasterUserPass"]).GetAwaiter().GetResult();
-                ApplicationUser user = _db.AspNetUsers.FirstOrDefault(x => x.Email == _config["MasterUserEmail"]);
+                    _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Master)).GetAwaiter().GetResult();
+                    _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Admin)).GetAwaiter().GetResult();
+                    _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Simple)).GetAwaiter().GetResult();
 
-                _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
-            }
-
-
-            //Create Default Provider Events
-
-            if (_db.PROVIDER_EVENTS.ToList().Count == 0)
-            {
-                List<ProviderEvent> providerEventsList = new List<ProviderEvent>();
-                providerEventsList.Add(new ProviderEvent() { Name = "Entrada" });
-                providerEventsList.Add(new ProviderEvent() { Name = "Salida" });
-                providerEventsList.Add(new ProviderEvent() { Name = "Contrato Firmado por 1era vez" });
-                providerEventsList.Add(new ProviderEvent() { Name = "Contrato actualizado" });
-
-                foreach (var pEvent in providerEventsList)
-                {
-                    ProviderEvent providerEvent = new()
+                    //If Roles are not created, then we will create Master user as well
+                    _userManager.CreateAsync(new ApplicationUser
                     {
-                        Name = pEvent.Name
-                    };
-                    _db.PROVIDER_EVENTS.Add(providerEvent);
+                        UserName = _config["MasterUserEmail"],
+                        Email = _config["MasterUserEmail"],
+                        Name = _config["MasterUserName"],
+                        LastName = _config["MasterUserLastName"],
+                        IsActive = true,
+                        DeactivationDate = null
+                    }, _config["MasterUserPass"]).GetAwaiter().GetResult();
+                    ApplicationUser user = _db.AspNetUsers.FirstOrDefault(x => x.Email == _config["MasterUserEmail"]);
+
+                    _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
                 }
-                _db.SaveChanges();
-            }
 
-            //Create Default Notifications stuff
 
-            if (_db.NOTIFICATION_MEDIA.ToList().Count == 0)
-            {
-                List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
-                notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
+                //Create Default Provider Events
 
-                foreach (var notMedia in notificatinMediaList)
+                if (_db.PROVIDER_EVENTS.ToList().Count == 0)
                 {
-                    NotificationMedia notificationMedia = new()
-                    {
-                        Name = notMedia.Name
-                    };
-                    _db.NOTIFICATION_MEDIA.Add(notificationMedia);
-                }
-                _db.SaveChanges();
-            }
-            if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
-            {
-                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
-                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
-                notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
-                notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
-                foreach (var notStatus in notificatinStatusList)
-                {
-                    NotificationStatus notificationStatus = new()
-                    {
-                        Name = notStatus.Name
-                    };
-                    _db.NOTIFICATION_STATUS.Add(notificationStatus);
-                }
-                _db.SaveChanges();
-            }
-            if (_db.NOTIFICATION_TYPES.ToList().Count == 0)
-            {
-                List<NotificationType> notificationTypeList = new List<NotificationType>();
-                notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
-                foreach (var notType in notificationTypeList)
-                {
-                    NotificationType notificationType = new()
-                    {
-                        Name = notType.Name
-                    };
-                    _db.NOTIFICATION_TYPES.Add(notificationType);
-                }
-                _db.SaveChanges();
-            }
+                    List<ProviderEvent> providerEventsList = new List<ProviderEvent>();
+                    providerEventsList.Add(new ProviderEvent() { Name = "Entrada" });
+                    providerEventsList.Add(new ProviderEvent() { Name = "Salida" });
+                    providerEventsList.Add(new ProviderEvent() { Name = "Contrato Firmado por 1era vez" });
+                    providerEventsList.Add(new ProviderEvent() { Name = "Contrato actualizado" });
 
+                    foreach (var pEvent in providerEventsList)
+                    {
+                        ProviderEvent providerEvent = new()
+                        {
+                            Name = pEvent.Name
+                        };
+                        _db.PROVIDER_EVENTS.Add(providerEvent);
+                    }
+                    _db.SaveChanges();
+                }
+
+                //Create Default Notifications stuff
+
+                if (_db.NOTIFICATION_MEDIA.ToList().Count == 0)
+                {
+                    List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
+                    notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
+
+                    foreach (var notMedia in notificatinMediaList)
+                    {
+                        NotificationMedia notificationMedia = new()
+                        {
+                            Name = notMedia.Name
+                        };
+                        _db.NOTIFICATION_MEDIA.Add(notificationMedia);
+                    }
+                    _db.SaveChanges();
+                }
+                if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
+                {
+                    List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
+                    notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
+                    notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
+                    notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
+                    foreach (var notStatus in notificatinStatusList)
+                    {
+                        NotificationStatus notificationStatus = new()
+                        {
+                            Name = notStatus.Name
+                        };
+                        _db.NOTIFICATION_STATUS.Add(notificationStatus);
+                    }
+                    _db.SaveChanges();
+                }
+                if (_db.NOTIFICATION_TYPES.ToList().Count == 0)
+                {
+                    List<NotificationType> notificationTypeList = new List<NotificationType>();
+                    notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
+                    foreach (var notType in notificationTypeList)
+                    {
+                        NotificationType notificationType = new()
+                        {
+                            Name = notType.Name
+                        };
+                        _db.NOTIFICATION_TYPES.Add(notificationType);
+                    }
+                    _db.SaveChanges();
+                }
+            }
             return;
         }
     }
