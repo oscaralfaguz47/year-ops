@@ -19,6 +19,10 @@ namespace OceansApp.DataAccess.Data
                 .ToTable("Users")
                 .HasKey(u => u.Id);
 
+            modelBuilder.Entity<ApplicationUserClaim>()
+                .HasDiscriminator<string>("Discriminator")
+                .HasValue<ApplicationUserClaim>("ApplicationUser");
+
             modelBuilder.Entity<IdentityRole>()
                 .ToTable("Roles")
                 .HasKey(r => r.Id);

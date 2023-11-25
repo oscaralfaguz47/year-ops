@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
+using OceansApp.Utility.ConstantData.Claims.Finances;
+using OceansApp.Utility.ConstantData.Claims.General;
+using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
 
 namespace OceansApp.DataAccess.DbInitializer
 {
@@ -168,7 +171,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                     systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
                     systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Reporte de Horas" });
+                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                     systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
                     systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
 
@@ -188,18 +191,71 @@ namespace OceansApp.DataAccess.DbInitializer
                 if (_db.APPLICATION_SYSTEM_CLAIMS.ToList().Count == 0)
                 {
                     var softlandSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Actualizar Datos desde Softland");
+                   
                     List<ApplicationSystemClaim> systemClaimsList = new List<ApplicationSystemClaim>();
-                    systemClaimsList.Add(new ApplicationSystemClaim() { ClaimType = "DatosSoftland", ClaimValue = "Have access to the update data from Softland section", 
-                        Description = "Tiene acceso a poder actualizar los datos extraídos desde Softland", SystemSubAreaId =  softlandSubAreaId.SystemSubAreaId});
+
+                    //ADMIN CENTER
+                    systemClaimsList.Add(new ApplicationSystemClaim()
+                    {
+                        ClaimType = AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType,
+                        ClaimValue = AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue,
+                        Description = "Acceso a poder actualizar los datos extraídos desde Softland",
+                        SystemSubAreaId = softlandSubAreaId.SystemSubAreaId
+                    });
+                    var adminUserSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Administración de Usuarios");
+                    systemClaimsList.Add(new ApplicationSystemClaim()
+                    {
+                        ClaimType = AdminCenterClaimsCD.Administracion_Usuarios_ClaimType,
+                        ClaimValue = AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue,
+                        Description = "Acceso a ver todos los usuarios del sistema",
+                        SystemSubAreaId = adminUserSubAreaId.SystemSubAreaId
+                    });
+                    //FINANCES
+                    var accountsReceivableSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Cuentas Por Cobrar");
+                    systemClaimsList.Add(new ApplicationSystemClaim()
+                    {
+                        ClaimType = FinancesClaimsCD.Accounts_Receivable_ClaimType,
+                        ClaimValue = FinancesClaimsCD.Accounts_Receivable_ClaimValue,
+                        Description = "Acceso a la sección de cuentas por cobrar",
+                        SystemSubAreaId = accountsReceivableSubAreaId.SystemSubAreaId
+                    });
+
+                    var financialCalculatorSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Calculadora Financiera");
+                    systemClaimsList.Add(new ApplicationSystemClaim()
+                    {
+                        ClaimType = FinancesClaimsCD.Financial_Calculator_ClaimType,
+                        ClaimValue = FinancesClaimsCD.Financial_Calculator_ClaimValue,
+                        Description = "Acceso a la calculadora financiera",
+                        SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
+                    });
+                    //GENERAL - CONSULTANTS
+                    var consultantsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultores");
+                    systemClaimsList.Add(new ApplicationSystemClaim()
+                    {
+                        ClaimType = ConsultantsClaimsCD.Consultants_Page_ClaimType,
+                        ClaimValue = ConsultantsClaimsCD.Consultants_Page_ClaimValue,
+                        Description = "Acceso para ver a todos los consultores",
+                        SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
+                    });
+
+                    //HOURS TRACKING TOOL
+                    var hoursTrackingToolSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Herramienta de seguimiento de horas");
+                    systemClaimsList.Add(new ApplicationSystemClaim()
+                    {
+                        ClaimType = HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType,
+                        ClaimValue = HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue,
+                        Description = "Acceso a reportar horas en el tracking tool",
+                        SystemSubAreaId = hoursTrackingToolSubAreaId.SystemSubAreaId
+                    });
 
                     foreach (var claim in systemClaimsList)
                     {
                         ApplicationSystemClaim asc = new()
                         {
-                           ClaimType = claim.ClaimType,
-                           ClaimValue = claim.ClaimValue,
-                           Description = claim.Description,
-                           SystemSubAreaId = claim.SystemSubAreaId
+                            ClaimType = claim.ClaimType,
+                            ClaimValue = claim.ClaimValue,
+                            Description = claim.Description,
+                            SystemSubAreaId = claim.SystemSubAreaId
                         };
                         _db.APPLICATION_SYSTEM_CLAIMS.Add(asc);
                     }

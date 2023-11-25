@@ -11,4 +11,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ConstantData\Claims\Dashboard\" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,54 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using OceansApp.Utility.ConstantData.Claims.AdminCenter;
+using OceansApp.Utility.ConstantData.Claims.Finances;
+using OceansApp.Utility.ConstantData.Claims.General;
+using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
+
+namespace OceansApp.Utility.Configuration
+{
+    public static class AuthorizationConfig
+    {
+        public static void ConfigurePolicies(IServiceCollection services)
+        {
+            //ADMIN CENTER
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToUpdateDataFromSoftlandSection", policy =>
+                    policy.RequireClaim(AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType, AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue));
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToUserAdministration", policy =>
+                    policy.RequireClaim(AdminCenterClaimsCD.Administracion_Usuarios_ClaimType, AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue));
+            });
+
+            //FINANCES
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAccountsReceivable", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToFinancialCalculator", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_ClaimType, FinancesClaimsCD.Financial_Calculator_ClaimValue));
+            });
+
+            //GENERAL - CONSULTANTS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToConsultantsPage", policy =>
+                    policy.RequireClaim(ConsultantsClaimsCD.Consultants_Page_ClaimType, ConsultantsClaimsCD.Consultants_Page_ClaimValue));
+            });
+
+            //HOURS TRACKING TOOL
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToTrackingTool", policy =>
+                    policy.RequireClaim(HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType, HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue));
+            });
+
+        }
+    }
+}
