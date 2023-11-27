@@ -23,6 +23,12 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(AdminCenterClaimsCD.Administracion_Usuarios_ClaimType, AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue));
             });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToUserRolesAndPermissions", policy =>
+                    policy.RequireClaim(AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimType, AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue));
+            });
+
             //FINANCES
             services.AddAuthorization(options =>
             {

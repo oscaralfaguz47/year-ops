@@ -1,0 +1,42 @@
+﻿<div>
+    <h2 style="text-align:center">ROLES Y PERMISOS</h2>
+    <ul id="listaDatosJson"></ul>
+
+</div>
+<script>
+    // Consumir la acción del controlador
+    $.ajax({
+        type: "GET",
+        url: "/AdminCenter/UserRolesPermissions/ObtenerListaJson",
+        contentType: "application/json",
+        success: function (data) {
+            // Recorrer la lista y mostrar los datos en la vista
+            var listaDatos = $("#listaDatosJson");
+                                console.log(data);
+            data.forEach(function (element) {
+                var count = 0;
+                                        listaDatos.append("<h4>" + element.roleName + "</h4>");
+                if(count == 0 && element.userClaims.length > 0){
+                    listaDatos.append('<h5 style="margin-left:12px"><strong>' + element.userClaims[0].systemAreaName + '</strong> (Area)</h5>');
+
+                } else if(element.userClaims.length == 0) {
+
+                     listaDatos.append('<li style="color:red; margin-left:48px;"> Este rol no cuenta con permisos de nada. </li>');
+                }
+                 element.userClaims.forEach(function (claim){
+                 var claimCount = 0;
+                 if(claimCount == 0){
+                     listaDatos.append('<h6 style="margin-left:24px"><strong>' + claim.systemSubAreaName + '</strong> (Sub Area)</h6>');
+                 }
+                  listaDatos.append('<li style="margin-left:48px">' + claim.claimDescription + '</li>');
+                  claimCount++;
+                 });
+                 listaDatos.append("<br>");
+                count++;
+            });
+        },
+        error: function (error) {
+            console.error("Error al obtener lista de datos JSON:", error);
+        }
+    });
+</script>

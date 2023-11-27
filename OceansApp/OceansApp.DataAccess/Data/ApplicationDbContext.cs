@@ -11,7 +11,6 @@ namespace OceansApp.DataAccess.Data
         {
 
         }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configuración de ASP.NET Core Identity
@@ -50,7 +49,6 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
         }
-
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
