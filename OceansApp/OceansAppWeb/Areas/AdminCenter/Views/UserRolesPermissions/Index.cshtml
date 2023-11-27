@@ -1,7 +1,8 @@
 ﻿<div>
     <h2 style="text-align:center">ROLES Y PERMISOS</h2>
-    <ul id="listaDatosJson"></ul>
-
+    <div id="userRoles">
+        <ul id="listaDatosJson"></ul>
+    </div>
 </div>
 <script>
     // Consumir la acción del controlador
@@ -15,23 +16,25 @@
                                 console.log(data);
             data.forEach(function (element) {
                 var count = 0;
-                                        listaDatos.append("<h4>" + element.roleName + "</h4>");
+                listaDatos.append('<button class="btn btn-link" data-toggle="collapse" data-target="#co-' + element.roleName + '" aria-expanded="false" aria-controls="co-' + element.roleName + '"><h4>' + element.roleName + '</h4></button><br>');
+                                        var acordeonSection = $('<div id="co-' + element.roleName + '" class="collapse" data-parent="#userRoles">');
+                                        listaDatos.append(acordeonSection);
                 if(count == 0 && element.userClaims.length > 0){
-                    listaDatos.append('<h5 style="margin-left:12px"><strong>' + element.userClaims[0].systemAreaName + '</strong> (Area)</h5>');
+                    acordeonSection.append('<h5 style="margin-left:12px"><strong>' + element.userClaims[0].systemAreaName + '</strong> (Area)</h5>');
 
                 } else if(element.userClaims.length == 0) {
 
-                     listaDatos.append('<li style="color:red; margin-left:48px;"> Este rol no cuenta con permisos de nada. </li>');
+                     acordeonSection.append('<li style="color:red; margin-left:48px;"> Este rol no cuenta con permisos de nada. </li>');
                 }
                  element.userClaims.forEach(function (claim){
                  var claimCount = 0;
                  if(claimCount == 0){
-                     listaDatos.append('<h6 style="margin-left:24px"><strong>' + claim.systemSubAreaName + '</strong> (Sub Area)</h6>');
+                     acordeonSection.append('<h6 style="margin-left:24px"><strong>' + claim.systemSubAreaName + '</strong> (Sub Area)</h6>');
                  }
-                  listaDatos.append('<li style="margin-left:48px">' + claim.claimDescription + '</li>');
+                  acordeonSection.append('<li style="margin-left:48px">' + claim.claimDescription + '</li>');
                   claimCount++;
                  });
-                 listaDatos.append("<br>");
+                 acordeonSection.append("<br>");
                 count++;
             });
         },
@@ -40,3 +43,4 @@
         }
     });
 </script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
