@@ -39,36 +39,44 @@
     </div>
 </div>
 <script>
-            function createRole(modalId) {
-        var createRoleForm = $('#form-create-rol');
-        var roleName = createRoleForm.find('[name="roleName"]').val();
-        var permissionsList = createRoleForm.serializeArray();
-        var token = $('[name="__RequestVerificationToken"]').val();
+    function createRole(modalId) {
+    var createRoleForm = $('#form-create-rol');
+    var roleName = createRoleForm.find('[name="roleName"]').val();
 
-        var data = {
-            roleName: roleName,
-            permissionsList: permissionsList
-        };
+    var formattedPermissionsList = [];
 
-        $.ajax({
-            url: '/AdminCenter/UserRolesPermissions/CreateRole',
-            type: 'POST',
-            contentType: 'application/json',
-            headers: {
-                RequestVerificationToken: token
-            },
-            data: data, // Envía directamente el objeto, no es necesario JSON.stringify
-            success: function (respuesta) {
-                hideModal(modalId);
-                console.log(respuesta);
-                // Manejar la respuesta del servidor
-            },
-            error: function (error) {
-                console.error('Error:', error);
-                // Manejar errores
-            }
+    createRoleForm.find('input[type="checkbox"]:checked').each(function () {
+        formattedPermissionsList.push({
+            ClaimId: parseInt($(this).val())
         });
-    }
+    });
+
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        roleName: roleName,
+        permissionsList: formattedPermissionsList
+    };
+
+    $.ajax({
+        url: '/AdminCenter/UserRolesPermissions/CreateRole',
+        type: 'POST',
+        contentType: 'application/json',
+        headers: {
+            RequestVerificationToken: token
+        },
+        data: JSON.stringify(data),
+        success: function (respuesta) {
+            hideModal(modalId);
+            console.log(respuesta);
+            // Manejar la respuesta del servidor
+        },
+        error: function (error) {
+            console.error('Error:', error);
+            // Manejar errores
+        }
+    });
+}
 
 </script>
 <script>
@@ -99,7 +107,6 @@
             console.error("Error al obtener lista de roles:", error);
         }
         });
-
     }
 </script>
 <script>
