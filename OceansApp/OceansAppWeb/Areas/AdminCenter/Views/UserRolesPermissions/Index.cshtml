@@ -1,7 +1,7 @@
 ﻿<div>
     <h2 style="text-align:center">ROLES Y PERMISOS</h2>
     <div style="margin-left: 2rem; margin-bottom:10px">
-        <button class="create-btn" onclick="showModal('modal-create-role')">
+        <button class="create-btn" onclick="getPermissionsList('modal-create-role')">
             <i class="bi bi-plus"></i> Crear nuevo rol
         </button>
     </div>
@@ -22,10 +22,11 @@
                                 CREAR NUEVO ROL
                             </h2>
                             <form id="form-create-rol">
-                                <div class="input-container">
+                                <div class="input-container" style="margin:6px 0 6px 0">
                                     <input type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
                                 </div>
-                                <div id="permissions-container">
+                                <h4 style="color:#000">Asigna los permisos para este rol:</h4>
+                                <div id="permissions-container" style="text-align:left; color: #000;overflow-y: scroll;height: 400px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
                                 </div>
                                 <a onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>
                                 <button onclick="hideModal('modal-create-role')" class="btn-primary-submit">Crear Rol</button>
@@ -39,18 +40,31 @@
 </div>
 <script>
         function getPermissionsList(modalId) {
-                var listaDatos = $("#roles-data-list");
+            var permissionsContainer = $("#permissions-container");
+            permissionsContainer.empty();
                 $.ajax({
         type: "GET",
-        url: "/AdminCenter/UserRolesPermissions/GetRolePermissionsList",
+        url: "/AdminCenter/UserRolesPermissions/GetPermissionsList",
         contentType: "application/json",
         success: function (data) {
+            showModal(modalId);
+            var sysArea = "";
+            var sysSubArea = "";
         data.forEach(function (element) {
-        console.log(element);
+              if(sysArea != element.systemAreaName){
+                     permissionsContainer.append('<h5><strong>' + element.systemAreaName + '</strong> (Area)</h5>');
+                 }
+                 if(sysSubArea != element.systemAreaName){
+                     permissionsContainer.append('<h6 style="margin-left:12px"><strong>' + element.systemSubAreaName + '</strong> (Sub Area)</h6>');
+                 }
+                  sysArea = element.systemAreaName;
+                  sysSubArea = element.systemSubAreaName;
+          permissionsContainer.append('<div style="margin-left:24px; color:var(--clr-grayDark)"><input id="pe-'+element.claimId+'" name="'+ element.permissionDescription +'" type="checkbox" value="'+ element.claimId +'"><label for="pe-'+ element.claimId +'">&nbsp;'+element.permissionDescription+'</label></div>');
         });
         },
         error: function (error) {
             console.error("Error al obtener lista de roles:", error);
+        }
         });
 
     }
@@ -62,7 +76,6 @@
         contentType: "application/json",
         success: function (data) {
             var listaDatos = $("#roles-data-list");
-                                console.log(data);
                    var count = 0;
             data.forEach(function (element) {
                 listaDatos.append('<button class="btn btn-link" data-toggle="collapse" data-target="#co-' + element.roleName + '" aria-expanded="false" aria-controls="co-' + element.roleName + '"><h4>' + element.roleName + '</h4></button><br>');
@@ -89,7 +102,7 @@
                      }else{
                          acordeonSection.append('<li style="margin-left:48px"><i style="font-size:22px; color: red;" class="bi bi-x"></i> ' + claim.claimDescription + '</li>');
                      }
-                  
+
                  });
                  acordeonSection.append("<br>");
                 count++;

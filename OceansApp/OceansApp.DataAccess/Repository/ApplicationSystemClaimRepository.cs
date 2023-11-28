@@ -19,7 +19,20 @@ namespace OceansApp.DataAccess.Repository
         {
             _db.APPLICATION_SYSTEM_CLAIMS.Update(obj);
         }
-
+        public IEnumerable<GetPermissionsListVM> GetAllPermissionsCustomData()
+        {
+            var permissionsList = _db.APPLICATION_SYSTEM_CLAIMS.Include(x => x.SystemSubArea)
+                .OrderBy(v => v.SystemSubArea.SystemArea.Name)
+                .ThenBy(v => v.SystemSubArea.Name)
+                .Select(i => new GetPermissionsListVM
+                {
+                    ClaimId = i.ClaimId,
+                    PermissionDescription = i.Description,
+                    SystemAreaName = i.SystemSubArea.SystemArea.Name,
+                    SystemSubAreaName = i.SystemSubArea.Name
+                }).ToList();
+            return (IEnumerable<GetPermissionsListVM>)permissionsList;
+        }
         public async Task<List<GetClaimsVM>> GetClaimsListWhereRole(string roleId)
         {
             var connection = _db.Database.GetDbConnection();

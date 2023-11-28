@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions;
 
@@ -42,21 +43,11 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [HttpGet]
-        public async Task<List<GetRolesPermissionsVM>> GetPermissionsList()
+        public ActionResult<IEnumerable<GetPermissionsListVM>> GetPermissionsList()
         {
-            var roleList = _roleManager.Roles.ToList();
-            List<GetRolesPermissionsVM> rolesPermissionsList = new List<GetRolesPermissionsVM>();
-            foreach (var role in roleList)
-            {
-                var userClaimList = await _unitOfWork.ApplicationSystemClaim.GetClaimsListWhereRole(role.Id);
-                rolesPermissionsList.Add(new GetRolesPermissionsVM()
-                {
-                    RoleId = role.Id,
-                    RoleName = role.Name,
-                    UserClaims = userClaimList.ToList()
-                });
-            }
-            return rolesPermissionsList;
+            var permissionsList = _unitOfWork.ApplicationSystemClaim.GetAllPermissionsCustomData();
+
+            return Ok(permissionsList);
         }
 
         [HttpPost]

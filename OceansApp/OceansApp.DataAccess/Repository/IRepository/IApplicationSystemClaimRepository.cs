@@ -8,5 +8,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         void Update(ApplicationSystemClaim obj);
         Task<List<GetClaimsVM>> GetClaimsListWhereRole(string roleId);
+        IEnumerable<GetPermissionsListVM> GetAllPermissionsCustomData();
     }
 }
