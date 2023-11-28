@@ -63,7 +63,21 @@ nav {
 .img-logo {
     width: 160px
 }
-
+.create-btn {
+    border-radius: 25px;
+    padding: 0px 15px 0px 15px;
+    border: none;
+    font-family: 'Montserrat Black';
+    background-color: var(--clr-grayDark);
+    color: #fff !important;
+    text-decoration: none;
+    display:flex;
+    align-items: center;
+}
+    .create-btn .bi-plus {
+        font-size: 30px;
+        margin-left: -8px;
+    }
 .cancel-btn {
     border-radius: 25px;
     padding: 12px 20px 12px 20px;
@@ -72,6 +86,7 @@ nav {
     background-color: var(--clr-grayDark);
     color: #fff !important;
     text-decoration: none;
+    cursor:pointer;
 }
 
 .btn-primary-submit {

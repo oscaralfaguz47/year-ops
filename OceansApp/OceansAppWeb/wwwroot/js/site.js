@@ -73,3 +73,13 @@ function hideShowFilters() {
         hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel"></i> Mostrar Filtros';
     }
 }
+
+//HIDE MODALS
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = "none";
+}
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = "block";
+}

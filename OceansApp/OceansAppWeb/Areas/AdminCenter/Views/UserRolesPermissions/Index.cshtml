@@ -1,24 +1,62 @@
 ﻿<div>
     <h2 style="text-align:center">ROLES Y PERMISOS</h2>
+    <div style="margin-left: 2rem; margin-bottom:10px">
+        <button class="create-btn" onclick="showModal('modal-create-role')">
+            <i class="bi bi-plus"></i> Crear nuevo rol
+        </button>
+    </div>
     <div id="userRoles">
-        <ul id="listaDatosJson"></ul>
+        <ul id="roles-data-list"></ul>
     </div>
 </div>
+
+<!--MODAL CREATE ROLE -->
+<div id="modal-create-role" style="display:none">
+    <div id="warning-message">
+        <div class="container">
+            <div class="warning-message-container">
+                <div>
+                    <div id="warning-message-cont">
+                        <div class="body-mess-cont">
+                            <h2>
+                                CREAR NUEVO ROL
+                            </h2>
+                            <form id="form-create-rol">
+                                        <div class="input-container">
+                                            <input type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
+                                        </div>
+
+                                <a onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>
+                                <button onclick="hideModal('modal-create-role')" class="btn-primary-submit">Crear Rol</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Consumir la acción del controlador
     $.ajax({
         type: "GET",
-        url: "/AdminCenter/UserRolesPermissions/ObtenerListaJson",
+        url: "/AdminCenter/UserRolesPermissions/GetRolePermissionsList",
         contentType: "application/json",
         success: function (data) {
-            // Recorrer la lista y mostrar los datos en la vista
-            var listaDatos = $("#listaDatosJson");
+            var listaDatos = $("#roles-data-list");
                                 console.log(data);
+                                                    var count = 0;
             data.forEach(function (element) {
-                var count = 0;
                 listaDatos.append('<button class="btn btn-link" data-toggle="collapse" data-target="#co-' + element.roleName + '" aria-expanded="false" aria-controls="co-' + element.roleName + '"><h4>' + element.roleName + '</h4></button><br>');
                                         var acordeonSection = $('<div id="co-' + element.roleName + '" class="collapse" data-parent="#userRoles">');
-                                        listaDatos.append(acordeonSection);
+                                        if (count == 0) {
+                                          acordeonSection.addClass("show");
+                                            }else{
+                                                console.log("ENTRÓ");
+                                              acordeonSection.removeClass("show");
+                                             }
+                                             console.log(count);
+                                                        listaDatos.append(acordeonSection);
                 if(count == 0 && element.userClaims.length > 0){
                     acordeonSection.append('<h5 style="margin-left:12px"><strong>' + element.userClaims[0].systemAreaName + '</strong> (Area)</h5>');
 
@@ -26,8 +64,8 @@
 
                      acordeonSection.append('<li style="color:red; margin-left:48px;"> Este rol no cuenta con permisos de nada. </li>');
                 }
+                                     var claimCount = 0;
                  element.userClaims.forEach(function (claim){
-                 var claimCount = 0;
                  if(claimCount == 0){
                      acordeonSection.append('<h6 style="margin-left:24px"><strong>' + claim.systemSubAreaName + '</strong> (Sub Area)</h6>');
                  }

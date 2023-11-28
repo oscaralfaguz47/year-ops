@@ -24,22 +24,41 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [HttpGet]
-        public async Task<List<GetRolesPermissionsVM>> ObtenerListaJson()
+        public async Task<List<GetRolesPermissionsVM>> GetRolePermissionsList()
         {
             var roleList = _roleManager.Roles.ToList();
             List<GetRolesPermissionsVM> rolesPermissionsList = new List<GetRolesPermissionsVM>();
             foreach (var role in roleList)
             {
                 var userClaimList = await _unitOfWork.ApplicationSystemClaim.GetClaimsListWhereRole(role.Id);
-                rolesPermissionsList.Add(new GetRolesPermissionsVM() { 
+                rolesPermissionsList.Add(new GetRolesPermissionsVM()
+                {
                     RoleId = role.Id,
                     RoleName = role.Name,
                     UserClaims = userClaimList.ToList()
                 });
             }
-
-            // Devolver la lista como JSON
             return rolesPermissionsList;
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateRole(string roleName)
+        {
+            try
+            {
+                var existingRole = _roleManager.FindByNameAsync(roleName.Trim());
+                if (existingRole != null)
+                {
+                    return BadRequest(new { message = "Ya existe un rol con el nombre '" + roleName.Trim() + "'.", result = "duplicated" });
+                }
+                _roleManager.CreateAsync(new IdentityRole(roleName.Trim())).GetAwaiter().GetResult();
+                return Ok(new { message = "El rol fue creado con éxito!", result = "success" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "No se pudo crear el rol", result = "error", detail = ex.Message });
+            }
         }
     }
 }
