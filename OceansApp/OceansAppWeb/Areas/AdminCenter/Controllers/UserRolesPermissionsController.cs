@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
@@ -52,16 +54,60 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateRole(string roleName)
+        public async Task<IActionResult> CreateRole([FromBody] CreateNewRoleVM roleData)
         {
             try
             {
-                var existingRole = _roleManager.FindByNameAsync(roleName.Trim());
+                var existingRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
                 if (existingRole != null)
                 {
-                    return BadRequest(new { message = "Ya existe un rol con el nombre '" + roleName.Trim() + "'.", result = "duplicated" });
+                    return BadRequest(new { message = $"Ya existe un rol con el nombre '{roleData.RoleName.Trim()}'.", result = "duplicated" });
                 }
-                _roleManager.CreateAsync(new IdentityRole(roleName.Trim())).GetAwaiter().GetResult();
+
+                var res = await _roleManager.CreateAsync(new IdentityRole(roleData.RoleName.Trim()));
+
+                if (res.Succeeded)
+                {
+                    var createdRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
+                    var claimsIdentity = (ClaimsIdentity)User.Identity;
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+
+                    foreach (var permission in roleData.PermissionsList)
+                    {
+                        var existingClaim = await _unitOfWork.ApplicationSystemClaim.GetFirstOrDefaultAsync(x => x.ClaimId == permission.ClaimId);
+
+                        if (existingClaim != null)
+                        {
+                            var roleClaim = new ApplicationRoleClaim
+                            {
+                                RoleId = createdRole.Id,
+                                ClaimType = existingClaim.ClaimType,
+                                ClaimValue = existingClaim.ClaimValue,
+                                CreatedBy = claim.Value,
+                                CreationDate = costaRicaTime,
+                                UpdatedBy = claim.Value,
+                                UpdatedDate = costaRicaTime
+                            };
+
+                            var addClaimResult = await _roleManager.AddClaimAsync(createdRole, new Claim(existingClaim.ClaimType, existingClaim.ClaimValue));
+
+                            if (!addClaimResult.Succeeded)
+                            {
+                                return BadRequest(new { message = "Error al agregar el RoleClaim", result = "error", detail = addClaimResult.Errors });
+                            }
+                        }
+                        else
+                        {
+                            return BadRequest(new { message = "No se pudo encontrar el claim", result = "error" });
+                        }
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { message = "Error al crear el rol", result = "error", detail = res.Errors });
+                }
+
                 return Ok(new { message = "El rol fue creado con éxito!", result = "success" });
             }
             catch (Exception ex)
@@ -69,5 +115,6 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { message = "No se pudo crear el rol", result = "error", detail = ex.Message });
             }
         }
+
     }
 }

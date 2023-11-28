@@ -5,6 +5,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions;
 using System.Data;
+using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -14,6 +15,10 @@ namespace OceansApp.DataAccess.Repository
         public ApplicationSystemClaimRepository(ApplicationDbContext db) : base(db)
         {
             _db = db;
+        }
+        public async Task<ApplicationSystemClaim> GetFirstOrDefaultAsync(Expression<Func<ApplicationSystemClaim, bool>> filter)
+        {
+            return await _db.APPLICATION_SYSTEM_CLAIMS.FirstOrDefaultAsync(filter);
         }
         public void Update(ApplicationSystemClaim obj)
         {

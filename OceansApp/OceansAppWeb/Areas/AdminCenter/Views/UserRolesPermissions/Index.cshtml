@@ -23,14 +23,14 @@
                             </h2>
                             <form id="form-create-rol">
                                 <div class="input-container" style="margin:6px 0 6px 0">
-                                    <input type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
+                                    <input name="roleName" type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
                                 </div>
                                 <h4 style="color:#000">Asigna los permisos para este rol:</h4>
                                 <div id="permissions-container" style="text-align:left; color: #000;overflow-y: scroll;height: 400px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
                                 </div>
-                                <a onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>
-                                <button onclick="hideModal('modal-create-role')" class="btn-primary-submit">Crear Rol</button>
                             </form>
+                            <a onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>
+                            <button onclick="createRole('modal-create-role')" class="btn-primary-submit">Crear Rol</button>
                         </div>
                     </div>
                 </div>
@@ -38,6 +38,39 @@
         </div>
     </div>
 </div>
+<script>
+            function createRole(modalId) {
+        var createRoleForm = $('#form-create-rol');
+        var roleName = createRoleForm.find('[name="roleName"]').val();
+        var permissionsList = createRoleForm.serializeArray();
+        var token = $('[name="__RequestVerificationToken"]').val();
+
+        var data = {
+            roleName: roleName,
+            permissionsList: permissionsList
+        };
+
+        $.ajax({
+            url: '/AdminCenter/UserRolesPermissions/CreateRole',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                RequestVerificationToken: token
+            },
+            data: data, // Envía directamente el objeto, no es necesario JSON.stringify
+            success: function (respuesta) {
+                hideModal(modalId);
+                console.log(respuesta);
+                // Manejar la respuesta del servidor
+            },
+            error: function (error) {
+                console.error('Error:', error);
+                // Manejar errores
+            }
+        });
+    }
+
+</script>
 <script>
         function getPermissionsList(modalId) {
             var permissionsContainer = $("#permissions-container");
