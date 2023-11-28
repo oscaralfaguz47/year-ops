@@ -9,5 +9,6 @@ namespace OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions
         public string ClaimDescription { get; set; }
         public string SystemSubAreaName { get; set; }
         public string SystemAreaName { get; set; }
+        public bool IsAddedToTheRole { get; set; }
     }
 }

@@ -6,7 +6,7 @@
         </button>
     </div>
     <div id="userRoles">
-        <ul id="roles-data-list"></ul>
+        <ul id="roles-data-list" style="list-style-type:none"></ul>
     </div>
 </div>
 
@@ -22,10 +22,11 @@
                                 CREAR NUEVO ROL
                             </h2>
                             <form id="form-create-rol">
-                                        <div class="input-container">
-                                            <input type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
-                                        </div>
-
+                                <div class="input-container">
+                                    <input type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
+                                </div>
+                                <div id="permissions-container">
+                                </div>
                                 <a onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>
                                 <button onclick="hideModal('modal-create-role')" class="btn-primary-submit">Crear Rol</button>
                             </form>
@@ -36,7 +37,24 @@
         </div>
     </div>
 </div>
+<script>
+        function getPermissionsList(modalId) {
+                var listaDatos = $("#roles-data-list");
+                $.ajax({
+        type: "GET",
+        url: "/AdminCenter/UserRolesPermissions/GetRolePermissionsList",
+        contentType: "application/json",
+        success: function (data) {
+        data.forEach(function (element) {
+        console.log(element);
+        });
+        },
+        error: function (error) {
+            console.error("Error al obtener lista de roles:", error);
+        });
 
+    }
+</script>
 <script>
     $.ajax({
         type: "GET",
@@ -45,39 +63,40 @@
         success: function (data) {
             var listaDatos = $("#roles-data-list");
                                 console.log(data);
-                                                    var count = 0;
+                   var count = 0;
             data.forEach(function (element) {
                 listaDatos.append('<button class="btn btn-link" data-toggle="collapse" data-target="#co-' + element.roleName + '" aria-expanded="false" aria-controls="co-' + element.roleName + '"><h4>' + element.roleName + '</h4></button><br>');
                                         var acordeonSection = $('<div id="co-' + element.roleName + '" class="collapse" data-parent="#userRoles">');
                                         if (count == 0) {
                                           acordeonSection.addClass("show");
                                             }else{
-                                                console.log("ENTRÓ");
                                               acordeonSection.removeClass("show");
                                              }
-                                             console.log(count);
                                                         listaDatos.append(acordeonSection);
-                if(count == 0 && element.userClaims.length > 0){
-                    acordeonSection.append('<h5 style="margin-left:12px"><strong>' + element.userClaims[0].systemAreaName + '</strong> (Area)</h5>');
-
-                } else if(element.userClaims.length == 0) {
-
-                     acordeonSection.append('<li style="color:red; margin-left:48px;"> Este rol no cuenta con permisos de nada. </li>');
-                }
-                                     var claimCount = 0;
+                                                        var sysArea = "";
+                                                        var sysSubArea = "";
                  element.userClaims.forEach(function (claim){
-                 if(claimCount == 0){
+                 if(sysArea != claim.systemAreaName){
+                     acordeonSection.append('<h5 style="margin-left:12px"><strong>' + claim.systemAreaName + '</strong> (Area)</h5>');
+                 }
+                 if(sysSubArea != claim.systemAreaName){
                      acordeonSection.append('<h6 style="margin-left:24px"><strong>' + claim.systemSubAreaName + '</strong> (Sub Area)</h6>');
                  }
-                  acordeonSection.append('<li style="margin-left:48px">' + claim.claimDescription + '</li>');
-                  claimCount++;
+                 sysArea = claim.systemAreaName;
+                     sysSubArea = claim.systemSubAreaName;
+                     if(claim.isAddedToTheRole){
+                         acordeonSection.append('<li style="margin-left:48px"><i style="font-size:22px; color: #21DA15;" class="bi bi-check-lg"></i> ' + claim.claimDescription + '</li>');
+                     }else{
+                         acordeonSection.append('<li style="margin-left:48px"><i style="font-size:22px; color: red;" class="bi bi-x"></i> ' + claim.claimDescription + '</li>');
+                     }
+                  
                  });
                  acordeonSection.append("<br>");
                 count++;
             });
         },
         error: function (error) {
-            console.error("Error al obtener lista de datos JSON:", error);
+            console.error("Error al obtener lista de roles:", error);
         }
     });
 </script>

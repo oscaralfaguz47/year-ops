@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
@@ -26,18 +25,27 @@ namespace OceansApp.DataAccess.Repository
             var connection = _db.Database.GetDbConnection();
             var parameters = new DynamicParameters();
             var sqlQuery = @"
-            SELECT SC.ClaimId
-            ,SC.ClaimType
-            ,SC.ClaimValue
-            ,SC.Description AS ClaimDescription
-	        ,SA.Name AS SystemAreaName
-	        ,SSA.Name AS SystemSubAreaName
-            FROM APPLICATION_SYSTEM_CLAIMS SC
-            JOIN RoleClaims RC ON SC.ClaimType = RC.ClaimType AND SC.ClaimValue = SC.ClaimValue
-            JOIN SYSTEM_SUB_AREAS SSA ON SC.SystemSubAreaId = SSA.SystemSubAreaId
-            JOIN SYSTEM_AREAS SA ON SSA.SystemAreaId = SA.SystemAreaId
-            WHERE RC.RoleId = @roleId
-            ORDER BY SA.Name, SSA.Name";
+            SELECT 
+                SC.ClaimId,
+                SC.ClaimType,
+                SC.ClaimValue,
+                SC.Description AS ClaimDescription,
+                SA.Name AS SystemAreaName,
+                SSA.Name AS SystemSubAreaName,
+                CASE WHEN EXISTS (
+                SELECT 1 
+                FROM RoleClaims RC 
+                WHERE SC.ClaimType = RC.ClaimType AND SC.ClaimValue = RC.ClaimValue AND RC.RoleId = @roleId
+                ) THEN 'true' ELSE 'false' END AS IsAddedToTheRole
+                FROM 
+                APPLICATION_SYSTEM_CLAIMS SC
+                JOIN 
+                SYSTEM_SUB_AREAS SSA ON SC.SystemSubAreaId = SSA.SystemSubAreaId
+                JOIN 
+                SYSTEM_AREAS SA ON SSA.SystemAreaId = SA.SystemAreaId
+                ORDER BY 
+                SA.Name, 
+                SSA.Name;";
 
             parameters.Add("@roleId", roleId, DbType.String);
 

@@ -41,6 +41,24 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             return rolesPermissionsList;
         }
 
+        [HttpGet]
+        public async Task<List<GetRolesPermissionsVM>> GetPermissionsList()
+        {
+            var roleList = _roleManager.Roles.ToList();
+            List<GetRolesPermissionsVM> rolesPermissionsList = new List<GetRolesPermissionsVM>();
+            foreach (var role in roleList)
+            {
+                var userClaimList = await _unitOfWork.ApplicationSystemClaim.GetClaimsListWhereRole(role.Id);
+                rolesPermissionsList.Add(new GetRolesPermissionsVM()
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name,
+                    UserClaims = userClaimList.ToList()
+                });
+            }
+            return rolesPermissionsList;
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateRole(string roleName)
