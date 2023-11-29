@@ -29,7 +29,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         [HttpGet]
         public async Task<List<GetRolesPermissionsVM>> GetRolePermissionsList()
         {
-            var roleList = _roleManager.Roles.ToList();
+            var roleList = _roleManager.Roles.ToList().OrderBy(x=>x.Name);
             List<GetRolesPermissionsVM> rolesPermissionsList = new List<GetRolesPermissionsVM>();
             foreach (var role in roleList)
             {
@@ -56,63 +56,73 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRole([FromBody] CreateNewRoleVM roleData)
         {
-            try
+            if (ModelState.IsValid)
             {
-                var existingRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
-                if (existingRole != null)
+                try
                 {
-                    return BadRequest(new { message = $"Ya existe un rol con el nombre '{roleData.RoleName.Trim()}'.", result = "duplicated" });
-                }
-
-                var res = await _roleManager.CreateAsync(new IdentityRole(roleData.RoleName.Trim()));
-
-                if (res.Succeeded)
-                {
-                    var createdRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
-                    var claimsIdentity = (ClaimsIdentity)User.Identity;
-                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-
-                    foreach (var permission in roleData.PermissionsList)
+                    var existingRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
+                    if (existingRole != null)
                     {
-                        var existingClaim = await _unitOfWork.ApplicationSystemClaim.GetFirstOrDefaultAsync(x => x.ClaimId == permission.ClaimId);
+                        return BadRequest(new { errors = new[] { $"Ya existe un rol con el nombre '{roleData.RoleName.Trim()}'." }, result = "duplicated" });
+                    }
 
-                        if (existingClaim != null)
+                    var res = await _roleManager.CreateAsync(new IdentityRole(roleData.RoleName.Trim()));
+
+                    if (res.Succeeded)
+                    {
+                        var createdRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
+                        var claimsIdentity = (ClaimsIdentity)User.Identity;
+                        var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                        var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+
+                        foreach (var permission in roleData.PermissionsList)
                         {
-                            var roleClaim = new ApplicationRoleClaim
-                            {
-                                RoleId = createdRole.Id,
-                                ClaimType = existingClaim.ClaimType,
-                                ClaimValue = existingClaim.ClaimValue,
-                                CreatedBy = claim.Value,
-                                CreationDate = costaRicaTime,
-                                UpdatedBy = claim.Value,
-                                UpdatedDate = costaRicaTime
-                            };
+                            var existingClaim = await _unitOfWork.ApplicationSystemClaim.GetFirstOrDefaultAsync(x => x.ClaimId == permission.ClaimId);
 
-                            var addClaimResult = await _roleManager.AddClaimAsync(createdRole, new Claim(existingClaim.ClaimType, existingClaim.ClaimValue));
-
-                            if (!addClaimResult.Succeeded)
+                            if (existingClaim != null)
                             {
-                                return BadRequest(new { message = "Error al agregar el RoleClaim", result = "error", detail = addClaimResult.Errors });
+                                var roleClaim = new ApplicationRoleClaim
+                                {
+                                    RoleId = createdRole.Id,
+                                    ClaimType = existingClaim.ClaimType,
+                                    ClaimValue = existingClaim.ClaimValue,
+                                    CreatedBy = claim.Value,
+                                    CreationDate = costaRicaTime,
+                                    UpdatedBy = claim.Value,
+                                    UpdatedDate = costaRicaTime
+                                };
+
+                                var addClaimResult = await _roleManager.AddClaimAsync(createdRole, new Claim(existingClaim.ClaimType, existingClaim.ClaimValue));
+
+                                if (!addClaimResult.Succeeded)
+                                {
+                                    return BadRequest(new { message = "Error al agregar el RoleClaim", result = "error", detail = addClaimResult.Errors });
+                                }
+                            }
+                            else
+                            {
+                                return BadRequest(new { message = "No se pudo encontrar el claim", result = "error" });
                             }
                         }
-                        else
-                        {
-                            return BadRequest(new { message = "No se pudo encontrar el claim", result = "error" });
-                        }
                     }
-                }
-                else
-                {
-                    return BadRequest(new { message = "Error al crear el rol", result = "error", detail = res.Errors });
-                }
+                    else
+                    {
+                        return BadRequest(new { message = "Error al crear el rol", result = "error", detail = res.Errors });
+                    }
 
-                return Ok(new { message = "El rol fue creado con éxito!", result = "success" });
+                    return Ok(new { message = "El rol fue creado con éxito!", result = "success" });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { message = "No se pudo crear el rol", result = "error", detail = ex.Message });
+                }
             }
-            catch (Exception ex)
+            else
             {
-                return BadRequest(new { message = "No se pudo crear el rol", result = "error", detail = ex.Message });
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new { message = "Error de validación", result = "error", errors = errors });
             }
         }
 

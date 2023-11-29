@@ -58,6 +58,11 @@ function displayToasterSuccess(text) {
 function displayToasterError(text) {
     toastr.error(text);
 }
+function displayToasterErrorArray(errorsArray) {
+    errorsArray.forEach(function (error) {
+        toastr.error(error);
+    });
+}
 
 //FILTERS
 function hideShowFilters() {

@@ -29,8 +29,15 @@
                                 <div id="permissions-container" style="text-align:left; color: #000;overflow-y: scroll;height: 400px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
                                 </div>
                             </form>
-                            <a onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>
-                            <button onclick="createRole('modal-create-role')" class="btn-primary-submit">Crear Rol</button>
+                            <div style="display:flex; justify-content:center;">
+                                <a id="btn-cancel" onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>&nbsp;
+                                <button id="btn-saving" onclick="createRole('modal-create-role')" class="btn-primary-submit">
+                                    <div style="display:flex;align-items:center;">
+                                        <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                                        </div><span></span>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -39,48 +46,75 @@
     </div>
 </div>
 <script>
-    function createRole(modalId) {
-    var createRoleForm = $('#form-create-rol');
-    var roleName = createRoleForm.find('[name="roleName"]').val();
+        function createRole(modalId) {
+       waitingForPostMethod();
+        var createRoleForm = $('#form-create-rol');
+        var roleName = createRoleForm.find('[name="roleName"]').val();
 
-    var formattedPermissionsList = [];
+        var formattedPermissionsList = [];
 
-    createRoleForm.find('input[type="checkbox"]:checked').each(function () {
-        formattedPermissionsList.push({
-            ClaimId: parseInt($(this).val())
+        createRoleForm.find('input[type="checkbox"]:checked').each(function () {
+            formattedPermissionsList.push({
+                ClaimId: parseInt($(this).val())
+            });
         });
-    });
+        var token = $('[name="__RequestVerificationToken"]').val();
+        var data = {
+            roleName: roleName,
+            permissionsList: formattedPermissionsList
+        };
 
-    var token = $('[name="__RequestVerificationToken"]').val();
-
-    var data = {
-        roleName: roleName,
-        permissionsList: formattedPermissionsList
-    };
-
-    $.ajax({
-        url: '/AdminCenter/UserRolesPermissions/CreateRole',
-        type: 'POST',
-        contentType: 'application/json',
-        headers: {
-            RequestVerificationToken: token
-        },
-        data: JSON.stringify(data),
-        success: function (respuesta) {
-            hideModal(modalId);
-            console.log(respuesta);
-            // Manejar la respuesta del servidor
-        },
-        error: function (error) {
-            console.error('Error:', error);
-            // Manejar errores
-        }
-    });
-}
+        $.ajax({
+            url: '/AdminCenter/UserRolesPermissions/CreateRole',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                RequestVerificationToken: token
+            },
+            data: JSON.stringify(data),
+            success: function (res) {
+                createRoleForm[0].reset();
+                hideModal(modalId);
+                displayToasterSuccess(res.message);
+                displayRolesPermissions();
+            },
+            error: function (error) {
+                displayToasterErrorArray(error.responseJSON.errors);
+                inicializeForm();
+            }
+        });
+    }
 
 </script>
 <script>
+    function waitingForPostMethod(){
+     var spinnerSaving = $('#spinner-saving');
+        spinnerSaving.show();
+        var btnSaving = $('#btn-saving');
+        btnSaving.prop('disabled', true);
+        var btnCancel = document.getElementById('btn-cancel');
+        btnCancel.onclick = null;
+        btnCancel.style.cursor = 'not-allowed';
+        var spanInsideBtnSaving = $('#btn-saving span');
+        spanInsideBtnSaving.text('Espera...');
+    }
+     function inicializeForm(){
+        var spanInsideBtnSaving = $('#btn-saving span');
+        spanInsideBtnSaving.text('Guardar');
+        var spinnerSaving = $('#spinner-saving');
+        spinnerSaving.hide();
+        var btnSaving = $('#btn-saving');
+        btnSaving.prop('disabled', false);
+        var originalClickHandler = function() {
+        hideModal('modal-create-role');};
+        var btnCancel = document.getElementById('btn-cancel');
+        btnCancel.onclick = originalClickHandler;
+        btnCancel.style.cursor = 'pointer';
+    }
         function getPermissionsList(modalId) {
+        inicializeForm();
+                var createRoleForm = $('#form-create-rol');
+        createRoleForm[0].reset();
             var permissionsContainer = $("#permissions-container");
             permissionsContainer.empty();
                 $.ajax({
@@ -100,7 +134,7 @@
                  }
                   sysArea = element.systemAreaName;
                   sysSubArea = element.systemSubAreaName;
-          permissionsContainer.append('<div style="margin-left:24px; color:var(--clr-grayDark)"><input id="pe-'+element.claimId+'" name="'+ element.permissionDescription +'" type="checkbox" value="'+ element.claimId +'"><label for="pe-'+ element.claimId +'">&nbsp;'+element.permissionDescription+'</label></div>');
+          permissionsContainer.append('<div style="margin-left:24px; color:var(--clr-grayDark);font-size:17px;"><input id="pe-'+element.claimId+'" name="'+ element.permissionDescription +'" type="checkbox" value="'+ element.claimId +'"><label for="pe-'+ element.claimId +'">&nbsp;'+element.permissionDescription+'</label></div>');
         });
         },
         error: function (error) {
@@ -110,21 +144,17 @@
     }
 </script>
 <script>
-    $.ajax({
+    function displayRolesPermissions(){
+        $.ajax({
         type: "GET",
         url: "/AdminCenter/UserRolesPermissions/GetRolePermissionsList",
         contentType: "application/json",
         success: function (data) {
             var listaDatos = $("#roles-data-list");
-                   var count = 0;
+            listaDatos.empty();
             data.forEach(function (element) {
-                listaDatos.append('<button class="btn btn-link" data-toggle="collapse" data-target="#co-' + element.roleName + '" aria-expanded="false" aria-controls="co-' + element.roleName + '"><h4>' + element.roleName + '</h4></button><br>');
-                                        var acordeonSection = $('<div id="co-' + element.roleName + '" class="collapse" data-parent="#userRoles">');
-                                        if (count == 0) {
-                                          //acordeonSection.addClass("show");
-                                            }else{
-                                              //acordeonSection.removeClass("show");
-                                             }
+                listaDatos.append('<div><button class="link-btn" data-toggle="collapse" data-target="#co-' + element.roleId + '" aria-expanded="false" aria-controls="co-' + element.roleId + '"><span>' + element.roleName + '</span></button><i title="Editar Rol" class="bi bi-pencil-square"></i></div>');
+                                        var acordeonSection = $('<div id="co-' + element.roleId + '" class="collapse" data-parent="#userRoles">');
                                                         listaDatos.append(acordeonSection);
                                                         var sysArea = "";
                                                         var sysSubArea = "";
@@ -145,12 +175,13 @@
 
                  });
                  acordeonSection.append("<br>");
-                count++;
             });
         },
         error: function (error) {
             console.error("Error al obtener lista de roles:", error);
         }
     });
+    }
+    displayRolesPermissions();
 </script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
