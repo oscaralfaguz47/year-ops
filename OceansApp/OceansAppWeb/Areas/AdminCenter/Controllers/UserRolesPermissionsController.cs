@@ -45,11 +45,51 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<GetPermissionsListVM>> GetPermissionsList()
+        public async Task<IActionResult> GetPermissionsWhereRoleList(string roleId)
         {
-            var permissionsList = _unitOfWork.ApplicationSystemClaim.GetAllPermissionsCustomData();
+            try
+            {
+                List<GetClaimsVM> permissionsList = new List<GetClaimsVM>();
+                permissionsList = await _unitOfWork.ApplicationSystemClaim.GetClaimsListWhereRole(roleId);
 
-            return Ok(permissionsList);
+                var role = _roleManager.FindByIdAsync(roleId);
+                if (role == null)
+                {
+                    return BadRequest(new { message = "Error al encontrar el rol", result = "error", detail = "El rol probablemente acaba de ser eliminado de la base de datos" });
+                }
+
+                var rolesPermissionsList = new GetRolesPermissionsVM()
+                {
+                    RoleName = role.Result.Name,
+                    RoleId = roleId,
+                    UserClaims = permissionsList.ToList()
+                };
+                return Ok(rolesPermissionsList);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new { message = "Error al traer los datos", result = "error", detail = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPermissionsList()
+        {
+            try
+            {
+                var permissionsList = _unitOfWork.ApplicationSystemClaim.GetAllPermissionsCustomData();
+                var rolesPermissionsList = new GetRolesPermissionsVM()
+                {
+                    RoleName = "",
+                    RoleId = "",
+                    UserClaims = (List<GetClaimsVM>)permissionsList
+                };
+                return Ok(rolesPermissionsList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al traer los datos", result = "error", detail = ex.Message });
+            }
         }
 
         [HttpPost]

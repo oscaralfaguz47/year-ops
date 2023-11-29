@@ -10,6 +10,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         void Update(ApplicationSystemClaim obj);
         Task<ApplicationSystemClaim> GetFirstOrDefaultAsync(Expression<Func<ApplicationSystemClaim, bool>> filter);
         Task<List<GetClaimsVM>> GetClaimsListWhereRole(string roleId);
-        IEnumerable<GetPermissionsListVM> GetAllPermissionsCustomData();
+        IEnumerable<GetClaimsVM> GetAllPermissionsCustomData();
     }
 }
