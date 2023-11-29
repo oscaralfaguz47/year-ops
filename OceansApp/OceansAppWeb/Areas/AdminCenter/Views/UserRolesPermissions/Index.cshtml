@@ -127,7 +127,7 @@
             var sysSubArea = "";
         data.forEach(function (element) {
               if(sysArea != element.systemAreaName){
-                     permissionsContainer.append('<h5><strong>' + element.systemAreaName + '</strong> (Area)</h5>');
+                     permissionsContainer.append('<h5 style="color:var(--clr-blueLight)"><strong>' + element.systemAreaName + '</strong> (Area)</h5>');
                  }
                  if(sysSubArea != element.systemAreaName){
                      permissionsContainer.append('<h6 style="margin-left:12px"><strong>' + element.systemSubAreaName + '</strong> (Sub Area)</h6>');
