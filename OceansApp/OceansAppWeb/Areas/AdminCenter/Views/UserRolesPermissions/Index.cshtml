@@ -22,7 +22,8 @@
                             </h2>
                             <form id="form-create-rol">
                                 <div class="input-container" style="margin:6px 0 6px 0">
-                                    <input name="roleName" type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
+                                    <input id="roleId" name="roleId" type="hidden">
+                                    <input formnovalidate="roleName" name="roleName" type="text" class="form-control" id="roleName" placeholder="Ingresa el nombre del rol">
                                 </div>
                                 <h4 style="color:#000">Asigna los permisos para este rol:</h4>
                                 <div id="permissions-container" style="text-align:left; color: #000;overflow-y: scroll;height: 400px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
@@ -45,44 +46,49 @@
     </div>
 </div>
 <script>
-        function createRole(modalId) {
-       waitingForPostMethod();
-        var createRoleForm = $('#form-create-rol');
-        var roleName = createRoleForm.find('[name="roleName"]').val();
+            function createRole(modalId) {
+           waitingForPostMethod();
+            var createRoleForm = $('#form-create-rol');
+            var roleName = createRoleForm.find('[name="roleName"]').val();
+            var roleId = createRoleForm.find('[name="roleId"]').val();
 
-        var formattedPermissionsList = [];
+            var formattedPermissionsList = [];
 
-        createRoleForm.find('input[type="checkbox"]:checked').each(function () {
+            createRoleForm.find('input[type="checkbox"]').each(function () {
+            var isAddedToTheRole = $(this).is(':checked');
+
             formattedPermissionsList.push({
-                ClaimId: parseInt($(this).val())
+                ClaimId: parseInt($(this).val()),
+                IsAddedToTheRole: isAddedToTheRole
+                });
             });
-        });
-        var token = $('[name="__RequestVerificationToken"]').val();
-        var data = {
-            roleName: roleName,
-            permissionsList: formattedPermissionsList
-        };
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var data = {
+                roleId: roleId,
+                roleName: roleName,
+                permissionsList: formattedPermissionsList
+            };
 
-        $.ajax({
-            url: '/AdminCenter/UserRolesPermissions/CreateRole',
-            type: 'POST',
-            contentType: 'application/json',
-            headers: {
-                RequestVerificationToken: token
-            },
-            data: JSON.stringify(data),
-            success: function (res) {
-                createRoleForm[0].reset();
-                hideModal(modalId);
-                displayToasterSuccess(res.message);
-                displayRolesPermissions();
-            },
-            error: function (error) {
-                displayToasterErrorArray(error.responseJSON.errors);
-                inicializeForm();
-            }
-        });
-    }
+            $.ajax({
+                url: '/AdminCenter/UserRolesPermissions/CreateRole',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    RequestVerificationToken: token
+                },
+                data: JSON.stringify(data),
+                success: function (res) {
+                    createRoleForm[0].reset();
+                    hideModal(modalId);
+                    displayToasterSuccess(res.message);
+                    displayRolesPermissions();
+                },
+                error: function (error) {
+                    displayToasterErrorArray(error.responseJSON.errors);
+                    inicializeForm();
+                }
+            });
+        }
 
 </script>
 <script>
@@ -135,8 +141,9 @@
                 showModal(modalId);
                 var sysArea = "";
                 var sysSubArea = "";
+               document.getElementById("roleId").value = roleId;
+               document.getElementById("roleName").value = data.roleName;
             data.userClaims.forEach(function (element) {
-                console.log(element);
                   if(sysArea != element.systemAreaName){
                          permissionsContainer.append('<h5 style="color:var(--clr-blueLight)"><strong>' + element.systemAreaName + '</strong> (Area)</h5>');
                      }
@@ -145,6 +152,7 @@
                      }
                       sysArea = element.systemAreaName;
                       sysSubArea = element.systemSubAreaName;
+
               permissionsContainer.append(`
         <div style="margin-left:24px; color:var(--clr-grayDark);font-size:17px;">
             <input id="pe-${element.claimId}" name="${element.claimDescription}" type="checkbox" value="${element.claimId}" ${element.isAddedToTheRole ? 'checked' : ''}>
