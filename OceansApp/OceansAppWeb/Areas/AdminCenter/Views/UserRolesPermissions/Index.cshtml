@@ -31,7 +31,7 @@
                             </form>
                             <div style="display:flex; justify-content:center;">
                                 <a id="btn-cancel" onclick="hideModal('modal-create-role')" class="cancel-btn">Cancelar</a>&nbsp;
-                                <button id="btn-saving" onclick="createRole('modal-create-role')" class="btn-primary-submit">
+                                <button id="btn-saving" onclick="createUpdateRole('modal-create-role')" class="btn-primary-submit">
                                     <div style="display:flex;align-items:center;">
                                         <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
                                         </div><span></span>
@@ -46,49 +46,83 @@
     </div>
 </div>
 <script>
-            function createRole(modalId) {
-           waitingForPostMethod();
-            var createRoleForm = $('#form-create-rol');
-            var roleName = createRoleForm.find('[name="roleName"]').val();
-            var roleId = createRoleForm.find('[name="roleId"]').val();
-
-            var formattedPermissionsList = [];
-
-            createRoleForm.find('input[type="checkbox"]').each(function () {
-            var isAddedToTheRole = $(this).is(':checked');
-
-            formattedPermissionsList.push({
-                ClaimId: parseInt($(this).val()),
-                IsAddedToTheRole: isAddedToTheRole
-                });
-            });
+    function deleteRole(roleId, roleName)
+    {
+         Swal.fire({
+        title: 'Eliminar rol',
+        text: '¿Estas seguro de eliminar el rol "' + roleName + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, Eliminar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
             var token = $('[name="__RequestVerificationToken"]').val();
-            var data = {
-                roleId: roleId,
-                roleName: roleName,
-                permissionsList: formattedPermissionsList
-            };
-
             $.ajax({
-                url: '/AdminCenter/UserRolesPermissions/CreateRole',
+                url: '/AdminCenter/UserRolesPermissions/DeleteRole?roleId=' + encodeURIComponent(roleId),
                 type: 'POST',
                 contentType: 'application/json',
                 headers: {
                     RequestVerificationToken: token
                 },
-                data: JSON.stringify(data),
-                success: function (res) {
-                    createRoleForm[0].reset();
-                    hideModal(modalId);
-                    displayToasterSuccess(res.message);
-                    displayRolesPermissions();
+                success: function (data) {
+                     toastr.success(data.message);
+                        displayRolesPermissions();
                 },
                 error: function (error) {
                     displayToasterErrorArray(error.responseJSON.errors);
-                    inicializeForm();
                 }
-            });
+            })
         }
+    })
+    }
+</script>
+<script>
+        function createUpdateRole(modalId) {
+       waitingForPostMethod();
+        var createRoleForm = $('#form-create-rol');
+        var roleName = createRoleForm.find('[name="roleName"]').val();
+        var roleId = createRoleForm.find('[name="roleId"]').val();
+
+        var formattedPermissionsList = [];
+
+        createRoleForm.find('input[type="checkbox"]').each(function () {
+        var isAddedToTheRole = $(this).is(':checked');
+
+        formattedPermissionsList.push({
+            ClaimId: parseInt($(this).val()),
+            IsAddedToTheRole: isAddedToTheRole
+            });
+        });
+        var token = $('[name="__RequestVerificationToken"]').val();
+        var data = {
+            roleId: roleId,
+            roleName: roleName,
+            permissionsList: formattedPermissionsList
+        };
+
+        $.ajax({
+            url: '/AdminCenter/UserRolesPermissions/CreateUpdateRole',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                RequestVerificationToken: token
+            },
+            data: JSON.stringify(data),
+            success: function (res) {
+                createRoleForm[0].reset();
+                hideModal(modalId);
+                displayToasterSuccess(res.message);
+                displayRolesPermissions();
+            },
+            error: function (error) {
+                displayToasterErrorArray(error.responseJSON.errors);
+                inicializeForm();
+            }
+        });
+    }
 
 </script>
 <script>
@@ -180,10 +214,11 @@
                 data.forEach(function (element) {
                     listaDatos.append(`
         <div>
+         <i onclick="getPermissionsList('modal-create-role', 'EDITAR ROL', '${element.roleId}')" title="Editar Rol" class="bi bi-pencil-square"></i>
+             <i onclick="deleteRole('${element.roleId}', '${element.roleName}')" title="Eliminar Rol" class="bi bi-trash3"></i>
             <button class="link-btn" data-toggle="collapse" data-target="#co-${element.roleId}" aria-expanded="false" aria-controls="co-${element.roleId}">
                 <span>${element.roleName}</span>
             </button>
-            <i onclick="getPermissionsList('modal-create-role', 'EDITAR ROL', '${element.roleId}')" title="Editar Rol" class="bi bi-pencil-square"></i>
         </div>
     `);
 

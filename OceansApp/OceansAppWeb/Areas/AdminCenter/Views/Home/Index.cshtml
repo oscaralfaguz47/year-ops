@@ -7,7 +7,7 @@
 
     <div class="container">
         <div class="row">
-            @if (User.IsInRole(SD.Role_User_Master))
+            @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType && c.Value == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue))
             {
                 <div class="col-lg-2">
                     <a class="box-link" asp-area="AdminCenter" asp-controller="DataFromSoftland" asp-action="Index">

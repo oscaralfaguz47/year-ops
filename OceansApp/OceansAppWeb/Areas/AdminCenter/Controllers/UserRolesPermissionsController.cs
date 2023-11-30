@@ -16,10 +16,13 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public UserRolesPermissionsController(IUnitOfWork unitOrWork, RoleManager<IdentityRole> roleManager)
+        UserManager<IdentityUser> _userManager;
+        public UserRolesPermissionsController(IUnitOfWork unitOrWork, RoleManager<IdentityRole> roleManager,
+            UserManager<IdentityUser> userManager)
         {
             _unitOfWork = unitOrWork;
             _roleManager = roleManager;
+            _userManager = userManager;
         }
         public IActionResult Index()
         {
@@ -94,7 +97,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRole([FromBody] CreateNewRoleVM roleData)
+        public async Task<IActionResult> CreateUpdateRole([FromBody] CreateNewRoleVM roleData)
         {
             if (ModelState.IsValid)
             {
@@ -238,6 +241,43 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                               .Select(e => e.ErrorMessage)
                                               .ToList();
                 return BadRequest(new { message = "Error de validación", result = "error", errors = errors });
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRole(string roleId)
+        {
+            try
+            {
+                var roleToDelete = await _roleManager.FindByIdAsync(roleId);
+                if (roleToDelete == null)
+                {
+                    return BadRequest(new { errors = new[] { $"El rol no fue encontrado en la base de datos." }, result = "NotFound", detail = "El rol ya no existe en la base de datos." });
+                }
+                var usersInRole = await _userManager.GetUsersInRoleAsync(roleToDelete.Name);
+                if (usersInRole.Count > 0)
+                {
+                    return BadRequest(new { errors = new[] { $"Este rol ya está asignado a " + usersInRole.Count + " usuarios, para eliminarlo debes de remover el rol al usuario." }, result = "ErrorDelete", detail = "El rol está asignado a usuarios." });
+                }
+                var roleClaimsInRole = await _roleManager.GetClaimsAsync(roleToDelete);
+                foreach (var claim in roleClaimsInRole)
+                {
+                    var removeClaimResult = await _roleManager.RemoveClaimAsync(roleToDelete, new Claim(claim.Type, claim.Value));
+                    if (!removeClaimResult.Succeeded)
+                    {
+                        return BadRequest(new { errors = new[] { $"Error al eliminar el claim." }, result = "ErrorDeleting", detail = "No se pudo eliminar el claim o permiso." });
+                    }
+                }
+                var resultDeleteRole = await _roleManager.DeleteAsync(roleToDelete);
+                if (!resultDeleteRole.Succeeded)
+                {
+                    return BadRequest(new { errors = new[] { $"Hubo un error a la hora de eliminar el rol." }, result = "ErrorDeleting", detail = "El rol no pudo ser eliminado." });
+                }
+                return Ok(new { message = "El rol y todos sus permisos fueron eliminados con éxito!", result = "success" });
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new { errors = new[] { $"Hubo un error en la conexión con el servidor, el rol no se pudo eliminar." }, result = "ErrorDeleting", detail = ex });
             }
         }
 

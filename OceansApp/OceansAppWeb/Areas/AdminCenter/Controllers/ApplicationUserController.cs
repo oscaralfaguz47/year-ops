@@ -12,7 +12,7 @@ using OceansApp.Utility;
 namespace OceansApp.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
-    [Authorize(Roles = SD.Role_User_Master)]
+    [Authorize(Policy = "AccessToUserAdministration")]
     [RequireTwoFactorEnabled]
     public class ApplicationUserController : Controller
     {
