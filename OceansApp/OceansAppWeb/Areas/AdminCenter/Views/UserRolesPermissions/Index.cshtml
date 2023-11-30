@@ -214,8 +214,8 @@
                 data.forEach(function (element) {
                     listaDatos.append(`
         <div>
-         <i onclick="getPermissionsList('modal-create-role', 'EDITAR ROL', '${element.roleId}')" title="Editar Rol" class="bi bi-pencil-square"></i>
-             <i onclick="deleteRole('${element.roleId}', '${element.roleName}')" title="Eliminar Rol" class="bi bi-trash3"></i>
+         <i style="color:blue;cursor:pointer;" onclick="getPermissionsList('modal-create-role', 'EDITAR ROL', '${element.roleId}')" title="Editar Rol" class="bi bi-pencil-square"></i>
+             <i style="color:red;cursor:pointer;" onclick="deleteRole('${element.roleId}', '${element.roleName}')" title="Eliminar Rol" class="bi bi-trash3"></i>
             <button class="link-btn" data-toggle="collapse" data-target="#co-${element.roleId}" aria-expanded="false" aria-controls="co-${element.roleId}">
                 <span>${element.roleName}</span>
             </button>
