@@ -140,52 +140,53 @@ namespace OceansApp.DataAccess.DbInitializer
                     _db.SaveChanges();
                 }
                 //Create System Areaas
-                    List<SystemArea> systemAreasList = new List<SystemArea>();
-                    systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
-                    systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
-                    systemAreasList.Add(new SystemArea() { Name = "General" });
-                    systemAreasList.Add(new SystemArea() { Name = "Reporte de Horas" });
-                    systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
-                    systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
+                List<SystemArea> systemAreasList = new List<SystemArea>();
+                systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
+                systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
+                systemAreasList.Add(new SystemArea() { Name = "General" });
+                systemAreasList.Add(new SystemArea() { Name = "Reporte de Horas" });
+                systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
+                systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
 
-                    foreach (var area in systemAreasList)
+                foreach (var area in systemAreasList)
+                {
+                    if (_db.SYSTEM_AREAS.FirstOrDefault(x => x.Name == area.Name) == null)
                     {
-                        if (_db.SYSTEM_AREAS.FirstOrDefault(x => x.Name == area.Name) == null)
+                        SystemArea sa = new()
                         {
-                            SystemArea sa = new()
-                            {
-                                Name = area.Name
-                            };
-                            _db.SYSTEM_AREAS.Add(sa);
-                        }
+                            Name = area.Name
+                        };
+                        _db.SYSTEM_AREAS.Add(sa);
                     }
-                    _db.SaveChanges();
+                }
+                _db.SaveChanges();
 
                 //Create System Sub Areaas
-                    List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>();
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
-                    systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
+                List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>();
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Configuración de Calculadora Financiera" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
 
-                    foreach (var subArea in systemSubAreasList)
+                foreach (var subArea in systemSubAreasList)
+                {
+                    if (_db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == subArea.Name) == null)
                     {
-                        if (_db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == subArea.Name) == null)
+                        SystemSubArea ssa = new()
                         {
-                            SystemSubArea ssa = new()
-                            {
-                                Name = subArea.Name,
-                                SystemAreaId = subArea.SystemAreaId
-                            };
-                            _db.SYSTEM_SUB_AREAS.Add(ssa);
-                        }
+                            Name = subArea.Name,
+                            SystemAreaId = subArea.SystemAreaId
+                        };
+                        _db.SYSTEM_SUB_AREAS.Add(ssa);
                     }
-                    _db.SaveChanges();
+                }
+                _db.SaveChanges();
 
                 //Create Claims
 
@@ -236,6 +237,14 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimType = FinancesClaimsCD.Financial_Calculator_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_ClaimValue,
                     Description = "Acceso a la calculadora financiera",
+                    SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
+                });
+                var financialCalculatorConfigSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Configuración de Calculadora Financiera");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = FinancesClaimsCD.Financial_Calculator_Config_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Financial_Calculator_Config_ClaimValue,
+                    Description = "Acceso a la configuración de la calculadora financiera",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
 

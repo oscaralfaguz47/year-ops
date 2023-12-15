@@ -40,6 +40,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToFinancialCalculator", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_ClaimType, FinancesClaimsCD.Financial_Calculator_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToFinancialCalculatorConfig", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_ClaimType, FinancesClaimsCD.Financial_Calculator_ClaimValue));
+            });
 
             //GENERAL - CONSULTANTS
             services.AddAuthorization(options =>

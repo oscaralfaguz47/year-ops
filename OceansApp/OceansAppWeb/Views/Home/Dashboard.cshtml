@@ -1,39 +1,42 @@
 ﻿@using OceansApp.Models.ViewModels
+@using OceansApp.Utility.ConstantData.Claims.General
 @model DashboardVM
 <partial name="_HomeStylesPartial" />
 
 <!-- WIDGET PROVIDERS -->
-<div class="container">
-    <div class="modal fade" id="providersModal" tabindex="-1" aria-labelledby="providersModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="providersModalLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="providersModalBody">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>  
-<div>
-    <div class="row" id="dashboard-box">
-        <div class="col-md-4">
-            <div class="oce-widget">
-                <h5>Consultores de Oceans</h5>
-                <div class="vertical-scroll-container" id="providers-container">
-                </div>
-                <div id="widget-footer">
+@if (User.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue))
+{
+    <div class="container">
+        <div class="modal fade" id="providersModal" tabindex="-1" aria-labelledby="providersModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="providersModalLabel"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="providersModalBody">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
+        <div>
+            <div class="row" id="dashboard-box">
+                <div class="col-md-4">
+                    <div class="oce-widget">
+                        <h5>Consultores de Oceans</h5>
+                        <div class="vertical-scroll-container" id="providers-container">
+                        </div>
+                        <div id="widget-footer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-</div>
-
+}
 <!-- END WIDGET PROVIDERS -->
 @section Scripts {
 <script>

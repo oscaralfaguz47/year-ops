@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models.ViewModels;
 using System.Text.Json;
 
 namespace OceansAppWeb.Controllers
@@ -28,7 +27,7 @@ namespace OceansAppWeb.Controllers
         {
             return View();
         }
-
+        [Authorize(Policy = "AccessToConsultantsPage")]
         [HttpGet]
         public async Task<IActionResult> GetProvidersGroupByCategory()
         {

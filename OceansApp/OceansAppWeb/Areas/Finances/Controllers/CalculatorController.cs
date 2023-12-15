@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
-    [Authorize(Roles = SD.Role_User_Master + "," + SD.Role_User_Admin + "," + SD.Role_User_Simple)]
+    [Authorize(Policy = "AccessToFinancialCalculator")]
     public class CalculatorController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
