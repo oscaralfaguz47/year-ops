@@ -1,5 +1,6 @@
 ﻿@using OceansApp.Utility
 @using Microsoft.AspNetCore.Identity
+@using OceansApp.Utility.ConstantData.Claims
 @using OceansApp.Utility.ConstantData.Claims.AdminCenter
 @using OceansApp.Utility.ConstantData.Claims.Finances
 @using OceansApp.Utility.ConstantData.Claims.General
@@ -80,9 +81,7 @@
                                                 <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Cuentas por Cobrar</a>
                                             </div>
                                         </li>
-                                        @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType && c.Value == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue)
-                                   || User.HasClaim(c => c.Type == AdminCenterClaimsCD.Administracion_Usuarios_ClaimType && c.Value == AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue)
-                                   || User.HasClaim(c => c.Type == AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimType && c.Value == AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue)
+                                        @if (User.IsAuthorizedForAdminCenter()
                                    )
                                         {
                                             <li class="nav-item dropdown">

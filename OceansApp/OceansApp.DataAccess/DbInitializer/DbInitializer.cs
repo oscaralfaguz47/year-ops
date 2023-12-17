@@ -168,7 +168,6 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Configuración de Calculadora Financiera" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
@@ -220,6 +219,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     Description = "Acceso a ver y editar los roles y permisos de usuarios",
                     SystemSubAreaId = userRolesPermissionsSubAreaId.SystemSubAreaId
                 });
+                // NOTES FOR ADMIN CENTER PERMISSIONS:
+                // Add every permission to the AnyOfPoliciesAdminCenterRequirementHandler
 
                 //FINANCES
                 var accountsReceivableSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Cuentas Por Cobrar");
@@ -239,12 +240,25 @@ namespace OceansApp.DataAccess.DbInitializer
                     Description = "Acceso a la calculadora financiera",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
-                var financialCalculatorConfigSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Configuración de Calculadora Financiera");
                 systemClaimsList.Add(new ApplicationSystemClaim()
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_Config_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_Config_ClaimValue,
                     Description = "Acceso a la configuración de la calculadora financiera",
+                    SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimValue,
+                    Description = "Acceso a ver las utilidades de los resultados de la calculadora financiera y a más detalles.",
+                    SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue,
+                    Description = "Acceso a editar la opcion de vacacines y remover gastos y costos para no ser tomados en cuenta en el calculo de la calculadora financiera.",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
 

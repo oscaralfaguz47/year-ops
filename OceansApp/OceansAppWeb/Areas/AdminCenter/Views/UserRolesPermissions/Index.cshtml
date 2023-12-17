@@ -181,7 +181,7 @@
                   if(sysArea != element.systemAreaName){
                          permissionsContainer.append('<h5 style="color:var(--clr-blueLight)"><strong>' + element.systemAreaName + '</strong> (Area)</h5>');
                      }
-                     if(sysSubArea != element.systemAreaName){
+                     if(sysSubArea != element.systemSubAreaName){
                          permissionsContainer.append('<h6 style="margin-left:12px"><strong>' + element.systemSubAreaName + '</strong> (Sub Area)</h6>');
                      }
                       sysArea = element.systemAreaName;
@@ -230,7 +230,7 @@
                      if(sysArea != claim.systemAreaName){
                          acordeonSection.append('<h5 style="margin-left:12px"><strong>' + claim.systemAreaName + '</strong> (Area)</h5>');
                      }
-                     if(sysSubArea != claim.systemAreaName){
+                     if(sysSubArea != claim.systemSubAreaName){
                          acordeonSection.append('<h6 style="margin-left:24px"><strong>' + claim.systemSubAreaName + '</strong> (Sub Area)</h6>');
                      }
                      sysArea = claim.systemAreaName;

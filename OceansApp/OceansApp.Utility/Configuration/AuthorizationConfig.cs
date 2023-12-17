@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
+using OceansApp.Utility.Configuration.AuthorizationRequirement;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
@@ -11,6 +14,13 @@ namespace OceansApp.Utility.Configuration
         public static void ConfigurePolicies(IServiceCollection services)
         {
             //ADMIN CENTER
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesAdminCenterRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInAdminCenter", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesAdminCenterRequirement()));
+            });
+
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToUpdateDataFromSoftlandSection", policy =>
@@ -43,7 +53,12 @@ namespace OceansApp.Utility.Configuration
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToFinancialCalculatorConfig", policy =>
-                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_ClaimType, FinancesClaimsCD.Financial_Calculator_ClaimValue));
+                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_Config_ClaimType, FinancesClaimsCD.Financial_Calculator_Config_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToEditVacationsAndRemoveExpensesAndCostsFromFinancialCalculator", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType, FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue));
             });
 
             //GENERAL - CONSULTANTS
@@ -59,6 +74,8 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToTrackingTool", policy =>
                     policy.RequireClaim(HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType, HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue));
             });
+
+
 
         }
     }

@@ -1,11 +1,12 @@
 ﻿@using OceansApp.Models.ViewModels
 @using OceansApp.Utility
+@using OceansApp.Utility.ConstantData.Claims.Finances
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @model CalculatorCCVM
 
 <div class="container" id="calculatorForm">
-    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
-    {
+    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Config_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Config_ClaimValue))
+                                        {
         <div class="Manager-container">
             <button onclick="location.href='@Url.Action("Index", "CalculatorGlobalConfiguration")'" id="btn-gc" class="btn btn-no-background"><i class="bi bi-gear"></i>&nbsp; Configuración Global</button>
         </div>
