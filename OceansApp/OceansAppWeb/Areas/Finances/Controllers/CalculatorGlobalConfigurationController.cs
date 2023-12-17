@@ -1,7 +1,6 @@
 ﻿using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
-using OceansApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
@@ -16,9 +15,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
     public class CalculatorGlobalConfigurationController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public CalculatorGlobalConfigurationController(IUnitOfWork unitOrWork)
+        private readonly IAuthorizationService _authorizationService;
+        public CalculatorGlobalConfigurationController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
         {
             _unitOfWork = unitOrWork;
+            _authorizationService = authorizationService;
         }
 
         public IActionResult Index()
@@ -96,7 +97,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SaveGlobalConfiguration(CalculatorGlobalConfigurationVM obj)
+        public async Task<IActionResult> SaveGlobalConfigurationAsync(CalculatorGlobalConfigurationVM obj)
         {
             if (ModelState.IsValid)
             {
@@ -105,14 +106,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-                    var userRoles = HttpContext.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
-                    int userIsMaster = 0;
-                    foreach (var role in userRoles)
+                    int userIsAllowedAdvancedConfig = 0;
+                    var advancedConfigEnabled = await _authorizationService.AuthorizeAsync(User, "AccessToFinancialCalculatorAdvancedConfig");
+                    if (advancedConfigEnabled.Succeeded)
                     {
-                        if (role == SD.Role_User_Master)
-                        {
-                            userIsMaster++;
-                        }
+                        userIsAllowedAdvancedConfig++;
                     }
 
                     if (obj.CalculatorCostCenterIncreaseConfigurationVM != null)
@@ -194,7 +192,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         globalConfig.PeopleNumber = obj.CalculatorGlobalConfiguration.PeopleNumber;
                         globalConfig.NumLaborDaysInMonth = obj.CalculatorGlobalConfiguration.NumLaborDaysInMonth;
                         globalConfig.AdditionalGlobalIncrease = obj.CalculatorGlobalConfiguration.AdditionalGlobalIncrease;
-                        if (userIsMaster > 0)
+                        if (userIsAllowedAdvancedConfig > 0)
                         {
                             globalConfig.ProfitGreenClientAAA = obj.CalculatorGlobalConfiguration.ProfitGreenClientAAA;
                             globalConfig.ProfitGreenClientAA = obj.CalculatorGlobalConfiguration.ProfitGreenClientAA;

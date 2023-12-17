@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OceansApp.Utility.Configuration.AuthorizationRequirement;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.AdminCenter;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.General;
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
@@ -53,7 +54,12 @@ namespace OceansApp.Utility.Configuration
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToFinancialCalculatorConfig", policy =>
-                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_Config_ClaimType, FinancesClaimsCD.Financial_Calculator_Config_ClaimValue));
+                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimType, FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToFinancialCalculatorAdvancedConfig", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType, FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue));
             });
             services.AddAuthorization(options =>
             {
@@ -62,6 +68,12 @@ namespace OceansApp.Utility.Configuration
             });
 
             //GENERAL - CONSULTANTS
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInGeneral", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesGeneralRequirement()));
+            });
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToConsultantsPage", policy =>

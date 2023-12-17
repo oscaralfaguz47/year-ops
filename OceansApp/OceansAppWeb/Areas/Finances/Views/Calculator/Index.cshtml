@@ -5,8 +5,8 @@
 @model CalculatorCCVM
 
 <div class="container" id="calculatorForm">
-    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Config_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Config_ClaimValue))
-                                        {
+    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimValue))
+    {
         <div class="Manager-container">
             <button onclick="location.href='@Url.Action("Index", "CalculatorGlobalConfiguration")'" id="btn-gc" class="btn btn-no-background"><i class="bi bi-gear"></i>&nbsp; Configuración Global</button>
         </div>
@@ -118,7 +118,7 @@
                                             <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
                                         </div>
                                     </div>
-                                    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue))
                                     {
                                         <div class="form-group">
                                             <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
@@ -149,7 +149,7 @@
                                                 if (@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
                                                 {
                                                     <label class="@(Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "disabled")" checked="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "checked")" type="checkbox" asp-for="@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Active" />
                                                         <span class="Some-other-style">@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Description</span>
                                                     </label>
 
@@ -180,7 +180,7 @@
                                                 if (!@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
                                                 {
                                                     <label class="@(Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "disabled")" checked="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "checked")" type="checkbox" asp-for="@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Active" />
                                                         <span class="Some-other-style">@Model.CalculatorPriceToClient.CalculatorCostCenterUserConfigurationVM[i].Description</span>
                                                     </label>
 
@@ -198,7 +198,7 @@
                                     </div>
                                 </div>
                             </div>
-                            @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                            @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue))
                             {
                                 <div>
                                     <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
@@ -325,7 +325,7 @@
 
             @if (TempData["result"] != null)
             {
-                @if (User.IsInRole(SD.Role_User_Master))
+                @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimValue))
                 {
                     <br />
                     <div class="background-white">
@@ -595,7 +595,7 @@
                                             <img src="~/img/calculator/calendar-icon.png" alt="Placeholder Image" class="placeholder-image" />
                                         </div>
                                     </div>
-                                    @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue))
                                     {
                                         <div class="form-group">
                                             <label for="daysVacations" class="form-label form-custom-label title-label">Días extra de vacaciones</label>
@@ -626,7 +626,7 @@
                                                 if (@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
                                                 {
                                                     <label class="@(Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "disabled")" checked="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "checked")" type="checkbox" asp-for="@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Active" />
                                                         <span class="Some-other-style">@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Description</span>
                                                     </label>
 
@@ -657,7 +657,7 @@
                                                 if (!@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Description.Contains("Area"))
                                                 {
                                                     <label class="@(Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].CompanyId == "LLC" ? "hide" : "")">
-                                                        <input disabled="@(User.IsInRole(SD.Role_User_Simple) ? "disabled" : null)" checked="@(User.IsInRole(SD.Role_User_Simple) ? "checked" : null)" type="checkbox" asp-for="@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Active" />
+                                                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "disabled")" checked="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue) ? null : "checked")" type="checkbox" asp-for="@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Active" />
                                                         <span class="Some-other-style">@Model.CalculatorPriceToConsultant.CalculatorCostCenterUserConfigurationVM[i].Description</span>
                                                     </label>
 
@@ -675,7 +675,7 @@
                                     </div>
                                 </div>
                             </div>
-                            @if (User.IsInRole(SD.Role_User_Master) || User.IsInRole(SD.Role_User_Admin))
+                            @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue))
                             {
                                 <div>
                                     <p>Corresponde a los costos y gastos por area, por defecto dejar todas activas.</p>
@@ -754,7 +754,7 @@
             </form>
             @if (TempData["resultConsultant"] != null)
             {
-                @if (User.IsInRole(SD.Role_User_Master))
+                @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimValue))
                 {
                     <br />
                     <div class="background-white">

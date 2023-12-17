@@ -1,5 +1,6 @@
 ﻿@using OceansApp.Models.ViewModels
 @using OceansApp.Utility
+@using OceansApp.Utility.ConstantData.Claims.Finances
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @model CalculatorGlobalConfigurationVM
 @{
@@ -54,58 +55,58 @@
             </div>
             <div class="col-lg-3">
                 <label for="minimumGlobalProfit" class="form-label mt-4">% Utilidad Neta Mínima</label>
-                <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" type="number" step="any" class="form-control" id="minimumGlobalProfit" placeholder="Dígita un número">
+                <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" type="number" step="any" class="form-control" id="minimumGlobalProfit" placeholder="Dígita un número">
                 <span asp-validation-for="CalculatorGlobalConfiguration.MinimumGlobalProfit" class="text-danger"></span>
             </div>
         </div> <br />
-        @if (User.IsInRole(SD.Role_User_Master))
+        @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue))
         {
             <div id="clients-profit">
-            <h5 class="config-sub-title">% Porcentages de utilidad para clientes</h5>
-            <div class="row">
-                <div class="col-lg-4 client-title">
-                    <label>CLIENTE AAA</label>
+                <h5 class="config-sub-title">% Porcentages de utilidad para clientes</h5>
+                <div class="row">
+                    <div class="col-lg-4 client-title">
+                        <label>CLIENTE AAA</label>
+                    </div>
+                    <div class="col-lg-4">
+                        <label for="profitGreenAAA" class="form-label green-label">% VERDE</label>
+                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.ProfitGreenClientAAA" type="number" step="any" class="form-control" id="profitGreenAAA" placeholder="Dígita un número">
+                        <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenClientAAA" class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-4">
+                        <label for="profitYellowAAA" class="form-label yellow-label">% AMARILLO</label>
+                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.ProfitYellowClientAAA" type="number" step="any" class="form-control" id="profitYellowAAA" placeholder="Dígita un número">
+                        <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowClientAAA" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="col-lg-4">
-                    <label for="profitGreenAAA" class="form-label green-label">% VERDE</label>
-                    <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.ProfitGreenClientAAA" type="number" step="any" class="form-control" id="profitGreenAAA" placeholder="Dígita un número">
-                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenClientAAA" class="text-danger"></span>
-                </div>
-                <div class="col-lg-4">
-                    <label for="profitYellowAAA" class="form-label yellow-label">% AMARILLO</label>
-                    <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.ProfitYellowClientAAA" type="number" step="any" class="form-control" id="profitYellowAAA" placeholder="Dígita un número">
-                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowClientAAA" class="text-danger"></span>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-lg-4 client-title">
-                    <label>CLIENTE AA</label>
+                <div class="row">
+                    <div class="col-lg-4 client-title">
+                        <label>CLIENTE AA</label>
+                    </div>
+                    <div class="col-lg-4">
+                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.ProfitGreenClientAA" type="number" step="any" class="form-control" id="profitGreenAA" placeholder="Dígita un número">
+                        <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenClientAA" class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-4">
+                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.ProfitYellowClientAA" type="number" step="any" class="form-control" id="profitYellowAA" placeholder="Dígita un número">
+                        <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowClientAA" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="col-lg-4">
-                    <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.ProfitGreenClientAA" type="number" step="any" class="form-control" id="profitGreenAA" placeholder="Dígita un número">
-                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenClientAA" class="text-danger"></span>
-                </div>
-                <div class="col-lg-4">
-                    <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.ProfitYellowClientAA" type="number" step="any" class="form-control" id="profitYellowAA" placeholder="Dígita un número">
-                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowClientAA" class="text-danger"></span>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-lg-4 client-title">
-                    <label>PARTNER</label>
+                <div class="row">
+                    <div class="col-lg-4 client-title">
+                        <label>PARTNER</label>
+                    </div>
+                    <div class="col-lg-4">
+                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.ProfitGreenPartner" type="number" step="any" class="form-control" id="profitGreenPartner" placeholder="Dígita un número">
+                        <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenPartner" class="text-danger"></span>
+                    </div>
+                    <div class="col-lg-4">
+                        <input disabled="@(User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue) ? null : "disabled")" asp-for="CalculatorGlobalConfiguration.ProfitYellowPartner" type="number" step="any" class="form-control" id="profitPartner" placeholder="Dígita un número">
+                        <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowPartner" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="col-lg-4">
-                    <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.ProfitGreenPartner" type="number" step="any" class="form-control" id="profitGreenPartner" placeholder="Dígita un número">
-                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitGreenPartner" class="text-danger"></span>
-                </div>
-                <div class="col-lg-4">
-                    <input disabled="@(User.IsInRole(SD.Role_User_Admin) ? "disabled" : null)" asp-for="CalculatorGlobalConfiguration.ProfitYellowPartner" type="number" step="any" class="form-control" id="profitPartner" placeholder="Dígita un número">
-                    <span asp-validation-for="CalculatorGlobalConfiguration.ProfitYellowPartner" class="text-danger"></span>
-                </div>
-            </div>
-        </div> <br />
+            </div> <br />
         }
         <div class="cost-center-container mt-5">
             <h5 class="config-sub-title">Porcentages de riesgo por centros de costo</h5>
@@ -196,11 +197,11 @@
             </div>
         </div>
         <br />
-          <div class="bottom-btns">
-        <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">
-            Cancelar
-        </a> &nbsp;
-        <button id="save-configuration" type="submit" class="btn-primary-submit"><i class="bi bi-device-ssd-fill"></i>&nbsp;Guardar Cambios</button>
-    </div>
+        <div class="bottom-btns">
+            <a asp-area="Finances" asp-controller="Calculator" asp-action="Index" class="cancel-btn">
+                Cancelar
+            </a> &nbsp;
+            <button id="save-configuration" type="submit" class="btn-primary-submit"><i class="bi bi-device-ssd-fill"></i>&nbsp;Guardar Cambios</button>
+        </div>
     </form>
 </div>

@@ -357,6 +357,33 @@ nav {
     background-color: var(--clr-grayDark);
 }
 /*SHARED COMPONENTS*/
+#access-denied-cont {
+    max-width: 600px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+#access-denied-cont h1{
+    color: #e74c3c;
+}
+    #access-denied-cont p {
+        font-size: 20px;
+    }
+    #access-denied-cont a {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #e74c3c;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+        #access-denied-cont a:hover {
+            background-color: #c0392b;
+        }
 .background-white {
     background-color: #fff;
     padding: 25px;

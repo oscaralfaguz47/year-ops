@@ -237,14 +237,21 @@ namespace OceansApp.DataAccess.DbInitializer
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_ClaimValue,
-                    Description = "Acceso a la calculadora financiera",
+                    Description = "Acceso básico a la calculadora financiera",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
                 systemClaimsList.Add(new ApplicationSystemClaim()
                 {
-                    ClaimType = FinancesClaimsCD.Financial_Calculator_Config_ClaimType,
-                    ClaimValue = FinancesClaimsCD.Financial_Calculator_Config_ClaimValue,
-                    Description = "Acceso a la configuración de la calculadora financiera",
+                    ClaimType = FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimValue,
+                    Description = "Acceso a la configuración básica de la calculadora financiera",
+                    SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue,
+                    Description = "Acceso avanzado en la configuración de la calculadora (editar los porcentages de utilidad, porcentages de riesgo, etc.)",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
                 systemClaimsList.Add(new ApplicationSystemClaim()
@@ -258,7 +265,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue,
-                    Description = "Acceso a editar la opcion de vacacines y remover gastos y costos para no ser tomados en cuenta en el calculo de la calculadora financiera.",
+                    Description = "Acceso a editar la opcion de vacaciones y remover gastos y costos para no ser tomados en cuenta en el calculo de la calculadora financiera.",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
 

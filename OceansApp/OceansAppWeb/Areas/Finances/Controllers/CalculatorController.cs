@@ -1,9 +1,7 @@
 ﻿using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
-using OceansApp.Utility;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.ObjectModel;
@@ -16,11 +14,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
     public class CalculatorController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IEmailSender _emailSender;
-        public CalculatorController(IUnitOfWork unitOrWork, IEmailSender emailSender)
+        private readonly IAuthorizationService _authorizationService;
+        public CalculatorController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
         {
             _unitOfWork = unitOrWork;
-            _emailSender = emailSender;
+            _authorizationService = authorizationService;
         }
 
         [RequireTwoFactorEnabled]
@@ -137,19 +135,17 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal totalExpenses = 0;
                     Decimal totalReturnsAndDiscounts = 0;
                     int userIsMasterOrAdmin = 0;
-                    var userRoles = HttpContext.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
 
                     Double numMonths = ((finalDate - globalConfiguration.StartDate).TotalDays) / 30;
 
                     List<CalculatorExpensesCostsDistribution> expensesCostsDistributionList = new List<CalculatorExpensesCostsDistribution>();
 
-                    foreach (var role in userRoles)
+                    var permissionToEditVacationsAndRemoveCostsAndExpenses = await _authorizationService.AuthorizeAsync(User, "AccessToEditVacationsAndRemoveExpensesAndCostsFromFinancialCalculator");
+                    if (permissionToEditVacationsAndRemoveCostsAndExpenses.Succeeded)
                     {
-                        if (role == SD.Role_User_Master || role == SD.Role_User_Admin)
-                        {
-                            userIsMasterOrAdmin++;
-                        }
+                        userIsMasterOrAdmin++;
                     }
+
                     Collection<CalculatorCostCenterUserConfigurationVM> costCenterList = new Collection<CalculatorCostCenterUserConfigurationVM>();
 
                     if (userIsMasterOrAdmin > 0)
@@ -724,19 +720,17 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal totalExpenses = 0;
                     Decimal totalReturnsAndDiscounts = 0;
                     int userIsMasterOrAdmin = 0;
-                    var userRoles = HttpContext.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
 
                     Double numMonths = ((finalDate - globalConfiguration.StartDate).TotalDays) / 30;
 
                     List<CalculatorExpensesCostsDistribution> expensesCostsDistributionList = new List<CalculatorExpensesCostsDistribution>();
 
-                    foreach (var role in userRoles)
+                    var permissionToEditVacationsAndRemoveCostsAndExpenses = await _authorizationService.AuthorizeAsync(User, "AccessToEditVacationsAndRemoveExpensesAndCostsFromFinancialCalculator");
+                    if (permissionToEditVacationsAndRemoveCostsAndExpenses.Succeeded)
                     {
-                        if (role == SD.Role_User_Master || role == SD.Role_User_Admin)
-                        {
-                            userIsMasterOrAdmin++;
-                        }
+                        userIsMasterOrAdmin++;
                     }
+
                     Collection<CalculatorCostCenterUserConfigurationVM> costCenterList = new Collection<CalculatorCostCenterUserConfigurationVM>();
 
                     if (userIsMasterOrAdmin > 0)
