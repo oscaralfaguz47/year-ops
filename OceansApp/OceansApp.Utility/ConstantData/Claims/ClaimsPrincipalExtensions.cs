@@ -17,7 +17,8 @@ namespace OceansApp.Utility.ConstantData.Claims
 
         public static bool IsAuthorizedForGeneral(this ClaimsPrincipal user)
         {
-            return user.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue);
+            return false;
+           // return user.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue);
         }
         public static bool IsAuthorizedForFinances(this ClaimsPrincipal user)
         {

@@ -44,7 +44,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
             }
 
-            bool createDefaultDataToDatabase = true;
+            bool createDefaultDataToDatabase = false;
 
             if (createDefaultDataToDatabase)
             {
