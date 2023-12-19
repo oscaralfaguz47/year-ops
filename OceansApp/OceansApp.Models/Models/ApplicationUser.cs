@@ -18,5 +18,6 @@ namespace OceansApp.Models.Models
         public String? Occupation { get; set; }
         public bool IsActive { get; set; }
         public DateTime? DeactivationDate { get; set; }
+
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231219042028_addIsActiveFieldToConsultantClientsTable")]
+    partial class addIsActiveFieldToConsultantClientsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -599,44 +601,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("UpdatedBy");
 
                     b.ToTable("CONSULTANT_CLIENTS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("IdCountry")
-                        .IsRequired()
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PersonalEmail")
-                        .HasMaxLength(249)
-                        .HasColumnType("nvarchar(249)");
-
-                    b.Property<string>("Phone2")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("ShirtSize")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("UserId");
-
-                    b.HasIndex("IdCountry");
-
-                    b.ToTable("CONSULTANT_DETAILS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantQualityLevel", b =>
@@ -1482,25 +1446,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ApplicationUserUpdate");
 
                     b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("IdCountry")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("Country");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantRolesQualityLevels", b =>

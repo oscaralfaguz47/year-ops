@@ -46,6 +46,53 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(rq => rq.ConsultantSeniorityId)
                 .IsRequired();
 
+            //CONSULTANT_CLIENTS TABLE
+            modelBuilder.Entity<ConsultantClient>()
+                .HasKey(rq => new { rq.ConsultantId, rq.ClientId, rq.SuccessManager });
+            modelBuilder.Entity<ConsultantClient>()
+                .HasOne(cc => cc.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(cc => cc.ConsultantId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantClient>()
+                .HasOne(cc => cc.Client)
+                .WithMany()
+                .HasForeignKey(cc => cc.ClientId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantClient>()
+                .HasOne(cc => cc.ApplicationUserSuccessManager)
+                .WithMany()
+                .HasForeignKey(cc => cc.SuccessManager)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantClient>()
+                .HasOne(cc => cc.ApplicationUserCreate)
+                .WithMany()
+                .HasForeignKey(cc => cc.CreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantClient>()
+                .HasOne(cc => cc.ApplicationUserUpdate)
+                .WithMany()
+                .HasForeignKey(cc => cc.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+            //CONSULTANT_CLIENTS TABLE END -------
+
+            //CONSULTANT_DETAIL TABLE
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasKey(rq => new { rq.UserId});
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasOne(cc => cc.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(CC => CC.UserId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasOne(cc => cc.Country)
+                .WithMany()
+                .HasForeignKey(CC => CC.IdCountry)
+                .IsRequired();
+
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
         }
@@ -54,6 +101,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
         public DbSet<DataUpdateDate> DATA_UPDATE_DATES { get; set; }
         public DbSet<ApplicationUser> AspNetUsers { get; set; }
+        public DbSet<ApplicationUserCategory> UserCategories { get; set; }
         public DbSet<ApplicationRoleClaim> ApplicationRoleClaims { get; set; }
         public DbSet<ApplicationUserClaim> ApplicationUserClaims { get; set; }
         public DbSet<ApplicationSystemClaim> APPLICATION_SYSTEM_CLAIMS { get; set; }
@@ -68,6 +116,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
+        public DbSet<ConsultantClient> CONSULTANT_CLIENTS { get; set; }
+        public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }

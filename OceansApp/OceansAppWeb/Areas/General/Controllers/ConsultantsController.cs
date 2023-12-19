@@ -48,7 +48,6 @@ namespace OceansAppWeb.Areas.General.Controllers
                     filtersToSend = model.Filters;
                 }
 
-
                 ProviderGetAllForListVM modelToSend = new ProviderGetAllForListVM
                 {
                     Pagination = paginationToSend,

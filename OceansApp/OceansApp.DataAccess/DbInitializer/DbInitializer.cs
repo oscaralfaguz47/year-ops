@@ -31,17 +31,21 @@ namespace OceansApp.DataAccess.DbInitializer
 
         public void Initialize()
         {
-            //Migrations if they are not applied
-            try
+            bool isThereNewMigrationToUpdate = true;
+            if (isThereNewMigrationToUpdate)
             {
-                if (_db.Database.GetPendingMigrations().Count() > 0)
+                //Migrations if they are not applied
+                try
                 {
-                    _db.Database.Migrate();
+                    if (_db.Database.GetPendingMigrations().Count() > 0)
+                    {
+                        _db.Database.Migrate();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
 
+                }
             }
 
             bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
@@ -54,6 +58,19 @@ namespace OceansApp.DataAccess.DbInitializer
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Admin });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Simple });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Create_Consultants });
+
+                //Create Default User Categories
+                List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>();
+                userCategoriesList.Add(new ApplicationUserCategory() { Name = "Administrative" });
+                userCategoriesList.Add(new ApplicationUserCategory() { Name = "Consultant" });
+                foreach (var userCategory in userCategoriesList)
+                {
+                    if (_db.UserCategories.FirstOrDefault(x => x.Name == userCategory.Name) == null)
+                    {
+                        _db.UserCategories.Add(userCategory);
+                    }
+                    _db.SaveChanges();
+                }
 
                 foreach (var role in rolesList)
                 {
