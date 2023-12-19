@@ -93,6 +93,33 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(CC => CC.IdCountry)
                 .IsRequired();
 
+            modelBuilder.Entity<ConsultantHoliday>()
+                .HasOne(cc => cc.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(CC => CC.CreatedBy)
+                .IsRequired();
+
+            modelBuilder.Entity<ConsultantHolidayDate>()
+                .HasOne(cc => cc.ConsultantHoliday)
+                .WithMany()
+                .HasForeignKey(CC => CC.ConsultantHolidayId)
+                .IsRequired();
+
+            modelBuilder.Entity<ConsultantHolidayDate>()
+                .HasOne(cc => cc.ApplicationUserCreated)
+                .WithMany()
+                .HasForeignKey(CC => CC.CreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ConsultantHolidayDate>()
+                .HasOne(cc => cc.ApplicationUserUpdated)
+                .WithMany()
+                .HasForeignKey(CC => CC.UpdatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
         }
@@ -118,6 +145,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantClient> CONSULTANT_CLIENTS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
+        public DbSet<ConsultantHoliday> CONSULTANT_HOLIDAYS { get; set; }
+        public DbSet<ConsultantHolidayDate> CONSULTANT_HOLIDAY_DATES { get; set; }
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }

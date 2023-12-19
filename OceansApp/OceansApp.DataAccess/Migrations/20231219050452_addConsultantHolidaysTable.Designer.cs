@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231219050452_addConsultantHolidaysTable")]
+    partial class addConsultantHolidaysTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -668,52 +670,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("CreatedBy");
 
                     b.ToTable("CONSULTANT_HOLIDAYS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantHolidayDate", b =>
-                {
-                    b.Property<int>("ConsultantHolidayDateId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantHolidayDateId"), 1L, 1);
-
-                    b.Property<int>("ConsultantHolidayId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateLastUpdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(70)
-                        .HasColumnType("nvarchar(70)");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ConsultantHolidayDateId");
-
-                    b.HasIndex("ConsultantHolidayId");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("UpdatedBy");
-
-                    b.ToTable("CONSULTANT_HOLIDAY_DATES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantQualityLevel", b =>
@@ -1589,33 +1545,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantHolidayDate", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ConsultantHoliday", "ConsultantHoliday")
-                        .WithMany()
-                        .HasForeignKey("ConsultantHolidayId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreated")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserUpdated")
-                        .WithMany()
-                        .HasForeignKey("UpdatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUserCreated");
-
-                    b.Navigation("ApplicationUserUpdated");
-
-                    b.Navigation("ConsultantHoliday");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantRolesQualityLevels", b =>
