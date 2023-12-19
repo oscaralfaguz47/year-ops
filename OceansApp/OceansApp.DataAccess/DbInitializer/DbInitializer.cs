@@ -44,17 +44,27 @@ namespace OceansApp.DataAccess.DbInitializer
 
             }
 
-            bool createDefaultDataToDatabase = false;
+            bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
 
             if (createDefaultDataToDatabase)
             {
-                //Create Roles if they are not created
+                //Create Default roles
+                List<IdentityRole> rolesList = new List<IdentityRole>();
+                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Master });
+                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Admin });
+                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Simple });
+                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Create_Consultants });
+
+                foreach (var role in rolesList)
+                {
+                    if (_roleManager.FindByNameAsync(role.Name).Result == null)
+                    {
+                        _roleManager.CreateAsync(new IdentityRole(role.Name)).GetAwaiter().GetResult();
+                    }
+                }
+                //Create user manager if it is not created
                 if (!_roleManager.RoleExistsAsync(SD.Role_User_Master).GetAwaiter().GetResult())
                 {
-                    _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Master)).GetAwaiter().GetResult();
-                    _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Admin)).GetAwaiter().GetResult();
-                    _roleManager.CreateAsync(new IdentityRole(SD.Role_User_Simple)).GetAwaiter().GetResult();
-
                     //If Roles are not created, then we will create Master user as well
                     _userManager.CreateAsync(new ApplicationUser
                     {
@@ -69,7 +79,6 @@ namespace OceansApp.DataAccess.DbInitializer
 
                     _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
                 }
-
 
                 //Create Default Provider Events
 
