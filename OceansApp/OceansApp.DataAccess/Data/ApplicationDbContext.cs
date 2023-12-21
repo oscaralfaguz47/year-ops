@@ -116,7 +116,6 @@ namespace OceansApp.DataAccess.Data
                 .HasOne(cc => cc.ApplicationUserUpdated)
                 .WithMany()
                 .HasForeignKey(CC => CC.UpdatedBy)
-                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
 

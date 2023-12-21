@@ -108,6 +108,7 @@ app.UseSession();
 app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapRazorPages();
 app.UseEndpoints(endpoints =>

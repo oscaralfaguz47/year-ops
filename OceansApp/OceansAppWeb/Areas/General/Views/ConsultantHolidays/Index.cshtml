@@ -1,0 +1,63 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+
+
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+                <div class="search-header-container">
+                    <div>
+                        <h2>HOLIDAYS</h2>
+                        <div class="input-container">
+                            <input id="search-input" onkeypress="enterInSearch(event)" type="text" placeholder="Buscar" class="form-control">
+                            <i class="bi bi-search placeholder-image"></i>
+                        </div>
+                    </div>
+                    <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Ocultar Filtros </a>
+                </div>
+                <div class="more-filters-cont">
+                    <div id="more-filters">
+                        <div class="row">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-2">
+                                <label for="year" class="select-label">Año</label>
+                                <div class="">
+                                    <span class="arrow-down"></span>
+                                    <select id="year" class="form-select">
+                                        <option selected value="">Selecciona el año</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="principal-buttons">
+                            <a asp-area="General" asp-controller="Consultants" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
+                        </div>
+                    </div>
+                </div>
+                <partial name="_Pagination" />
+        </div>
+    </div>
+    <div class="global-table-container">
+        <table class="">
+            <thead>
+                <tr>
+                    <th class="table-col-big">Año</th>
+                    <th class="table-col-little">Holiday</th>
+                    <th class="table-col-medium">Fecha de Creación</th>
+                    <th class="table-col-medium">Creado por</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts{
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/General/consultantHolidays.js"></script>
+    }

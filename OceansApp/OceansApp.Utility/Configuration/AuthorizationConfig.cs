@@ -67,17 +67,24 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType, FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue));
             });
 
-            //GENERAL - CONSULTANTS
+            //GENERAL
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AnyOfPoliciesInGeneral", policy =>
                     policy.Requirements.Add(new AnyOfPoliciesGeneralRequirement()));
             });
+            //GENERAL - CONSULTANTS
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToConsultantsPage", policy =>
                     policy.RequireClaim(ConsultantsClaimsCD.Consultants_Page_ClaimType, ConsultantsClaimsCD.Consultants_Page_ClaimValue));
+            });
+            //GENERAL - HOLIDAYS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToHolidaysPage", policy =>
+                    policy.RequireClaim(HolidaysClaimsCD.Holidays_Page_ClaimType, HolidaysClaimsCD.Holidays_Page_ClaimValue));
             });
 
             //HOURS TRACKING TOOL

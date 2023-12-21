@@ -20,7 +20,8 @@ namespace OceansApp.Utility.Configuration.AuthorizationRequirement.General
 
                 var policies = new List<string>
             {
-                "AccessToConsultantsPage"
+                "AccessToConsultantsPage",
+                "AccessToHolidaysPage"
             };
 
                 foreach (var policy in policies)

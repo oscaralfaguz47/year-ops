@@ -195,6 +195,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
@@ -303,6 +304,16 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = ConsultantsClaimsCD.Consultants_Page_ClaimValue,
                     Description = "Acceso para ver a todos los consultores",
                     SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
+                });
+
+                //GENERAL - HOLIDAYS
+                var holidaysSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Holidays");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = HolidaysClaimsCD.Holidays_Page_ClaimType,
+                    ClaimValue = HolidaysClaimsCD.Holidays_Page_ClaimValue,
+                    Description = "Acceso básico para ver todos los holidays",
+                    SystemSubAreaId = holidaysSubAreaId.SystemSubAreaId
                 });
 
                 //HOURS TRACKING TOOL
