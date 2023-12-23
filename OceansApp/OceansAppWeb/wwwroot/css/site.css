@@ -545,12 +545,17 @@ table {
     position: relative;
     background-color: #fff;
 }
-
-    .global-table-container .cel-with-btns-cont {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+.no-results{
+    text-align: center;
+    padding: 20px;
+    font-weight: bold;
+    color: red;
+}
+.global-table-container .cel-with-btns-cont {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
         .global-table-container .cel-with-btns-cont button {
             border: none;

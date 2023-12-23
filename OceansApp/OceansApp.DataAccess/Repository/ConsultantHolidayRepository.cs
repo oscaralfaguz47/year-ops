@@ -17,7 +17,15 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-
+        public async Task<List<int>> GetHolidaysYears()
+        {
+            var years = await _db.CONSULTANT_HOLIDAYS
+                           .GroupBy(ch => ch.Year)
+                           .OrderBy(g => g.Key)
+                           .Select(g => g.Key)
+                           .ToListAsync();
+            return years;
+        }
         public async Task<(List<HolidaysGetAllWithFiltersVM> holidays, int totalCount)> GetAllHolidaysWithFiltersAsync(HolidaysPaginationFiltersVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();

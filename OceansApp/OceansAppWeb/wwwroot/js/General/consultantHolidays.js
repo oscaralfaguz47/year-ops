@@ -1,6 +1,28 @@
 ﻿$(document).ready(function () {
+    getDataForFiltersList();
     getHolidaysList(true, false);
 });
+
+function getDataForFiltersList() {
+    var url = "/General/ConsultantHolidays/GetUniqueYears";
+    $.ajax({
+        type: "GET",
+        url: url,
+        success: function (data) {
+            let select = document.getElementById("year");
+            data.forEach(function (yearValue) {
+                let option = document.createElement("option");
+                option.value = yearValue;
+                option.text = yearValue;
+                select.appendChild(option);
+            });
+        },
+        error: function (error) {
+            displayToasterError("More error details: " + error.responseJSON.detail);
+            displayToasterError(error.responseJSON.errors + " Ponte en contacto con el administrador para solucionar el problema");
+        }
+    });
+}
 
 function paginationSubmit(firstTime, filters) {
     getHolidaysList(firstTime, filters);
@@ -28,6 +50,7 @@ function recolectDataFromForm(filters) {
     }
 }
 function getHolidaysList(firstTime, filters) {
+    displaySpinner();
     var formData = firstTime ? {} : recolectDataFromForm(filters);
     var queryString = JSON.stringify(formData);
     var url = "/General/ConsultantHolidays/GetHolidaysList?model=" + encodeURIComponent(queryString);
@@ -40,19 +63,24 @@ function getHolidaysList(firstTime, filters) {
             noResultsMessage.empty();
             tbody.empty();
             data.HolidaysList.forEach(function (holiday) {
+                var creationDate = new Date(holiday.CreationDate);
+                var formattedDate = ('0' + creationDate.getDate()).slice(-2) + '/' +
+                    ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
+                    creationDate.getFullYear();
                 var row = "<tr>" +
                     "<td class='table-col-big'>" + holiday.Year + "</td>" +
                     "<td class='table-col-little'>" + holiday.Name + "</td>" +
-                    "<td class='table-col-medium'>" + holiday.CreationDate + "</td>" +
+                    "<td class='table-col-medium'>" + formattedDate + "</td>" +
                     "<td class='table-col-medium'>" + holiday.CreatedByName + "</td>" +
                     "</tr>";
                 tbody.append(row);
             });
             if (data.HolidaysList.length === 0) {
-                noResultsMessage.text("NO EXISTEN REGISTROS");
+                noResultsMessage.text("NO SE ENCONTRARON REGISTROS");
             };
             //Pagination
             updatePagination(data.PaginationFilters.Pagination);
+            hideSpinner();
         },
         error: function (error) {
             displayToasterError("More error details: " + error.responseJSON.detail);

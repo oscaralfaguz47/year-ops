@@ -2,7 +2,6 @@
 
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 
-
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
         <div class="row">
@@ -19,20 +18,18 @@
             <div class="more-filters-cont">
                 <div id="more-filters">
                     <div class="row">
-                        <div class="col-sm-1">
-                        </div>
                         <div class="col-sm-2">
                             <label for="year" class="select-label">Año</label>
                             <div class="">
                                 <span class="arrow-down"></span>
-                                <select id="year" class="form-select">
+                                <select id="year" class="form-select" onchange=" paginationSubmit(false, true)">
                                     <option selected value="">Selecciona el año</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     <div class="principal-buttons">
-                        <a asp-area="General" asp-controller="Consultants" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
+                        <a asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
                     </div>
                 </div>
             </div>
@@ -43,8 +40,8 @@
         <table class="">
             <thead>
                 <tr>
-                    <th class="table-col-big">Año</th>
-                    <th class="table-col-little">Holiday</th>
+                    <th class="table-col-medium">Año</th>
+                    <th class="table-col-medium">Cliente / Categoría</th>
                     <th class="table-col-medium">Fecha de Creación</th>
                     <th class="table-col-medium">Creado por</th>
                 </tr>
@@ -57,8 +54,6 @@
 </div>
 
 @section Scripts{
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/General/consultantHolidays.js"></script>
     }

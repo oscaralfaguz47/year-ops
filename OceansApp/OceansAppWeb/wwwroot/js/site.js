@@ -2,7 +2,14 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
-
+function displaySpinner() {
+    const spinner = document.getElementById("loading-spinner");
+    spinner.style.display = "block";
+}
+function hideSpinner() {
+    const spinner = document.getElementById("loading-spinner");
+    spinner.style.display = "none";
+}
 function redirectToCalculatorIndex() {
     location.href = '/Finances/Calculator';
 }

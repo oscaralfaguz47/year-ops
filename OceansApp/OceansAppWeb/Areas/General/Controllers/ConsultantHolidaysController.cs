@@ -20,10 +20,24 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             return View();
         }
-        public ActionResult ActualizarPagination(Pagination modelo)
+
+        [HttpGet]
+        public async Task<IActionResult> GetUniqueYears()
         {
-            // Procesar el modelo o preparar los datos necesarios para el Partial View
-            return PartialView("_Pagination", modelo);
+            try
+            {
+                var uniqueYears = await _unitOfWork.ConsultantHoliday.GetHolidaysYears();
+                return Json(uniqueYears);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    errors = new[] { $"Hubo un error extrayendo la lista de años." },
+                    result = "errorGet",
+                    detail = ex.Message
+                });
+            }
         }
 
         [HttpGet]
