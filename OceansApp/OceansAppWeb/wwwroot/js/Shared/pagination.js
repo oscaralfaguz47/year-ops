@@ -9,10 +9,38 @@ function updatePaginationValues(paginationData) {
         let option = document.createElement("option");
         option.value = opcion.Value;
         option.text = opcion.Name;
+        if (parseInt(opcion.Value, 10) === paginationData.PageSize) {
+            option.selected = true;
+        }
         select.appendChild(option);
     });
     disableButtons(paginationData.PageIndex, paginationData.IsLastPage, paginationData.TotalResults, paginationData.PageSize);
     document.getElementById("label-total-results").textContent = "Total Resultados: " + paginationData.TotalResults;
+}
+var changedPageSize = false;
+function changePageSizeValue() {
+    changedPageSize = true;
+}
+function pageSizeChanged() {
+    var pageSizeCurrentValue = document.getElementById("page-size-changed").value;
+    if (pageSizeCurrentValue) {
+        return true;
+    } else {
+        return false;
+    }
+}
+function returnCurrentPaginationValues() {
+    if (changedPageSize) {
+        return {
+            PageSize: parseInt($('#items-per-page').val()),
+            PageIndex: parseInt($('[name="PageIndex"]').val())
+        }
+    } else {
+        return {
+            PageSize: 0,
+            PageIndex: parseInt($('[name="PageIndex"]').val())
+        }
+    }
 }
 function disableButtons(pageIndex, isLastPage, totalResults, pageSize) {
     document.getElementById("label-pag-info").textContent = pageIndex + " de " + Math.ceil(totalResults / pageSize);
@@ -20,8 +48,7 @@ function disableButtons(pageIndex, isLastPage, totalResults, pageSize) {
         boton.disabled = (pageIndex === 1);
     });
     document.querySelectorAll('.right-pag-buttons').forEach(function (boton) {
-        boton.disabled = (isLastPage);
-        boton.disabled = ((Math.ceil((parseInt(totalResults) / parseInt(pageSize)))) === pageIndex)
+        boton.disabled = (isLastPage || totalResults === 0 || ((Math.ceil((parseInt(totalResults) / parseInt(pageSize)))) === pageIndex));
     });
 }
 function paginationButtonActions(action) {
@@ -43,11 +70,4 @@ function paginationButtonActions(action) {
     }
     $('[name="PageIndex"]').val(currentValue);
     disableButtons(currentValue, isLastPage, totalResults, pageSize);
-}
-
-function enterInSearch(event) {
-    if (event.keyCode === 13 || event.which === 13) {
-        //submitFiltersForm();
-        alert("test");
-    }
 }

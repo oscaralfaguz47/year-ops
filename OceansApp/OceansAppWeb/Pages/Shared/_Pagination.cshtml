@@ -6,27 +6,28 @@
     <div>
         <input type="hidden" id="total-results-input" value="0" />
         <input type="hidden" id="is-last-page-input" value="0" />
+        <input type="hidden" id="page-size-changed" value="false" />
         <label>Registros por página</label>
         <div class="">
-            <select id="items-per-page" class="form-select" onchange="paginationButtonActions('firstPage'); paginationSubmit(false);">
+            <select id="items-per-page" class="form-select" onchange="paginationButtonActions('firstPage'); changePageSizeValue(); paginationSubmit(false, false);">
             </select>
         </div>
 
-        <button name="PageIndex" value="1" class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttons" onclick="paginationButtonActions('firstPage'); paginationSubmit(false);">
+        <button name="PageIndex" value="1" class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttons" onclick="paginationButtonActions('firstPage'); paginationSubmit(false, false);">
             &laquo;&laquo;
         </button>
 
-        <button class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttons" onclick="paginationButtonActions('decrement'); paginationSubmit(false);">
+        <button class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttons" onclick="paginationButtonActions('decrement'); paginationSubmit(false, false);">
             &laquo;
         </button>
 
         <label id="label-pag-info"></label>
 
-        <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttons" onclick="paginationButtonActions('increment'); paginationSubmit(false);">
+        <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttons" onclick="paginationButtonActions('increment'); paginationSubmit(false, false);">
             &raquo;
         </button>
 
-        <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttons" onclick="paginationButtonActions('lastPage'); paginationSubmit(false);">
+        <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttons" onclick="paginationButtonActions('lastPage'); paginationSubmit(false, false);">
             &raquo;&raquo;
         </button>
         <label><strong id="label-total-results"></strong></label>

@@ -1,36 +1,43 @@
 ﻿$(document).ready(function () {
-    getHolidaysList(true);
+    getHolidaysList(true, false);
 });
-//document.getElementById("filtersPaginationForm").addEventListener("submit", function (event) {
-//    getHolidaysList(false);
-//});
-function paginationSubmit(firstTime) {
-    getHolidaysList(firstTime);
+
+function paginationSubmit(firstTime, filters) {
+    getHolidaysList(firstTime, filters);
 }
-function recolectDataFromForm() {
+function recolectDataFromForm(filters) {
     {
+        var searchText = $('#search-input').val();
+        var year = parseInt($('#year').val());
+        var filtersData = {
+            Year: year,
+            SearchText: searchText
+        };
+        var paginationData = returnCurrentPaginationValues();
+        if (filters) {
+            filtersData = {
+                Year: year,
+                SearchText: searchText
+            };
+        }
         return {
-            Pagination: {
-                PageSize: parseInt($('#items-per-page').val()),  
-                PageIndex: parseInt($('[name="PageIndex"]').val()) 
-            },
-            Filters: {
-                Year: parseInt($('#year').val()),
-                SearchText: $('#search-input').val()  
-            }
+            RequestFromFilters: filters,
+            Pagination: paginationData,
+            Filters: filtersData
         };
     }
 }
-function getHolidaysList(firstTime) {
-    var formData = firstTime ? {} : recolectDataFromForm();
+function getHolidaysList(firstTime, filters) {
+    var formData = firstTime ? {} : recolectDataFromForm(filters);
     var queryString = JSON.stringify(formData);
-    console.log(queryString);
     var url = "/General/ConsultantHolidays/GetHolidaysList?model=" + encodeURIComponent(queryString);
     $.ajax({
         type: "GET",
         url: url,
         success: function (data) {
             var tbody = $(".global-table-container table tbody");
+            var noResultsMessage = $(".no-results");
+            noResultsMessage.empty();
             tbody.empty();
             data.HolidaysList.forEach(function (holiday) {
                 var row = "<tr>" +
@@ -41,16 +48,24 @@ function getHolidaysList(firstTime) {
                     "</tr>";
                 tbody.append(row);
             });
+            if (data.HolidaysList.length === 0) {
+                noResultsMessage.text("NO EXISTEN REGISTROS");
+            };
             //Pagination
-            if (firstTime) {
-                updatePagination(data.PaginationFilters.Pagination);
-            }
+            updatePagination(data.PaginationFilters.Pagination);
         },
         error: function (error) {
-            console.error("Error al obtener lista de Holidays:", error);
+            displayToasterError("More error details: " + error.responseJSON.detail);
+            displayToasterError(error.responseJSON.errors + " Ponte en contacto con el administrador para solucionar el problema");
         }
     });
 }
 function updatePagination(paginationData) {
     updatePaginationValues(paginationData);
+}
+
+function enterInSearch(event) {
+    if (event.keyCode === 13 || event.which === 13) {
+        paginationSubmit(false, true);
+    }
 }

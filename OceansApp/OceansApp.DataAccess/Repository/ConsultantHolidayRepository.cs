@@ -45,7 +45,7 @@ namespace OceansApp.DataAccess.Repository
             var totalCount = await connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             // Aplica la paginación a la consulta
-            queryBuilder.AppendLine("ORDER BY CH.Year DESC, CH.CreationDate DESC");
+            queryBuilder.AppendLine("ORDER BY CH.Year"); //CH.Year DESC, CH.CreationDate DESC
             queryBuilder.AppendLine("OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;");
 
             parameters.Add("@Skip", (filtersAndPagination.Pagination.PageIndex - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);

@@ -33,11 +33,39 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 HolidaysPaginationFiltersVM holidaysPaginationFilters = System.Text.Json.JsonSerializer.Deserialize<HolidaysPaginationFiltersVM>(model);
 
-                var paginationFilters = new HolidaysPaginationFiltersVM
+                HolidaysPaginationFiltersVM paginationFilters = new HolidaysPaginationFiltersVM();
+                paginationFilters.Pagination = new Pagination();
+                paginationFilters.Filters = new HolidaysFiltersGetAllVM();
+
+                if (holidaysPaginationFilters.Pagination != null && holidaysPaginationFilters.Filters != null)
                 {
-                    Pagination = holidaysPaginationFilters.Pagination ?? new Pagination(),
-                    Filters = holidaysPaginationFilters.Filters ?? new HolidaysFiltersGetAllVM()
-                };
+                    int numAppliedFilters = 0;
+                    foreach (var prop in holidaysPaginationFilters.Filters.GetType().GetProperties())
+                    {
+                        string name = prop.Name;
+                        var value = prop.GetValue(holidaysPaginationFilters.Filters, null);
+                        if (value is not null and not "")
+                        {
+                            numAppliedFilters++;
+                        }
+                    }
+                    if (holidaysPaginationFilters.Pagination.PageSize != 0)
+                    {
+                        paginationFilters.Pagination.PageSize = holidaysPaginationFilters.Pagination.PageSize;
+                    }
+                    if (numAppliedFilters > 0)
+                    {
+                        paginationFilters.Filters = holidaysPaginationFilters.Filters;
+                        if (holidaysPaginationFilters.RequestFromFilters == false)
+                        {
+                            paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
+                        }
+                    }
+                    else
+                    {
+                        paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
+                    }
+                }
 
                 var totalResults = await _unitOfWork.ConsultantHoliday.GetAllHolidaysWithFiltersAsync(paginationFilters);
                 paginationFilters.Pagination.TotalResults = totalResults.totalCount;
