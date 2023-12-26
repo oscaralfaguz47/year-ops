@@ -435,7 +435,7 @@ h2 {
         align-items: center;
         justify-content: space-between;
         border-bottom: var(--clr-grayLight) solid 2px;
-        padding: 5px;
+        padding: 5px 10px 5px 10px;
     }
 
         .filters-container .search-header-container div {
