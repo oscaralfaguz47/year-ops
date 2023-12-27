@@ -8,8 +8,8 @@ using OceansApp.DataAccess.DbInitializer;
 using OceansApp.DataAccess.Repository;
 using OceansApp.Utility.Email;
 using Microsoft.AspNetCore.Http.Features;
-using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.Configuration;
+using OceansAppWeb.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +83,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://oceansapp.azurewebsites.net/"));
 });
+
+// Background services
+builder.Services.AddHostedService<EveryOneDayServices>();
 
 var app = builder.Build();
 
