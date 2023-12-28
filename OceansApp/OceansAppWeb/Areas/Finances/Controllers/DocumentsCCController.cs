@@ -169,9 +169,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var client = documentCC != null ? _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId) : null;
                 var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Cuentas por cobrar");
                 var notificationMediaEmail = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
-                var notificationMediaSlack = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+                var notificationMediaSlack = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Slack");
 
-                if (documentCC == null || client == null || notificationType == null || notificationMediaEmail == null)
+                if (documentCC == null || client == null || notificationType == null || notificationMediaEmail == null
+                    || notificationMediaSlack == null)
                 {
                     return Json(new { success = false, error = "Error en la obtención de datos." });
                 }
@@ -190,70 +191,12 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 emailsCC.Add("eder.rodriguez@oceanscode.com");
                 emailsCC.Add("priscila.zamora@oceanscode.com");
 
-                if (numDaysExpired >= 5 && numDaysExpired < 15)
-                {
-
-                }else if (numDaysExpired >= 15 && numDaysExpired < 30)
-                {
-
-                }
-                else if (numDaysExpired >= 30 && numDaysExpired < 45)
-                {
-
-                }
-                else if (numDaysExpired >= 45 && numDaysExpired < 60)
-                {
-
-                }
-                else if (numDaysExpired >= 60 && numDaysExpired < 75)
-                {
-
-                }
-                else if (numDaysExpired >= 75 && numDaysExpired < 90)
-                {
-
-                }
-                else if (numDaysExpired >= 90 && numDaysExpired < 120)
-                {
-
-                }
-                else //120 or More than 120 
-                {
-
-                }
-
                 if (string.IsNullOrEmpty(emailTo))
                 {
                     return Json(new { success = false, error = "El cliente no tiene correos electrónicos." });
                 }
-                var alreadyNotificationSent = _unitOfWork.DocumentsCCNotification.GetAll(x=>x.DocumentCCId == documentId);
-                if (alreadyNotificationSent.Count() > 0)
-                {
-                   body = emailBodyRed(
-                   client.Name,
-                   documentCC.BalanceAmount,
-                   documentCC.DocumentAmount,
-                   documentMonth,
-                   documentCC.DocumentDate.Year,
-                   documentCC.DocumentNumber,
-                   documentCC.DocumentDate,
-                   docExpirationDate,
-                   numDaysExpired);
-                }
-                else
-                {
-                   body = emailBodyYellow(
-                   client.Name,
-                   documentCC.BalanceAmount,
-                   documentCC.DocumentAmount,
-                   documentMonth,
-                   documentCC.DocumentDate.Year,
-                   documentCC.DocumentNumber,
-                   documentCC.DocumentDate,
-                   docExpirationDate,
-                   numDaysExpired);
-                }
-                  
+                var alreadyNotificationSent = _unitOfWork.DocumentsCCNotification.GetAll(x => x.DocumentCCId == documentId);
+
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -266,9 +209,67 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     SentDate = costaRicaTime,
                     SentByUser = claim.Value
                 };
-
                 _unitOfWork.Notification.Add(notification);
                 _unitOfWork.Save();
+                if (numDaysExpired >= 5 && numDaysExpired < 15 && alreadyNotificationSent.Count() == 0)
+                {
+                    body = emailBodyYellow(
+                            client.Name,
+                            documentCC.BalanceAmount,
+                            documentCC.DocumentAmount,
+                            documentMonth,
+                            documentCC.DocumentDate.Year,
+                            documentCC.DocumentNumber,
+                            documentCC.DocumentDate,
+                            docExpirationDate,
+                            numDaysExpired);
+                }
+                else if (numDaysExpired >= 15 && numDaysExpired < 30 && alreadyNotificationSent.Count() == 1)
+                {
+                    body = emailBodyRed(
+                            client.Name,
+                            documentCC.BalanceAmount,
+                            documentCC.DocumentAmount,
+                            documentMonth,
+                            documentCC.DocumentDate.Year,
+                            documentCC.DocumentNumber,
+                            documentCC.DocumentDate,
+                            docExpirationDate,
+                            numDaysExpired);
+                }
+                else if (numDaysExpired >= 30 && numDaysExpired < 45 && alreadyNotificationSent.Count() == 2)
+                {
+                    body = emailBodyRed(
+                            client.Name,
+                            documentCC.BalanceAmount,
+                            documentCC.DocumentAmount,
+                            documentMonth,
+                            documentCC.DocumentDate.Year,
+                            documentCC.DocumentNumber,
+                            documentCC.DocumentDate,
+                            docExpirationDate,
+                            numDaysExpired);
+                }
+                else if (numDaysExpired >= 45 && numDaysExpired < 60 && alreadyNotificationSent.Count() == 3)
+                {
+
+                }
+                else if (numDaysExpired >= 60 && numDaysExpired < 75 && alreadyNotificationSent.Count() == 4)
+                {
+
+                }
+                else if (numDaysExpired >= 75 && numDaysExpired < 90 && alreadyNotificationSent.Count() == 5)
+                {
+
+                }
+                else if (numDaysExpired >= 90 && numDaysExpired < 120 && alreadyNotificationSent.Count() == 6)
+                {
+
+                }
+                else if (numDaysExpired >= 120 && alreadyNotificationSent.Count() == 7) //120 or More than 120 
+                {
+
+                }
 
                 var emailToSend = new SendEmailVM()
                 {
