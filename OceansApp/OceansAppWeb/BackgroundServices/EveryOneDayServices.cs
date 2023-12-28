@@ -24,7 +24,7 @@ namespace OceansAppWeb.BackgroundServices
                 var costaRicaZone = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
                 var currentTimeInCostaRica = TimeZoneInfo.ConvertTimeFromUtc(now, costaRicaZone);
 
-                var nextRun = currentTimeInCostaRica.Date.AddHours(8).AddMinutes(0); // 8:00 AM from current day
+                var nextRun = currentTimeInCostaRica.Date.AddHours(9).AddMinutes(0); // 9:00 AM from current day
                 if (currentTimeInCostaRica > nextRun)
                 {
                     nextRun = nextRun.AddDays(1); // If it has already passed 9:00 AM, schedule for the next day

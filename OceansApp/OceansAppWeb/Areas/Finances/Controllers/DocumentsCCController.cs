@@ -168,9 +168,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var documentCC = _unitOfWork.DocumentCC.GetFirstOrDefault(x => x.DocumentCCId == documentId);
                 var client = documentCC != null ? _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId) : null;
                 var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Cuentas por cobrar");
-                var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+                var notificationMediaEmail = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+                var notificationMediaSlack = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
 
-                if (documentCC == null || client == null || notificationType == null || notificationMedia == null)
+                if (documentCC == null || client == null || notificationType == null || notificationMediaEmail == null)
                 {
                     return Json(new { success = false, error = "Error en la obtención de datos." });
                 }
@@ -265,6 +266,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     SentDate = costaRicaTime,
                     SentByUser = claim.Value
                 };
+
                 _unitOfWork.Notification.Add(notification);
                 _unitOfWork.Save();
 
@@ -304,7 +306,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     RecipientMediaInfo = emailTo,
                     NotificationId = notification.NotificationId,
-                    NotificationMediaId = notificationMedia.NotificationMediaId,
+                    NotificationMediaId = notificationMediaEmail.NotificationMediaId,
                     NotificationStatusId = notificationStatus.NotificationStatusId,
                     RecipientUserId = recipientUserIdSendTo
                 };
@@ -317,7 +319,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     {
                         RecipientMediaInfo = email,
                         NotificationId = notification.NotificationId,
-                        NotificationMediaId = notificationMedia.NotificationMediaId,
+                        NotificationMediaId = notificationMediaEmail.NotificationMediaId,
                         NotificationStatusId = notificationStatus.NotificationStatusId,
                         RecipientUserId = recipientUserIdCC
                     };

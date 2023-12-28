@@ -124,6 +124,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 {
                     List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
                     notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
+                    notificatinMediaList.Add(new NotificationMedia() { Name = "Slack" });
 
                     foreach (var notMedia in notificatinMediaList)
                     {

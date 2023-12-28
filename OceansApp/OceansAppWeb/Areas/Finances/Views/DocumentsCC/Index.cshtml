@@ -10,21 +10,6 @@
     <div class="filters-container">
         <div class="row">
             <form id="filtersPaginationForm" asp-controller="DocumentsCC" asp-action="Index">
-                @*Send the DocumentsCCList back to the controller*@
-                @* @if (Model.DocumentsCCList != null)
-                    {
-                    for (int i = 0; i < Model.DocumentsCCList.Count; i++)
-                    {
-                    Type documentCCListProp = typeof(DocumentCCGetAllWithFiltersVM);
-                    PropertyInfo[] properties = documentCCListProp.GetProperties();
-
-                    for (int v = 0; v < properties.Length; v++)
-                    {
-                    string propertyName = properties[v].Name;
-                    <input type="hidden" name="DocumentsCCList[@i].@propertyName" value="@properties[v].GetValue(Model.DocumentsCCList[i])" />
-                    }
-                    }
-                    }*@
                 <div class="search-header-container">
                     <div>
                         <h2>CUENTAS POR COBRAR</h2>
