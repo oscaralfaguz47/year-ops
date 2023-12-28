@@ -442,6 +442,19 @@ h2 {
             display: flex;
             align-items: center;
         }
+        .filters-container .search-header-container .action-buttons{
+            padding-left: 15px;
+        }
+            .filters-container .search-header-container .action-buttons a {
+                border-radius: 25px;
+                padding: 5px 15px 5px 15px;
+                border: none;
+                font-family: 'Montserrat Black';
+                background-color: var(--clr-blueDark);
+                color: #fff !important;
+                text-decoration: none;
+                font-size: 13px;
+            }
 
         .filters-container .search-header-container h2 {
             margin: 0 15px 0 0;

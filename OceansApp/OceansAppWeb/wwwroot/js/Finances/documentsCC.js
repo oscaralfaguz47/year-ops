@@ -1,0 +1,81 @@
+﻿function getInvoicesWithDaysExpired() {
+    displaySpinner();
+    fetch('DocumentsCC/GetInvoicesWithDaysExpired')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            var modal = document.getElementById("invoices-expired-modal");
+            modal.style.display = "block";
+            var tbody = $(".invoices-expired-table tbody");
+            var noResultsMessage = $(".no-results");
+            tbody.empty();
+            noResultsMessage.empty();
+            data.forEach(function (invoice) {
+                var documentDate = new Date(invoice.documentDate);
+                var docDateformattedDate = ('0' + documentDate.getDate()).slice(-2) + '/' +
+                    ('0' + (documentDate.getMonth() + 1)).slice(-2) + '/' +
+                    documentDate.getFullYear();
+                var docExpDate = new Date(invoice.expirationDate);
+                var docExpDateformattedDate = ('0' + docExpDate.getDate()).slice(-2) + '/' +
+                    ('0' + (docExpDate.getMonth() + 1)).slice(-2) + '/' +
+                    docExpDate.getFullYear();
+                var row = "<tr>" +
+                    "<td class='table-col-big'>" + invoice.clientName + "</td>" +
+                    "<td class='table-col-little'>" + invoice.documentNumber + "</td>" +
+                    "<td class='table-col-medium'>" + docDateformattedDate + "</td>" +
+                    "<td class='table-col-medium'>" + docExpDateformattedDate + "</td>" +
+                    "<td class='table-col-medium'>" + invoice.numDaysExpired + "</td>" +
+                    "<td class='table-col-medium'>" + invoice.documentAmount + "</td>" +
+                    "<td class='table-col-medium'>" + invoice.balanceAmount + "</td>" +
+                    '<td class="table-col-little"><div class="cel-with-btns-cont"><button title="Enviar recordatorio de pago" onclick="SendNotification(\'' + invoice.clientName + '\', \'' + invoice.documentCCId + '\')"><i class="bi bi-send-fill"></i></button></div></td>' +
+                    "</tr>";
+                tbody.append(row);
+            });
+            hideSpinner();
+        })
+        .catch(error => {
+            console.error('There has been a problem with the fetch operation:', error);
+        });
+}
+function closeInvoicesExpiredModal() {
+    var modal = document.getElementById("invoices-expired-modal");
+    modal.style.display = "none";
+}
+
+function SendNotification(clientName, documentId) {
+    Swal.fire({
+        title: "Enviar recordatorio de pago",
+        text: "¿Quieres enviarle un recordatorio de pago a " + clientName + "?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, enviar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            $.ajax({
+                url: "/Finances/DocumentsCC/SendNotification?documentId=" + documentId,
+                type: 'POST',
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        updateNotificationCount(documentId);
+                        hideSpinner();
+                    }
+                    else {
+                        toastr.error(data.error);
+                    }
+                },
+                error: function () {
+                    toastr.error("Error de conexión.");
+                }
+            })
+        }
+    })
+}

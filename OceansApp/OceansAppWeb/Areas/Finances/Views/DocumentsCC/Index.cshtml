@@ -11,26 +11,29 @@
         <div class="row">
             <form id="filtersPaginationForm" asp-controller="DocumentsCC" asp-action="Index">
                 @*Send the DocumentsCCList back to the controller*@
-               @* @if (Model.DocumentsCCList != null)
-                {
+                @* @if (Model.DocumentsCCList != null)
+                    {
                     for (int i = 0; i < Model.DocumentsCCList.Count; i++)
                     {
-                        Type documentCCListProp = typeof(DocumentCCGetAllWithFiltersVM);
-                        PropertyInfo[] properties = documentCCListProp.GetProperties();
+                    Type documentCCListProp = typeof(DocumentCCGetAllWithFiltersVM);
+                    PropertyInfo[] properties = documentCCListProp.GetProperties();
 
-                        for (int v = 0; v < properties.Length; v++)
-                        {
-                            string propertyName = properties[v].Name;
-                            <input type="hidden" name="DocumentsCCList[@i].@propertyName" value="@properties[v].GetValue(Model.DocumentsCCList[i])" />
-                        }
+                    for (int v = 0; v < properties.Length; v++)
+                    {
+                    string propertyName = properties[v].Name;
+                    <input type="hidden" name="DocumentsCCList[@i].@propertyName" value="@properties[v].GetValue(Model.DocumentsCCList[i])" />
                     }
-                }*@
+                    }
+                    }*@
                 <div class="search-header-container">
                     <div>
                         <h2>CUENTAS POR COBRAR</h2>
                         <div class="input-container">
                             <input onkeypress="enterInSearch(event)" type="text" asp-for="Filters.SearchText" placeholder="Buscar" class="form-control">
                             <i class="bi bi-search placeholder-image"></i>
+                        </div>
+                        <div class="action-buttons">
+                            <a onclick="getInvoicesWithDaysExpired()">Notificaciones</a>
                         </div>
                     </div>
                     <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Ocultar Filtros </a>
@@ -183,7 +186,6 @@
                                     {
                                         <div class="send-btn-container">
                                             <a title="Ver historial de envío de recordatorios" onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
-                                            <button title="Enviar recordatorio de pago" onclick="SendNotification('/Finances/DocumentsCC/SendNotification?documentId=@documentCC.DocumentCCId', '@Html.Raw(documentCC.ClientName)', '@Html.Raw(documentCC.DocumentCCId)')"><i class="bi bi-send-fill"></i></button>
                                         </div>
                                     }
                                 </div>
@@ -223,6 +225,33 @@
     </div>
 </div>
 
+<!--MODAL INVOICES DAYS EXPIRED -->
+<div id="invoices-expired-modal" class="modal">
+    <div class="modal-content" style="margin: 0.5% auto; width: 88%;">
+        <div class="header">
+            <h2>Facturas vencidas pendientes de enviar notificación</h2> <span class="close" onclick="closeInvoicesExpiredModal()">&times;</span>
+        </div>
+        <div class="global-table-container">
+            <table class="table light-table invoices-expired-table">
+                <thead>
+                    <tr class="table-header">
+                        <th>Cliente</th>
+                        <th>#Factura</th>
+                        <th>Fecha Factura</th>
+                        <th>Fecha Expiración</th>
+                        <th>#Días de Expiración</th>
+                        <th>Monto de Factura</th>
+                        <th>Saldo Actual</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="no-results"></div>
+        </div>
+    </div>
+</div>
+
 <div id="notificationModal" class="modal">
     <div class="modal-content">
         <div class="header">
@@ -244,7 +273,7 @@
 @section Scripts{
     @{
     <partial name="_ValidationScriptsPartial" />
-
+    <script src="~/js/Finances/documentsCC.js"></script>
     }
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -265,7 +294,7 @@
                   $('[name="Pagination.PageIndex"]').val(newValue);
               }
           }
-            
+
 
               function submitFiltersForm(){
                   paginationButtonActions('firstPage');
@@ -278,38 +307,7 @@
               }
             }
 
-        function SendNotification(url, clientName, documentId) {
-            console.log(url);
-            Swal.fire({
-                title: "Enviar recordatorio de pago",
-                text: "¿Quieres enviarle un recordatorio de pago a " + clientName + "?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Si, enviar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        success: function (data) {
-                            if (data.success) {
-                                 toastr.success(data.message);
-                                 updateNotificationCount(documentId);
-                            }
-                            else {
-                                toastr.error(data.error);
-                            }
-                        },
-            error: function () {
-                toastr.error("Error de conexión.");
-            }
-                    })
-                }
-            })
-        }
+       
 
         function updateNotificationCount(documentId) {
             // Get the current notification count element

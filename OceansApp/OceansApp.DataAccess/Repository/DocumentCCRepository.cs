@@ -31,6 +31,56 @@ namespace OceansApp.DataAccess.Repository
                 .ToList();
             return docTypesList;
         }
+
+        public async Task<List<DocumentCCGetExpiredDocsVM>> GetAllExpiredDocsWithDaysExpiredFiltersAsync()
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var queryBuilder = new StringBuilder();
+
+            queryBuilder.AppendLine(@"SELECT 
+					DocumentCCId
+                    ,DocumentNumber
+                    ,DCC.DocumentDate
+	                ,DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate) AS ExpirationDate
+	                ,ABS(CASE
+	                 WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), 
+	               	 (DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate))) 
+	                 ELSE 0
+	                 END) AS NumDaysExpired
+	                ,DCC.BalanceAmount
+                    ,DCC.DocumentAmount
+                    ,C.Name AS ClientName
+                    ,(SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) AS NumNotificationsSent
+                     FROM DOCUMENTS_CC DCC
+                     JOIN CLIENT C ON DCC.ClientId = C.ClientId
+					 WHERE DCC.DocumentType = 'FAC' 
+					 AND DCC.Canceled = 'N'
+					 AND C.ClientCategory NOT LIKE '%CON%'
+					 AND DCC.BalanceAmount > 0
+					 AND (
+    (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 5 
+     AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 15 
+     AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 0)
+    OR 
+    (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 15 
+     AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 30 
+     AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 1)
+    OR 
+    (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 30 
+     AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 45 
+     AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 2)
+    OR 
+    (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 45 
+     AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) > 2)
+  )
+   ORDER BY NumDaysExpired");
+
+            var results = await connection.QueryAsync<DocumentCCGetExpiredDocsVM>(queryBuilder.ToString());
+            var documents = results.ToList();
+
+            return (documents);
+        }
         public async Task<(List<DocumentCCGetAllWithFiltersVM> documentsCC, int totalCount)> GetAllDocumentsCCWithFiltersAsync(DocumentCCGetAllForListVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();

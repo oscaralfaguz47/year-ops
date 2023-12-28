@@ -27,6 +27,7 @@ AuthorizationConfig.ConfigurePolicies(builder.Services);
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<ISendEmailRepository, SendEmailRepository>();
+builder.Services.AddScoped<ISlackRepository, SlackRepository>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.Configure<IdentityOptions>(opt =>
 {

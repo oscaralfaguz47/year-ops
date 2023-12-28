@@ -17,11 +17,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly ISendEmailRepository _sendEmail;
         private readonly IConfiguration _config;
-        public DocumentsCCController(IUnitOfWork unitOrWork, ISendEmailRepository sendEmail, IConfiguration config)
+        private readonly ISlackRepository _slackRepository;
+        public DocumentsCCController(IUnitOfWork unitOrWork, ISendEmailRepository sendEmail, IConfiguration config,
+            ISlackRepository slackRepository)
         {
             _unitOfWork = unitOrWork;
             _sendEmail = sendEmail;
             _config = config;
+            _slackRepository = slackRepository;
         }
 
         public async Task<IActionResult> Index(DocumentCCGetAllForListVM model)
@@ -138,6 +141,25 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetInvoicesWithDaysExpired()
+        {
+            try
+            {
+                var expiredDocs = await _unitOfWork.DocumentCC.GetAllExpiredDocsWithDaysExpiredFiltersAsync();
+                return Json(expiredDocs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    errors = new[] { $"Hubo un error extrayendo la lista de documentos." },
+                    result = "errorGet",
+                    detail = ex.Message
+                });
+            }
+        }
+
         [HttpPost]
         public IActionResult SendNotification(int documentId)
         {
@@ -166,6 +188,38 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var body = "";
                 emailsCC.Add("eder.rodriguez@oceanscode.com");
                 emailsCC.Add("priscila.zamora@oceanscode.com");
+
+                if (numDaysExpired >= 5 && numDaysExpired < 15)
+                {
+
+                }else if (numDaysExpired >= 15 && numDaysExpired < 30)
+                {
+
+                }
+                else if (numDaysExpired >= 30 && numDaysExpired < 45)
+                {
+
+                }
+                else if (numDaysExpired >= 45 && numDaysExpired < 60)
+                {
+
+                }
+                else if (numDaysExpired >= 60 && numDaysExpired < 75)
+                {
+
+                }
+                else if (numDaysExpired >= 75 && numDaysExpired < 90)
+                {
+
+                }
+                else if (numDaysExpired >= 90 && numDaysExpired < 120)
+                {
+
+                }
+                else //120 or More than 120 
+                {
+
+                }
 
                 if (string.IsNullOrEmpty(emailTo))
                 {

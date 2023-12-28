@@ -8,6 +8,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
     public interface IDocumentCCRepository : IRepository<DocumentCC> 
     {
         IEnumerable<SelectVM> GetDocumentsTypeWhereDocumentsExist();
+        Task<List<DocumentCCGetExpiredDocsVM>> GetAllExpiredDocsWithDaysExpiredFiltersAsync();
         Task<(List<DocumentCCGetAllWithFiltersVM> documentsCC, int totalCount)> GetAllDocumentsCCWithFiltersAsync(DocumentCCGetAllForListVM filtersAndPagination);
         Task<List<DocumentCCGetNotificationsHistoryVM>> GetNotificationsHistoryByDocumentIdAsync(int documentId);
         void Update(DocumentCC obj);
