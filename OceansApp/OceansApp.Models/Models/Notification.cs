@@ -15,7 +15,7 @@ namespace OceansApp.Models.Models
         [Required]
         public string Body { get; set; }
         [Required]
-        [MaxLength(100)]
+        [MaxLength(200)]
         public string Subject { get; set; }
         [Required]
         [MaxLength(150)]

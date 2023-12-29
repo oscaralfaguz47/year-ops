@@ -39,6 +39,7 @@
         })
         .catch(error => {
             console.error('There has been a problem with the fetch operation:', error);
+            hideSpinner();
         });
 }
 function closeInvoicesExpiredModal() {
@@ -63,17 +64,15 @@ function SendNotification(clientName, documentId) {
                 url: "/Finances/DocumentsCC/SendNotification?documentId=" + documentId,
                 type: 'POST',
                 success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);
-                        updateNotificationCount(documentId);
-                        hideSpinner();
-                    }
-                    else {
-                        toastr.error(data.error);
-                    }
+                    toastr.success(data.message);
+                    updateNotificationCount(documentId);
+                    getInvoicesWithDaysExpired();
+                    hideSpinner();
                 },
-                error: function () {
-                    toastr.error("Error de conexión.");
+                error: function (data) {
+                    displayToasterError(data.responseJSON.error);
+                    displayToasterError(data.responseJSON.detail);
+                    hideSpinner();
                 }
             })
         }

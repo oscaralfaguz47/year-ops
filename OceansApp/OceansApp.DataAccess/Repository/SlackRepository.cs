@@ -5,11 +5,11 @@ namespace OceansApp.DataAccess.Repository
 {
     public class SlackRepository : ISlackRepository
     {
-        public async Task SendMessageToChannelAsync(string token, string channel, string message)
+        public async Task SendMessageToChannelAsync(string token, string channelId, string message)
         {
             var client = new SlackTaskClient(token);
 
-            var response = await client.PostMessageAsync(channel, message);
+            var response = await client.PostMessageAsync(channelId, message);
 
             if (!response.ok)
             {
@@ -33,6 +33,18 @@ namespace OceansApp.DataAccess.Repository
             {
                 throw new Exception("Error al enviar el mensaje al usuario de Slack: " + messageResponse.error);
             }
+        }
+
+        public async Task<string> GetSlackUserIdByEmailAsync(string token, string email)
+        {
+            var client = new SlackTaskClient(token);
+            var userResponse = await client.GetUserByEmailAsync(email);
+
+            if (!userResponse.ok)
+            {
+                throw new Exception("Error al encontrar el usuario en Slack: " + userResponse.error);
+            }
+            return userResponse.user.id;
         }
     }
 }
