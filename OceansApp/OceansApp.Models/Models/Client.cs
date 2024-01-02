@@ -48,6 +48,8 @@ namespace OceansApp.Models.Models
         public DateTime CreationDate { get; set; }
         [MaxLength(8)]
         public string CompanyId { get; set; }
-
+        [MaxLength(450)]
+        public string? SuccessManagerId { get; set; }
+        public string? AdditionalEmailsForNotifications { get; set; }
     }
 }

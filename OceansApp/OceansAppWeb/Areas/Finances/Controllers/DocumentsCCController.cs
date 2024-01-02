@@ -183,10 +183,39 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 DateTime docExpirationDate = documentCC.DocumentDate.AddDays(double.Parse(client.PaymentCondition));
                 var subjectEmail = $"Invoice from {documentMonth} is still pending payment.";
                 var subjectSlack = "";
+                var emailsSentToForSlackNot = "";
 
                 var allEmails = client.Emails.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                List<string> additionalEmailsForNotifications = new List<string>();
+                additionalEmailsForNotifications = client.AdditionalEmailsForNotifications?.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList() ?? additionalEmailsForNotifications;
+
                 var emailTo = allEmails.FirstOrDefault();
                 var emailsCC = allEmails.Skip(1).ToList();
+                string slackSuccessManagerId = "No Success Manager is assigned yet.";
+
+                foreach (var email in additionalEmailsForNotifications)
+                {
+                    emailsCC.Add(email);
+                }
+                if (client.SuccessManagerId != null)
+                {
+                    var successManagerUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == client.SuccessManagerId);
+                    if (successManagerUser == null)
+                    {
+                        return Json(new { success = false, error = "No fue posible encontrar el usuario para el Success Manager en la base de datos." });
+                    }
+                    emailsCC.Add(successManagerUser.Email);
+                    try
+                    {
+                        slackSuccessManagerId = "<@" +  await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                    }
+                    catch(Exception ex)
+                    {
+                        slackSuccessManagerId = "The user " + successManagerUser.Email + " assigned as Success Manager is not a user from Slack.";
+                    }
+                    
+                }
+
                 var emailsCCString = "";
                 foreach (var email in emailsCC)
                 {
@@ -236,13 +265,25 @@ namespace OceansAppWeb.Areas.Finances.Controllers
            "• *Date:* " + documentCC.DocumentDate.ToString("MM/dd/yyyy") + " \n" +
            "• *Expiration Date:* " + docExpirationDate.ToString("MM/dd/yyyy") + " \n" +
            "• *Days Expired:* " + numDaysExpired;
+                if (numDaysExpired >= 30)
+                {
+                    invoiceDetails = "• *Invoice Number:* " + documentCC.DocumentNumber + " \n" +
+           "• *Total Amount:* $" + documentCC.DocumentAmount.ToString("#,##0.00") + " \n" +
+           "• *Late Fee Amount:* $" + (documentCC.BalanceAmount * (decimal)0.05).ToString("#,##0.00") + " \n" +
+           "• *Total Amount Due:* $" + (documentCC.BalanceAmount + (documentCC.BalanceAmount * (decimal)0.05)).ToString("#,##0.00") + " \n" +
+           "• *Date:* " + documentCC.DocumentDate.ToString("MM/dd/yyyy") + " \n" +
+           "• *Expiration Date:* " + docExpirationDate.ToString("MM/dd/yyyy") + " \n" +
+           "• *Days Expired:* " + numDaysExpired;
+                }
+
+                emailsSentToForSlackNot = "The payment reminder email was sent to " + emailTo + ", with copy to the following emails: \n" +
+emailsCCString;
 
                 if (numDaysExpired >= 5 && numDaysExpired < 15 && alreadyNotificationSent.Count() == 0)
                 {
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :warning:";
                     additionalSubIntro = "<@" + slackSenderId + @"> has sent a payment reminder to *" + client.Name.ToUpper() + "*, ";
                     actionsToTake = "• If client is known and a consistent payer, wait more days, at the discretion of Accounts Receivable.";
-
                     emailBody = emailBodyYellow(
                             client.Name,
                             documentCC.BalanceAmount,
@@ -294,11 +335,12 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 else if (numDaysExpired >= 45 && numDaysExpired < 60 && alreadyNotificationSent.Count() == 3)
                 {
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :alert:";
-                    actionsToTake = "• Request meeting with client." + " \n" + 
+                    actionsToTake = "• Request meeting with client." + " \n" +
                         "• Discuss with client about potential payment arrangements." + " \n" +
                         "• If client is not engaging live or has no time to connect, send via email notification instead.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name + 
+                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
+                    emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
 
                 }
                 else if (numDaysExpired >= 60 && numDaysExpired < 75 && alreadyNotificationSent.Count() == 4)
@@ -310,6 +352,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         "• If client is not engaging live or has no time to connect, send formal notification of potential consequences via written form.";
                     additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
+                    emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
                 else if (numDaysExpired >= 75 && numDaysExpired < 90 && alreadyNotificationSent.Count() == 5)
                 {
@@ -318,6 +361,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         "• Notify consultant and proceed with finalization of the contract.";
                     additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
+                    emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
                 else if (numDaysExpired >= 90 && numDaysExpired < 120 && alreadyNotificationSent.Count() == 6)
                 {
@@ -325,6 +369,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     actionsToTake = "• Send formal notice to client of intent to pursue other methods of collection.";
                     additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
+                    emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
                 else if (numDaysExpired >= 120 && alreadyNotificationSent.Count() == 7)
                 {
@@ -334,17 +379,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         "• Currently using GGR as our preferred collection agency. Contact: aesquibel@ggrinc.com.";
                     additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
+                    emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
                 slackBody = SlackBodyNotification(subjectSlack,
-                            invoiceDetails, additionalSubIntro, emailTo,
-                            emailsCCString, actionsToTake);
+                            invoiceDetails, additionalSubIntro,
+                            emailsSentToForSlackNot, actionsToTake, slackSuccessManagerId);
                 //IF email should be sent
                 if (alreadyNotificationSent.Count() >= 0 && alreadyNotificationSent.Count() <= 2)
                 { //Add emails as CC
-
-                    //emailsCC.Add("oscar.alfaro@oceanscode.com");
-                    //emailsCC.Add("eder.rodriguez@oceanscode.com");
-                    //emailsCC.Add("priscila.zamora@oceanscode.com");
 
                     notificationEmail.Body = emailBody;
 
@@ -361,13 +403,13 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     try
                     {
                         var emailSent = _sendEmail.SendEmail(emailToSend);
-                        var documentNotification = new DocumentsCCNotification()
-                        {
-                            DocumentCCId = documentId,
-                            NotificationId = notificationEmail.NotificationId
-                        };
-                        _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                        _unitOfWork.Save();
+                        //var documentNotification = new DocumentsCCNotification()
+                        //{
+                        //    DocumentCCId = documentId,
+                        //    NotificationId = notificationEmail.NotificationId
+                        //};
+                        //_unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                        //_unitOfWork.Save();
                     }
                     catch (Exception ex)
                     {
@@ -416,13 +458,13 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 if (emailBody == "")
                 {
                     returnSuccessMessage = "¡Bien, acabas de enviar una notificación a los success managers en el canal de Slack!";
-                    var documentNotification = new DocumentsCCNotification()
-                    {
-                        DocumentCCId = documentId,
-                        NotificationId = notificationSlack.NotificationId
-                    };
-                    _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                    _unitOfWork.Save();
+                    //var documentNotification = new DocumentsCCNotification()
+                    //{
+                    //    DocumentCCId = documentId,
+                    //    NotificationId = notificationSlack.NotificationId
+                    //};
+                    //_unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                    //_unitOfWork.Save();
                 }
                 var notificationRecipientSlack = new NotificationRecipient()
                 {
@@ -447,11 +489,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 });
             }
         }
-        private bool SendEmail()
-        {
 
-            return true;
-        }
         [HttpPost]
         public IActionResult GetNotificationsHistoryByDocument(int documentId)
         {
@@ -467,18 +505,20 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         }
 
         private string SlackBodyNotification(string subject, string invoiceDetails,
-          string additionalSubIntro, string emailSentTo,
-            string emailsCCSentTo, string actionsToTake)
+          string additionalSubIntro,
+            string emailsSentTo, string actionsToTake, string successManagerSlackId)
         {
-            var body = "*" + subject + "\n" + "\n" +
-           "Hi Team!, :smiley: \n" + "\n" +
+            var body = "*" + subject + "\n\n" +
+           "Hi Team!, :smiley: \n\n" +
             additionalSubIntro +
            " regarding the invoice below: \n" +
            invoiceDetails + "\n\n" +
-           "*ACTIONS TO TAKE* :male-detective::skin-tone-3: \n" +
+           "*SUCCESS MANAGER* :necktie:" + "\n" +
+           successManagerSlackId + "\n\n" +
+           "*ACTIONS TO TAKE* :male-detective::skin-tone-3:" + "\n" +
            actionsToTake + "\n\n" +
-           "The payment reminder email was sent to " + emailSentTo + ", with copy to the following emails: \n" +
-           emailsCCSentTo;
+           "*EMAILS SENT* :incoming_envelope:" + "\n" +
+           emailsSentTo;
 
             return body;
         }
@@ -903,11 +943,11 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                                                                     </table>
                                                                     <p>Dear " + clientName + @",</p>
                                                                     <p>Your immediate attention is needed regarding an overdue balance of 
-                                                                        <strong>$" + (totalAmountDue + (documentAmount * (decimal)0.05)).ToString("#,##0.00") + @"</strong> for services
+                                                                        <strong>$" + (totalAmountDue + (totalAmountDue * (decimal)0.05)).ToString("#,##0.00") + @"</strong> for services
                                                                         delivered in the
                                                                         period of <strong>" + month + @" " + year + @"</strong>.
                                                                     </p>
-                                                                    <p><strong>Note that a late payment fee of 5% of the invoice was included because of the late payment.</strong>
+                                                                    <p><strong>Note that a late payment fee of 5% of the amount due was included because of the late payment.</strong>
                                                                     </p>
                                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
                                                                         <tr>
@@ -937,7 +977,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                                                                                         </td>
                                                                                         <td
                                                                                             style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                                                            $" + (documentAmount * (decimal)0.05).ToString("#,##0.00") + @"
+                                                                                            $" + (totalAmountDue * (decimal)0.05).ToString("#,##0.00") + @"
                                                                                         </td>
                                                                                     </tr>
                                                                                     <tr>
@@ -947,7 +987,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                                                                                         </td>
                                                                                         <td
                                                                                             style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                                                            $" + (totalAmountDue + (documentAmount * (decimal)0.05)).ToString("#,##0.00") + @"
+                                                                                            $" + (totalAmountDue + (totalAmountDue * (decimal)0.05)).ToString("#,##0.00") + @"
                                                                                         </td>
                                                                                     </tr>
                                                                                     <tr>
