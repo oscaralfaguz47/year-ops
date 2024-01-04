@@ -4,6 +4,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.DocumentsCC;
+using OceansApp.Models.ViewModels.Notifications;
 using OceansApp.Utility.Email;
 using System.Security.Claims;
 
@@ -159,6 +160,132 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> SendCXCStatus()
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
+                var emailSlackSender = emailClaim?.Value;
+                string slackSenderId = "<@"; try
+                {
+                    slackSenderId = slackSenderId + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
+                }
+                catch (Exception ex)
+                {
+                    slackSenderId = emailSlackSender;
+                }
+                string slackChannelId = _config["Slack:SuccessManagerChannel"];
+                var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                if (notificationStatus == null)
+                {
+                    return Json(new { success = false, error = "Error en la obtención de datos." });
+                }
+                var pendingInvoices = await _unitOfWork.DocumentCC.GetAllExpiredPendingDocsAsync();
+                pendingInvoices = pendingInvoices.OrderBy(doc => doc.ClientName).ThenByDescending(doc => doc.NumDaysExpired).ToList();
+                var client = "";
+                var invoiceLine = "";
+                foreach (var invoice in pendingInvoices)
+                {
+                    var invoiceIcon = "";
+                    var clientIcon = "";
+                    if (invoice.NumDaysExpired >= 1 && invoice.NumDaysExpired < 5)
+                    {
+                        invoiceIcon = ":upside_down_face:";
+                        clientIcon = ":information_source:";
+                    }
+                    else if (invoice.NumDaysExpired >= 5 && invoice.NumDaysExpired < 15)
+                    {
+                        invoiceIcon = ":thinking_face:";
+                        clientIcon = ":warning:";
+                    }
+                    else
+                    {
+                        invoiceIcon = ":exploding_head:";
+                        clientIcon = ":alert:";
+                    }
+                        if (client != invoice.ClientName)
+                        {
+                        string slackSuccessManagerId = "No Success Manager is assigned yet.";
+                        if (invoice.SuccessManagerEmail != null)
+                        {
+                            var successManagerUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == invoice.SuccessManagerEmail);
+                            if (successManagerUser == null)
+                            {
+                                return Json(new { success = false, error = "No fue posible encontrar el usuario para el Success Manager en la base de datos." });
+                            }
+                            try
+                            {
+                                slackSuccessManagerId = "<@" + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                            }
+                            catch (Exception ex)
+                            {
+                                slackSuccessManagerId = "The user " + successManagerUser.Email + " assigned as Success Manager is not a user from Slack or is not an active user.";
+                            }
+
+                        }
+                        invoiceLine = invoiceLine + "\n *" + invoice.ClientName.ToUpper() + ":* " + clientIcon + "\n" +
+                        "*Success Manager:* " + slackSuccessManagerId + "\n" +
+                                "• "+ invoiceIcon + " *Invoice #:* " + invoice.DocumentNumber + ", *Date:* " + invoice.DocumentDate.ToString("MM/dd/yyyy") + ", *Exp Date:* " + invoice.ExpirationDate.ToString("MM/dd/yyyy") + ", *Days Expired:* " + invoice.NumDaysExpired + ", *# Notifications sent:* " + invoice.NumNotificationsSent + ".\n";
+                        }
+                        else
+                        {
+                            invoiceLine = invoiceLine + "• " + invoiceIcon + " *Invoice #:* " + invoice.DocumentNumber + ", *Date:* " + invoice.DocumentDate.ToString("MM/dd/yyyy") + ", *Exp Date:* " + invoice.ExpirationDate.ToString("MM/dd/yyyy") + ", *Days Expired:* " + invoice.NumDaysExpired + ", *# Notifications sent:* " + invoice.NumNotificationsSent + ".\n";
+                        }
+                    client = invoice.ClientName;
+                }
+                var slackBody = ":mega: *ACCOUNTS RECEIVABLE STATUS FROM CLIENTS* :mega: \n\n" +
+                "Hi Team!, \n" +
+                slackSenderId + " is sending you the status of the clients, see the info below: \n" +
+                invoiceLine + "\n Everyone else is up to date. :white_check_mark:";
+                try
+                {
+                    await _slackRepository.SendMessageToChannelAsync(
+                       _config["Slack:TokenAccountingApp"], slackChannelId, slackBody);
+                }
+                catch (Exception ex)
+                {
+                    notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                }
+                var recipient = new SaveNotificationRecipientVM()
+                {
+                    NotificationMedia = "Slack",
+                    RecipientMediaInfo = "Slack Channel Id: " + slackChannelId
+                };
+                var recipients = new List<SaveNotificationRecipientVM>();
+                recipients.Add(recipient);
+                try
+                {
+                    _unitOfWork.Notification.SaveNotification("Cuentas por cobrar", "ACCOUNTS RECEIVABLE STATUS FROM CLIENTS",
+                   slackBody, "Accounting App", claim.Value, recipients, notificationStatus.NotificationStatusId);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new
+                    {
+                        error = $"Hubo un error guardando la notificación en la base de datos, el estado del mensaje enviado a Slack es: " + notificationStatus + ", reporta este issue al administrador.",
+                        result = "errorPost",
+                        detail = ex.Message
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    error = $"Hubo un error en la solicitud, intentalo más tarde o reporta este issue al administrador.",
+                    result = "errorPost",
+                    detail = ex.Message
+                });
+            }
+            return Json(new
+            {
+                success = true,
+                message = "Le acabas de enviar el status de CXC al canal de success-management"
+            });
+        }
 
         [HttpPost]
         public async Task<IActionResult> SendNotification(int documentId)
@@ -170,7 +297,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Cuentas por cobrar");
                 var notificationMediaEmail = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
                 var notificationMediaSlack = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Slack");
-                var slackChannelId = "C06BAHM0T7H";
+                var slackChannelId = _config["Slack:SuccessManagerChannel"];
                 var returnSuccessMessage = "¡Bien, le acabas de enviar un recordatorio de pago a: " + client.Name + " por email y una notifiación a los Success Managers al canal de Slack!";
 
                 if (documentCC == null || client == null || notificationType == null || notificationMediaEmail == null
@@ -207,13 +334,13 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     emailsCC.Add(successManagerUser.Email);
                     try
                     {
-                        slackSuccessManagerId = "<@" +  await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                        slackSuccessManagerId = "<@" + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         slackSuccessManagerId = "The user " + successManagerUser.Email + " assigned as Success Manager is not a user from Slack.";
                     }
-                    
+
                 }
 
                 var emailsCCString = "";
@@ -237,7 +364,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
                 var emailSlackSender = emailClaim?.Value;
 
-                string slackSenderId = await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender);
+                string slackSenderId = "<@"; try
+                {
+                    slackSenderId = slackSenderId + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
+                }
+                catch (Exception ex)
+                {
+                    slackSenderId = emailSlackSender;
+                }
 
                 var notificationEmail = new Notification();
                 notificationEmail.NotificationTypeId = notificationType.NotificationTypeId;
@@ -282,7 +416,7 @@ emailsCCString;
                 if (numDaysExpired >= 5 && numDaysExpired < 15 && alreadyNotificationSent.Count() == 0)
                 {
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :warning:";
-                    additionalSubIntro = "<@" + slackSenderId + @"> has sent a payment reminder to *" + client.Name.ToUpper() + "*, ";
+                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, ";
                     actionsToTake = "• If client is known and a consistent payer, wait more days, at the discretion of Accounts Receivable.";
                     emailBody = emailBodyYellow(
                             client.Name,
@@ -300,7 +434,7 @@ emailsCCString;
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :alert:";
                     actionsToTake = "• Success manager should send additional message to main point of contact on the client side." + " \n" +
                         "• If client is known and a consistent payer, wait more days, at the discretion of Accounts Receivable, wait for Success Manager to engage client with the inquiry.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee notice of 5%*";
+                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee notice of 5%*";
 
                     emailBody = emailBodyRed(
                             client.Name,
@@ -319,7 +453,7 @@ emailsCCString;
                     actionsToTake = "• Phone call to the client from Success Manager. If possible, escalate to highest known management contact on the client side." + " \n" +
                         "• Slack conversations with client that evidence that the services were provided successfully." + " \n" +
                         "• Emails showing the client’s intention to pay and no objection about the hours reported.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee of 5%*";
+                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee of 5%*";
 
                     emailBody = emailBodyRed30Days(
                             client.Name,
@@ -338,7 +472,7 @@ emailsCCString;
                     actionsToTake = "• Request meeting with client." + " \n" +
                         "• Discuss with client about potential payment arrangements." + " \n" +
                         "• If client is not engaging live or has no time to connect, send via email notification instead.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
+                    additionalSubIntro = slackSenderId + " is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
                     emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
 
@@ -350,7 +484,7 @@ emailsCCString;
                         "• Final live notice with potential consequences (15-day notice to remove consultant)." + " \n" +
                         "• Notify the consultant of the situation and potential finalization in the project if no payment arrangement is achieve." + " \n" +
                         "• If client is not engaging live or has no time to connect, send formal notification of potential consequences via written form.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
+                    additionalSubIntro = slackSenderId + " is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
                     emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
@@ -359,7 +493,7 @@ emailsCCString;
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :alert:";
                     actionsToTake = "• If still unpaid, send notice of finalization from the consultant’s services." + " \n" +
                         "• Notify consultant and proceed with finalization of the contract.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
+                    additionalSubIntro = slackSenderId + " is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
                     emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
@@ -367,7 +501,7 @@ emailsCCString;
                 {
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :alert:";
                     actionsToTake = "• Send formal notice to client of intent to pursue other methods of collection.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
+                    additionalSubIntro = slackSenderId + " is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
                     emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
@@ -377,7 +511,7 @@ emailsCCString;
                     actionsToTake = "• If client is not engaging or unwilling to pay." + " \n" +
                         "• Escalation to collection agency." + " \n" +
                         "• Currently using GGR as our preferred collection agency. Contact: aesquibel@ggrinc.com.";
-                    additionalSubIntro = "<@" + slackSenderId + @"> is sending you a reminder to let you know that payment from *" + client.Name +
+                    additionalSubIntro = slackSenderId + " is sending you a reminder to let you know that payment from *" + client.Name +
                         "* is still pending *" + numDaysExpired + " days late*";
                     emailsSentToForSlackNot = "No emails were sent to the client regarding this notification, this is just an internal reminder.";
                 }
@@ -403,13 +537,13 @@ emailsCCString;
                     try
                     {
                         var emailSent = _sendEmail.SendEmail(emailToSend);
-                        //var documentNotification = new DocumentsCCNotification()
-                        //{
-                        //    DocumentCCId = documentId,
-                        //    NotificationId = notificationEmail.NotificationId
-                        //};
-                        //_unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                        //_unitOfWork.Save();
+                        var documentNotification = new DocumentsCCNotification()
+                        {
+                            DocumentCCId = documentId,
+                            NotificationId = notificationEmail.NotificationId
+                        };
+                        _unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                        _unitOfWork.Save();
                     }
                     catch (Exception ex)
                     {
@@ -458,13 +592,13 @@ emailsCCString;
                 if (emailBody == "")
                 {
                     returnSuccessMessage = "¡Bien, acabas de enviar una notificación a los success managers en el canal de Slack!";
-                    //var documentNotification = new DocumentsCCNotification()
-                    //{
-                    //    DocumentCCId = documentId,
-                    //    NotificationId = notificationSlack.NotificationId
-                    //};
-                    //_unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                    //_unitOfWork.Save();
+                    var documentNotification = new DocumentsCCNotification()
+                    {
+                        DocumentCCId = documentId,
+                        NotificationId = notificationSlack.NotificationId
+                    };
+                    _unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                    _unitOfWork.Save();
                 }
                 var notificationRecipientSlack = new NotificationRecipient()
                 {
@@ -484,7 +618,7 @@ emailsCCString;
                 return BadRequest(new
                 {
                     error = $"Hubo un error en la solicitud, intentalo más tarde o reporta este issue al administrador.",
-                    result = "errorGet",
+                    result = "errorPost",
                     detail = ex.Message
                 });
             }

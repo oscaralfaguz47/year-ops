@@ -57,38 +57,78 @@ namespace OceansApp.DataAccess.Repository
 					 WHERE DCC.DocumentType = 'FAC' 
 					 AND DCC.Canceled = 'N'
 					 AND C.ClientCategory NOT LIKE '%CON%'
+                     AND C.ClientCode NOT IN('OCELL_C0001')
 					 AND DCC.BalanceAmount > 0
 					 AND (
-                     (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 5 
-                      AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 15 
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 5 
+                      AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 15 
                       AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 0)
                      OR 
-                     (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 15 
-                      AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 30 
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 15 
+                      AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 30 
                       AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 1)
                      OR 
-                     (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 30 
-                      AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 45 
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 30 
+                      AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 45 
                       AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 2)
                      OR 
-                     (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 45 
-                      AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 60 
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 45 
+                      AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 60 
                       AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 3)
 	                  OR 
-                     (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 60 
-                      AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 75 
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 60 
+                      AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 75 
                       AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 4)
 	                  OR 
-                     (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 75 
-                     AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 90 
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 75 
+                     AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 90 
                      AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 5)
 	                 OR 
-                    (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 90 
-                     AND ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) < 120 
+                    (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 90 
+                     AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 120 
                      AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 6)
 	                 OR 
-                    (ABS(CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate)) ELSE 0 END) >= 120 
+                    (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 120 
                      AND (SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) = 7)
+                     )
+                    ORDER BY NumDaysExpired");
+
+            var results = await connection.QueryAsync<DocumentCCGetExpiredDocsVM>(queryBuilder.ToString());
+            var documents = results.ToList();
+
+            return (documents);
+        }
+        public async Task<List<DocumentCCGetExpiredDocsVM>> GetAllExpiredPendingDocsAsync()
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var queryBuilder = new StringBuilder();
+
+            queryBuilder.AppendLine(@"SELECT 
+					DocumentCCId
+                    ,DocumentNumber
+                    ,DCC.DocumentDate
+	                ,DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate) AS ExpirationDate
+	                ,ABS(CASE
+	                 WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), 
+	               	 (DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate))) 
+	                 ELSE 0
+	                 END) AS NumDaysExpired
+	                ,DCC.BalanceAmount
+                    ,DCC.DocumentAmount
+                    ,C.Name AS ClientName
+                    ,U.Email AS SuccessManagerEmail
+                    ,(SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) AS NumNotificationsSent
+                     FROM DOCUMENTS_CC DCC
+                     JOIN CLIENT C ON DCC.ClientId = C.ClientId
+                     LEFT JOIN Users U ON C.SuccessManagerId = U.Id
+					 WHERE DCC.DocumentType = 'FAC' 
+					 AND DCC.Canceled = 'N'
+					 AND C.ClientCategory NOT LIKE '%CON%'
+					 AND C.ClientCode NOT IN('OCELL_C0001')
+					 AND DCC.BalanceAmount > 0
+					 AND (
+                     (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END > 1 )
                      )
                     ORDER BY NumDaysExpired");
 

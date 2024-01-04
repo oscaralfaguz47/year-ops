@@ -42,6 +42,38 @@
             hideSpinner();
         });
 }
+function sendStatusToSM() {
+    Swal.fire({
+        title: "Enviar estado de las facturas pendientes",
+        text: "¿Quieres enviarle un estado a los Success Managers?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, enviar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            fetch('DocumentsCC/SendCXCStatus', { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    toastr.success(data.message);
+                    hideSpinner();
+                })
+                .catch(error => {
+                    displayToasterError(data.error);
+                    console.error('There has been a problem with the fetch operation:', error);
+                    hideSpinner();
+                });
+        }
+    });
+}
 function closeInvoicesExpiredModal() {
     var modal = document.getElementById("invoices-expired-modal");
     modal.style.display = "none";
