@@ -317,12 +317,12 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 additionalEmailsForNotifications = client.AdditionalEmailsForNotifications?.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList() ?? additionalEmailsForNotifications;
 
                 var emailTo = allEmails.FirstOrDefault();
-                var emailsCC = allEmails.Skip(1).ToList();
+                var emailsCCBeforeRemoveDuplicates = allEmails.Skip(1).ToList();
                 string slackSuccessManagerId = "No Success Manager is assigned yet.";
 
                 foreach (var email in additionalEmailsForNotifications)
                 {
-                    emailsCC.Add(email);
+                    emailsCCBeforeRemoveDuplicates.Add(email);
                 }
                 if (client.SuccessManagerId != null)
                 {
@@ -331,7 +331,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     {
                         return Json(new { success = false, error = "No fue posible encontrar el usuario para el Success Manager en la base de datos." });
                     }
-                    emailsCC.Add(successManagerUser.Email);
+                    emailsCCBeforeRemoveDuplicates.Add(successManagerUser.Email);
                     try
                     {
                         slackSuccessManagerId = "<@" + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
@@ -341,6 +341,16 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         slackSuccessManagerId = "The user " + successManagerUser.Email + " assigned as Success Manager is not a user from Slack.";
                     }
 
+                }
+
+                List<string> emailsCC = new List<string>();
+
+                foreach (var email in emailsCCBeforeRemoveDuplicates)
+                {
+                    if (!emailsCC.Contains(email.Trim()))
+                    {
+                        emailsCC.Add(email.Trim());
+                    }
                 }
 
                 var emailsCCString = "";
@@ -527,11 +537,23 @@ emailsCCString;
                     _unitOfWork.Notification.Add(notificationEmail);
                     _unitOfWork.Save();
 
+                    emailsCC.Add(emailTo); //Add emailTo to
+
+                    List<string> emailsCCAfterRemoveDuplicates = new List<string>();
+
+                    foreach (var email in emailsCC)
+                    {
+                        if (!emailsCCAfterRemoveDuplicates.Contains(email.Trim()))
+                        {
+                            emailsCCAfterRemoveDuplicates.Add(email.Trim());
+                        }
+                    }
+
                     var emailToSend = new SendEmailVM();
                     emailToSend.Subject = subjectEmail;
                     emailToSend.EmailTo = emailTo;
                     emailToSend.SharedEmailFrom = _config["internalEmail"];
-                    emailToSend.EmailCcList = emailsCC;
+                    emailToSend.EmailCcList = emailsCCAfterRemoveDuplicates;
                     emailToSend.Body = emailBody;
 
                     try
@@ -543,15 +565,13 @@ emailsCCString;
                             NotificationId = notificationEmail.NotificationId
                         };
                         _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                        _unitOfWork.Save();
+                       _unitOfWork.Save();
                     }
                     catch (Exception ex)
                     {
                         notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
                     }
-
-                    emailsCC.Add(emailTo); //Add emailTo to save iin notificationRecipientSentTo
-                    foreach (var email in emailsCC)
+                    foreach (var email in emailsCCAfterRemoveDuplicates)
                     {
                         var recipientUserCC = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == email);
                         var recipientUserIdCC = recipientUserCC?.Id;
