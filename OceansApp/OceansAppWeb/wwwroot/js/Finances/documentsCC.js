@@ -35,6 +35,9 @@
                     "</tr>";
                 tbody.append(row);
             });
+            if (data.length === 0) {
+                noResultsMessage.text("NO TIENES NOTIFICACIONES PENDIENTES DE ENVÍO");
+            };
             hideSpinner();
         })
         .catch(error => {
