@@ -53,5 +53,7 @@ namespace OceansApp.Models.Models
         public string? AdditionalEmailsForNotifications { get; set; }
         [Required]
         public Decimal LatePaymentFee { get; set; }
+        [Required]
+        public bool AllowSentLatePaymentNotifications { get; set; } = true;
     }
 }

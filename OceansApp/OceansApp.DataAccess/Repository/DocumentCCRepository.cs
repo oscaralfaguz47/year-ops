@@ -59,6 +59,7 @@ namespace OceansApp.DataAccess.Repository
 					 AND C.ClientCategory NOT LIKE '%CON%'
                      AND C.ClientCode NOT IN('OCELL_C0001')
 					 AND DCC.BalanceAmount > 0
+                     AND C.AllowSentLatePaymentNotifications = 1
 					 AND (
                      (CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END >= 5 
                       AND CASE WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate), SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')) ELSE 0 END < 15 
