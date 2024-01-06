@@ -571,8 +571,8 @@ emailsCCString;
                             DocumentCCId = documentId,
                             NotificationId = notificationEmail.NotificationId
                         };
-                        // _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                        //_unitOfWork.Save();
+                        _unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                        _unitOfWork.Save();
                     }
                     catch (Exception ex)
                     {
@@ -624,8 +624,8 @@ emailsCCString;
                         DocumentCCId = documentId,
                         NotificationId = notificationSlack.NotificationId
                     };
-                    //_unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                    //_unitOfWork.Save();
+                    _unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                    _unitOfWork.Save();
                 }
                 var notificationRecipientSlack = new NotificationRecipient()
                 {
