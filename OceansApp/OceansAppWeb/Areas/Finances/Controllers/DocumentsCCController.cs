@@ -206,8 +206,8 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         invoiceIcon = ":exploding_head:";
                         clientIcon = ":alert:";
                     }
-                        if (client != invoice.ClientName)
-                        {
+                    if (client != invoice.ClientName)
+                    {
                         string slackSuccessManagerId = "No Success Manager is assigned yet.";
                         if (invoice.SuccessManagerEmail != null)
                         {
@@ -228,12 +228,12 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         }
                         invoiceLine = invoiceLine + "\n *" + invoice.ClientName.ToUpper() + ":* " + clientIcon + "\n" +
                         "*Success Manager:* " + slackSuccessManagerId + "\n" +
-                                "• "+ invoiceIcon + " *Invoice #:* " + invoice.DocumentNumber + ", *Date:* " + invoice.DocumentDate.ToString("MM/dd/yyyy") + ", *Exp Date:* " + invoice.ExpirationDate.ToString("MM/dd/yyyy") + ", *Days Expired:* " + invoice.NumDaysExpired + ", *# Notifications sent:* " + invoice.NumNotificationsSent + ".\n";
-                        }
-                        else
-                        {
-                            invoiceLine = invoiceLine + "• " + invoiceIcon + " *Invoice #:* " + invoice.DocumentNumber + ", *Date:* " + invoice.DocumentDate.ToString("MM/dd/yyyy") + ", *Exp Date:* " + invoice.ExpirationDate.ToString("MM/dd/yyyy") + ", *Days Expired:* " + invoice.NumDaysExpired + ", *# Notifications sent:* " + invoice.NumNotificationsSent + ".\n";
-                        }
+                                "• " + invoiceIcon + " *Invoice #:* " + invoice.DocumentNumber + ", *Date:* " + invoice.DocumentDate.ToString("MM/dd/yyyy") + ", *Exp Date:* " + invoice.ExpirationDate.ToString("MM/dd/yyyy") + ", *Days Expired:* " + invoice.NumDaysExpired + ", *# Notifications sent:* " + invoice.NumNotificationsSent + ".\n";
+                    }
+                    else
+                    {
+                        invoiceLine = invoiceLine + "• " + invoiceIcon + " *Invoice #:* " + invoice.DocumentNumber + ", *Date:* " + invoice.DocumentDate.ToString("MM/dd/yyyy") + ", *Exp Date:* " + invoice.ExpirationDate.ToString("MM/dd/yyyy") + ", *Days Expired:* " + invoice.NumDaysExpired + ", *# Notifications sent:* " + invoice.NumNotificationsSent + ".\n";
+                    }
                     client = invoice.ClientName;
                 }
                 var slackBody = ":mega: *ACCOUNTS RECEIVABLE STATUS FROM CLIENTS* :mega: \n\n" +
@@ -403,22 +403,21 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
                 var additionalSubIntro = "";
                 var actionsToTake = "";
-                var invoiceDetails = "• *Invoice Number:* " + documentCC.DocumentNumber + " \n" +
-           "• *Total Amount:* $" + documentCC.DocumentAmount.ToString("#,##0.00") + " \n" +
-           "• *Total Amount Due:* $" + documentCC.BalanceAmount.ToString("#,##0.00") + " \n" +
-           "• *Date:* " + documentCC.DocumentDate.ToString("MM/dd/yyyy") + " \n" +
-           "• *Expiration Date:* " + docExpirationDate.ToString("MM/dd/yyyy") + " \n" +
-           "• *Days Expired:* " + numDaysExpired;
-                if (numDaysExpired >= 30)
+
+                var lateFee = "";
+                var totalAmountDue = (documentCC.BalanceAmount).ToString("#,##0.00");
+                if (numDaysExpired >= 30 && client.LatePaymentFee > 0)
                 {
-                    invoiceDetails = "• *Invoice Number:* " + documentCC.DocumentNumber + " \n" +
-           "• *Total Amount:* $" + documentCC.DocumentAmount.ToString("#,##0.00") + " \n" +
-           "• *Late Fee Amount:* $" + (documentCC.BalanceAmount * (decimal)0.05).ToString("#,##0.00") + " \n" +
-           "• *Total Amount Due:* $" + (documentCC.BalanceAmount + (documentCC.BalanceAmount * (decimal)0.05)).ToString("#,##0.00") + " \n" +
-           "• *Date:* " + documentCC.DocumentDate.ToString("MM/dd/yyyy") + " \n" +
-           "• *Expiration Date:* " + docExpirationDate.ToString("MM/dd/yyyy") + " \n" +
-           "• *Days Expired:* " + numDaysExpired;
+                    lateFee = "• *Late Fee Amount:* $" + (documentCC.BalanceAmount * client.LatePaymentFee).ToString("#,##0.00") + " \n";
+                    totalAmountDue = (documentCC.BalanceAmount + (documentCC.BalanceAmount * client.LatePaymentFee)).ToString("#,##0.00");
                 }
+                var invoiceDetails = "• *Invoice Number:* " + documentCC.DocumentNumber + " \n" +
+         "• *Total Amount:* $" + documentCC.DocumentAmount.ToString("#,##0.00") + " \n" +
+         lateFee +
+         "• *Total Amount Due:* $" + totalAmountDue + " \n" +
+         "• *Date:* " + documentCC.DocumentDate.ToString("MM/dd/yyyy") + " \n" +
+         "• *Expiration Date:* " + docExpirationDate.ToString("MM/dd/yyyy") + " \n" +
+         "• *Days Expired:* " + numDaysExpired;
 
                 emailsSentToForSlackNot = "The payment reminder email was sent to " + emailTo + ", with copy to the following emails: \n" +
 emailsCCString;
@@ -444,7 +443,11 @@ emailsCCString;
                     subjectSlack = $"INVOICE FROM {client.Name.ToUpper()} IS STILL PENDING PAYMENT* :alert:";
                     actionsToTake = "• Success manager should send additional message to main point of contact on the client side." + " \n" +
                         "• If client is known and a consistent payer, wait more days, at the discretion of Accounts Receivable, wait for Success Manager to engage client with the inquiry.";
-                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee notice of 5%*";
+                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, ";
+                    if (client.LatePaymentFee > 0)
+                    {
+                        additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee notice of " + (client.LatePaymentFee * 100).ToString("#,##0") + "%*, ";
+                    }
 
                     emailBody = emailBodyRed(
                             client.Name,
@@ -455,7 +458,7 @@ emailsCCString;
                             documentCC.DocumentNumber,
                             documentCC.DocumentDate,
                             docExpirationDate,
-                            numDaysExpired);
+                            numDaysExpired, client.LatePaymentFee);
                 }
                 else if (numDaysExpired >= 30 && numDaysExpired < 45 && alreadyNotificationSent.Count() == 2)
                 {
@@ -463,7 +466,11 @@ emailsCCString;
                     actionsToTake = "• Phone call to the client from Success Manager. If possible, escalate to highest known management contact on the client side." + " \n" +
                         "• Slack conversations with client that evidence that the services were provided successfully." + " \n" +
                         "• Emails showing the client’s intention to pay and no objection about the hours reported.";
-                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee of 5%*";
+                    additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, ";
+                    if (client.LatePaymentFee > 0)
+                    {
+                        additionalSubIntro = slackSenderId + " has sent a payment reminder to *" + client.Name.ToUpper() + "*, including the *late fee of " + (client.LatePaymentFee * 100).ToString("#,##0") + "%*, ";
+                    }
 
                     emailBody = emailBodyRed30Days(
                             client.Name,
@@ -474,7 +481,7 @@ emailsCCString;
                             documentCC.DocumentNumber,
                             documentCC.DocumentDate,
                             docExpirationDate,
-                            numDaysExpired);
+                            numDaysExpired, client.LatePaymentFee);
                 }
                 else if (numDaysExpired >= 45 && numDaysExpired < 60 && alreadyNotificationSent.Count() == 3)
                 {
@@ -564,8 +571,8 @@ emailsCCString;
                             DocumentCCId = documentId,
                             NotificationId = notificationEmail.NotificationId
                         };
-                        _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                       _unitOfWork.Save();
+                        // _unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                        //_unitOfWork.Save();
                     }
                     catch (Exception ex)
                     {
@@ -617,8 +624,8 @@ emailsCCString;
                         DocumentCCId = documentId,
                         NotificationId = notificationSlack.NotificationId
                     };
-                    _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                    _unitOfWork.Save();
+                    //_unitOfWork.DocumentsCCNotification.Add(documentNotification);
+                    //_unitOfWork.Save();
                 }
                 var notificationRecipientSlack = new NotificationRecipient()
                 {
@@ -867,8 +874,14 @@ emailsCCString;
             int year,
             string documentNumber,
             DateTime documentDate,
-            DateTime docExpirationDate, int numDaysExpired)
+            DateTime docExpirationDate, int numDaysExpired, decimal latePaymentFee)
         {
+            var note = "";
+            if (latePaymentFee > 0)
+            {
+                note = @"<p><strong>Note that a late payment fee of " + (latePaymentFee * 100).ToString("#,##0") + @"% of the invoice will be included if you do not pay within the next 15 days.</strong>
+                        </p>";
+            }
             var body = @"
 <!DOCTYPE html>
 <html>
@@ -920,8 +933,7 @@ emailsCCString;
                                                                         delivered in the
                                                                         period of <strong>" + month + @" " + year + @"</strong>.
                                                                     </p>
-                                                                    <p><strong>Note that a late payment fee of 5% of the invoice will be included if you do not pay within the next 15 days.</strong>
-                                                                    </p>
+                                                                   " + note + @"
                                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
                                                                         <tr>
                                                                             <td
@@ -1048,8 +1060,28 @@ emailsCCString;
             int year,
             string documentNumber,
             DateTime documentDate,
-            DateTime docExpirationDate, int numDaysExpired)
+            DateTime docExpirationDate, int numDaysExpired, decimal latePaymentFee)
         {
+            var note = "";
+            if (latePaymentFee > 0)
+            {
+                note = @"<p><strong>Note that a late payment fee of " + (latePaymentFee * 100).ToString("#,##0") + @"% of the amount due was included because of the late payment</strong>
+                        </p>";
+            }
+            var lateFeeApplied = "";
+            if (latePaymentFee > 0)
+            {
+                lateFeeApplied = @"<tr>
+                                   <td
+                                       style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
+                                       <strong> LATE FEE AMOUNT:</strong>
+                                   </td>
+                                   <td
+                                       style =""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
+                                       $" + (totalAmountDue * latePaymentFee).ToString("#,##0.00") + @"
+                                   </td>
+                               </tr> ";
+            }
             var body = @"
 <!DOCTYPE html>
 <html>
@@ -1097,12 +1129,11 @@ emailsCCString;
                                                                     </table>
                                                                     <p>Dear " + clientName + @",</p>
                                                                     <p>Your immediate attention is needed regarding an overdue balance of 
-                                                                        <strong>$" + (totalAmountDue + (totalAmountDue * (decimal)0.05)).ToString("#,##0.00") + @"</strong> for services
+                                                                        <strong>$" + (totalAmountDue + (totalAmountDue * latePaymentFee)).ToString("#,##0.00") + @"</strong> for services
                                                                         delivered in the
                                                                         period of <strong>" + month + @" " + year + @"</strong>.
                                                                     </p>
-                                                                    <p><strong>Note that a late payment fee of 5% of the amount due was included because of the late payment.</strong>
-                                                                    </p>
+                                                                    " + note + @"
                                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
                                                                         <tr>
                                                                             <td
@@ -1124,16 +1155,7 @@ emailsCCString;
                                                                                             $" + documentAmount.ToString("#,##0.00") + @"
                                                                                         </td>
                                                                                     </tr>
-                                                                                    <tr>
-                                                                                        <td
-                                                                                            style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
-                                                                                            <strong> LATE FEE AMOUNT:</strong>
-                                                                                        </td>
-                                                                                        <td
-                                                                                            style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                                                            $" + (totalAmountDue * (decimal)0.05).ToString("#,##0.00") + @"
-                                                                                        </td>
-                                                                                    </tr>
+                                                                                  " + lateFeeApplied + @"
                                                                                     <tr>
                                                                                         <td
                                                                                             style=""border-right: 2px solid #9ba8b8; padding-right: 10px;"">
@@ -1141,7 +1163,7 @@ emailsCCString;
                                                                                         </td>
                                                                                         <td
                                                                                             style=""border-left: 2px solid #9ba8b8; padding-left: 10px;"">
-                                                                                            $" + (totalAmountDue + (totalAmountDue * (decimal)0.05)).ToString("#,##0.00") + @"
+                                                                                            $" + (totalAmountDue + (totalAmountDue * latePaymentFee)).ToString("#,##0.00") + @"
                                                                                         </td>
                                                                                     </tr>
                                                                                     <tr>

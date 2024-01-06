@@ -57,18 +57,16 @@ function sendStatusToSM() {
             displaySpinner();
             fetch('DocumentsCC/SendCXCStatus', { method: 'POST' })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
                     return response.json();
                 })
                 .then(data => {
-                    toastr.success(data.message);
-                    hideSpinner();
-                })
-                .catch(error => {
-                    displayToasterError(data.error);
-                    console.error('There has been a problem with the fetch operation:', error);
+                    if (data.success) {
+                        toastr.success(data.message);
+                        hideSpinner();
+                    } else {
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
                     hideSpinner();
                 });
         }

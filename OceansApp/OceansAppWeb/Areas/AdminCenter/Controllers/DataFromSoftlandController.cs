@@ -197,7 +197,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                         DateLastUpdate = lastUpdate,
                                         Address = jsonMaster.OTRAS_SENAS,
                                         CreationDate = jsonMaster.CreateDate,
-                                        CompanyId = jsonMaster.CompanyId
+                                        CompanyId = jsonMaster.CompanyId,
+                                        LatePaymentFee = 0
                                     };
                                     if (_unitOfWork.Client.UpdateIfExistAddIfNot(client))
                                     {

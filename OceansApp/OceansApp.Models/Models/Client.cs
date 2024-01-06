@@ -51,5 +51,7 @@ namespace OceansApp.Models.Models
         [MaxLength(450)]
         public string? SuccessManagerId { get; set; }
         public string? AdditionalEmailsForNotifications { get; set; }
+        [Required]
+        public Decimal LatePaymentFee { get; set; }
     }
 }
