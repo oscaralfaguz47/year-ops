@@ -35,5 +35,6 @@
         ISystemSubAreaRepository SystemSubArea { get; }
 
         void Save();
+        Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTran();
     }
 }

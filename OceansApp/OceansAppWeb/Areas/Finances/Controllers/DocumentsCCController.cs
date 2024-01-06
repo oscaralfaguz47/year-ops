@@ -163,6 +163,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         [HttpPost]
         public async Task<IActionResult> SendCXCStatus()
         {
+            using var transaction = await _unitOfWork.BeginTran();
             try
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -280,6 +281,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     detail = ex.Message
                 });
             }
+            await transaction.CommitAsync();
             return Json(new
             {
                 success = true,
@@ -290,6 +292,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         [HttpPost]
         public async Task<IActionResult> SendNotification(int documentId)
         {
+            using var transaction = await _unitOfWork.BeginTran();
             try
             {
                 var documentCC = _unitOfWork.DocumentCC.GetFirstOrDefault(x => x.DocumentCCId == documentId);
@@ -638,6 +641,7 @@ emailsCCString;
                 _unitOfWork.NotificationRecipient.Add(notificationRecipientSlack);
                 _unitOfWork.Save();
 
+                await transaction.CommitAsync();
                 return Json(new { success = true, message = returnSuccessMessage });
             }
             catch (Exception ex)

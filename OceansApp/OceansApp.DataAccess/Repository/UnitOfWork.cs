@@ -78,5 +78,9 @@ namespace OceansApp.DataAccess.Repository
         {
             _db.SaveChanges();
         }
+        public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTran()
+        {
+          return _db.Database.BeginTransactionAsync();
+        }
     }
 }
