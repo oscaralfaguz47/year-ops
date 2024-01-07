@@ -86,7 +86,7 @@ builder.Services.AddCors(options =>
 });
 
 // Background services
-builder.Services.AddHostedService<EveryOneDayServices>();
+//builder.Services.AddHostedService<EveryOneDayServices>();
 
 var app = builder.Build();
 
