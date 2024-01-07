@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using System.Text.Json;
@@ -11,11 +10,9 @@ namespace OceansAppWeb.Controllers
     public class HomeController : Controller
    
     {
-        private readonly UserManager<IdentityUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
-        public HomeController(UserManager<IdentityUser> userManager, IUnitOfWork unitOfWork)
+        public HomeController(IUnitOfWork unitOfWork)
         {
-            _userManager = userManager;
             _unitOfWork = unitOfWork;
         }
         public IActionResult Index()

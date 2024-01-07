@@ -1,21 +1,18 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Utility.Email;
+using OceansApp.Models.ViewModels;
 
 namespace OceansApp.DataAccess.Repository
 {
     public class SendEmailRepository : ISendEmailRepository
     {
-        private readonly IEmailSender _emailSender;
         private readonly IConfiguration _config;
 
-        public SendEmailRepository(IEmailSender emailSender, IConfiguration config)
+        public SendEmailRepository(IConfiguration config)
         {
-            _emailSender = emailSender;
             _config = config;
         }
 

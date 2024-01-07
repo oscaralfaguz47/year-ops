@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.DocumentsCC;
 using OceansApp.Models.ViewModels.Notifications;
-using OceansApp.Utility.Email;
+using OceansApp.Utility.LazyLoading;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
@@ -16,11 +17,11 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     public class DocumentsCCController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ISendEmailRepository _sendEmail;
+        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmail;
         private readonly IConfiguration _config;
-        private readonly ISlackRepository _slackRepository;
-        public DocumentsCCController(IUnitOfWork unitOrWork, ISendEmailRepository sendEmail, IConfiguration config,
-            ISlackRepository slackRepository)
+        private readonly LazyServiceProvider<ISlackRepository> _slackRepository;
+        public DocumentsCCController(IUnitOfWork unitOrWork, LazyServiceProvider<ISendEmailRepository> sendEmail, IConfiguration config,
+            LazyServiceProvider<ISlackRepository> slackRepository)
         {
             _unitOfWork = unitOrWork;
             _sendEmail = sendEmail;
@@ -163,7 +164,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         [HttpPost]
         public async Task<IActionResult> SendCXCStatus()
         {
-            using var transaction = await _unitOfWork.BeginTran();
             try
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -172,7 +172,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var emailSlackSender = emailClaim?.Value;
                 string slackSenderId = "<@"; try
                 {
-                    slackSenderId = slackSenderId + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
+                    slackSenderId = slackSenderId + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
                 }
                 catch (Exception ex)
                 {
@@ -219,7 +219,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             }
                             try
                             {
-                                slackSuccessManagerId = "<@" + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                                slackSuccessManagerId = "<@" + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
                             }
                             catch (Exception ex)
                             {
@@ -243,7 +243,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 invoiceLine + "\n Everyone else is up to date. :white_check_mark:";
                 try
                 {
-                    await _slackRepository.SendMessageToChannelAsync(
+                    await _slackRepository.Value.SendMessageToChannelAsync(
                        _config["Slack:TokenAccountingApp"], slackChannelId, slackBody);
                 }
                 catch (Exception ex)
@@ -281,7 +281,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     detail = ex.Message
                 });
             }
-            await transaction.CommitAsync();
             return Json(new
             {
                 success = true,
@@ -337,7 +336,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     emailsCCBeforeRemoveDuplicates.Add(successManagerUser.Email);
                     try
                     {
-                        slackSuccessManagerId = "<@" + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                        slackSuccessManagerId = "<@" + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
                     }
                     catch (Exception ex)
                     {
@@ -379,7 +378,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
                 string slackSenderId = "<@"; try
                 {
-                    slackSenderId = slackSenderId + await _slackRepository.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
+                    slackSenderId = slackSenderId + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
                 }
                 catch (Exception ex)
                 {
@@ -568,7 +567,7 @@ emailsCCString;
 
                     try
                     {
-                        var emailSent = _sendEmail.SendEmail(emailToSend);
+                        var emailSent = _sendEmail.Value.SendEmail(emailToSend);
                         var documentNotification = new DocumentsCCNotification()
                         {
                             DocumentCCId = documentId,
@@ -612,7 +611,7 @@ emailsCCString;
 
                 try
                 {
-                    await _slackRepository.SendMessageToChannelAsync(
+                    await _slackRepository.Value.SendMessageToChannelAsync(
                        _config["Slack:TokenAccountingApp"], slackChannelId, slackBody);
                 }
                 catch (Exception ex)

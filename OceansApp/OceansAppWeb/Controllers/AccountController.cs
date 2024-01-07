@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
-using OceansApp.Utility.Email;
+using OceansApp.Utility.LazyLoading;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
 
@@ -15,22 +14,20 @@ namespace OceansAppWeb.Account.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly IEmailSender _emailSender;
         private readonly UrlEncoder _urlEncoder;
         private readonly ApplicationDbContext _dbContext;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _config;
-        private readonly ISendEmailRepository _sendEmailRepository;
+        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmailRepository;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IEmailSender emailSender
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
-            IHttpContextAccessor httpContextAccessor, IConfiguration config, ISendEmailRepository sendEmailRepository)
+            IHttpContextAccessor httpContextAccessor, IConfiguration config, LazyServiceProvider<ISendEmailRepository> sendEmailRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _emailSender = emailSender;
             _urlEncoder = urlEncoder;
             _dbContext = dbContext;
             _roleManager = roleManager;
@@ -365,7 +362,7 @@ namespace OceansAppWeb.Account.Controllers
                     SharedEmailFrom = _config["sharedEmailOceansApp"]
                 };
 
-                string? result = await _sendEmailRepository.SendEmail(emailModel);
+                string? result = await _sendEmailRepository.Value.SendEmail(emailModel);
 
                 return RedirectToAction("ForgotPasswordConfirmation");
             }

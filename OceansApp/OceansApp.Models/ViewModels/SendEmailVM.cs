@@ -1,5 +1,5 @@
 ﻿
-namespace OceansApp.Utility.Email
+namespace OceansApp.Models.ViewModels
 {
     public class SendEmailVM
     {

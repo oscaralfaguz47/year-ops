@@ -1,5 +1,5 @@
 ﻿using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Utility.Email;
+using OceansApp.Models.ViewModels;
 
 namespace OceansAppWeb.BackgroundServices
 {

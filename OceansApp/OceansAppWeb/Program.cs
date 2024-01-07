@@ -6,10 +6,9 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.DataAccess.DbInitializer;
 using OceansApp.DataAccess.Repository;
-using OceansApp.Utility.Email;
 using Microsoft.AspNetCore.Http.Features;
 using OceansApp.Utility.Configuration;
-using OceansAppWeb.BackgroundServices;
+using OceansApp.Utility.LazyLoading;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,8 +26,9 @@ AuthorizationConfig.ConfigurePolicies(builder.Services);
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<ISendEmailRepository, SendEmailRepository>();
+builder.Services.AddScoped(typeof(LazyServiceProvider<ISendEmailRepository>)); //Lazy Loading
 builder.Services.AddScoped<ISlackRepository, SlackRepository>();
-builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.AddScoped(typeof(LazyServiceProvider<ISlackRepository>)); //Lazy Loading
 builder.Services.Configure<IdentityOptions>(opt =>
 {
     opt.Password.RequiredLength = 8;
@@ -43,9 +43,9 @@ builder.Services.Configure<IdentityOptions>(opt =>
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.ValueCountLimit = int.MaxValue; // Límite de cantidad de valores
-    options.ValueLengthLimit = int.MaxValue; // Límite de longitud de valor
-    options.MultipartBodyLengthLimit = long.MaxValue; // Límite de tamaño total de la solicitud
+    options.ValueCountLimit = int.MaxValue; 
+    options.ValueLengthLimit = int.MaxValue; 
+    options.MultipartBodyLengthLimit = long.MaxValue; 
 });
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -57,7 +57,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // secured coolies on production 
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // secured cookies on production 
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.IsEssential = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(500); 

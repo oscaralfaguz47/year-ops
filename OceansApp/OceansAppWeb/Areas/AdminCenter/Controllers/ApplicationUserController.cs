@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.ObjectModel;
 using OceansApp.Models.Models;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using OceansApp.Utility;
+using OceansApp.Utility.LazyLoading;
 
 namespace OceansApp.Areas.AdminCenter.Controllers
 {
@@ -16,17 +16,19 @@ namespace OceansApp.Areas.AdminCenter.Controllers
     [Authorize(Policy = "AccessToUserAdministration")]
     public class ApplicationUserController : Controller
     {
+        private readonly IConfiguration _config;
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IEmailSender _emailSender;
-        public ApplicationUserController(IUnitOfWork unitOrWork, UserManager<IdentityUser> userManager, 
-            RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
+        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmail;
+        public ApplicationUserController(IConfiguration config, IUnitOfWork unitOrWork, UserManager<IdentityUser> userManager, 
+            RoleManager<IdentityRole> roleManager, LazyServiceProvider<ISendEmailRepository> emailSender)
         {
+            _config = config;
             _unitOfWork = unitOrWork;
             _userManager = userManager;
             _roleManager = roleManager;
-            _emailSender = emailSender;
+            _sendEmail = emailSender;
         }
         public IActionResult Index()
         {
@@ -85,8 +87,12 @@ namespace OceansApp.Areas.AdminCenter.Controllers
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    await _emailSender.SendEmailAsync(model.Email, "Confirma tu cuenta - Oceans App",
-                    "Confirma tu cuenta haciendo click <a href=\"" + callbackurl + "\">Aquí</a>");
+                    var emailToSend = new SendEmailVM();
+                    emailToSend.Subject = "Confirma tu cuenta - Oceans App";
+                    emailToSend.SharedEmailFrom = _config["sharedEmailOceansApp"];
+                    emailToSend.EmailTo = model.Email;
+                    emailToSend.Body = "Confirma tu cuenta haciendo click <a href=\"" + callbackurl + "\">Aquí</a>";
+                    await _sendEmail.Value.SendEmail(emailToSend);
                     TempData["success"] = "El usuario para " + model.Name + " fue creado con exito. Se le envió una confirmación a su correo.";
                     return RedirectToAction("Index");
                 }

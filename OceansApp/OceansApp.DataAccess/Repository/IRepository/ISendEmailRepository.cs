@@ -1,4 +1,4 @@
-﻿using OceansApp.Utility.Email;
+﻿using OceansApp.Models.ViewModels;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
