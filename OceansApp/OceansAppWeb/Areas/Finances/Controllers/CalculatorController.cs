@@ -10,6 +10,7 @@ using System.Security.Claims;
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
+    [RequireTwoFactorEnabled]
     [Authorize(Policy = "AccessToFinancialCalculator")]
     public class CalculatorController : Controller
     {
@@ -21,7 +22,6 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             _authorizationService = authorizationService;
         }
 
-        [RequireTwoFactorEnabled]
         public IActionResult Index()
         {
             Collection<CalculatorCostCenterUserConfigurationVM> costCenterUserList = new Collection<CalculatorCostCenterUserConfigurationVM>();

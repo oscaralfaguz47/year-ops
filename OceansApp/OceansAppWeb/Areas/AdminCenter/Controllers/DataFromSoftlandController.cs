@@ -10,6 +10,7 @@ using System.Text.Json.Nodes;
 namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
+    [RequireTwoFactorEnabled]
     [Authorize(Policy = "AccessToUpdateDataFromSoftlandSection")]
     public class DataFromSoftlandController : Controller
     {
@@ -18,7 +19,6 @@ namespace OceansApp.Areas.Admin.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-        [RequireTwoFactorEnabled]
         public IActionResult Index()
         {
             DataUpdateDate dateLastGlobalUpdate = _unitOfWork.DataUpdateDates.GetLastDate();

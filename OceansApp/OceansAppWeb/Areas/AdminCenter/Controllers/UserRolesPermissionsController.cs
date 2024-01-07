@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions;
@@ -10,8 +9,8 @@ using System.Security.Claims;
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
-    [Authorize(Policy = "AccessToUserRolesAndPermissions")]
     [RequireTwoFactorEnabled]
+    [Authorize(Policy = "AccessToUserRolesAndPermissions")]
     public class UserRolesPermissionsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

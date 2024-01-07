@@ -10,8 +10,8 @@ using OceansApp.Models.ViewModels.ConsultantRolesQualityLevels;
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
-    [Authorize(Policy = "AccessToFinancialCalculatorConfig")]
     [RequireTwoFactorEnabled]
+    [Authorize(Policy = "AccessToFinancialCalculatorConfig")]
     public class CalculatorGlobalConfigurationController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

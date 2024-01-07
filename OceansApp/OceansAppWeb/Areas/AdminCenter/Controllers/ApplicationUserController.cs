@@ -12,8 +12,8 @@ using OceansApp.Utility;
 namespace OceansApp.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
-    [Authorize(Policy = "AccessToUserAdministration")]
     [RequireTwoFactorEnabled]
+    [Authorize(Policy = "AccessToUserAdministration")]
     public class ApplicationUserController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
