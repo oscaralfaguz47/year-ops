@@ -142,58 +142,25 @@ namespace OceansApp.DataAccess.Repository
         {
             var connection = _db.Database.GetDbConnection();
 
-            var queryBuilder = new StringBuilder();
             var parameters = new DynamicParameters();
+                parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
+                parameters.Add("@DocumentType", filtersAndPagination.Filters.DocumentType, DbType.String);
+                parameters.Add("@ClientId", filtersAndPagination.Filters.ClientId, DbType.Int32);
+                parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
+                parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
+                parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
+                parameters.Add("@Skip", (filtersAndPagination.Pagination.PageIndex - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
+                parameters.Add("@Take", filtersAndPagination.Pagination.PageSize, DbType.Int32);
 
-            queryBuilder.AppendLine(@"SELECT DocumentCCId
-                    ,DocumentNumber
-                    ,DCC.DocumentType
-                    ,DCC.ApplicationDescription
-                    ,DCC.DocumentDate
-	                ,DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate) AS ExpirationDate
-	                ,CASE
-	                 WHEN DCC.BalanceAmount > 0 THEN DATEDIFF(DAY, SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'), 
-	               	 (DATEADD(DAY, CAST(C.PaymentCondition AS INT), DCC.DocumentDate))) 
-	                 ELSE 0
-	                 END AS NumDaysToExpire
-	                ,DCC.BalanceAmount
-                    ,DCC.DocumentAmount
-                    ,DCC.Canceled
-                    ,C.Name AS ClientName
-                    ,DCC.CompanyId
-                    ,C.ClientCategory
-                    ,(SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) AS NumNotificationsSent
-                     FROM DOCUMENTS_CC DCC
-                     JOIN CLIENT C ON DCC.ClientId = C.ClientId
-                     WHERE ((@SearchText IS NULL OR LOWER(DCC.DocumentNumber) LIKE '%' + LOWER(@SearchText) + '%')
-                     OR (@SearchText IS NULL OR LOWER(DCC.ApplicationDescription) LIKE '%' + LOWER(@SearchText) + '%'))
-                     AND (@ClientId IS NULL OR DCC.ClientId = @ClientId)
-                     AND (@CompanyId IS NULL OR DCC.CompanyId = @CompanyId)
-                     AND (@DocumentType IS NULL OR DCC.DocumentType = @DocumentType)
-                     AND ((@StartDate IS NULL AND @EndDate IS NULL) OR (DCC.DocumentDate >= @StartDate AND DCC.DocumentDate <= @EndDate))");
+                // Ejecutar el procedimiento almacenado
+                var results = await connection.QueryMultipleAsync("GetAllDocumentsCCWithFilters", parameters, commandType: CommandType.StoredProcedure);
 
-            parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
-            parameters.Add("@DocumentType", filtersAndPagination.Filters.DocumentType, DbType.String);
-            parameters.Add("@ClientId", filtersAndPagination.Filters.ClientId, DbType.Int32);
-            parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
-            parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.String);
-            parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.String);
+                var documentsCC = results.Read<DocumentCCGetAllWithFiltersVM>().ToList();
+                var totalCount = results.ReadSingle<int>();
 
-            var countQuery = "SELECT COUNT(*) FROM (" + queryBuilder.ToString() + ") AS TotalCountQuery;";
-            var totalCount = await connection.ExecuteScalarAsync<int>(countQuery, parameters);
-
-            // Aplica pagination to the query
-            queryBuilder.AppendLine("ORDER BY DCC.DocumentType, NumDaysToExpire ASC");
-            queryBuilder.AppendLine("OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;");
-
-            parameters.Add("@Skip", (filtersAndPagination.Pagination.PageIndex - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
-            parameters.Add("@Take", filtersAndPagination.Pagination.PageSize, DbType.Int32);
-
-            var results = await connection.QueryAsync<DocumentCCGetAllWithFiltersVM>(queryBuilder.ToString(), parameters);
-            var documents = results.ToList();
-
-            return (documents, totalCount);
+                return (documentsCC, totalCount);
         }
+
 
         public async Task<List<DocumentCCGetNotificationsHistoryVM>> GetNotificationsHistoryByDocumentIdAsync(int documentId)
         {
