@@ -50,6 +50,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 HolidaysPaginationFiltersVM paginationFilters = new HolidaysPaginationFiltersVM();
                 paginationFilters.Pagination = new Pagination();
                 paginationFilters.Filters = new HolidaysFiltersGetAllVM();
+                paginationFilters.OrderBy = new OrderByVM();
 
                 if (holidaysPaginationFilters.Pagination != null && holidaysPaginationFilters.Filters != null)
                 {
@@ -80,7 +81,10 @@ namespace OceansAppWeb.Areas.General.Controllers
                         paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
                     }
                 }
-
+                if (holidaysPaginationFilters.OrderBy != null)
+                {
+                    paginationFilters.OrderBy = holidaysPaginationFilters.OrderBy;
+                }
                 var totalResults = await _unitOfWork.ConsultantHoliday.GetAllHolidaysWithFiltersAsync(paginationFilters);
                 paginationFilters.Pagination.TotalResults = totalResults.totalCount;
                 HolidaysGetAllForListVM viewModel = new HolidaysGetAllForListVM

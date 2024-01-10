@@ -22,7 +22,7 @@
                             <label for="year" class="select-label">Año</label>
                             <div class="">
                                 <span class="arrow-down"></span>
-                                <select id="year" class="form-select" onchange=" paginationSubmit(false, true)">
+                                <select id="year" class="form-select" onchange="paginationSubmit(false, true)">
                                     <option selected value="">Selecciona el año</option>
                                 </select>
                             </div>
@@ -40,7 +40,7 @@
         <table class="">
             <thead>
                 <tr>
-                    <th class="table-col-medium">Año</th>
+                    <th onclick="orderByTableList('Year', 'YearTableHeader')" data-sort="ANY" name="YearTableHeader" class="table-col-medium">Año <span id="sortArrow"></span></th>
                     <th class="table-col-medium">Cliente / Categoría</th>
                     <th class="table-col-medium">Fecha de Creación</th>
                     <th class="table-col-medium">Creado por</th>

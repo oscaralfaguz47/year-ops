@@ -35,6 +35,12 @@ function recolectDataFromForm(filters) {
             Year: year,
             SearchText: searchText
         };
+        var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
+        var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
+        var orderByData = {
+            FieldToOrder: inputFieldToOrder.value,
+            DirectionOrder: inputDirectionOrder.value
+        }
         var paginationData = returnCurrentPaginationValues();
         if (filters) {
             filtersData = {
@@ -45,7 +51,8 @@ function recolectDataFromForm(filters) {
         return {
             RequestFromFilters: filters,
             Pagination: paginationData,
-            Filters: filtersData
+            Filters: filtersData,
+            OrderBy: orderByData
         };
     }
 }

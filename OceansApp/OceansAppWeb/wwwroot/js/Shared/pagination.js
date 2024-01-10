@@ -71,3 +71,27 @@ function paginationButtonActions(action) {
     $('[name="PageIndex"]').val(currentValue);
     disableButtons(currentValue, isLastPage, totalResults, pageSize);
 }
+function orderByTableList(columnName, value) {
+    var th = document.getElementsByName(value)[0];
+    var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
+    var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
+    var arrowSpan = document.getElementById("sortArrow");
+    switch (th.getAttribute("data-sort")) {
+        case "ANY":
+            th.setAttribute("data-sort", "DESC");
+            inputFieldToOrder.value = columnName;
+            arrowSpan.innerHTML = "↓";
+            break;
+        case "DESC":
+            th.setAttribute("data-sort", "ASC");
+            inputFieldToOrder.value = columnName;
+            arrowSpan.innerHTML = "↑";
+            break;
+        default:
+            th.setAttribute("data-sort", "ANY");
+            inputFieldToOrder.value = "ANY";
+            arrowSpan.innerHTML = "";
+    }
+    inputDirectionOrder.value = th.getAttribute("data-sort");
+    paginationSubmit(false, false);
+}
