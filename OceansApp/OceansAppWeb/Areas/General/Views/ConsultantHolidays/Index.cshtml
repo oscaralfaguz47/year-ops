@@ -40,9 +40,9 @@
         <table class="">
             <thead>
                 <tr>
-                    <th onclick="orderByTableList('Year', 'YearTableHeader')" data-sort="ANY" name="YearTableHeader" class="table-col-medium">Año <span id="sortArrow"></span></th>
-                    <th class="table-col-medium">Cliente / Categoría</th>
-                    <th class="table-col-medium">Fecha de Creación</th>
+                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="sortable-col">Año <span class="sort-arrow" id="sortArrowYear"></span></th>
+                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">Cliente / Categoría <span class="sort-arrow" id="sortArrowName"></span></th>
+                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">Fecha de Creación <span class="sort-arrow" id="sortArrowCreationDate"></span></th>
                     <th class="table-col-medium">Creado por</th>
                 </tr>
             </thead>

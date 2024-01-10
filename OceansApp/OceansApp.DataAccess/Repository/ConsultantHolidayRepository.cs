@@ -61,8 +61,10 @@ namespace OceansApp.DataAccess.Repository
             queryBuilder.AppendLine(@"ORDER BY 
                     CASE WHEN @FieldToOrder = 'Year' AND @DirectionOrder = 'ASC' THEN CH.Year END ASC,
                     CASE WHEN @FieldToOrder = 'Year' AND @DirectionOrder = 'DESC' THEN CH.Year END DESC,
-                    CASE WHEN @FieldToOrder = 'Name' AND @DirectionOrder = 'ASC' THEN CH.Name END DESC,
+                    CASE WHEN @FieldToOrder = 'Name' AND @DirectionOrder = 'ASC' THEN CH.Name END ASC,
                     CASE WHEN @FieldToOrder = 'Name' AND @DirectionOrder = 'DESC' THEN CH.Name END DESC,
+                    CASE WHEN @FieldToOrder = 'CreationDate' AND @DirectionOrder = 'DESC' THEN CH.CreationDate END DESC,
+                    CASE WHEN @FieldToOrder = 'CreationDate' AND @DirectionOrder = 'ASC' THEN CH.CreationDate END ASC,
                     CH.Year");
             queryBuilder.AppendLine("OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;");
 

@@ -71,21 +71,25 @@ function paginationButtonActions(action) {
     $('[name="PageIndex"]').val(currentValue);
     disableButtons(currentValue, isLastPage, totalResults, pageSize);
 }
-function orderByTableList(columnName, value) {
+function orderByTableList(columnName, value, sortArrow) {
     var th = document.getElementsByName(value)[0];
     var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
     var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
-    var arrowSpan = document.getElementById("sortArrow");
+    var arrowSpan = document.getElementById(sortArrow);
+    var sortArrows = document.querySelectorAll('.sort-arrow');
+    sortArrows.forEach(function (arrow) {
+        arrow.innerHTML = "";
+    });
     switch (th.getAttribute("data-sort")) {
         case "ANY":
             th.setAttribute("data-sort", "DESC");
             inputFieldToOrder.value = columnName;
-            arrowSpan.innerHTML = "↓";
+            arrowSpan.innerHTML = '<i class="bi bi-arrow-down"></i>';
             break;
         case "DESC":
             th.setAttribute("data-sort", "ASC");
             inputFieldToOrder.value = columnName;
-            arrowSpan.innerHTML = "↑";
+            arrowSpan.innerHTML = '<i class="bi bi-arrow-up"></i>';
             break;
         default:
             th.setAttribute("data-sort", "ANY");
