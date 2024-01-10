@@ -85,14 +85,14 @@ namespace OceansApp.DataAccess.DbInitializer
                     //If Roles are not created, then we will create Master user as well
                     _userManager.CreateAsync(new ApplicationUser
                     {
-                        UserName = _config["MasterUserEmail"],
-                        Email = _config["MasterUserEmail"],
+                        UserName = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]),
+                        Email = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]),
                         Name = _config["MasterUserName"],
                         LastName = _config["MasterUserLastName"],
                         IsActive = true,
                         DeactivationDate = null
-                    }, _config["MasterUserPass"]).GetAwaiter().GetResult();
-                    ApplicationUser user = _db.AspNetUsers.FirstOrDefault(x => x.Email == _config["MasterUserEmail"]);
+                    }, Environment.GetEnvironmentVariable(_config["MasterUserPass_ENV"])).GetAwaiter().GetResult();
+                    ApplicationUser user = _db.AspNetUsers.FirstOrDefault(x => x.Email == Environment.GetEnvironmentVariable(_config["MasterUserEmail"]));
 
                     _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
                 }

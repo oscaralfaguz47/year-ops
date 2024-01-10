@@ -359,7 +359,7 @@ namespace OceansAppWeb.Account.Controllers
                     Subject = "Cambiar Contraseña",
                     EmailTo = model.Email,
                     Body = "Cambia tu contraseña haciendo click: <a href=\"" + callbackurl + "\">Aquí</a>",
-                    SharedEmailFrom = _config["sharedEmailOceansApp"]
+                    SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
                 };
 
                 string? result = await _sendEmailRepository.Value.SendEmail(emailModel);

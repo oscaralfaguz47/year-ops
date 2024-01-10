@@ -27,7 +27,7 @@ namespace OceansApp.DataAccess.Repository
                 }
                 else
                 {
-                    message.From.Add(new MailboxAddress(_config["internalEmailSenderName"], _config["internalEmail"]));
+                    message.From.Add(new MailboxAddress(_config["internalEmailSenderName"], Environment.GetEnvironmentVariable(_config["internalEmail"])));
                 }
                 message.To.Add(new MailboxAddress("", emailModel.EmailTo));
                 if (emailModel.EmailCcList !=null)
@@ -47,7 +47,7 @@ namespace OceansApp.DataAccess.Repository
                     await client.ConnectAsync("smtp.office365.com", 587, SecureSocketOptions.StartTls);
 
                     // Authentication with the credentials of the user that has delegated access to the Shared Mailbox
-                    await client.AuthenticateAsync(_config["internalEmail"], _config["pass"]);
+                    await client.AuthenticateAsync(Environment.GetEnvironmentVariable(_config["internalEmail"]), Environment.GetEnvironmentVariable(_config["internalEmailPass"]));
 
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);

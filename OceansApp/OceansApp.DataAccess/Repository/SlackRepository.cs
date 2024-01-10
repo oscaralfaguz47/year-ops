@@ -1,15 +1,23 @@
-﻿using OceansApp.DataAccess.Repository.IRepository;
+﻿using Microsoft.Extensions.Configuration;
+using OceansApp.DataAccess.Repository.IRepository;
 using SlackAPI;
 
 namespace OceansApp.DataAccess.Repository
 {
     public class SlackRepository : ISlackRepository
     {
-        public async Task SendMessageToChannelAsync(string token, string channelId, string message)
+        private readonly IConfiguration _config;
+        private string _token;
+        public SlackRepository(IConfiguration config)
+        {
+            _config = config;
+            _token = Environment.GetEnvironmentVariable(_config["Slack:TokenAccountingApp"]);
+        }
+        public async Task SendMessageToChannelAsync(string channelId, string message)
         {
             try
             {
-                var client = new SlackTaskClient(token);
+                var client = new SlackTaskClient(_token);
 
                 var response = await client.PostMessageAsync(channelId, message);
 
@@ -32,9 +40,9 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task SendMessageToUserAsync(string token, string email, string message)
+        public async Task SendMessageToUserAsync(string email, string message)
         {
-            var client = new SlackTaskClient(token);
+            var client = new SlackTaskClient(_token);
             var userResponse = await client.GetUserByEmailAsync(email);
 
             if (!userResponse.ok)
@@ -50,9 +58,9 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<string> GetSlackUserIdByEmailAsync(string token, string email)
+        public async Task<string> GetSlackUserIdByEmailAsync(string email)
         {
-            var client = new SlackTaskClient(token);
+            var client = new SlackTaskClient(_token);
             var userResponse = await client.GetUserByEmailAsync(email);
 
             if (!userResponse.ok)

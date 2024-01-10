@@ -14,9 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
-    builder.Configuration.GetConnectionString("DefaultConnnection")
-    ));
+string connectionString;
+
+connectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
@@ -43,9 +45,9 @@ builder.Services.Configure<IdentityOptions>(opt =>
 
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.ValueCountLimit = int.MaxValue; 
-    options.ValueLengthLimit = int.MaxValue; 
-    options.MultipartBodyLengthLimit = long.MaxValue; 
+    options.ValueCountLimit = int.MaxValue;
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
 });
 
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -60,20 +62,20 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // secured cookies on production 
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.IsEssential = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(500); 
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(500);
     options.SlidingExpiration = true;
     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
 });
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5); 
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
     options.AddServerHeader = false;
 });
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); 
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -116,7 +118,7 @@ app.UseStaticFiles();
 
 app.MapRazorPages();
 app.UseEndpoints(endpoints =>
-{   
+{
     endpoints.MapControllerRoute(
         name: "areas",
         pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");

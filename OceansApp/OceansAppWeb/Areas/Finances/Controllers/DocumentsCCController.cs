@@ -172,7 +172,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var emailSlackSender = emailClaim?.Value;
                 string slackSenderId = "<@"; try
                 {
-                    slackSenderId = slackSenderId + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
+                    slackSenderId = slackSenderId + await _slackRepository.Value.GetSlackUserIdByEmailAsync(emailSlackSender) + ">";
                 }
                 catch (Exception ex)
                 {
@@ -219,7 +219,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             }
                             try
                             {
-                                slackSuccessManagerId = "<@" + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                                slackSuccessManagerId = "<@" + await _slackRepository.Value.GetSlackUserIdByEmailAsync(successManagerUser.Email) + @">";
                             }
                             catch (Exception ex)
                             {
@@ -243,8 +243,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 invoiceLine + "\n Everyone else is up to date. :white_check_mark:";
                 try
                 {
-                    await _slackRepository.Value.SendMessageToChannelAsync(
-                       _config["Slack:TokenAccountingApp"], slackChannelId, slackBody);
+                    await _slackRepository.Value.SendMessageToChannelAsync(slackChannelId, slackBody);
                 }
                 catch (Exception ex)
                 {
@@ -336,7 +335,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     emailsCCBeforeRemoveDuplicates.Add(successManagerUser.Email);
                     try
                     {
-                        slackSuccessManagerId = "<@" + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], successManagerUser.Email) + @">";
+                        slackSuccessManagerId = "<@" + await _slackRepository.Value.GetSlackUserIdByEmailAsync(successManagerUser.Email) + @">";
                     }
                     catch (Exception ex)
                     {
@@ -378,7 +377,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
                 string slackSenderId = "<@"; try
                 {
-                    slackSenderId = slackSenderId + await _slackRepository.Value.GetSlackUserIdByEmailAsync(_config["Slack:TokenAccountingApp"], emailSlackSender) + ">";
+                    slackSenderId = slackSenderId + await _slackRepository.Value.GetSlackUserIdByEmailAsync(emailSlackSender) + ">";
                 }
                 catch (Exception ex)
                 {
@@ -388,7 +387,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var notificationEmail = new Notification();
                 notificationEmail.NotificationTypeId = notificationType.NotificationTypeId;
                 notificationEmail.Subject = subjectEmail;
-                notificationEmail.Remitent = _config["internalEmail"];
+                notificationEmail.Remitent = Environment.GetEnvironmentVariable(_config["internalEmail"]);
                 notificationEmail.SentDate = costaRicaTime;
                 notificationEmail.SentByUser = claim.Value;
 
@@ -561,7 +560,7 @@ emailsCCString;
                     var emailToSend = new SendEmailVM();
                     emailToSend.Subject = subjectEmail;
                     emailToSend.EmailTo = emailTo;
-                    emailToSend.SharedEmailFrom = _config["internalEmail"];
+                    emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["internalEmail"]);
                     emailToSend.EmailCcList = emailsCCAfterRemoveDuplicates;
                     emailToSend.Body = emailBody;
 
@@ -611,8 +610,7 @@ emailsCCString;
 
                 try
                 {
-                    await _slackRepository.Value.SendMessageToChannelAsync(
-                       _config["Slack:TokenAccountingApp"], slackChannelId, slackBody);
+                    await _slackRepository.Value.SendMessageToChannelAsync(slackChannelId, slackBody);
                 }
                 catch (Exception ex)
                 {

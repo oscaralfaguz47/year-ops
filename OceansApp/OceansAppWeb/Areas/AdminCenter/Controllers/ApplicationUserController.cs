@@ -89,7 +89,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                     var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
                     var emailToSend = new SendEmailVM();
                     emailToSend.Subject = "Confirma tu cuenta - Oceans App";
-                    emailToSend.SharedEmailFrom = _config["sharedEmailOceansApp"];
+                    emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
                     emailToSend.EmailTo = model.Email;
                     emailToSend.Body = "Confirma tu cuenta haciendo click <a href=\"" + callbackurl + "\">Aquí</a>";
                     await _sendEmail.Value.SendEmail(emailToSend);
