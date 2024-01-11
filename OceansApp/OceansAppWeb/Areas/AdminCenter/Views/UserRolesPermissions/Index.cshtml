@@ -119,51 +119,24 @@
             },
             error: function (error) {
                 displayToasterErrorArray(error.responseJSON.errors);
-                inicializeForm();
+                inicializeModalButtons(modalId);
             }
         });
     }
 
 </script>
 <script>
-        function waitingForPostMethod(){
-         var spinnerSaving = $('#spinner-saving');
-            spinnerSaving.show();
-            var btnSaving = $('#btn-saving');
-            btnSaving.prop('disabled', true);
-            var btnCancel = document.getElementById('btn-cancel');
-            btnCancel.onclick = null;
-            btnCancel.style.cursor = 'not-allowed';
-            var spanInsideBtnSaving = $('#btn-saving span');
-            spanInsideBtnSaving.text('Espera...');
-        }
-         function inicializeForm(){
-            var spanInsideBtnSaving = $('#btn-saving span');
-            spanInsideBtnSaving.text('Guardar');
-            var spinnerSaving = $('#spinner-saving');
-            spinnerSaving.hide();
-            var btnSaving = $('#btn-saving');
-            btnSaving.prop('disabled', false);
-            var originalClickHandler = function() {
-            hideModal('modal-create-role');};
-            var btnCancel = document.getElementById('btn-cancel');
-            btnCancel.onclick = originalClickHandler;
-            btnCancel.style.cursor = 'pointer';
-        }
             function getPermissionsList(modalId, action, roleId) {
                 var modalTitle = $('#create-edit-role-title');
                 modalTitle.text(action);
-                inicializeForm();
-                var createRoleForm = $('#form-create-rol');
-                createRoleForm[0].reset();
+                inicializeModalButtons(modalId);
+                resetForm('form-create-rol');
                 var permissionsContainer = $("#permissions-container");
                 permissionsContainer.empty();
                 var url = "";
                 if(roleId == null){
-                    console.log("CREAR");
                     url = "/AdminCenter/UserRolesPermissions/GetPermissionsList";
                 }else{
-                     console.log("EDITAR");
                     url = "/AdminCenter/UserRolesPermissions/GetPermissionsWhereRoleList?roleId=" + encodeURIComponent(roleId);
                 }
                     $.ajax({
@@ -171,7 +144,6 @@
             url: url,
             contentType: "application/json",
             success: function (data) {
-                console.log(data);
                 showModal(modalId);
                 var sysArea = "";
                 var sysSubArea = "";

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Holidays;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
@@ -98,6 +100,85 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { errors = new[] { $"Hubo un error extrayendo la lista de Holidays." }, result = "errorGet", detail = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetHolidayListData(int holidayId)
+        {
+            try
+            {
+               var permissionsList = await _unitOfWork.ConsultantHoliday.GetConsultantHolidayWithDates(holidayId);
+
+          
+                return Ok(permissionsList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error al traer los datos", result = "error", detail = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdateHoliday([FromBody] CreateUpdateHolidayVM holidayData)
+        {
+            if (ModelState.IsValid)
+            {
+                if (holidayData.HolidayDates.Count == 0)
+                {
+                    return BadRequest(new { errors = new[] { "You must add at least one day to this Holidays list." }, result = "ErrorValidation", detail = "Holiday list date is required." });
+                }
+                try
+                {
+                    var claimsIdentity = (ClaimsIdentity)User.Identity;
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var resultMessage = ""; 
+
+                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                    //IF IS NOT HOLIDAY ID THEN CREATE THE HOLIDAY
+                    if (holidayData.ConsultantHolidayId == null) 
+                    {
+                        holidayData.CreatedBy = claim.Value;
+
+                        var res = await _unitOfWork.ConsultantHoliday.CreateHolidayListWithHolidayDates(holidayData);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            return BadRequest(new { errors = new[] { res.Message }, result = "ErrorSaving", detail = "The Holiday list could be saved." });
+                        }
+                    }
+                    else
+                    {
+                        //IF IS HOLIDAY ID THEN UPDATE THE HOLIDAY
+                        var res = await _unitOfWork.ConsultantHoliday.UpdateHolidayListWithHolidayDates(holidayData, claim.Value);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            return BadRequest(new { errors = new[] { res.Message }, result = "ErrorSaving", detail = "The Holiday list could be updated." });
+                        }
+                    }
+                    return Ok(new { message = resultMessage, result = "success" });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { errors = new[] { $"There was an error creating the Holiday." }, result = "ErrorSaving", detail = ex });
+                }
+            }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new { message = "Validation Error", result = "error", errors = errors });
             }
         }
     }

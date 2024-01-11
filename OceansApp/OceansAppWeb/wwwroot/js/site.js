@@ -78,11 +78,11 @@ function hideShowFilters() {
     if (moreFiltersDiv.classList.contains('hide')) {
         moreFiltersDiv.classList.remove('hide')
         moreFiltersDiv.classList.add('show')
-        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel-fill"></i> Ocultar Filtros';
+        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel-fill"></i> Hide Filters';
     } else {
         moreFiltersDiv.classList.add('hide')
         moreFiltersDiv.classList.remove('show')
-        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel"></i> Mostrar Filtros';
+        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel"></i> Show Filters';
     }
 }
 
@@ -94,5 +94,35 @@ function hideModal(modalId) {
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     modal.style.display = "block";
+}
+
+function waitingForPostMethod() {
+    var spinnerSaving = $('#spinner-saving');
+    spinnerSaving.show();
+    var btnSaving = $('#btn-saving');
+    btnSaving.prop('disabled', true);
+    var btnCancel = document.getElementById('btn-cancel');
+    btnCancel.onclick = null;
+    btnCancel.style.cursor = 'not-allowed';
+    var spanInsideBtnSaving = $('#btn-saving span');
+    spanInsideBtnSaving.text('Wait...');
+}
+function inicializeModalButtons(modalId) {
+    var spanInsideBtnSaving = $('#btn-saving span');
+    spanInsideBtnSaving.text('Save');
+    var spinnerSaving = $('#spinner-saving');
+    spinnerSaving.hide();
+    var btnSaving = $('#btn-saving');
+    btnSaving.prop('disabled', false);
+    var originalClickHandler = function () {
+        hideModal(modalId);
+    };
+    var btnCancel = document.getElementById('btn-cancel');
+    btnCancel.onclick = originalClickHandler;
+    btnCancel.style.cursor = 'pointer';
+}
+function resetForm(formId) {
+    var createUpdateForm = $('#' + formId);
+    createUpdateForm[0].reset();
 }
 

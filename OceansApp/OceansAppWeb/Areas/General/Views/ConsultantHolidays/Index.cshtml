@@ -7,29 +7,32 @@
         <div class="row">
             <div class="search-header-container">
                 <div>
-                    <h2>HOLIDAYS</h2>
+                    <h2>HOLIDAYS LIST</h2>
                     <div class="input-container">
-                        <input id="search-input" onkeypress="enterInSearch(event)" type="text" placeholder="Buscar" class="form-control">
+                        <input id="search-input" onkeypress="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
                         <i class="bi bi-search placeholder-image"></i>
                     </div>
+                    <div class="action-buttons">
+                        <a onclick="displayCreateUpdateModal('modal-create-holiday', 'CREATE NEW HOLIDAYS LIST',null)">Create Holiday List</a>
+                    </div>
                 </div>
-                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Ocultar Filtros </a>
+                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
             </div>
             <div class="more-filters-cont">
                 <div id="more-filters">
                     <div class="row">
                         <div class="col-sm-2">
-                            <label for="year" class="select-label">Año</label>
+                            <label for="year" class="select-label">Year</label>
                             <div class="">
                                 <span class="arrow-down"></span>
                                 <select id="year" class="form-select" onchange="paginationSubmit(false, true)">
-                                    <option selected value="">Selecciona el año</option>
+                                    <option selected value="">Select a Year</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     <div class="principal-buttons">
-                        <a asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
+                        <a asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
                     </div>
                 </div>
             </div>
@@ -40,16 +43,60 @@
         <table class="">
             <thead>
                 <tr>
-                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="sortable-col">Año <span class="sort-arrow" id="sortArrowYear"></span></th>
-                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">Cliente / Categoría <span class="sort-arrow" id="sortArrowName"></span></th>
-                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">Fecha de Creación <span class="sort-arrow" id="sortArrowCreationDate"></span></th>
-                    <th class="table-col-medium">Creado por</th>
+                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="sortable-col">Year <span class="sort-arrow" id="sortArrowYear"></span></th>
+                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">Holiday List <span class="sort-arrow" id="sortArrowName"></span></th>
+                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">Creation Date <span class="sort-arrow" id="sortArrowCreationDate"></span></th>
+                    <th class="table-col-medium">Created By</th>
                 </tr>
             </thead>
             <tbody>
             </tbody>
         </table>
         <div class="no-results"></div>
+    </div>
+</div>
+
+<!--MODAL CREATE HOLIDAY -->
+<div id="modal-create-holiday" style="display:none">
+    <div id="warning-message">
+        <div class="container">
+            <div class="warning-message-container">
+                <div>
+                    <div id="warning-message-cont">
+                        <div class="body-mess-cont">
+                            <h2 id="create-edit-holiday-title">
+                            </h2>
+                            <form id="form-create-update">
+                                <div class="input-container" style="margin:6px 0 6px 0">
+                                    <input id="roleId" name="consultantHolidayId" type="hidden">
+                                    <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holiday list Name">
+                                </div>
+                                <div class="">
+                                    <span class="arrow-down"></span>
+                                    <select id="selectYear" name="holidayYear" class="form-select">
+                                    </select>
+                                </div>
+                                <h4 style="color:#000">Add the Holiday List dates:</h4>
+                                 <a onclick="addNewDateRow()"><i class="bi bi-plus"></i> Add Date</a>
+                                <div id="holidays-dates-container" style="text-align:left; color: #000;overflow-y: scroll;height: 400px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
+                                   
+ 
+                                </div>
+                            </form>
+                            <div style="display:flex; justify-content:center;">
+                                <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
+                                <button id="btn-saving" onclick="createUpdateHoliday('modal-create-holiday')" class="btn-primary-submit">
+                                    <div style="display:flex;align-items:center;">
+                                        <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                                        </div><span></span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
