@@ -166,7 +166,11 @@ namespace OceansAppWeb.Areas.General.Controllers
                             return BadRequest(new { errors = new[] { res.Message }, result = "ErrorSaving", detail = "The Holiday list could be updated." });
                         }
                     }
-                    return Ok(new { message = resultMessage, result = "success" });
+                    return Json(new
+                    {
+                        success = true,
+                        message = resultMessage
+                    });
                 }
                 catch (Exception ex)
                 {
