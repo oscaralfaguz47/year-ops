@@ -220,39 +220,23 @@ namespace OceansAppWeb.Areas.General.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteHolidaysList(int holidayListId)
+        public async Task<IActionResult> DeleteHolidaysList(int holidaysListId)
         {
             try
             {
-                var holdayListToDelete = _unitOfWork.ConsultantHoliday.GetFirstOrDefault(x=>x.ConsultantHolidayId == holidayListId);
-                if (holdayListToDelete == null)
+                var res = await _unitOfWork.ConsultantHoliday.DeleteHolidaysList(holidaysListId);
+                if (res.Success)
                 {
-                    return BadRequest(new { error = "The holiday list does not exist in the database.", result = "NotFound", detail = "The holiday list was already deleted before your request." });
+                    return Ok(new { success = true, message = res.Message});
                 }
-                var datesInHolidayList = await _userManager.GetUsersInRoleAsync(holdayListToDelete.Name);
-                if (datesInHolidayList.Count > 0)
+                else
                 {
-                    return BadRequest(new { errors = new[] { $"Este rol ya está asignado a " + datesInHolidayList.Count + " usuarios, para eliminarlo debes de remover el rol al usuario." }, result = "ErrorDelete", detail = "El rol está asignado a usuarios." });
+                    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Holiday list could be updated." });
                 }
-                var roleClaimsInRole = await _roleManager.GetClaimsAsync(holdayListToDelete);
-                foreach (var claim in roleClaimsInRole)
-                {
-                    var removeClaimResult = await _roleManager.RemoveClaimAsync(holdayListToDelete, new Claim(claim.Type, claim.Value));
-                    if (!removeClaimResult.Succeeded)
-                    {
-                        return BadRequest(new { errors = new[] { $"Error al eliminar el claim." }, result = "ErrorDeleting", detail = "No se pudo eliminar el claim o permiso." });
-                    }
-                }
-                var resultDeleteRole = await _roleManager.DeleteAsync(holdayListToDelete);
-                if (!resultDeleteRole.Succeeded)
-                {
-                    return BadRequest(new { errors = new[] { $"Hubo un error a la hora de eliminar el rol." }, result = "ErrorDeleting", detail = "El rol no pudo ser eliminado." });
-                }
-                return Ok(new { message = "El rol y todos sus permisos fueron eliminados con éxito!", result = "success" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { errors = new[] { $"Hubo un error en la conexión con el servidor, el rol no se pudo eliminar." }, result = "ErrorDeleting", detail = ex });
+                return BadRequest(new { error = $"There was an error in the server, the holidays list could not be deleted.", result = "ErrorDeleting", detail = ex.Message });
             }
         }
     }

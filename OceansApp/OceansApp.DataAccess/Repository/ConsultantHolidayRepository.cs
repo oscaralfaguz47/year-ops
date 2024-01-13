@@ -206,6 +206,34 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<MethodResponse> DeleteHolidaysList(int holidaysListId)
+        {
+            try
+            {
+                var holidaysListToDelete = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.ConsultantHolidayId == holidaysListId);
+                if (holidaysListToDelete == null)
+                {
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The Holidays list was not found in the database, it was removed before your request." };
+                }
+
+                List<ConsultantHolidayDate> existingHolidaysInListToRemove = await _db.CONSULTANT_HOLIDAY_DATES
+                .Where(x => x.ConsultantHolidayId == holidaysListId).ToListAsync();
+                using var transaction = await _db.Database.BeginTransactionAsync();
+                if (existingHolidaysInListToRemove.Count > 0)
+                {
+                    _db.CONSULTANT_HOLIDAY_DATES.RemoveRange(existingHolidaysInListToRemove);
+                }
+                _db.CONSULTANT_HOLIDAYS.Remove(holidaysListToDelete);
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return new MethodResponse { Success = true, Message = $"The Holidays list was deleted successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
+        }
+
         public void Update(ConsultantHoliday obj)
         {
             _db.CONSULTANT_HOLIDAYS.Update(obj);

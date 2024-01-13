@@ -1,13 +1,14 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/General/consultantHolidays.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
         <div class="row">
             <div class="search-header-container">
                 <div>
-                    <h2>HOLIDAY LISTS</h2>
+                    <h2>HOLIDAYS LISTS</h2>
                     <div class="input-container">
                         <input id="search-input" onkeypress="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
                         <i class="bi bi-search placeholder-image"></i>
@@ -78,18 +79,21 @@
                             <h2 id="create-edit-holiday-title">
                             </h2>
                             <form id="form-create-update">
-                                <div class="input-container" style="margin:6px 0 6px 0">
-                                    <input id="holidaysListId" name="consultantHolidayId" type="hidden">
-                                    <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holiday list Name">
+                                <div class="inputs-header-cont">
+                                    <div class="input-container col-sm-8" style="margin-top: 0">
+                                        <input id="holidaysListId" name="consultantHolidayId" type="hidden">
+                                        <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <span class="arrow-down"></span>
+                                        <select id="selectYear" name="holidayYear" class="form-select">
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="">
-                                    <span class="arrow-down"></span>
-                                    <select id="selectYear" name="holidayYear" class="form-select">
-                                    </select>
+                                <div class="add-dates-btn-cont">
+                                    <a style="padding-right: 10px" class="blue-btn" onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
                                 </div>
-                                <h4 style="color:#000">Add the Holiday List dates:</h4>
-                                <a onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
-                                <div id="holidays-dates-container" style="text-align:left; color: #000;overflow-y: scroll;height: 350px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
+                                <div id="holidays-dates-container" class="modal-scroll-container">
                                 </div>
                             </form>
                             <div style="display:flex; justify-content:center;">

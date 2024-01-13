@@ -13,5 +13,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<CreateUpdateHolidayVM> GetConsultantHolidayWithDates(int consultantHolidayId);
         Task<MethodResponse> CreateHolidayListWithHolidayDates(CreateUpdateHolidayVM holidayData);
         Task<MethodResponse> UpdateHolidayListWithHolidayDates(CreateUpdateHolidayVM holidayData, string updatedCreatedBy);
+        Task<MethodResponse> DeleteHolidaysList(int holidaysListId);
     }
 }

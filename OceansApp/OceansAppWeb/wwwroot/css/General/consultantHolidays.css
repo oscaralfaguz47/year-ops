@@ -1,0 +1,38 @@
+﻿.inputs-header-cont {
+    display: flex;
+}
+    .inputs-header-cont div{
+        margin-right: 5px;
+    }
+    .inputs-header-cont #holidayName {
+        padding-left: 10px;
+    }
+    .add-dates-btn-cont {
+        text-align: right;
+        margin-bottom: 5px;
+        margin-top: 17px;
+    }
+.add-dates-btn-cont a {
+    font-size: 18px;
+}
+.holidayRow{
+    display: flex; 
+    margin-bottom: 5px
+}
+.holidayRow {
+    display: flex;
+}
+.btn-delete-date{
+    border:none;
+    color: red;
+    font-size: 15px;
+    background-color: transparent;
+    padding-right: 2px;
+}
+.inputName{
+    width: 63%;
+    margin-right: 5px
+}
+.inputDate{
+    width: 37%;
+}

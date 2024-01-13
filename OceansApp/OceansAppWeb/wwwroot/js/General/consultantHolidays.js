@@ -71,11 +71,11 @@ function getHolidaysList(firstTime, filters) {
             tbody.empty();
             data.HolidaysList.forEach(function (holiday) {
                 var creationDate = new Date(holiday.CreationDate);
-                var formattedDate = ('0' + creationDate.getDate()).slice(-2) + '/' +
-                    ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
+                var formattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + creationDate.getDate()).slice(-2) + '/' +
                     creationDate.getFullYear();
                 var row = `<tr>
-                    <td><i class='bi bi-trash3 table-icon delete-table-icon'></i> 
+                    <td><i onclick="deleteHolidaysList(${holiday.ConsultantHolidayId}, '${holiday.Name}')" class='bi bi-trash3 table-icon delete-table-icon'></i>
                     <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon'></i>
                     ${holiday.Name}</td>
                     <td>${holiday.Year}</td>
@@ -171,14 +171,13 @@ function addNewDateRow(holiday) {
     inputHiddenId.className = "inputHolidayDateId";
     inputHiddenId.value = "";
     row.appendChild(inputHiddenId);
-    console.log("HOLIDAY OBJ: " + holiday);
     if (holiday !== null && holiday !== undefined) {
         inputHiddenId.value = holiday.consultantHolidayDateId;
     }
     // Create input text
     var inputText = document.createElement("input");
     inputText.type = "text";
-    inputText.className = "inputName";
+    inputText.className = "inputName form-control";
     inputText.placeholder = "Holiday Name";
     inputText.value = holiday ? holiday.name : '';
     row.appendChild(inputText);
@@ -186,19 +185,22 @@ function addNewDateRow(holiday) {
     // Create input date
     var inputDate = document.createElement("input");
     inputDate.type = "date";
-    inputDate.className = "inputDate";
+    inputDate.className = "inputDate form-control";
     inputDate.value = holiday ? holiday.date.split("T")[0] : '';
     row.appendChild(inputDate);
 
     // Create delete button
-    if (document.querySelectorAll(".holidayRow").length > 0) {
-        var btnDelete = document.createElement("button");
-        btnDelete.innerHTML = "Delete";
-        btnDelete.onclick = function () {
-            this.parentElement.remove();
-        };
-        row.appendChild(btnDelete);
+    var btnDelete = document.createElement("button");
+    btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
+    btnDelete.className = "btn-delete-date";
+    btnDelete.onclick = function () {
+        this.parentElement.remove();
+    };
+    if (document.querySelectorAll(".holidayRow").length === 0) {
+        btnDelete.disabled = true; 
+        btnDelete.style.opacity = "0";
     }
+    row.appendChild(btnDelete);
     // Agregar la fila al contenedor
     document.getElementById("holidays-dates-container").appendChild(row);
 }
@@ -250,4 +252,44 @@ function createUpdateHoliday(modalId) {
                 inicializeModalButtons(modalId);
             }
         })
+}
+function deleteHolidaysList(holidaysListId, listName) {
+    Swal.fire({
+        title: "Delete Holidays List",
+        text: 'Are you sure you want to delete the list "' + listName + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var formData = new FormData();
+            formData.append('holidaysListId', holidaysListId);
+            fetch("/General/ConsultantHolidays/DeleteHolidaysList"
+                , {
+                    method: 'POST',
+                    headers: {
+                        RequestVerificationToken: token
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                    } else {
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
+                })
+                .finally(() => {
+                    hideSpinner();
+                    getHolidaysList(false, false);
+                });
+        }
+    });
 }
