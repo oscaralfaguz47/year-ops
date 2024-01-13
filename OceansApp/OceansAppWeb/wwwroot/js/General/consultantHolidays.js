@@ -112,7 +112,10 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
     modalTitle.text(action);
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
-    var select = document.getElementById('selectYear');
+    var createUpdateForm = $('#form-create-update');
+    createUpdateForm.find('[name="consultantHolidayId"]').val("");
+    var select = $('#selectYear');
+    select.empty();
     // get actual year
     var actualYear = new Date().getFullYear();
 
@@ -120,7 +123,7 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
         var option = document.createElement('option');
         option.value = year;
         option.text = year;
-        select.appendChild(option);
+        select.append(option);
 
         if (year === actualYear) {
             option.selected = true;
@@ -139,7 +142,6 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
             .then(data => {
                 if (data.success) {
                     console.log(data);
-                    var createUpdateForm = $('#form-create-update');
                     createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
                     createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
                     createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
@@ -169,7 +171,8 @@ function addNewDateRow(holiday) {
     inputHiddenId.className = "inputHolidayDateId";
     inputHiddenId.value = "";
     row.appendChild(inputHiddenId);
-    if (holiday !== undefined) {
+    console.log("HOLIDAY OBJ: " + holiday);
+    if (holiday !== null && holiday !== undefined) {
         inputHiddenId.value = holiday.consultantHolidayDateId;
     }
     // Create input text
@@ -188,25 +191,26 @@ function addNewDateRow(holiday) {
     row.appendChild(inputDate);
 
     // Create delete button
-    var btnDelete = document.createElement("button");
-    btnDelete.innerHTML = "Delete";
-    btnDelete.onclick = function () {
-        this.parentElement.remove();
-    };
-    row.appendChild(btnDelete);
+    if (document.querySelectorAll(".holidayRow").length > 0) {
+        var btnDelete = document.createElement("button");
+        btnDelete.innerHTML = "Delete";
+        btnDelete.onclick = function () {
+            this.parentElement.remove();
+        };
+        row.appendChild(btnDelete);
+    }
     // Agregar la fila al contenedor
     document.getElementById("holidays-dates-container").appendChild(row);
 }
 function createUpdateHoliday(modalId) {
     waitingForPostMethod();
     var createUpdateForm = $('#form-create-update');
-    var holidaysListId = Number(createUpdateForm.find('[name="consultantHolidayId"]').val());
+    var holidaysListId = createUpdateForm.find('[name="consultantHolidayId"]').val() || null;
     var holidayName = createUpdateForm.find('[name="holidayName"]').val();
     var year = createUpdateForm.find('[name="holidayYear"]').val();
     var holidayDatesElements = document.querySelectorAll(".holidayRow");
     var holidayDatesData = [];
     holidayDatesData = Array.from(holidayDatesElements).map(function (fila) {
-        console.log("slkdfjkds " + fila.querySelector(".inputHolidayDateId").value);
         var dateId = fila.querySelector(".inputHolidayDateId").value ? fila.querySelector(".inputHolidayDateId").value : null;
         var name = fila.querySelector(".inputName").value;
         var dateValue = fila.querySelector(".inputDate").value;

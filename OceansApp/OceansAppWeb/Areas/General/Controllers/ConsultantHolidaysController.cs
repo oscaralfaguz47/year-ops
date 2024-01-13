@@ -217,5 +217,43 @@ namespace OceansAppWeb.Areas.General.Controllers
                 return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHolidaysList(int holidayListId)
+        {
+            try
+            {
+                var holdayListToDelete = _unitOfWork.ConsultantHoliday.GetFirstOrDefault(x=>x.ConsultantHolidayId == holidayListId);
+                if (holdayListToDelete == null)
+                {
+                    return BadRequest(new { error = "The holiday list does not exist in the database.", result = "NotFound", detail = "The holiday list was already deleted before your request." });
+                }
+                var datesInHolidayList = await _userManager.GetUsersInRoleAsync(holdayListToDelete.Name);
+                if (datesInHolidayList.Count > 0)
+                {
+                    return BadRequest(new { errors = new[] { $"Este rol ya está asignado a " + datesInHolidayList.Count + " usuarios, para eliminarlo debes de remover el rol al usuario." }, result = "ErrorDelete", detail = "El rol está asignado a usuarios." });
+                }
+                var roleClaimsInRole = await _roleManager.GetClaimsAsync(holdayListToDelete);
+                foreach (var claim in roleClaimsInRole)
+                {
+                    var removeClaimResult = await _roleManager.RemoveClaimAsync(holdayListToDelete, new Claim(claim.Type, claim.Value));
+                    if (!removeClaimResult.Succeeded)
+                    {
+                        return BadRequest(new { errors = new[] { $"Error al eliminar el claim." }, result = "ErrorDeleting", detail = "No se pudo eliminar el claim o permiso." });
+                    }
+                }
+                var resultDeleteRole = await _roleManager.DeleteAsync(holdayListToDelete);
+                if (!resultDeleteRole.Succeeded)
+                {
+                    return BadRequest(new { errors = new[] { $"Hubo un error a la hora de eliminar el rol." }, result = "ErrorDeleting", detail = "El rol no pudo ser eliminado." });
+                }
+                return Ok(new { message = "El rol y todos sus permisos fueron eliminados con éxito!", result = "success" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { errors = new[] { $"Hubo un error en la conexión con el servidor, el rol no se pudo eliminar." }, result = "ErrorDeleting", detail = ex });
+            }
+        }
     }
 }

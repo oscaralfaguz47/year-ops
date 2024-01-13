@@ -142,7 +142,9 @@ namespace OceansApp.DataAccess.Repository
                 holidayListToUpdate.Year = (int)holidayData.Year;
 
                 List<ConsultantHolidayDate> existingHolidaysInListToRemove = await _db.CONSULTANT_HOLIDAY_DATES
-                    .Where(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId).ToListAsync();
+                .Where(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId).ToListAsync();
+
+                List<ConsultantHolidayDate> itemsToRemove = new List<ConsultantHolidayDate>();
 
                 foreach (var holidayInListToAddOrUpdate in existingHolidaysInListToRemove)
                 {
@@ -150,12 +152,15 @@ namespace OceansApp.DataAccess.Repository
                     {
                         if (holidayInListToAddOrUpdate.ConsultantHolidayDateId == holToUpdateCreate.ConsultantHolidayDateId)
                         {
-                            existingHolidaysInListToRemove.Remove(holidayInListToAddOrUpdate);
+                            itemsToRemove.Add(holidayInListToAddOrUpdate);
                         }
                     }
                 }
-                var testdd = "";
-                testdd = "hola";
+
+                foreach (var item in itemsToRemove)
+                {
+                    existingHolidaysInListToRemove.Remove(item);
+                }
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
                 if (existingHolidaysInListToRemove.Count > 0)
@@ -181,7 +186,7 @@ namespace OceansApp.DataAccess.Repository
                     {
                         var existingHolidayInList = await _db.CONSULTANT_HOLIDAY_DATES
                         .FirstOrDefaultAsync(x => x.ConsultantHolidayDateId == holidayInListToAddOrUpdate.ConsultantHolidayDateId);
-                        if (existingHolidayInList != null && (holidayInListToAddOrUpdate.Name != existingHolidayInList.Name || 
+                        if (existingHolidayInList != null && (holidayInListToAddOrUpdate.Name != existingHolidayInList.Name ||
                             holidayInListToAddOrUpdate.Date != existingHolidayInList.Date))
                         {
                             existingHolidayInList.Name = holidayInListToAddOrUpdate.Name;
