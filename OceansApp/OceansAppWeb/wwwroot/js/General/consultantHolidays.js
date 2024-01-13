@@ -163,12 +163,14 @@ function addNewDateRow(holiday) {
     var row = document.createElement("div");
     row.className = "holidayRow";
 
-    if (holiday !== null) {
-        var inputHiddenId = document.createElement("input");
-        inputHiddenId.type = "hidden";
-        inputHiddenId.className = "inputHolidayDateId";
+
+    var inputHiddenId = document.createElement("input");
+    inputHiddenId.type = "hidden";
+    inputHiddenId.className = "inputHolidayDateId";
+    inputHiddenId.value = "";
+    row.appendChild(inputHiddenId);
+    if (holiday !== undefined) {
         inputHiddenId.value = holiday.consultantHolidayDateId;
-        row.appendChild(inputHiddenId);
     }
     // Create input text
     var inputText = document.createElement("input");
@@ -198,13 +200,14 @@ function addNewDateRow(holiday) {
 function createUpdateHoliday(modalId) {
     waitingForPostMethod();
     var createUpdateForm = $('#form-create-update');
-    var holidaysListId = createUpdateForm.find('[name="consultantHolidayId"]').val();
+    var holidaysListId = Number(createUpdateForm.find('[name="consultantHolidayId"]').val());
     var holidayName = createUpdateForm.find('[name="holidayName"]').val();
     var year = createUpdateForm.find('[name="holidayYear"]').val();
     var holidayDatesElements = document.querySelectorAll(".holidayRow");
     var holidayDatesData = [];
     holidayDatesData = Array.from(holidayDatesElements).map(function (fila) {
-        var dateId = fila.querySelector(".inputHolidayDateId").value;
+        console.log("slkdfjkds " + fila.querySelector(".inputHolidayDateId").value);
+        var dateId = fila.querySelector(".inputHolidayDateId").value ? fila.querySelector(".inputHolidayDateId").value : null;
         var name = fila.querySelector(".inputName").value;
         var dateValue = fila.querySelector(".inputDate").value;
         var date = dateValue ? dateValue : null;
