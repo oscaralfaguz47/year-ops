@@ -196,10 +196,10 @@ function addNewDateRow(holiday) {
     btnDelete.onclick = function () {
         this.parentElement.remove();
     };
-    if (document.querySelectorAll(".holidayRow").length === 0) {
-        btnDelete.disabled = true; 
-        btnDelete.style.opacity = "0";
-    }
+    //if (document.querySelectorAll(".holidayRow").length === 0) {
+    //    btnDelete.disabled = true; 
+    //    btnDelete.style.opacity = "0";
+    //}
     row.appendChild(btnDelete);
     // Agregar la fila al contenedor
     document.getElementById("holidays-dates-container").appendChild(row);

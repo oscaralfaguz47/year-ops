@@ -15,7 +15,7 @@ function updatePaginationValues(paginationData) {
         select.appendChild(option);
     });
     disableButtons(paginationData.PageIndex, paginationData.IsLastPage, paginationData.TotalResults, paginationData.PageSize);
-    document.getElementById("label-total-results").textContent = "Total Resultados: " + paginationData.TotalResults;
+    document.getElementById("label-total-results").textContent = "Total Results: " + paginationData.TotalResults;
 }
 var changedPageSize = false;
 function changePageSizeValue() {
@@ -43,7 +43,7 @@ function returnCurrentPaginationValues() {
     }
 }
 function disableButtons(pageIndex, isLastPage, totalResults, pageSize) {
-    document.getElementById("label-pag-info").textContent = pageIndex + " de " + Math.ceil(totalResults / pageSize);
+    document.getElementById("label-pag-info").textContent = pageIndex + " of " + Math.ceil(totalResults / pageSize);
     document.querySelectorAll('.left-pag-buttons').forEach(function (boton) {
         boton.disabled = (pageIndex === 1);
     });
