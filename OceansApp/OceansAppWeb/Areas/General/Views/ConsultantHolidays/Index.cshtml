@@ -7,13 +7,13 @@
         <div class="row">
             <div class="search-header-container">
                 <div>
-                    <h2>HOLIDAYS LIST</h2>
+                    <h2>HOLIDAY LISTS</h2>
                     <div class="input-container">
                         <input id="search-input" onkeypress="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
                         <i class="bi bi-search placeholder-image"></i>
                     </div>
                     <div class="action-buttons">
-                        <a onclick="displayCreateUpdateModal('modal-create-holiday', 'CREATE NEW HOLIDAYS LIST',null)">Create Holiday List</a>
+                        <a onclick="displayCreateUpdateModal('modal-create-holiday', 'CREATE NEW HOLIDAYS LIST',null)">Create Holidays List</a>
                     </div>
                 </div>
                 <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
@@ -43,9 +43,20 @@
         <table class="">
             <thead>
                 <tr>
-                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="sortable-col">Year <span class="sort-arrow" id="sortArrowYear"></span></th>
-                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">Holiday List <span class="sort-arrow" id="sortArrowName"></span></th>
-                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">Creation Date <span class="sort-arrow" id="sortArrowCreationDate"></span></th>
+                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="table-col-big sortable-col">
+                        Holiday List
+                        <span class="sort-arrow" id="sortArrowName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="table-col-little sortable-col">
+                        Year
+                        <span class="sort-arrow" id="sortArrowYear"></span>
+                    </th>
+                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="table-col-medium sortable-col">
+                        Creation Date
+                        <span class="sort-arrow" id="sortArrowCreationDate">
+                        </span>
+                    </th>
                     <th class="table-col-medium">Created By</th>
                 </tr>
             </thead>
@@ -68,7 +79,7 @@
                             </h2>
                             <form id="form-create-update">
                                 <div class="input-container" style="margin:6px 0 6px 0">
-                                    <input id="roleId" name="consultantHolidayId" type="hidden">
+                                    <input id="holidaysListId" name="consultantHolidayId" type="hidden">
                                     <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holiday list Name">
                                 </div>
                                 <div class="">
@@ -77,10 +88,8 @@
                                     </select>
                                 </div>
                                 <h4 style="color:#000">Add the Holiday List dates:</h4>
-                                 <a onclick="addNewDateRow()"><i class="bi bi-plus"></i> Add Date</a>
-                                <div id="holidays-dates-container" style="text-align:left; color: #000;overflow-y: scroll;height: 400px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
-                                   
- 
+                                <a onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
+                                <div id="holidays-dates-container" style="text-align:left; color: #000;overflow-y: scroll;height: 350px; padding:10px; margin-bottom:10px; border: 1px solid #ccc;">
                                 </div>
                             </form>
                             <div style="display:flex; justify-content:center;">

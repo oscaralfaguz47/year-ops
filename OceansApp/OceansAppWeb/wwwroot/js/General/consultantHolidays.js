@@ -74,12 +74,14 @@ function getHolidaysList(firstTime, filters) {
                 var formattedDate = ('0' + creationDate.getDate()).slice(-2) + '/' +
                     ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
                     creationDate.getFullYear();
-                var row = "<tr>" +
-                    "<td class='table-col-big'>" + holiday.Year + "</td>" +
-                    "<td class='table-col-little'>" + holiday.Name + "</td>" +
-                    "<td class='table-col-medium'>" + formattedDate + "</td>" +
-                    "<td class='table-col-medium'>" + holiday.CreatedByName + "</td>" +
-                    "</tr>";
+                var row = `<tr>
+                    <td><i class='bi bi-trash3 table-icon delete-table-icon'></i> 
+                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon'></i>
+                    ${holiday.Name}</td>
+                    <td>${holiday.Year}</td>
+                    <td>${formattedDate}</td>
+                    <td>${holiday.CreatedByName}</td>
+                    </tr>`;
                 tbody.append(row);
             });
             if (data.HolidaysList.length === 0) {
@@ -128,75 +130,59 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
     permissionsContainer.empty();
     var url = "";
     if (holidayId !== null) {
-        console.log("EDITAR");
-        url = "/General/ConsultantHolidays/GetHolidayListData=" + encodeURIComponent(holidayId);
+        displaySpinner();
+        url = "/General/ConsultantHolidays/GetHolidayListData?holidayId=" + encodeURIComponent(holidayId);
         fetch(url)
             .then(response => {
                 return response.json();
             })
             .then(data => {
                 if (data.success) {
-                    toastr.success(data.message);
-                    hideSpinner();
+                    console.log(data);
+                    var createUpdateForm = $('#form-create-update');
+                    createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
+                    createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
+                    createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
+                    data.holidayData.holidayDates.forEach(function (holiday) {
+                        addNewDateRow(holiday)
+                    });
+                    showModal(modalId);
                 } else {
                     displayToasterError(data.error);
                     console.error('There has been a problem with the fetch operation:', data.detail);
                 }
+                hideSpinner();
             });
+    } else {
+        addNewDateRow();
+        showModal(modalId);
     }
-
-
-    $.ajax({
-        type: "GET",
-        url: url,
-        contentType: "application/json",
-        success: function (data) {
-            console.log(data);
-            showModal(modalId);
-            var sysArea = "";
-            var sysSubArea = "";
-            document.getElementById("roleId").value = holidayId;
-            document.getElementById("roleName").value = data.roleName;
-            data.userClaims.forEach(function (element) {
-                if (sysArea != element.systemAreaName) {
-                    permissionsContainer.append('<h5 style="color:var(--clr-blueLight)"><strong>' + element.systemAreaName + '</strong> (Area)</h5>');
-                }
-                if (sysSubArea != element.systemSubAreaName) {
-                    permissionsContainer.append('<h6 style="margin-left:12px"><strong>' + element.systemSubAreaName + '</strong> (Sub Area)</h6>');
-                }
-                sysArea = element.systemAreaName;
-                sysSubArea = element.systemSubAreaName;
-
-                permissionsContainer.append(`
-        <div style="margin-left:24px; color:var(--clr-grayDark);font-size:17px;">
-            <input id="pe-${element.claimId}" name="${element.claimDescription}" type="checkbox" value="${element.claimId}" ${element.isAddedToTheRole ? 'checked' : ''}>
-            <label for="pe-${element.claimId}">&nbsp;${element.claimDescription}</label>
-        </div>
-    `);
-
-            });
-        },
-        error: function (error) {
-            console.error("Error al obtener lista de roles:", error);
-        }
-    });
 }
-function addNewDateRow() {
+function addNewDateRow(holiday) {
     // Create new row
     var row = document.createElement("div");
     row.className = "holidayRow";
 
+    if (holiday !== null) {
+        var inputHiddenId = document.createElement("input");
+        inputHiddenId.type = "hidden";
+        inputHiddenId.className = "inputHolidayDateId";
+        inputHiddenId.value = holiday.consultantHolidayDateId;
+        row.appendChild(inputHiddenId);
+    }
     // Create input text
     var inputText = document.createElement("input");
     inputText.type = "text";
     inputText.className = "inputName";
     inputText.placeholder = "Holiday Name";
+    inputText.value = holiday ? holiday.name : '';
     row.appendChild(inputText);
 
     // Create input date
     var inputDate = document.createElement("input");
     inputDate.type = "date";
     inputDate.className = "inputDate";
+    inputDate.value = holiday ? holiday.date.split("T")[0] : '';
     row.appendChild(inputDate);
 
     // Create delete button
@@ -212,27 +198,27 @@ function addNewDateRow() {
 function createUpdateHoliday(modalId) {
     waitingForPostMethod();
     var createUpdateForm = $('#form-create-update');
+    var holidaysListId = createUpdateForm.find('[name="consultantHolidayId"]').val();
     var holidayName = createUpdateForm.find('[name="holidayName"]').val();
     var year = createUpdateForm.find('[name="holidayYear"]').val();
     var holidayDatesElements = document.querySelectorAll(".holidayRow");
-    console.log("ESTE: " + holidayDatesElements.length);
-    var holidayDatesData = [{ Name: "", Date: null }];
-    if (holidayDatesElements.length > 0) {
-        holidayDatesData = Array.from(holidayDatesElements).map(function (fila) {
-            var name = fila.querySelector(".inputName").value;
-            var date = fila.querySelector(".inputDate").value;
-            return { Name: name, Date: date };
-        });
-    }
+    var holidayDatesData = [];
+    holidayDatesData = Array.from(holidayDatesElements).map(function (fila) {
+        var dateId = fila.querySelector(".inputHolidayDateId").value;
+        var name = fila.querySelector(".inputName").value;
+        var dateValue = fila.querySelector(".inputDate").value;
+        var date = dateValue ? dateValue : null;
+        return { consultantHolidayDateId: dateId, Name: name, Date: date };
+    });
 
     var token = $('[name="__RequestVerificationToken"]').val();
     var data = {
+        ConsultantHolidayId: holidaysListId,
         Name: holidayName,
         Year: year,
         HolidayDates: holidayDatesData
     };
     console.log(data);
-
     fetch('/General/ConsultantHolidays/CreateUpdateHoliday', {
         method: 'POST',
         headers: {
@@ -248,9 +234,13 @@ function createUpdateHoliday(modalId) {
                 hideModal(modalId);
                 displayToasterSuccess(data.message);
                 getHolidaysList(false, false);
+            }
+            if (data.messageType === "Validation Error") {
+                displayToasterWarningArray(data.errors);
+                inicializeModalButtons(modalId);
             } else {
                 displayToasterErrorArray(data.errors);
-                inicializeModalButtons();
+                inicializeModalButtons(modalId);
             }
         })
 }

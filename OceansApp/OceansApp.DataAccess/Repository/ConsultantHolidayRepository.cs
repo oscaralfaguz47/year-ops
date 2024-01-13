@@ -56,7 +56,7 @@ namespace OceansApp.DataAccess.Repository
             using (var multiResultSet = await connection.QueryMultipleAsync("GetConsultantHolidayWithDates", parameters, commandType: CommandType.StoredProcedure))
             {
                 var consultantHoliday = await multiResultSet.ReadFirstOrDefaultAsync<ConsultantHoliday>();
-                var holidayDates = await multiResultSet.ReadAsync<ConsultantHolidayDate>();
+                var holidayDates = await multiResultSet.ReadAsync<CreateUpdateHolidayDateVM>();
 
                 return new CreateUpdateHolidayVM
                 {
@@ -77,14 +77,14 @@ namespace OceansApp.DataAccess.Repository
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 if (existingHoliday != null)
                 {
-                    return new MethodResponse { Success = false, Message = $"There is already a list of Holidays with the name '{holidayData.Name.Trim()}'." };
+                    return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a list of Holidays with the name '{holidayData.Name.Trim()}'. Please try another one." };
                 }
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
                 ConsultantHoliday holidayListToCreate = new()
                 {
-                    Name = holidayData.Name,
-                    Year = holidayData.Year,
+                    Name = holidayData.Name.Trim(),
+                    Year = (int)holidayData.Year,
                     CreatedBy = holidayData.CreatedBy,
                     CreationDate = costaRicaTime
                 };
@@ -98,8 +98,8 @@ namespace OceansApp.DataAccess.Repository
                         ConsultantHolidayDate holidayDateToCreate = new()
                         {
                             ConsultantHolidayId = createdHolidayList.Entity.ConsultantHolidayId,
-                            Name = holiday.Name,
-                            Date = holiday.Date,
+                            Name = holiday.Name.Trim(),
+                            Date = (DateTime)holiday.Date,
                             CreationDate = costaRicaTime,
                             CreatedBy = holidayData.CreatedBy
                         };
@@ -109,14 +109,14 @@ namespace OceansApp.DataAccess.Repository
                 }
                 else
                 {
-                    return new MethodResponse { Success = false, Message = $"The Holidays list could not be created." };
+                    return new MethodResponse { MessageType = "Saving Error", Success = false, Message = $"The Holidays list could not be created. Something went wrong. Please report this issue." };
                 }
                 await transaction.CommitAsync();
                 return new MethodResponse { Success = true, Message = $"The Holiday list was created successfully." };
             }
             catch (Exception ex)
             {
-                return new MethodResponse { Success = false, Message = ex.Message };
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
             }
         }
 
@@ -124,22 +124,22 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var existingHoliday = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.Name == holidayData.Name.Trim());
+                var existingHoliday = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.Name == holidayData.Name.Trim() && x.ConsultantHolidayId != holidayData.ConsultantHolidayId);
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 if (existingHoliday != null)
                 {
-                    return new MethodResponse { Success = false, Message = $"There is already a list of Holidays with the name '{holidayData.Name.Trim()}'." };
+                    return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a list of Holidays with the name '{holidayData.Name.Trim()}'. Please try another one." };
                 }
 
                 var holidayListToUpdate = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId);
 
                 if (holidayListToUpdate == null)
                 {
-                    return new MethodResponse { Success = false, Message = "The Holiday list no longer exists in the database." };
+                    return new MethodResponse { MessageType = "No Exists Error", Success = false, Message = "The Holiday list no longer exists in the database." };
                 }
 
                 holidayListToUpdate.Name = holidayData.Name.Trim();
-                holidayListToUpdate.Year = holidayData.Year;
+                holidayListToUpdate.Year = (int)holidayData.Year;
 
                 List<ConsultantHolidayDate> existingHolidaysInListToRemove = await _db.CONSULTANT_HOLIDAY_DATES
                     .Where(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId).ToListAsync();
@@ -154,9 +154,14 @@ namespace OceansApp.DataAccess.Repository
                         }
                     }
                 }
+                var testdd = "";
+                testdd = "hola";
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
-                _db.CONSULTANT_HOLIDAY_DATES.RemoveRange(existingHolidaysInListToRemove);
+                if (existingHolidaysInListToRemove.Count > 0)
+                {
+                    _db.CONSULTANT_HOLIDAY_DATES.RemoveRange(existingHolidaysInListToRemove);
+                }
 
                 foreach (var holidayInListToAddOrUpdate in holidayData.HolidayDates)
                 {
@@ -166,19 +171,21 @@ namespace OceansApp.DataAccess.Repository
                         {
                             ConsultantHolidayId = holidayListToUpdate.ConsultantHolidayId,
                             Name = holidayInListToAddOrUpdate.Name,
-                            Date = holidayInListToAddOrUpdate.Date,
+                            Date = (DateTime)holidayInListToAddOrUpdate.Date,
                             CreationDate = costaRicaTime,
                             CreatedBy = updatedCreatedBy
                         };
+                        await _db.CONSULTANT_HOLIDAY_DATES.AddAsync(holidayDateToCreate);
                     }
                     else
                     {
                         var existingHolidayInList = await _db.CONSULTANT_HOLIDAY_DATES
                         .FirstOrDefaultAsync(x => x.ConsultantHolidayDateId == holidayInListToAddOrUpdate.ConsultantHolidayDateId);
-                        if (existingHolidayInList != null)
+                        if (existingHolidayInList != null && (holidayInListToAddOrUpdate.Name != existingHolidayInList.Name || 
+                            holidayInListToAddOrUpdate.Date != existingHolidayInList.Date))
                         {
                             existingHolidayInList.Name = holidayInListToAddOrUpdate.Name;
-                            existingHolidayInList.Date = holidayInListToAddOrUpdate.Date;
+                            existingHolidayInList.Date = (DateTime)holidayInListToAddOrUpdate.Date;
                             existingHolidayInList.DateLastUpdate = costaRicaTime;
                             existingHolidayInList.UpdatedBy = updatedCreatedBy;
                         }
@@ -190,7 +197,7 @@ namespace OceansApp.DataAccess.Repository
             }
             catch (Exception ex)
             {
-                return new MethodResponse { Success = false, Message = ex.Message };
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
             }
         }
 

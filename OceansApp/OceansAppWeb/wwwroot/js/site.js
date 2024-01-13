@@ -70,6 +70,17 @@ function displayToasterErrorArray(errorsArray) {
         toastr.error(error);
     });
 }
+function displayToasterInformation(message){
+    toastr.info(message);
+}
+function displayToasterWarningArray(messagesArray) {
+    messagesArray.forEach(function (message) {
+        toastr.warning(message);
+    });
+}
+function displayToasterWarning(message) {
+    toastr.warning(message);
+}
 
 //FILTERS
 function hideShowFilters() {

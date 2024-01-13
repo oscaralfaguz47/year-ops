@@ -595,7 +595,9 @@ table {
     .global-table-container table {
        
     }
-
+.global-table-container .table-col-super-little {
+    width: 10px;
+}
     .global-table-container .table-col-little {
         width: 100px;
     }
@@ -666,9 +668,18 @@ table {
         .global-table-container tr:hover td:first-child {
             color: var(--clr-yellow);
         }
-
+.edit-table-icon{
+    color: blue;
+}
+.delete-table-icon {
+    color: red;
+}
+.table-icon {
+    font-size: 20px;
+    cursor: pointer;
+    margin: 3px;
+}
 /* Components */
-
 .custom-select {
     position: relative;
     display: inline-block;
