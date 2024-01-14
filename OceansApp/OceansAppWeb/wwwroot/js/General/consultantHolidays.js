@@ -75,13 +75,16 @@ function getHolidaysList(firstTime, filters) {
                     ('0' + creationDate.getDate()).slice(-2) + '/' +
                     creationDate.getFullYear();
                 var row = `<tr>
-                    <td><i onclick="deleteHolidaysList(${holiday.ConsultantHolidayId}, '${holiday.Name}')" class='bi bi-trash3 table-icon delete-table-icon'></i>
-                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon'></i>
-                    ${holiday.Name}</td>
-                    <td>${holiday.Year}</td>
-                    <td>${formattedDate}</td>
-                    <td>${holiday.CreatedByName}</td>
-                    </tr>`;
+                <td>
+                    <i onclick="deleteHolidaysList(${holiday.ConsultantHolidayId}, '${holiday.Name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
+                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                    <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" title="Click to see the Holidays">${holiday.Name}</span>
+                </td>
+                <td>${holiday.Year}</td>
+                <td>${formattedDate}</td>
+                <td>${holiday.CreatedByName}</td>
+            </tr>`;
+
                 tbody.append(row);
             });
             if (data.HolidaysList.length === 0) {
@@ -108,13 +111,30 @@ function enterInSearch(event) {
 }
 
 function displayCreateUpdateModal(modalId, action, holidayId) {
+    var createUpdateForm = $('#form-create-update');
+    var select = $('#selectYear');
+    if (action === 'VIEW HOLIDAYS LIST') {
+        $('#btn-saving').css("display", "none");
+        $('#btn-cancel').text("Close");
+        $('#modal-btns-cont').css("justify-content", "end");
+        $('.blue-btn').css("display", "none");
+
+        createUpdateForm.find('[name="holidayName"]').prop('disabled', true);
+        select.prop('disabled', true);
+    } else {
+        $('#btn-saving').css("display", "block");
+        $('#btn-cancel').text("Cancel");
+        $('#modal-btns-cont').css("justify-content", "center");
+        $('.blue-btn').css("display", "-webkit-inline-box");
+
+        createUpdateForm.find('[name="holidayName"]').prop('disabled', false);
+        select.prop('disabled', false);
+    }
     var modalTitle = $('#create-edit-holiday-title');
     modalTitle.text(action);
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
-    var createUpdateForm = $('#form-create-update');
     createUpdateForm.find('[name="consultantHolidayId"]').val("");
-    var select = $('#selectYear');
     select.empty();
     // get actual year
     var actualYear = new Date().getFullYear();
@@ -146,7 +166,7 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
                     createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
                     createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
                     data.holidayData.holidayDates.forEach(function (holiday) {
-                        addNewDateRow(holiday)
+                        addNewDateRow(holiday, action)
                     });
                     showModal(modalId);
                 } else {
@@ -160,47 +180,59 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
         showModal(modalId);
     }
 }
-function addNewDateRow(holiday) {
+function addNewDateRow(holiday, action) {
     // Create new row
     var row = document.createElement("div");
     row.className = "holidayRow";
 
+    if (action === 'VIEW HOLIDAYS LIST') {
+        var list = document.createElement("li");
+        var span1 = document.createElement("span");
+        span1.className = "span-name";
+        var span2 = document.createElement("span");
+        console.log(document.querySelectorAll(".holidayRow").length + 1)
+        span1.textContent = document.querySelectorAll(".holidayRow").length + 1 + ". " + holiday.name + " - ";
+        span2.textContent = holiday.date;
 
-    var inputHiddenId = document.createElement("input");
-    inputHiddenId.type = "hidden";
-    inputHiddenId.className = "inputHolidayDateId";
-    inputHiddenId.value = "";
-    row.appendChild(inputHiddenId);
-    if (holiday !== null && holiday !== undefined) {
-        inputHiddenId.value = holiday.consultantHolidayDateId;
+        var formattedDate = formatDateWeekDayMonthDaySuffix(holiday.date);
+        span2.textContent = formattedDate;
+        list.appendChild(span1);
+        list.appendChild(span2);
+        row.appendChild(list);
+    } else {
+        var inputHiddenId = document.createElement("input");
+        inputHiddenId.type = "hidden";
+        inputHiddenId.className = "inputHolidayDateId";
+        inputHiddenId.value = "";
+        row.appendChild(inputHiddenId);
+        if (holiday !== null && holiday !== undefined) {
+            inputHiddenId.value = holiday.consultantHolidayDateId;
+        }
+        // Create input text
+        var inputText = document.createElement("input");
+        inputText.type = "text";
+        inputText.className = "inputName form-control";
+        inputText.placeholder = "Holiday Name";
+        inputText.value = holiday ? holiday.name : '';
+        row.appendChild(inputText);
+
+        // Create input date
+        var inputDate = document.createElement("input");
+        inputDate.type = "date";
+        inputDate.className = "inputDate form-control";
+        inputDate.value = holiday ? holiday.date.split("T")[0] : '';
+        row.appendChild(inputDate);
+
+        // Create delete button
+        var btnDelete = document.createElement("button");
+        btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
+        btnDelete.className = "btn-delete-date";
+        btnDelete.onclick = function () {
+            this.parentElement.remove();
+        };
+        row.appendChild(btnDelete);
     }
-    // Create input text
-    var inputText = document.createElement("input");
-    inputText.type = "text";
-    inputText.className = "inputName form-control";
-    inputText.placeholder = "Holiday Name";
-    inputText.value = holiday ? holiday.name : '';
-    row.appendChild(inputText);
 
-    // Create input date
-    var inputDate = document.createElement("input");
-    inputDate.type = "date";
-    inputDate.className = "inputDate form-control";
-    inputDate.value = holiday ? holiday.date.split("T")[0] : '';
-    row.appendChild(inputDate);
-
-    // Create delete button
-    var btnDelete = document.createElement("button");
-    btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
-    btnDelete.className = "btn-delete-date";
-    btnDelete.onclick = function () {
-        this.parentElement.remove();
-    };
-    //if (document.querySelectorAll(".holidayRow").length === 0) {
-    //    btnDelete.disabled = true; 
-    //    btnDelete.style.opacity = "0";
-    //}
-    row.appendChild(btnDelete);
     // Agregar la fila al contenedor
     document.getElementById("holidays-dates-container").appendChild(row);
 }

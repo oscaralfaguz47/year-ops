@@ -1,12 +1,18 @@
 ﻿.inputs-header-cont {
     display: flex;
 }
-    .inputs-header-cont div{
-        margin-right: 5px;
-    }
-    .inputs-header-cont #holidayName {
-        padding-left: 10px;
-    }
+.span-holiday-Name:hover{
+    cursor: pointer;
+    text-decoration: underline
+}
+.inputs-header-cont div {
+    margin-right: 5px;
+}
+.inputs-header-cont #holidayName {
+    padding-left: 10px;
+    font-weight: bold;
+    color: #2c3e50;
+}
     .add-dates-btn-cont {
         text-align: right;
         margin-bottom: 5px;
@@ -17,11 +23,19 @@
 }
 .holidayRow{
     display: flex; 
-    margin-bottom: 5px
+    margin-bottom: 5px;
+    list-style: none;
 }
-.holidayRow {
-    display: flex;
+.holidayRow li{
+    font-size: 15px;
 }
+    .holidayRow .span-name{
+        font-weight: bold;
+        font-size: 17px;
+    }
+    .holidayRow {
+        display: flex;
+    }
 .btn-delete-date{
     border:none;
     color: red;

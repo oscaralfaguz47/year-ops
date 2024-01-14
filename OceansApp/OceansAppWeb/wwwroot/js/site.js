@@ -137,3 +137,30 @@ function resetForm(formId) {
     createUpdateForm[0].reset();
 }
 
+//FORMAT DATE
+function formatDateWeekDayMonthDaySuffix(date) {
+    var date = new Date(date);
+
+    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var monthName = months[date.getMonth()];
+
+    var weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    var weekDayName = weekDays[date.getDay()];
+
+    var day = date.getDate();
+    var daySuffix;
+
+    if (day > 3 && day < 21) {
+        daySuffix = 'th';
+    } else {
+        switch (day % 10) {
+            case 1: daySuffix = "st"; break;
+            case 2: daySuffix = "nd"; break;
+            case 3: daySuffix = "rd"; break;
+            default: daySuffix = "th";
+        }
+    }
+
+    var formattedDate = weekDayName + ", " + monthName + " " + day + daySuffix;
+    return formattedDate;
+}
