@@ -54,39 +54,47 @@ namespace OceansAppWeb.Areas.General.Controllers
                 paginationFilters.Filters = new HolidaysFiltersGetAllVM();
                 paginationFilters.OrderBy = new OrderByVM();
 
-                if (holidaysPaginationFilters.Pagination != null && holidaysPaginationFilters.Filters != null)
-                {
-                    int numAppliedFilters = 0;
-                    foreach (var prop in holidaysPaginationFilters.Filters.GetType().GetProperties())
-                    {
-                        string name = prop.Name;
-                        var value = prop.GetValue(holidaysPaginationFilters.Filters, null);
-                        if (value is not null and not "")
-                        {
-                            numAppliedFilters++;
-                        }
-                    }
-                    if (holidaysPaginationFilters.Pagination.PageSize != 0)
-                    {
-                        paginationFilters.Pagination.PageSize = holidaysPaginationFilters.Pagination.PageSize;
-                    }
-                    if (numAppliedFilters > 0)
-                    {
-                        paginationFilters.Filters = holidaysPaginationFilters.Filters;
-                        if (holidaysPaginationFilters.RequestFromFilters == false)
-                        {
-                            paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
-                        }
-                    }
-                    else
-                    {
-                        paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
-                    }
-                }
-                if (holidaysPaginationFilters.OrderBy != null)
-                {
-                    paginationFilters.OrderBy = holidaysPaginationFilters.OrderBy;
-                }
+                //Se envía
+                //holidaysPaginationFilters, paginationFilters 
+
+                //Se retorna
+                //paginationFilters
+                var setPaginationAndFilters = new PaginationFilters();
+
+               paginationFilters = (HolidaysPaginationFiltersVM)setPaginationAndFilters.SetPaginationAndFilters(holidaysPaginationFilters, paginationFilters);
+
+                //if (holidaysPaginationFilters.Pagination != null && holidaysPaginationFilters.Filters != null)
+                //{
+                //    int numAppliedFilters = 0;
+                //    foreach (var prop in holidaysPaginationFilters.Filters.GetType().GetProperties())
+                //    {
+                //        var value = prop.GetValue(holidaysPaginationFilters.Filters, null);
+                //        if (value is not null and not "")
+                //        {
+                //            numAppliedFilters++;
+                //        }
+                //    }
+                //    if (holidaysPaginationFilters.Pagination.PageSize != 0)
+                //    {
+                //        paginationFilters.Pagination.PageSize = holidaysPaginationFilters.Pagination.PageSize;
+                //    }
+                //    if (numAppliedFilters > 0)
+                //    {
+                //        paginationFilters.Filters = holidaysPaginationFilters.Filters;
+                //        if (holidaysPaginationFilters.RequestFromFilters == false)
+                //        {
+                //            paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
+                //        }
+                //    }
+                //    else
+                //    {
+                //        paginationFilters.Pagination.PageIndex = holidaysPaginationFilters.Pagination.PageIndex;
+                //    }
+                //}
+                //if (holidaysPaginationFilters.OrderBy != null)
+                //{
+                //    paginationFilters.OrderBy = holidaysPaginationFilters.OrderBy;
+                //}
                 var totalResults = await _unitOfWork.ConsultantHoliday.GetAllHolidaysWithFiltersAsync(paginationFilters);
                 paginationFilters.Pagination.TotalResults = totalResults.totalCount;
                 HolidaysGetAllForListVM viewModel = new HolidaysGetAllForListVM
