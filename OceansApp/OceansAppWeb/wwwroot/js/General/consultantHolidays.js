@@ -42,6 +42,11 @@ function recolectDataFromForm(filters) {
             DirectionOrder: inputDirectionOrder.value
         }
         var paginationData = returnCurrentPaginationValues();
+        var paginationWithoutFilters = {
+            Pagination: paginationData,
+            RequestFromFilters: filters,
+            OrderBy: orderByData
+        }
         if (filters) {
             filtersData = {
                 Year: year,
@@ -49,10 +54,8 @@ function recolectDataFromForm(filters) {
             };
         }
         return {
-            RequestFromFilters: filters,
-            Pagination: paginationData,
             Filters: filtersData,
-            OrderBy: orderByData
+            PaginationWithoutFilters: paginationWithoutFilters
         };
     }
 }
@@ -91,7 +94,7 @@ function getHolidaysList(firstTime, filters) {
                 noResultsMessage.text("NO SE ENCONTRARON REGISTROS");
             };
             //Pagination
-            updatePagination(data.PaginationFilters.Pagination);
+            updatePagination(data.PaginationFilters.PaginationWithoutFilters.Pagination);
             hideSpinner();
         },
         error: function (error) {

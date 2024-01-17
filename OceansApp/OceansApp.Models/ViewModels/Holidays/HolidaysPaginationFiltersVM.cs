@@ -1,13 +1,11 @@
 ﻿
-using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.Components.PaginationAndFilters;
 
 namespace OceansApp.Models.ViewModels.Holidays
 {
     public class HolidaysPaginationFiltersVM
     {
         public HolidaysFiltersGetAllVM? Filters { get; set; }
-        public bool? RequestFromFilters { get; set; }
-        public Pagination? Pagination { get; set; }
-        public OrderByVM? OrderBy { get; set; }
+        public PaginationWithoutFiltersVM? PaginationWithoutFilters { get; set; }
     }
 }
