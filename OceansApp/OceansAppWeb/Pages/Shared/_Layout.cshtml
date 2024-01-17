@@ -69,22 +69,22 @@
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-house-heart-fill"></i> General</a>
                                                 <div class="dropdown-menu">
                                                     @if (User.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue))
-                                                    //{
-                                                    //    <a id="manage" class="nav-link text-dark" asp-area="General" asp-controller="Consultants" asp-action="Index">Consultores</a>
-                                                    //}
-                                                    @if (User.HasClaim(c => c.Type == HolidaysClaimsCD.Holidays_Page_ClaimType && c.Value == HolidaysClaimsCD.Holidays_Page_ClaimValue))
-                                                    {
-                                                        <a id="holidays" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index">Holidays</a>
-                                                    }
+                                                        //{
+                                                        //    <a id="manage" class="nav-link text-dark" asp-area="General" asp-controller="Consultants" asp-action="Index">Consultores</a>
+                                                        //}
+                                                        @if (User.HasClaim(c => c.Type == HolidaysClaimsCD.Holidays_Page_ClaimType && c.Value == HolidaysClaimsCD.Holidays_Page_ClaimValue))
+                                                        {
+                                                            <a id="holidays" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index">Holidays</a>
+                                                        }
                                                 </div>
                                             </li>
                                         }
-                                         <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-house-heart-fill"></i> Project Management</a>
-                                                <div class="dropdown-menu">
-                                                        <a class="nav-link text-dark" asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index">Client</a>
-                                                </div>
-                                            </li>
+                                        <li class="nav-item dropdown">
+                                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-journal-check"></i> Project Management</a>
+                                            <div class="dropdown-menu">
+                                                <a class="nav-link text-dark" asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index">Clients</a>
+                                            </div>
+                                        </li>
                                         @if (User.IsAuthorizedForFinances()
                                    )
                                         {

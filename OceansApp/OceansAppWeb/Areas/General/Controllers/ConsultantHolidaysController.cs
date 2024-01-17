@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
-using OceansApp.Models.ViewModels.Components.PaginationAndFilters;
 using OceansApp.Models.ViewModels.Holidays;
 using System.Security.Claims;
 
