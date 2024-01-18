@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 <link rel="stylesheet" href="~/css/ProjectManagement/clients.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -29,46 +30,46 @@
         </div>
     </div>
     <div class="global-table-container">
-        <table class="">
+        <table>
             <thead>
                 <tr>
-                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="table-col-big sortable-col">
+                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">
                         Client Name
                         <span class="sort-arrow" id="sortArrowName">
                         </span>
                     </th>
-                    <th onclick="orderByTableList('Contact', 'StakeholderTableHeader', 'sortArrowStakeholder')" data-sort="ANY" name="StakeholderTableHeader" class="table-col-little sortable-col">
+                    <th>Is Active</th>
+                    <th onclick="orderByTableList('Contact', 'StakeholderTableHeader', 'sortArrowStakeholder')" data-sort="ANY" name="StakeholderTableHeader" class="sortable-col">
                         Stakeholder
                         <span class="sort-arrow" id="sortArrowStakeholder"></span>
                     </th>
-                    <th onclick="orderByTableList('ContactOccupation', 'ContactOccupationTableHeader', 'sortArrowContactOccupation')" data-sort="ANY" name="ContactOccupationTableHeader" class="table-col-medium sortable-col">
+                    <th onclick="orderByTableList('ContactOccupation', 'ContactOccupationTableHeader', 'sortArrowContactOccupation')" data-sort="ANY" name="ContactOccupationTableHeader" class="sortable-col">
                         Stakeholder Title
                         <span class="sort-arrow" id="sortArrowContactOccupation">
                         </span>
                     </th>
-                    <th class="table-col-medium">Emails</th>
-                    <th onclick="orderByTableList('AdmissionDate', 'AdmissionDateTableHeader', 'sortArrowAdmissionDate')" data-sort="ANY" name="AdmissionDateTableHeader" class="table-col-medium sortable-col">
+                    <th>Emails</th>
+                    <th>Send Reminders?</th>
+                    <th onclick="orderByTableList('AdmissionDate', 'AdmissionDateTableHeader', 'sortArrowAdmissionDate')" data-sort="ANY" name="AdmissionDateTableHeader" class="sortable-col">
                         AdmissionDate
                         <span class="sort-arrow" id="sortArrowAdmissionDate">
                         </span>
                     </th>
-                     <th onclick="orderByTableList('PaymentCondition', 'PaymentConditionTableHeader', 'sortArrowPaymentCondition')" data-sort="ANY" name="PaymentConditionTableHeader" class="table-col-medium sortable-col">
+                    <th onclick="orderByTableList('PaymentCondition', 'PaymentConditionTableHeader', 'sortArrowPaymentCondition')" data-sort="ANY" name="PaymentConditionTableHeader" class="sortable-col">
                         Payment Condition
                         <span class="sort-arrow" id="sortArrowPaymentCondition">
                         </span>
                     </th>
-                    <th class="table-col-medium">Is Active</th>
-                    <th class="table-col-medium">Client Class</th>
-                    <th class="table-col-medium">Address</th>
-                    <th class="table-col-medium">Company</th>
-                    <th class="table-col-medium">Success Manager</th>
-                     <th onclick="orderByTableList('LatePaymentFee', 'LatePaymentFeeTableHeader', 'sortArrowLatePaymentFee')" data-sort="ANY" name="LatePaymentFeeTableHeader" class="table-col-medium sortable-col">
+                    <th>Client Class</th>
+                    <th>Address</th>
+                    <th>Company</th>
+                    <th>Success Manager</th>
+                    <th onclick="orderByTableList('LatePaymentFee', 'LatePaymentFeeTableHeader', 'sortArrowLatePaymentFee')" data-sort="ANY" name="LatePaymentFeeTableHeader" class="sortable-col">
                         Late Payment Fee
                         <span class="sort-arrow" id="sortArrowLatePaymentFee">
                         </span>
                     </th>
-                    <th class="table-col-medium">Add Emails For Notifications</th>
-                    <th class="table-col-medium">Sent Notifications?</th>
+                    <th>Add Emails For Notifications</th>
                 </tr>
             </thead>
             <tbody>

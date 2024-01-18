@@ -27,27 +27,45 @@ async function getListOfResults(firstTime, filters) {
             noResultsMessage.empty();
             tbody.empty();
             data.ClientsList.forEach(function (obj) {
-                var creationDate = new Date(obj.CreationDate);
-                var formattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + creationDate.getDate()).slice(-2) + '/' +
-                    creationDate.getFullYear();
+                var admissionDate = new Date(obj.AdmissionDate);
+                var formattedDate = ('0' + (admissionDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + admissionDate.getDate()).slice(-2) + '/' +
+                    admissionDate.getFullYear();
+                var isActive = false;
+                var clientClass = obj.ClientClass;
+                if (obj.ClientClass === 'B') {
+                    clientClass = "AA";
+                } else if (obj.ClientClass === 'C') {
+                    clientClass = "Partner";
+                }
+                if (obj.IsActive === 'S') {
+                    isActive = true;
+                }
                 var row = `<tr>
                   <td>
                       ${obj.Name}
                   </td>
-                  <td>${obj.Contact}</td>
-                  <td>${obj.ContactOccupation}</td>
-                  <td>${obj.Emails}</td>
-                  <td>${obj.AdmissionDate}</td>
+                  <td style="text-align:center"><label class="switch">
+                    <input value="${obj.IsActive}" ${isActive ? 'checked' : ''} type="checkbox">
+                    <span class="slider round"></span>
+                    </label>
+                  </td>
+                  <td>${obj.Contact === null ? "" : obj.Contact}</td>
+                  <td>${obj.ContactOccupation === null ? "" : obj.ContactOccupation}</td>
+                  <td>${obj.Emails === null ? "" : obj.Emails}</td>
+                  <td style="text-align:center"><label class="switch">
+                    <input value="${obj.AllowSentLatePaymentNotifications}" ${obj.AllowSentLatePaymentNotifications ? 'checked' : ''} type="checkbox">
+                    <span class="slider round"></span>
+                    </label>
+                  </td>
+                  <td>${formattedDate}</td>
                   <td>${obj.PaymentCondition}</td>
-                  <td>${obj.IsActive}</td>
-                  <td>${obj.ClientClass}</td>
-                  <td>${obj.Address}</td>
+                  <td>${clientClass === null ? "" : clientClass}</td>
+                  <td>${obj.Address === null ? "" : obj.Address}</td>
                   <td>${obj.CompanyId}</td>
-                  <td>${obj.SuccessManager}</td>
+                  <td>${obj.SuccessManager === null ? "" : obj.SuccessManager}</td>
                   <td>${obj.LatePaymentFee}</td>
-                  <td>${obj.AdditionalEmailsForNotifications}</td>
-                  <td>${obj.AllowSentLatePaymentNotifications}</td>
+                  <td>${obj.AdditionalEmailsForNotifications === null ? "" : obj.AdditionalEmailsForNotifications}</td>
               </tr>`;
 
                 tbody.append(row);
