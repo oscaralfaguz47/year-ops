@@ -108,9 +108,7 @@ function updatePagination(paginationData) {
 }
 
 function enterInSearch(event) {
-    if (event.keyCode === 13 || event.which === 13) {
         paginationSubmit(false, true);
-    }
 }
 
 function displayCreateUpdateModal(modalId, action, holidayId) {
