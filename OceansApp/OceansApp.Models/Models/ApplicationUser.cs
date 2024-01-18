@@ -18,6 +18,8 @@ namespace OceansApp.Models.Models
         public String? Occupation { get; set; }
         public bool IsActive { get; set; }
         public DateTime? DeactivationDate { get; set; }
-
+        [MaxLength(64)]
+        public string? OpaqueToken { get; set; }
+        public DateTime? OpaqueTokenExpiration { get; set; }
     }
 }

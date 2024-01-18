@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
+using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
@@ -135,7 +137,7 @@ namespace OceansAppWeb.Account.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginVM model, string returnUrl)
         {
-            ViewData["ReturnUrl"] = returnUrl ??= Url.Content("~/");
+            ViewData["ReturnUrl"] = returnUrl ?? Url.Content("~/");
 
             if (ModelState.IsValid)
             {
@@ -143,68 +145,58 @@ namespace OceansAppWeb.Account.Controllers
                 {
                     var user = await _userManager.FindByEmailAsync(model.Email);
 
-                    if (user != null)
+                    if (user != null && user.EmailConfirmed)
                     {
-                        //if (await _userManager.CheckPasswordAsync(user, model.Password))
-                        //{
-                        if (user.EmailConfirmed == false)
-                        {
-                            ModelState.AddModelError(string.Empty, "Aún no haz confirmado tu correo, por favor ingresa a tu correo y confirmalo con el email que te hemos enviado.");
-                            return View(model);
-                        }
                         var applicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
-                        if (!applicationUser.IsActive)
+                        if (applicationUser.IsActive)
                         {
-                            return View("Lockout");
-                        }
-                        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
-                        if (result.Succeeded)
-                        {
-                            if (!user.TwoFactorEnabled)
+                            if ((DateTime.UtcNow > applicationUser.OpaqueTokenExpiration) 
+                                || (applicationUser.OpaqueToken == null && applicationUser.OpaqueTokenExpiration == null))
                             {
-                                return RedirectToAction("EnableAuthenticator");
+                                SharedMethods sharedMethod = new();
+                                string newToken = sharedMethod.GenerateOpaqueToken();
+
+                                applicationUser.OpaqueToken = newToken;
+                                applicationUser.OpaqueTokenExpiration = DateTime.UtcNow.AddMinutes(SD.SessionExpirationTime);
+
+                                await _userManager.UpdateAsync(user);
                             }
-                            return LocalRedirect(returnUrl);
-                        }
-                        if (result.RequiresTwoFactor)
-                        {
-                            return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
-                        }
-                        if (result.IsLockedOut)
-                        {
-                            return View("Lockout");
+                            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                            if (result.Succeeded)
+                            {
+                                if (!user.TwoFactorEnabled)
+                                {
+                                    return RedirectToAction("EnableAuthenticator");
+                                }
+                                return LocalRedirect(returnUrl);
+                            }
+
+                            if (result.RequiresTwoFactor)
+                            {
+                                return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
+                            }
+
+                            if (result.IsLockedOut)
+                            {
+                                return View("Lockout");
+                            }
                         }
                         else
                         {
-                            ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
-                            return View(model);
+                            // Considerar registrar el intento de inicio de sesión de una cuenta inactiva
                         }
-                        //}
-                        //else
-                        //{
-                        //    user.AccessFailedCount++;
-                        //    if (user.lo)
-                        //    {
-                        //        return View("Lockout");
-                        //    }
-                        //    await _userManager.UpdateAsync(user);
-                        //    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
-                        //    return View(model);
-                        //}
                     }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Tu usuario no se encuentra registrado, ponte en contacto con el Administrador.");
-                        return View(model);
-                    }
+                    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
                 }
                 catch (Exception e)
                 {
-                    return BadRequest(e.Message);
+                    return View("Error");
                 }
             }
+
             return View(model);
         }
+
 
 
         [HttpGet]

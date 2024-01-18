@@ -8,6 +8,7 @@ using OceansApp.DataAccess.Repository;
 using Microsoft.AspNetCore.Http.Features;
 using OceansApp.Utility.Configuration;
 using OceansApp.Utility.LazyLoading;
+using OceansApp.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,7 +62,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // secured cookies on production 
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.IsEssential = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(500);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(SD.SessionExpirationTime);
     options.SlidingExpiration = true;
     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");

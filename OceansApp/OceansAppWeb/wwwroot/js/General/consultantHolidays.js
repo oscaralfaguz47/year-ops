@@ -91,7 +91,7 @@ function getHolidaysList(firstTime, filters) {
                 tbody.append(row);
             });
             if (data.HolidaysList.length === 0) {
-                noResultsMessage.text("NO SE ENCONTRARON REGISTROS");
+                noResultsMessage.text("NO RECORDS FOUND");
             };
             //Pagination
             updatePagination(data.PaginationFilters.PaginationWithoutFilters.Pagination);
@@ -99,7 +99,7 @@ function getHolidaysList(firstTime, filters) {
         },
         error: function (error) {
             displayToasterError("More error details: " + error.responseJSON.detail);
-            displayToasterError(error.responseJSON.errors + " Ponte en contacto con el administrador para solucionar el problema");
+            displayToasterError(error.responseJSON.errors + " Contact the administrator to resolve the issue.");
         }
     });
 }

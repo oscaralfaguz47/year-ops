@@ -1,5 +1,5 @@
 ﻿$(document).ready(function () {
-    getClientsList(true, false);
+    getListOfResults(true, false);
 });
 
 // -Get list
@@ -11,62 +11,53 @@ async function getListOfResults(firstTime, filters) {
 
     fetch(url)
         .then(response => {
-            return response.json();
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.detail);
+                    displayToasterError(data.error + " Ponte en contacto con el administrador para solucionar el problema");
+                });
+            }
         })
         .then(data => {
-            if (data.success) {
-                console.log(data);
-                createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
-                createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
-                createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
-                data.holidayData.holidayDates.forEach(function (holiday) {
-                    addNewDateRow(holiday, action)
-                });
-                showModal(modalId);
-            } else {
-                displayToasterError(data.error);
-                console.error('There has been a problem with the fetch operation:', data.detail);
-            }
-            hideSpinner();
-        });
-
-    $.ajax({
-        type: "GET",
-        url: url,
-        success: function (data) {
+            console.log(data);
             var tbody = $(".global-table-container table tbody");
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tbody.empty();
-            data.HolidaysList.forEach(function (holiday) {
-                var creationDate = new Date(holiday.CreationDate);
+            data.ClientsList.forEach(function (obj) {
+                var creationDate = new Date(obj.CreationDate);
                 var formattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + creationDate.getDate()).slice(-2) + '/' +
                     creationDate.getFullYear();
                 var row = `<tr>
-                <td>
-                    <i onclick="deleteHolidaysList(${holiday.ConsultantHolidayId}, '${holiday.Name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
-                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
-                    <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" title="Click to see the Holidays">${holiday.Name}</span>
-                </td>
-                <td>${holiday.Year}</td>
-                <td>${formattedDate}</td>
-                <td>${holiday.CreatedByName}</td>
-            </tr>`;
+                  <td>
+                      ${obj.Name}
+                  </td>
+                  <td>${obj.Contact}</td>
+                  <td>${obj.ContactOccupation}</td>
+                  <td>${obj.Emails}</td>
+                  <td>${obj.AdmissionDate}</td>
+                  <td>${obj.PaymentCondition}</td>
+                  <td>${obj.IsActive}</td>
+                  <td>${obj.ClientClass}</td>
+                  <td>${obj.Address}</td>
+                  <td>${obj.CompanyId}</td>
+                  <td>${obj.SuccessManager}</td>
+                  <td>${obj.LatePaymentFee}</td>
+                  <td>${obj.AdditionalEmailsForNotifications}</td>
+                  <td>${obj.AllowSentLatePaymentNotifications}</td>
+              </tr>`;
 
                 tbody.append(row);
             });
-            if (data.HolidaysList.length === 0) {
-                noResultsMessage.text("NO SE ENCONTRARON REGISTROS");
+            if (data.ClientsList.length === 0) {
+                noResultsMessage.text("NO RECORDS FOUND");
             };
             updatePagination(data.PaginationFilters.PaginationWithoutFilters.Pagination);
             hideSpinner();
-        },
-        error: function (error) {
-            displayToasterError("More error details: " + error.responseJSON.detail);
-            displayToasterError(error.responseJSON.errors + " Ponte en contacto con el administrador para solucionar el problema");
-        }
-    });
+        });
 }
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {

@@ -19,10 +19,9 @@
             <div class="more-filters-cont">
                 <div id="more-filters">
                     <div class="row">
-
                     </div>
                     <div class="principal-buttons">
-                        <a asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
+                        <a asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
                     </div>
                 </div>
             </div>
@@ -34,20 +33,42 @@
             <thead>
                 <tr>
                     <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="table-col-big sortable-col">
-                        Holidays List Name
+                        Client Name
                         <span class="sort-arrow" id="sortArrowName">
                         </span>
                     </th>
-                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="table-col-little sortable-col">
-                        Contact
-                        <span class="sort-arrow" id="sortArrowYear"></span>
+                    <th onclick="orderByTableList('Contact', 'StakeholderTableHeader', 'sortArrowStakeholder')" data-sort="ANY" name="StakeholderTableHeader" class="table-col-little sortable-col">
+                        Stakeholder
+                        <span class="sort-arrow" id="sortArrowStakeholder"></span>
                     </th>
-                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="table-col-medium sortable-col">
-                        Creation Date
-                        <span class="sort-arrow" id="sortArrowCreationDate">
+                    <th onclick="orderByTableList('ContactOccupation', 'ContactOccupationTableHeader', 'sortArrowContactOccupation')" data-sort="ANY" name="ContactOccupationTableHeader" class="table-col-medium sortable-col">
+                        Stakeholder Title
+                        <span class="sort-arrow" id="sortArrowContactOccupation">
                         </span>
                     </th>
-                    <th class="table-col-medium">Created By</th>
+                    <th class="table-col-medium">Emails</th>
+                    <th onclick="orderByTableList('AdmissionDate', 'AdmissionDateTableHeader', 'sortArrowAdmissionDate')" data-sort="ANY" name="AdmissionDateTableHeader" class="table-col-medium sortable-col">
+                        AdmissionDate
+                        <span class="sort-arrow" id="sortArrowAdmissionDate">
+                        </span>
+                    </th>
+                     <th onclick="orderByTableList('PaymentCondition', 'PaymentConditionTableHeader', 'sortArrowPaymentCondition')" data-sort="ANY" name="PaymentConditionTableHeader" class="table-col-medium sortable-col">
+                        Payment Condition
+                        <span class="sort-arrow" id="sortArrowPaymentCondition">
+                        </span>
+                    </th>
+                    <th class="table-col-medium">Is Active</th>
+                    <th class="table-col-medium">Client Class</th>
+                    <th class="table-col-medium">Address</th>
+                    <th class="table-col-medium">Company</th>
+                    <th class="table-col-medium">Success Manager</th>
+                     <th onclick="orderByTableList('LatePaymentFee', 'LatePaymentFeeTableHeader', 'sortArrowLatePaymentFee')" data-sort="ANY" name="LatePaymentFeeTableHeader" class="table-col-medium sortable-col">
+                        Late Payment Fee
+                        <span class="sort-arrow" id="sortArrowLatePaymentFee">
+                        </span>
+                    </th>
+                    <th class="table-col-medium">Add Emails For Notifications</th>
+                    <th class="table-col-medium">Sent Notifications?</th>
                 </tr>
             </thead>
             <tbody>
@@ -58,8 +79,6 @@
 </div>
 
 <!--MODAL UPDATE CLIENT -->
-
-
 @section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/ProjectManagement/clients.js"></script>

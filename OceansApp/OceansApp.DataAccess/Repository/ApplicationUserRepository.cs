@@ -1,6 +1,8 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -14,6 +16,10 @@ namespace OceansApp.DataAccess.Repository
         public void Update(ApplicationUser obj)
         {
             _db.AspNetUsers.Update(obj);
+        }
+        public async Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate)
+        {
+            return await _db.AspNetUsers.AnyAsync(predicate);
         }
 
     }
