@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Dapper;
+using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Clients;
+using System.Data;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -11,6 +14,31 @@ namespace OceansApp.DataAccess.Repository
         public ClientRepository(ApplicationDbContext db) : base(db)
         {
             _db = db;
+        }
+
+        public async Task<(List<ClientsGetAllWithFiltersVM> clients, int totalCount)> GetAllClientsWithFiltersAsync(ClientsPaginationFiltersVM filtersAndPagination)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
+            parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
+            parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
+            parameters.Add("@IsActive", filtersAndPagination.Filters.IsActive, DbType.String);
+            parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
+            parameters.Add("@SuccessManagerId", filtersAndPagination.Filters.SuccessManagerId, DbType.String);
+            parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
+            parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
+            parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            var results = await connection.QueryAsync<ClientsGetAllWithFiltersVM>("GetAllClientsWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var totalCount = parameters.Get<int>("@TotalCount");
+
+            var clients = results.ToList();
+
+            return (clients, totalCount);
         }
         public void Update(Client obj)
         {
