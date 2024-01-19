@@ -42,6 +42,7 @@ async function getListOfResults(firstTime, filters) {
                 }
                 var row = `<tr>
                   <td>
+                  <i onclick="displayUpdateModal('modal-update-client', ${obj.ClientId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.Name}
                   </td>
                   <td style="text-align:center"><label class="switch">
@@ -53,7 +54,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.ContactOccupation === null ? "" : obj.ContactOccupation}</td>
                   <td>${obj.Emails === null ? "" : obj.Emails}</td>
                   <td style="text-align:center"><label class="switch">
-                    <input value="${obj.AllowSentLatePaymentNotifications}" ${obj.AllowSentLatePaymentNotifications ? 'checked' : ''} type="checkbox">
+                    <input onchange="activateDeactivateNotifications(this, ${obj.ClientId}, '${obj.Name}', ${obj.AllowSentLatePaymentNotifications})" value="${obj.AllowSentLatePaymentNotifications}" ${obj.AllowSentLatePaymentNotifications ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
                     </label>
                   </td>
@@ -77,7 +78,7 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 //Activate and deactivate Clients
-function activateDeactivate(inputElement, clientId, name, status) {
+async function activateDeactivate(inputElement, clientId, name, status) {
     var title = status ? "Deactivate Client" : "Activate Client";
     var textAction = status ? "Deactivate" : "Activate";
     Swal.fire({
@@ -121,6 +122,66 @@ function activateDeactivate(inputElement, clientId, name, status) {
             inputElement.checked = status;
         }
     });
+}
+
+//Activate and deactivate Notifications
+async function activateDeactivateNotifications(inputElement, clientId, name, status) {
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+    var formData = new FormData();
+    formData.append('clientId', clientId);
+    fetch("/ProjectManagement/Clients/ActivateDeactivateNotifications"
+        , {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                toastr.success(data.message);
+                getListOfResults(false, false);
+            } else {
+                inputElement.checked = status;
+                displayToasterError(data.error);
+                console.error('There has been a problem with the fetch operation:', data.detail);
+            }
+        })
+        .finally(() => {
+            hideSpinner();
+        });
+  
+}
+//Edit Client
+function displayUpdateModal(modalId, clientId) {
+    var createUpdateForm = $('#form-update');
+    inicializeModalButtons(modalId);
+    resetForm('form-update');
+    showModal(modalId);
+    var url = "/ProjectManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
+        //displaySpinner();
+        //fetch(url)
+        //    .then(response => {
+        //        return response.json();
+        //    })
+        //    .then(data => {
+        //        if (data.success) {
+        //            console.log(data);
+        //            createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
+        //            createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
+        //            createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
+        //            data.holidayData.holidayDates.forEach(function (holiday) {
+        //                addNewDateRow(holiday, action)
+        //            });
+        //            showModal(modalId);
+        //        } else {
+        //            displayToasterError(data.error);
+        //            console.error('There has been a problem with the fetch operation:', data.detail);
+        //        }
+        //        hideSpinner();
+        //    });
 }
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {

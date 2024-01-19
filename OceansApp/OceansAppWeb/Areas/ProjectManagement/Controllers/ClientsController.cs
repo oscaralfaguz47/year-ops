@@ -90,5 +90,30 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 return BadRequest(new { error = $"There was an error in the server, the client status could not be updated.", detail = ex.Message });
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateDeactivateNotifications(int clientId)
+        {
+            try
+            {
+                var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientId);
+                if (client == null)
+                {
+                    return BadRequest(new { error = "The Client no longer exist in the database.", MessageType = "No Exists Error" });
+                }
+                client.AllowSentLatePaymentNotifications = client.AllowSentLatePaymentNotifications == true ? false : true;
+                _unitOfWork.Save();
+
+                var activeDeactiveStatus = client.AllowSentLatePaymentNotifications ? "Activated" : "Deactivated";
+                var successMessage = "The notification for client " + client.Name + " was " + activeDeactiveStatus + " successfully!";
+
+                return Ok(new { success = true, message = successMessage });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the client notification status could not be updated.", detail = ex.Message });
+            }
+        }
     }
 }

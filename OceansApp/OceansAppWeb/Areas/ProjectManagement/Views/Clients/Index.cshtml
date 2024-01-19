@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 <link rel="stylesheet" href="~/css/ProjectManagement/clients.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -48,19 +49,19 @@
                                 </label>
                             </div>
                         </div>
-                         <div class="col-sm-3 text-center">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <label for="startDate" class="select-label">Date From</label>
-                                        <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label for="endDate" class="select-label">Date Until</label>
-                                        <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
-                                    </div>
+                        <div class="col-sm-3 text-center">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label for="startDate" class="select-label">Date From</label>
+                                    <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
                                 </div>
-                                <span id="dates-val-message" style="font-size:15px; display:flex;" class="text-danger"></span>
+                                <div class="col-sm-6">
+                                    <label for="endDate" class="select-label">Date Until</label>
+                                    <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
+                                </div>
                             </div>
+                            <span id="dates-val-message" style="font-size:15px; display:flex;" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="principal-buttons">
                         <a asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
@@ -121,6 +122,49 @@
 </div>
 
 <!--MODAL UPDATE CLIENT -->
+<div id="modal-update-client" style="display:none">
+    <div id="warning-message">
+        <div class="container">
+            <div class="warning-message-container">
+                <div>
+                    <div id="warning-message-cont">
+                        <div>
+                            <h2>UPDATE CLIENT</h2>
+                            <form id="form-update">
+                                <div class="inputs-header-cont">
+                                    <div class="input-container col-sm-8" style="margin-top: 0">
+                                        <input id="holidaysListId" name="consultantHolidayId" type="hidden">
+                                        <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <span class="arrow-down"></span>
+                                        <select id="selectYear" name="holidayYear" class="form-select">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="add-dates-btn-cont">
+                                    <a style="padding-right: 10px" class="blue-btn" onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
+                                </div>
+                                <div id="holidays-dates-container" class="modal-scroll-container">
+                                </div>
+                            </form>
+                            <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                                <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
+                                <button id="btn-saving" onclick="createUpdateHoliday('modal-create-holiday')" class="btn-primary-submit">
+                                    <div style="display:flex;align-items:center;">
+                                        <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                                        </div><span></span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/ProjectManagement/clients.js"></script>
