@@ -2,6 +2,7 @@
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
+using OceansApp.Utility.ConstantData.Claims.ProjectManagement;
 using System.Security.Claims;
 
 namespace OceansApp.Utility.ConstantData.Claims
@@ -23,6 +24,11 @@ namespace OceansApp.Utility.ConstantData.Claims
         public static bool IsAuthorizedForFinances(this ClaimsPrincipal user)
         {
             return user.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue);
+        }
+
+        public static bool IsAuthorizedForProjectManagement(this ClaimsPrincipal user)
+        {
+            return user.HasClaim(c => c.Type == ClientsClaimsCD.Clients_Page_ClaimType && c.Value == ClientsClaimsCD.Clients_Page_ClaimValue);
         }
     }
 }

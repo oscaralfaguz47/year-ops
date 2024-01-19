@@ -1,4 +1,6 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace OceansApp.Models.ViewModels.Clients
 {
     public class ClientsFiltersGetAllVM

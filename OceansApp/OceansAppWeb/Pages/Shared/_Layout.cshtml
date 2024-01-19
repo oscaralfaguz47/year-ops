@@ -4,6 +4,7 @@
 @using OceansApp.Utility.ConstantData.Claims.AdminCenter
 @using OceansApp.Utility.ConstantData.Claims.Finances
 @using OceansApp.Utility.ConstantData.Claims.General
+@using OceansApp.Utility.ConstantData.Claims.ProjectManagement
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -79,14 +80,19 @@
                                                 </div>
                                             </li>
                                         }
-                                        <li class="nav-item dropdown">
-                                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-journal-check"></i> Project Management</a>
-                                            <div class="dropdown-menu">
-                                                <a class="nav-link text-dark" asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index">Clients</a>
-                                            </div>
-                                        </li>
-                                        @if (User.IsAuthorizedForFinances()
-                                   )
+                                        @if (User.IsAuthorizedForProjectManagement())
+                                        {
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-journal-check"></i> Project Management</a>
+                                                @if (User.HasClaim(c => c.Type == ClientsClaimsCD.Clients_Page_ClaimType && c.Value == ClientsClaimsCD.Clients_Page_ClaimValue))
+                                                {
+                                                    <div class="dropdown-menu">
+                                                        <a class="nav-link text-dark" asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index">Clients</a>
+                                                    </div>
+                                                }
+                                            </li>
+                                        }
+                                        @if (User.IsAuthorizedForFinances())
                                         {
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finanzas</a>
@@ -98,8 +104,7 @@
                                                 }
                                             </li>
                                         }
-                                        @if (User.IsAuthorizedForAdminCenter()
-                                   )
+                                        @if (User.IsAuthorizedForAdminCenter())
                                         {
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrador</a>

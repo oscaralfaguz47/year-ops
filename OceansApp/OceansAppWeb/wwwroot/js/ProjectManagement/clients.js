@@ -21,7 +21,6 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
-            console.log(data);
             var tbody = $(".global-table-container table tbody");
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
@@ -46,7 +45,7 @@ async function getListOfResults(firstTime, filters) {
                       ${obj.Name}
                   </td>
                   <td style="text-align:center"><label class="switch">
-                    <input value="${obj.IsActive}" ${isActive ? 'checked' : ''} type="checkbox">
+                    <input onchange="activateDeactivate(this, ${obj.ClientId}, '${obj.Name}', ${isActive})" value="${obj.IsActive}" ${isActive ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
                     </label>
                   </td>
@@ -77,6 +76,52 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
+//Activate and deactivate Clients
+function activateDeactivate(inputElement, clientId, name, status) {
+    var title = status ? "Deactivate Client" : "Activate Client";
+    var textAction = status ? "Deactivate" : "Activate";
+    Swal.fire({
+        title: title,
+        text: 'Are you sure you want to ' + textAction + ' the client "' + name + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, do it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var formData = new FormData();
+            formData.append('clientId', clientId);
+            fetch("/ProjectManagement/Clients/ActivateDeactivateClient"
+                , {
+                    method: 'POST',
+                    headers: {
+                        RequestVerificationToken: token
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        getListOfResults(false, false);
+                    } else {
+                        inputElement.checked = status;
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+        } else {
+            inputElement.checked = status;
+        }
+    });
+}
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {
     getListOfResults(firstTime, filters);
@@ -84,10 +129,27 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters) {
     {
         var searchText = $('#search-input').val();
-        var year = parseInt($('#year').val());
+        var activeInactiveValue = document.querySelector('.active-inactive-rg input[type="radio"]:checked')?.value || null;
+        var companyValue = document.querySelector('.company-radio-rg input[type="radio"]:checked')?.value || null;
+        var datesValMessageSpan = document.getElementById("dates-val-message");
+        datesValMessageSpan.textContent = "";
+        var startDateValue = document.getElementById("startDate").value || null;
+        var endDateValue = document.getElementById("endDate").value || null;
+        if (startDateValue === null || endDateValue === null) {
+            startDateValue = null;
+            endDateValue = null;
+        } else if (startDateValue !== null & endDateValue !== null) {
+            if (startDateValue > endDateValue) {
+                datesValMessageSpan.textContent = "Date From should be less than the Date Until";
+            }
+        }
+
         var filtersData = {
-            Year: year,
-            SearchText: searchText
+            SearchText: searchText,
+            IsActive: activeInactiveValue,
+            CompanyId: companyValue,
+            StartDate: startDateValue,
+            EndDate: endDateValue
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
@@ -101,12 +163,7 @@ function recolectDataFromForm(filters) {
             RequestFromFilters: filters,
             OrderBy: orderByData
         }
-        if (filters) {
-            filtersData = {
-                Year: year,
-                SearchText: searchText
-            };
-        }
+
         return {
             Filters: filtersData,
             PaginationWithoutFilters: paginationWithoutFilters

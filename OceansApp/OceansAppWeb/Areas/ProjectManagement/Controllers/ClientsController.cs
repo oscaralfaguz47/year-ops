@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Clients;
 using OceansApp.Models.ViewModels.Components;
@@ -7,6 +8,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
 {
     [Area("ProjectManagement")]
     [RequireTwoFactorEnabled]
+    [Authorize(Policy = "AccessToClientsPage")]
     public class ClientsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -62,6 +64,30 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { errors = new[] { $"There was an error fetching the list of clients." }, result = "errorGet", detail = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateDeactivateClient(int clientId)
+        {
+            try
+            {
+                var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientId);
+                if (client == null)
+                {
+                    return BadRequest(new { error = "The Client no longer exist in the database.", MessageType = "No Exists Error" });
+                }
+                client.IsActive = client.IsActive == "S" ? "N" : "S";
+                _unitOfWork.Save();
+
+                var successMessage = "The client " + client.Name + " was " + (client.IsActive == "S" ? "Activated" : "Deactivated") + " successfully!";
+
+                return Ok(new { success = true, message = successMessage });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the client status could not be updated.", detail = ex.Message });
             }
         }
     }

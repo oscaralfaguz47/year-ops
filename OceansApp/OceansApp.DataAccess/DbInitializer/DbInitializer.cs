@@ -8,6 +8,7 @@ using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
+using OceansApp.Utility.ConstantData.Claims.ProjectManagement;
 
 namespace OceansApp.DataAccess.DbInitializer
 {
@@ -174,6 +175,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemAreasList.Add(new SystemArea() { Name = "Reporte de Horas" });
                 systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
                 systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
+                systemAreasList.Add(new SystemArea() { Name = "Project Management" });
 
                 foreach (var area in systemAreasList)
                 {
@@ -200,6 +202,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Clients" });
 
                 foreach (var subArea in systemSubAreasList)
                 {
@@ -325,6 +328,16 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue,
                     Description = "Acceso a reportar horas en el tracking tool",
                     SystemSubAreaId = hoursTrackingToolSubAreaId.SystemSubAreaId
+                });
+
+                //PROJECT MANAGEMENT - CLIENTS
+                var clientsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Clients");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ClientsClaimsCD.Clients_Page_ClaimType,
+                    ClaimValue = ClientsClaimsCD.Clients_Page_ClaimValue,
+                    Description = "Acces to view the Clients list",
+                    SystemSubAreaId = clientsSubAreaId.SystemSubAreaId
                 });
 
                 foreach (var claim in systemClaimsList)

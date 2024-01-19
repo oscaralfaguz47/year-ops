@@ -7,6 +7,7 @@ using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
+using OceansApp.Utility.ConstantData.Claims.ProjectManagement;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -94,6 +95,12 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType, HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue));
             });
 
+            //PROJECT MANAGEMENT - CLIENTS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToClientsPage", policy =>
+                    policy.RequireClaim(ClientsClaimsCD.Clients_Page_ClaimType, ClientsClaimsCD.Clients_Page_ClaimValue));
+            });
 
 
         }
