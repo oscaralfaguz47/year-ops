@@ -16,7 +16,7 @@ async function getListOfResults(firstTime, filters) {
             } else {
                 return response.json().then(errorData => {
                     throw new Error(errorData.detail);
-                    displayToasterError(data.error + " Ponte en contacto con el administrador para solucionar el problema");
+                    displayToasterError(data.error + " Contact the Admin to resolve the issue.");
                 });
             }
         })
@@ -161,27 +161,28 @@ function displayUpdateModal(modalId, clientId) {
     resetForm('form-update');
     showModal(modalId);
     var url = "/ProjectManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
-        //displaySpinner();
-        //fetch(url)
-        //    .then(response => {
-        //        return response.json();
-        //    })
-        //    .then(data => {
-        //        if (data.success) {
-        //            console.log(data);
-        //            createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
-        //            createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
-        //            createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
-        //            data.holidayData.holidayDates.forEach(function (holiday) {
-        //                addNewDateRow(holiday, action)
-        //            });
-        //            showModal(modalId);
-        //        } else {
-        //            displayToasterError(data.error);
-        //            console.error('There has been a problem with the fetch operation:', data.detail);
-        //        }
-        //        hideSpinner();
-        //    });
+        displaySpinner();
+        fetch(url)
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log(data);
+                    //createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
+                    //createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
+                    //createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
+                    //data.holidayData.holidayDates.forEach(function (holiday) {
+                    //    addNewDateRow(holiday, action)
+                    //});
+                    showModal(modalId);
+                } else {
+                    displayToasterError(data.error);
+                    console.error('There has been a problem with the fetch operation:', data.detail);
+                    hideModal(modalId);
+                }
+                hideSpinner();
+            });
 }
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {

@@ -40,6 +40,18 @@ namespace OceansApp.DataAccess.Repository
 
             return (clients, totalCount);
         }
+
+        public async Task<CreateUpdateClientVM> GetClientById(int clientId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ClientId", clientId);
+
+            var client = await connection.QuerySingleOrDefaultAsync<CreateUpdateClientVM>("GetClientById", parameters, commandType: CommandType.StoredProcedure);
+
+            return (client);
+        }
+
         public void Update(Client obj)
         {
             _db.CLIENT.Update(obj);
@@ -58,24 +70,24 @@ namespace OceansApp.DataAccess.Repository
             {
                 if (existingClient.DateLastUpdate != obj.DateLastUpdate)
                 {
-                    existingClient.Name = obj.Name;
-                    existingClient.Alias = obj.Alias;
-                    existingClient.Contact = obj.Contact;
-                    existingClient.ContactOccupation = obj.ContactOccupation;
-                    existingClient.Phone1 = obj.Phone1;
-                    existingClient.Phone2 = obj.Phone2;
-                    existingClient.AdmissionDate = obj.AdmissionDate;
-                    existingClient.PaymentCondition = obj.PaymentCondition;
-                    existingClient.Discount = obj.Discount;
-                    existingClient.IsActive = obj.IsActive;
-                    existingClient.ClientCategory = obj.ClientCategory;
-                    existingClient.ClientClass = obj.ClientClass;
-                    existingClient.Emails = obj.Emails;
-                    existingClient.Notes = obj.Notes;
-                    existingClient.DateLastUpdate = obj.DateLastUpdate;
-                    existingClient.Address = obj.Address;
-                    existingClient.CreationDate = obj.CreationDate;
-                    existingClient.CompanyId = obj.CompanyId;
+                    //existingClient.Name = obj.Name;
+                    //existingClient.Alias = obj.Alias;
+                    //existingClient.Contact = obj.Contact;
+                    //existingClient.ContactOccupation = obj.ContactOccupation;
+                    //existingClient.Phone1 = obj.Phone1;
+                    //existingClient.Phone2 = obj.Phone2;
+                    //existingClient.AdmissionDate = obj.AdmissionDate;
+                    //existingClient.PaymentCondition = obj.PaymentCondition;
+                    //existingClient.Discount = obj.Discount;
+                    //existingClient.IsActive = obj.IsActive;
+                    //existingClient.ClientCategory = obj.ClientCategory;
+                    //existingClient.ClientClass = obj.ClientClass;
+                    //existingClient.Emails = obj.Emails;
+                    //existingClient.Notes = obj.Notes;
+                    //existingClient.DateLastUpdate = obj.DateLastUpdate;
+                    //existingClient.Address = obj.Address;
+                    //existingClient.CreationDate = obj.CreationDate;
+                    //existingClient.CompanyId = obj.CompanyId;
                     return true;
                 }
                 return false;

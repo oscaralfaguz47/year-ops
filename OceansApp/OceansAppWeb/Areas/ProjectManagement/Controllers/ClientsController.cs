@@ -67,6 +67,25 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetClientDataById(int clientId)
+        {
+            try
+            {
+                var clientData = await _unitOfWork.Client.GetClientById(clientId);
+
+                return Ok(new
+                {
+                    success = true,
+                    clientData = clientData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", result = "error", detail = ex.Message });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateClient(int clientId)
