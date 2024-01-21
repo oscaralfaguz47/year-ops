@@ -1,1 +1,72 @@
 ﻿
+/*MODAL*/
+.global-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    animation-name: fadeIn;
+    animation-duration: 0.1s;
+}
+
+.global-modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: 3% auto;
+    padding: 16px;
+    border: 1px solid #888;
+    width: max-content; 
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    animation-name: scaleIn;
+    animation-duration: 0.2s;
+    transform-origin: center;
+}
+.modal-scroll-container {
+    text-align: left;
+    color: #000;
+    overflow-y: scroll;
+    height: 350px;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+@media only screen and (max-width: 400px) {
+    .global-modal-content {
+        width: 95%;
+    }
+}
+
+/* Elements */
+.btn-delete {
+    border: none;
+    color: red;
+    font-size: 15px;
+    background-color: transparent;
+    padding-right: 2px;
+}

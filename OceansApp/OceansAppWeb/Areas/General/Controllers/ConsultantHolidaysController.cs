@@ -73,13 +73,9 @@ namespace OceansAppWeb.Areas.General.Controllers
 
                 var totalResults = await _unitOfWork.ConsultantHoliday.GetAllHolidaysWithFiltersAsync(paginationFilters);
                 paginationFilters.PaginationWithoutFilters.Pagination.TotalResults = totalResults.totalCount;
-                HolidaysGetAllForListVM viewModel = new HolidaysGetAllForListVM
-                {
-                    HolidaysList = totalResults.holidays,
-                    PaginationFilters = paginationFilters
-                };
-                string jsonResult = System.Text.Json.JsonSerializer.Serialize(viewModel);
-                return Content(jsonResult, "application/json");
+
+                var data = new { HolidaysList = totalResults.holidays, PaginationFilters = paginationFilters };
+                return Ok(data);
             }
             catch (Exception ex)
             {

@@ -1,21 +1,21 @@
 ﻿
 function updatePaginationValues(paginationData) {
-    $('[name="PageIndex"]').val(paginationData.PageIndex);
-    document.getElementById("total-results-input").value = paginationData.TotalResults;
-    document.getElementById("is-last-page-input").value = paginationData.IsLastPage;
+    $('[name="PageIndex"]').val(paginationData.pageIndex);
+    document.getElementById("total-results-input").value = paginationData.totalResults;
+    document.getElementById("is-last-page-input").value = paginationData.isLastPage;
     let select = document.getElementById("items-per-page");
     select.innerHTML = "";
-    paginationData.ItemsPerPageList.forEach(function (opcion) {
+    paginationData.itemsPerPageList.forEach(function (opcion) {
         let option = document.createElement("option");
-        option.value = opcion.Value;
-        option.text = opcion.Name;
-        if (parseInt(opcion.Value, 10) === paginationData.PageSize) {
+        option.value = opcion.value;
+        option.text = opcion.name;
+        if (parseInt(opcion.value, 10) === paginationData.pageSize) {
             option.selected = true;
         }
         select.appendChild(option);
     });
-    disableButtons(paginationData.PageIndex, paginationData.IsLastPage, paginationData.TotalResults, paginationData.PageSize);
-    document.getElementById("label-total-results").textContent = "Total Results: " + paginationData.TotalResults;
+    disableButtons(paginationData.pageIndex, paginationData.isLastPage, paginationData.totalResults, paginationData.pageSize);
+    document.getElementById("label-total-results").textContent = "Total Results: " + paginationData.totalResults;
 }
 var changedPageSize = false;
 function changePageSizeValue() {

@@ -122,43 +122,110 @@
 </div>
 
 <!--MODAL UPDATE CLIENT -->
-<div id="modal-update-client" style="display:none">
-    <div id="warning-message">
+<div id="modal-update-client" class="global-modal" style="display:none">
+    <div class="global-modal-content">
         <div class="container">
-            <div class="warning-message-container">
-                <div>
-                    <div id="warning-message-cont">
-                        <div>
-                            <h2>UPDATE CLIENT</h2>
-                            <form id="form-update">
-                                <div class="inputs-header-cont">
-                                    <div class="input-container col-sm-8" style="margin-top: 0">
-                                        <input id="holidaysListId" name="consultantHolidayId" type="hidden">
-                                        <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <span class="arrow-down"></span>
-                                        <select id="selectYear" name="holidayYear" class="form-select">
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="add-dates-btn-cont">
-                                    <a style="padding-right: 10px" class="blue-btn" onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
-                                </div>
-                                <div id="holidays-dates-container" class="modal-scroll-container">
-                                </div>
-                            </form>
-                            <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                                <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
-                                <button id="btn-saving" onclick="createUpdateHoliday('modal-create-holiday')" class="btn-primary-submit">
-                                    <div style="display:flex;align-items:center;">
-                                        <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
-                                        </div><span></span>
-                                    </div>
-                                </button>
+            <div>
+                <h2>UPDATE CLIENT</h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="clientId">
+
+                    <!-- Columna Izquierda -->
+                    <label for="Name">Client Name</label>
+                    <div class="input-container">
+                        <input type="text" class="form-control" name="clientName">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="Contact">Stakeholder Name</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="contact">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ContactOccupation">Stakeholder Title</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="contactOccupation">
                             </div>
                         </div>
                     </div>
+
+                    <label for="Email">Stakeholder Email</label>
+                    <div class="input-container">
+                        <input type="email" class="form-control" name="emails">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="AdmissionDate">Client Admission Date</label>
+                            <div class="">
+                                <input type="date" class="form-control" name="admissionDate">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="PaymentCondition">Payment Condition (Days)</label>
+                            <div class="input-container">
+                                <input type="number" class="form-control" name="paymentCondition">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="LatePaymentFee">% Late Payment Fee</label>
+                            <div class="input-container">
+                                <input type="number" class="form-control" name="latePaymentFee">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ClientClass">Client Class</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="ClientClass" name="clientClass">
+                                    <option value="A">A</option>
+                                    <option value="B">AA</option>
+                                    <option value="C">Partner</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label for="Address">Client Address</label>
+                    <div class="input-container">
+                        <input type="text" class="form-control" name="address">
+                    </div>
+
+                    <label for="SuccessManager">Success Manager</label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select" id="SuccessManager" name="SuccessManager">
+                        </select>
+                    </div>
+
+                    <div style="margin-top:8px">
+                        <div class="checkbox-cont">
+                            <input type="checkbox" class="form-check-input" id="IsActive" name="isActive">
+                            <label class="form-check-label" for="IsActive"> Is Active</label>
+                        </div>
+                        <div class="checkbox-cont">
+                            <input type="checkbox" class="form-check-input" id="AllowSentLatePaymentNotifications" name="allowSentLatePaymentNotifications">
+                            <label class="form-check-label" for="AllowSentLatePaymentNotifications"> Send Reminders for late payments</label>
+                        </div>
+                    </div>
+                    <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
+                        <label>Additional Emails for notifications</label>
+                        <a style="padding-right: 10px" class="blue-btn" onclick="addNewAdditionalEmailRow('')"><i class="bi bi-plus"></i> Add Email</a>
+                    </div>
+                    <div id="emails-container" class="modal-scroll-container">
+                    </div>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateClient('modal-update-client')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>

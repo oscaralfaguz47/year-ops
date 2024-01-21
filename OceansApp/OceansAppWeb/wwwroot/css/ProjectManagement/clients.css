@@ -1,1 +1,38 @@
-﻿
+﻿/*Inputs*/
+#modal-update-client .input-container input {
+    padding-left: 10px;
+}
+#modal-update-client #form-update label {
+    margin-bottom: -0px;
+    margin-top: 8px;
+    font-weight: bold;
+}
+#modal-update-client .custom-select{
+    margin-top: 0px;
+}
+#modal-update-client .input-container {
+    margin-top: 2px;
+}
+#modal-update-client .checkbox-cont label{
+    margin-top: 0px !important;
+    cursor:pointer;
+}
+#modal-update-client .blue-btn {
+    font-size: 14px;
+}
+/*Update Modal*/
+#modal-update-client .modal-scroll-container {
+    margin-top: 5px;
+    text-align: left;
+    color: #000;
+    overflow-y: scroll;
+    height: 195px;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+}
+.emailRow {
+    display: flex;
+    margin-bottom: 5px;
+    list-style: none;
+}

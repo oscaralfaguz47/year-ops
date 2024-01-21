@@ -19,7 +19,7 @@
         margin-top: 17px;
     }
 .add-dates-btn-cont a {
-    font-size: 18px;
+    font-size: 14px;
 }
 .holidayRow{
     display: flex; 
@@ -36,13 +36,7 @@
     .holidayRow {
         display: flex;
     }
-.btn-delete-date{
-    border:none;
-    color: red;
-    font-size: 15px;
-    background-color: transparent;
-    padding-right: 2px;
-}
+
 .inputName{
     width: 63%;
     margin-right: 5px

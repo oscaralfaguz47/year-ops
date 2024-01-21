@@ -2,9 +2,9 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace OceansApp.Utility
+namespace OceansApp.Utility.SharedMethods
 {
-    public class SharedMethods
+    public class GenerateTokensAndRandomStrings
     {
         public string GenerateOpaqueToken()
         {

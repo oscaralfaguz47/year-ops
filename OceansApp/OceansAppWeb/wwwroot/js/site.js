@@ -105,6 +105,7 @@ function hideModal(modalId) {
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     modal.style.display = "block";
+    modal.scrollTop = 0;
 }
 
 function waitingForPostMethod() {

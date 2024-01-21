@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
 using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
+using OceansApp.Utility.SharedMethods;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
 
@@ -153,7 +153,7 @@ namespace OceansAppWeb.Account.Controllers
                             if ((DateTime.UtcNow > applicationUser.OpaqueTokenExpiration) 
                                 || (applicationUser.OpaqueToken == null && applicationUser.OpaqueTokenExpiration == null))
                             {
-                                SharedMethods sharedMethod = new();
+                                GenerateTokensAndRandomStrings sharedMethod = new();
                                 string newToken = sharedMethod.GenerateOpaqueToken();
 
                                 applicationUser.OpaqueToken = newToken;

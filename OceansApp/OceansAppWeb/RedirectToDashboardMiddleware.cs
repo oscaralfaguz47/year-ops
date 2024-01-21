@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-
+﻿
 namespace OceansAppWeb
 {
     public class RedirectToDashboardMiddleware

@@ -15,8 +15,8 @@ async function getListOfResults(firstTime, filters) {
                 return response.json();
             } else {
                 return response.json().then(errorData => {
-                    throw new Error(errorData.detail);
-                    displayToasterError(data.error + " Contact the Admin to resolve the issue.");
+                    displayToasterErrorArray(errorData.errors);
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
                 });
             }
         })
@@ -25,55 +25,57 @@ async function getListOfResults(firstTime, filters) {
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tbody.empty();
-            data.ClientsList.forEach(function (obj) {
-                var admissionDate = new Date(obj.AdmissionDate);
+            data.clientsList.forEach(function (obj) {
+                var admissionDate = new Date(obj.admissionDate);
                 var formattedDate = ('0' + (admissionDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + admissionDate.getDate()).slice(-2) + '/' +
                     admissionDate.getFullYear();
                 var isActive = false;
-                var clientClass = obj.ClientClass;
-                if (obj.ClientClass === 'B') {
+                var clientClass = obj.clientClass;
+                if (obj.clientClass === 'B') {
                     clientClass = "AA";
-                } else if (obj.ClientClass === 'C') {
+                } else if (obj.clientClass === 'C') {
                     clientClass = "Partner";
                 }
-                if (obj.IsActive === 'S') {
+                if (obj.isActive === 'S') {
                     isActive = true;
                 }
                 var row = `<tr>
                   <td>
-                  <i onclick="displayUpdateModal('modal-update-client', ${obj.ClientId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
-                      ${obj.Name}
+                  <i onclick="displayUpdateModal('modal-update-client', ${obj.clientId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                      ${obj.name}
                   </td>
                   <td style="text-align:center"><label class="switch">
-                    <input onchange="activateDeactivate(this, ${obj.ClientId}, '${obj.Name}', ${isActive})" value="${obj.IsActive}" ${isActive ? 'checked' : ''} type="checkbox">
+                    <input onchange="activateDeactivate(this, ${obj.clientId}, '${obj.name}', ${isActive})" value="${obj.isActive}" ${isActive ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
                     </label>
                   </td>
-                  <td>${obj.Contact === null ? "" : obj.Contact}</td>
-                  <td>${obj.ContactOccupation === null ? "" : obj.ContactOccupation}</td>
-                  <td>${obj.Emails === null ? "" : obj.Emails}</td>
+                  <td>${obj.contact === null ? "" : obj.contact}</td>
+                  <td>${obj.contactOccupation === null ? "" : obj.contactOccupation}</td>
+                  <td>${obj.emails === null ? "" : obj.emails}</td>
                   <td style="text-align:center"><label class="switch">
-                    <input onchange="activateDeactivateNotifications(this, ${obj.ClientId}, '${obj.Name}', ${obj.AllowSentLatePaymentNotifications})" value="${obj.AllowSentLatePaymentNotifications}" ${obj.AllowSentLatePaymentNotifications ? 'checked' : ''} type="checkbox">
+                    <input onchange="activateDeactivateNotifications(this, ${obj.clientId}, '${obj.name}', ${obj.allowSentLatePaymentNotifications})" value="${obj.allowSentLatePaymentNotifications}" ${obj.allowSentLatePaymentNotifications ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
                     </label>
                   </td>
                   <td>${formattedDate}</td>
-                  <td>${obj.PaymentCondition}</td>
+                  <td>${obj.paymentCondition}</td>
                   <td>${clientClass === null ? "" : clientClass}</td>
-                  <td>${obj.Address === null ? "" : obj.Address}</td>
-                  <td>${obj.CompanyId}</td>
-                  <td>${obj.SuccessManager === null ? "" : obj.SuccessManager}</td>
-                  <td>${obj.LatePaymentFee}</td>
-                  <td>${obj.AdditionalEmailsForNotifications === null ? "" : obj.AdditionalEmailsForNotifications}</td>
+                  <td>${obj.address === null ? "" : obj.address}</td>
+                  <td>${obj.companyId}</td>
+                  <td>${obj.successManager === null ? "" : obj.successManager}</td>
+                  <td>${obj.latePaymentFee}</td>
+                  <td>${obj.additionalEmailsForNotifications === null ? "" : obj.additionalEmailsForNotifications}</td>
               </tr>`;
 
                 tbody.append(row);
             });
-            if (data.ClientsList.length === 0) {
+
+            if (data.clientsList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
             };
-            updatePagination(data.PaginationFilters.PaginationWithoutFilters.Pagination);
+            updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
+        }).finally(() => {
             hideSpinner();
         });
 }
@@ -152,37 +154,196 @@ async function activateDeactivateNotifications(inputElement, clientId, name, sta
         .finally(() => {
             hideSpinner();
         });
-  
+
 }
 //Edit Client
 function displayUpdateModal(modalId, clientId) {
-    var createUpdateForm = $('#form-update');
+    var createUpdateForm = $('#form-create-update');
     inicializeModalButtons(modalId);
-    resetForm('form-update');
-    showModal(modalId);
+    resetForm('form-create-update')
+    var permissionsContainer = $("#emails-container");
+    permissionsContainer.empty();
     var url = "/ProjectManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
-        displaySpinner();
-        fetch(url)
-            .then(response => {
+    displaySpinner();
+    fetch(url)
+        .then(response => {
+            if (response.ok) {
                 return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    console.log(data);
-                    //createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
-                    //createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
-                    //createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
-                    //data.holidayData.holidayDates.forEach(function (holiday) {
-                    //    addNewDateRow(holiday, action)
-                    //});
-                    showModal(modalId);
-                } else {
-                    displayToasterError(data.error);
-                    console.error('There has been a problem with the fetch operation:', data.detail);
+            } else {
+                return response.json().then(errorData => {
+                    displayToasterError(errorData.error);
                     hideModal(modalId);
-                }
-                hideSpinner();
-            });
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                });
+            }
+        })
+        .then(data => {
+            createUpdateForm.find('[name="clientId"]').val(data.clientData.clientId);
+            createUpdateForm.find('[name="clientName"]').val(data.clientData.name);
+            createUpdateForm.find('[name="contact"]').val(data.clientData.contact);
+            createUpdateForm.find('[name="contactOccupation"]').val(data.clientData.contactOccupation);
+            createUpdateForm.find('[name="emails"]').val(data.clientData.emails);
+            let adDate = new Date(data.clientData.admissionDate);
+            console.log(adDate.toISOString().split('T')[0]);
+            createUpdateForm.find('[name="admissionDate"]').val(adDate.toISOString().split('T')[0]);
+            createUpdateForm.find('[name="paymentCondition"]').val(data.clientData.paymentCondition);
+            createUpdateForm.find('[name="latePaymentFee"]').val(data.clientData.latePaymentFee);
+            createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
+            createUpdateForm.find('[name="address"]').val(data.clientData.address);
+            var isActive = data.clientData.isActive === "S" ? true : false;
+            createUpdateForm.find('[name="isActive"]').val(isActive);
+            createUpdateForm.find('[name="isActive"]').prop('checked', isActive);
+            createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').val(data.clientData.allowSentLatePaymentNotifications);
+            createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked', data.clientData.allowSentLatePaymentNotifications);
+            if (data.clientData.additionalEmailsForNotifications !== null) {
+                var emailsArray = data.clientData.additionalEmailsForNotifications.split(";");
+                emailsArray = emailsArray.map(email => email.trim()).filter(email => email !== "");
+                emailsArray.forEach(function (email) {
+                    addNewAdditionalEmailRow(email)
+                });
+            }
+            showModal(modalId);
+        })
+        .finally(() => {
+            hideSpinner();
+        });
+}
+function addNewAdditionalEmailRow(email) {
+    // Create new row
+    var row = document.createElement("div");
+    row.className = "emailRow";
+
+    var inputEmail = document.createElement("input");
+    inputEmail.type = "text";
+    inputEmail.className = "inputEmail form-control";
+    inputEmail.placeholder = "Insert an Email";
+    inputEmail.value = email;
+    row.appendChild(inputEmail);
+
+    // Create delete button
+    var btnDelete = document.createElement("button");
+    btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
+    btnDelete.className = "btn-delete";
+    btnDelete.onclick = function () {
+        this.parentElement.remove();
+    };
+    row.appendChild(btnDelete);
+
+    document.getElementById("emails-container").appendChild(row);
+}
+
+//CreateUpdate Client
+function createUpdateClient(modalId) {
+    waitingForPostMethod();
+    var createUpdateForm = $('#form-create-update');
+    var clientIdData = createUpdateForm.find('[name="clientId"]').val();
+    var clientNameData = createUpdateForm.find('[name="clientName"]').val();
+    var contactData = createUpdateForm.find('[name="contact"]').val();
+    var contactOccupationData = createUpdateForm.find('[name="contactOccupation"]').val();
+    var emailsData = createUpdateForm.find('[name="emails"]').val();
+    var admissionDateData = createUpdateForm.find('[name="admissionDate"]').val();
+    var paymentConditionData = createUpdateForm.find('[name="paymentCondition"]').val();
+    var latePaymentFeeData = createUpdateForm.find('[name="latePaymentFee"]').val();
+    var clientClassData = createUpdateForm.find('[name="clientClass"]').val();
+    var addressData = createUpdateForm.find('[name="address"]').val();
+    var isActive = createUpdateForm.find('[name="isActive"]').val();
+    var isActiveData = isActive ? "S" : "N";
+    var allowSentLatePaymentNotificationsData = createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').val();
+    var additionalEmailsElement = document.querySelectorAll(".emailRow");
+    var additionalEmaislData = "";
+    Array.from(additionalEmailsElement).map(function (fila) {
+        var email = fila.querySelector(".inputEmail").value;
+        if (email !== '' && email !== undefined && email !== null) {
+            additionalEmaislData = additionalEmaislData + email + "; ";
+        }
+    });
+
+    var token = $('[name="__RequestVerificationToken"]').val();
+    var data = {
+        ClientId: clientIdData,
+        Name: clientNameData,
+        Contact: contactData,
+        ContactOccupation: contactOccupationData,
+        Emails: emailsData,
+        AdmissionDate: admissionDateData.toString(),
+        PaymentCondition: paymentConditionData.toString(),
+        LatePaymentFee: Number(latePaymentFeeData),
+        ClientClass: clientClassData,
+        Address: addressData,
+        IsActive: isActiveData,
+        AllowSentLatePaymentNotifications: Boolean(allowSentLatePaymentNotificationsData),
+        AdditionalEmailsForNotifications: additionalEmaislData
+    };
+    fetch('/ProjectManagement/Clients/CreateUpdateClient', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            RequestVerificationToken: token
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    if (errorData.messageType === "Validation Error") {
+                        displayToasterWarningArray(errorData.errors);
+                        inicializeModalButtons(modalId);
+                        throw new Error('Validation errors!');
+                    } else {
+                        displayToasterError(errorData.error);
+                        hideModal(modalId);
+                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                    }
+                });
+            }
+        })
+        .then(data => {
+            hideModal(modalId);
+            displayToasterSuccess(data.message);
+            getListOfResults(false, false);
+        });
+}
+function deleteHolidaysList(holidaysListId, listName) {
+    Swal.fire({
+        title: "Delete Holidays List",
+        text: 'Are you sure you want to delete the list "' + listName + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var formData = new FormData();
+            formData.append('holidaysListId', holidaysListId);
+            fetch("/General/ConsultantHolidays/DeleteHolidaysList"
+                , {
+                    method: 'POST',
+                    headers: {
+                        RequestVerificationToken: token
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                    } else {
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
+                })
+                .finally(() => {
+                    hideSpinner();
+                    getHolidaysList(false, false);
+                });
+        }
+    });
 }
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {
@@ -237,5 +398,6 @@ function updatePagination(paginationData) {
 }
 
 function enterInSearch(event) {
-        paginationSubmit(false, true);
+    paginationSubmit(false, true);
 }
+

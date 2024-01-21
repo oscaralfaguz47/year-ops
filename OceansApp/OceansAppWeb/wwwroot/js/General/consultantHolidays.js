@@ -72,29 +72,29 @@ function getHolidaysList(firstTime, filters) {
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tbody.empty();
-            data.HolidaysList.forEach(function (holiday) {
-                var creationDate = new Date(holiday.CreationDate);
+            data.holidaysList.forEach(function (holiday) {
+                var creationDate = new Date(holiday.creationDate);
                 var formattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + creationDate.getDate()).slice(-2) + '/' +
                     creationDate.getFullYear();
                 var row = `<tr>
                 <td>
-                    <i onclick="deleteHolidaysList(${holiday.ConsultantHolidayId}, '${holiday.Name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
-                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
-                    <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.ConsultantHolidayId})" title="Click to see the Holidays">${holiday.Name}</span>
+                    <i onclick="deleteHolidaysList(${holiday.consultantHolidayId}, '${holiday.name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
+                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.consultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                    <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.consultantHolidayId})" title="Click to see the Holidays">${holiday.name}</span>
                 </td>
-                <td>${holiday.Year}</td>
+                <td>${holiday.year}</td>
                 <td>${formattedDate}</td>
-                <td>${holiday.CreatedByName}</td>
+                <td>${holiday.createdByName}</td>
             </tr>`;
 
                 tbody.append(row);
             });
-            if (data.HolidaysList.length === 0) {
+            if (data.holidaysList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
             };
             //Pagination
-            updatePagination(data.PaginationFilters.PaginationWithoutFilters.Pagination);
+            updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
             hideSpinner();
         },
         error: function (error) {
@@ -162,7 +162,6 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
             })
             .then(data => {
                 if (data.success) {
-                    console.log(data);
                     createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
                     createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
                     createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
@@ -191,7 +190,6 @@ function addNewDateRow(holiday, action) {
         var span1 = document.createElement("span");
         span1.className = "span-name";
         var span2 = document.createElement("span");
-        console.log(document.querySelectorAll(".holidayRow").length + 1)
         span1.textContent = document.querySelectorAll(".holidayRow").length + 1 + ". " + holiday.name + " - ";
         span2.textContent = holiday.date;
 
@@ -227,7 +225,7 @@ function addNewDateRow(holiday, action) {
         // Create delete button
         var btnDelete = document.createElement("button");
         btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
-        btnDelete.className = "btn-delete-date";
+        btnDelete.className = "btn-delete";
         btnDelete.onclick = function () {
             this.parentElement.remove();
         };
@@ -260,7 +258,6 @@ function createUpdateHoliday(modalId) {
         Year: year,
         HolidayDates: holidayDatesData
     };
-    console.log(data);
     fetch('/General/ConsultantHolidays/CreateUpdateHoliday', {
         method: 'POST',
         headers: {

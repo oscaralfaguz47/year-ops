@@ -96,6 +96,9 @@ nav {
     cursor: pointer;
     color: #fff;
 }
+.blue-btn i{
+   font-size: 13px !important;
+}
     .blue-btn:hover {
         background-color: rgb(44, 62, 80, 0.8);
         color: var(--clr-grayLight);
