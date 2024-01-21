@@ -184,7 +184,6 @@ function displayUpdateModal(modalId, clientId) {
             createUpdateForm.find('[name="contactOccupation"]').val(data.clientData.contactOccupation);
             createUpdateForm.find('[name="emails"]').val(data.clientData.emails);
             let adDate = new Date(data.clientData.admissionDate);
-            console.log(adDate.toISOString().split('T')[0]);
             createUpdateForm.find('[name="admissionDate"]').val(adDate.toISOString().split('T')[0]);
             createUpdateForm.find('[name="paymentCondition"]').val(data.clientData.paymentCondition);
             createUpdateForm.find('[name="latePaymentFee"]').val(data.clientData.latePaymentFee);
