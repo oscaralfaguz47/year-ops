@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Clients;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.SharedMethods;
+using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.ProjectManagement.Controllers
@@ -40,10 +42,10 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                     {
                         if (jsonToValidate["Filters"] != null)
                         {
-                            ValidateJsonInputs validateInputs = new();
+                            ValidateInputs validateInputs = new();
                             //Validate Filter inputs
-                            validateInputs.ValidateAndAddModelError(jsonToValidate["Filters"]["StartDate"].ToString(), "Start Date", ModelState);
-                            validateInputs.ValidateAndAddModelError(jsonToValidate["Filters"]["EndDate"].ToString(), "End Date", ModelState);
+                            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"].ToString(), ModelState);
+                            validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"].ToString(), ModelState);
                             if (!ModelState.IsValid)
                             {
                                 var errors = ModelState.Values.SelectMany(v => v.Errors)
@@ -122,64 +124,24 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             {
                 return BadRequest(new { errors = new[] { "The object data is null, it should be a valid object." }, detail = "Object is null." });
             }
-            if (string.IsNullOrEmpty(clientData.Name) || clientData.Name.Trim().Length > 150)
-            {
-                ModelState.AddModelError("Name", "The Client Name must be between 1 and 150 characters.");
-            }
-            if (clientData.Contact.Trim().Length > 30)
-            {
-                ModelState.AddModelError("Contact", "The Stakeholder Name must be between 1 and 30 characters.");
-            }
-            if (clientData.ContactOccupation.Trim().Length > 30)
-            {
-                ModelState.AddModelError("ContactOcuppation", "The Stakeholder Occupation must be between 1 and 30 characters.");
-            }
-            ValidateData validateData = new();
-            if (clientData.Emails != null && clientData.Emails != "")
-            {
-                if (!validateData.IsValidEmail(clientData.Emails.Trim()))
-                {
-                    ModelState.AddModelError("Emails", "The Stakeholder Email is not a valid email.");
-                }
-            }
-            ValidateJsonInputs validateInputs = new();
+            ValidateInputs validateInputs = new();
 
-            validateInputs.ValidateAndAddModelError(clientData.AdmissionDate.ToString(), "Admission Date", ModelState);
+            validateInputs.ValidateRequiredAndStringLength("Name", "Name", clientData.Name, 150, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("Contact", "Stakeholder Name", clientData.Contact, 30, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("ContactOcuppation", "Stakeholder Title", clientData.ContactOccupation, 30, ModelState);
+            validateInputs.ValidateEmail("Emails", "Stakeholder Email", clientData.Emails, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("Emails", "Stakeholder Email", clientData.Emails, 249, ModelState);
+            validateInputs.ValidateDateValidFormat("AdmissionDate", "Admission Date", clientData.AdmissionDate.ToString(), ModelState);
+            validateInputs.ValidateNoNegativeNumber("PaymentCondition", "Payment Condition", Convert.ToDecimal(clientData.PaymentCondition), ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("Address", "Client Address", clientData.Address, 160, ModelState);
 
-            if (clientData.PaymentCondition.Trim().Length > 4)
-            {
-                ModelState.AddModelError("PaymentCondition", "The Payment Condition number must be between 1 and 4 characters.");
-            }
-            if (Convert.ToDecimal(clientData.PaymentCondition) < 0)
-            {
-                ModelState.AddModelError("PaymentCondition", "The Payment Condition number can not be a negative number.");
-            }
-            if (clientData.Emails.Trim().Length > 249)
-            {
-                ModelState.AddModelError("Emails", "The Stakeholder Email must be between 1 and 249 characters.");
-            }
-            if (clientData.Address.Trim().Length > 160)
-            {
-                ModelState.AddModelError("Address", "The Client Address must be between 1 and 160 characters.");
-            }
             if (clientData.AdditionalEmailsForNotifications != null)
             {
                 string[] emails = clientData.AdditionalEmailsForNotifications.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 var emailList = new List<string>(emails);
-                var count = 0;
-                foreach (var email in emailList)
-                {
-                    count++;
-                    if (!validateData.IsValidEmail(email.Trim()))
-                    {
-                        ModelState.AddModelError("AdditionalEmailsForNotifications", "The email #" + count + " in Additional Emails is not a valid email.");
-                    }
-                }
+                validateInputs.ValidateListOfEmails("AdditionalEmailsForNotifications", "Additional Emails", emailList, ModelState);
             }
-            if (clientData.LatePaymentFee < 0 || clientData.LatePaymentFee > 100)
-            {
-                ModelState.AddModelError("LatePaymentFee", "The Late Payment Fee must be between 0 and 200%.");
-            }
+            validateInputs.ValidateMinAndMaxLenthNumber("LatePaymentFee", "Late Payment Fee", clientData.LatePaymentFee, 0, 100, ModelState);
 
             if (ModelState.IsValid)
             {
@@ -187,48 +149,36 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var resultMessage = "";
-
                     var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-                    //IF IS NOT HOLIDAY ID THEN CREATE THE HOLIDAY
-                    //if (clientData.ConsultantHolidayId == null)
-                    //{
-                    //    clientData.CreatedBy = claim.Value;
 
-                    //    var res = await _unitOfWork.ConsultantHoliday.CreateHolidayListWithHolidayDates(clientData);
+                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientData.ClientId);
+                    if (client == null)
+                    {
+                        return BadRequest(new { MessageType = "Exception Error", error = $"The client does not exist in the database.", detail = "" });
+                    }
+                    client.Name = clientData.Name.Trim();
+                    client.Contact = clientData.Contact.Trim();
+                    client.ContactOccupation = clientData.ContactOccupation.Trim();
+                    client.Emails = clientData.Emails.Trim();
+                    client.AdmissionDate = DateTime.Parse(clientData.AdmissionDate);
+                    client.PaymentCondition = clientData.PaymentCondition;
+                    client.LatePaymentFee = ((decimal)clientData.LatePaymentFee / 100m);
+                    client.ClientClass = clientData.ClientClass;
+                    client.Address = clientData.Address.Trim();
+                    client.IsActive = clientData.IsActive;
+                    client.AllowSentLatePaymentNotifications = (bool)clientData.AllowSentLatePaymentNotifications;
+                    client.AdditionalEmailsForNotifications = clientData.AdditionalEmailsForNotifications;
 
-                    //    if (res.Success)
-                    //    {
-                    //        resultMessage = res.Message;
-                    //    }
-                    //    else
-                    //    {
-                    //        return BadRequest(new { MessageType = res.MessageType, errors = new[] { res.Message }, result = "ErrorSaving", detail = "The Holiday list could be saved." });
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    //IF IS HOLIDAY ID THEN UPDATE THE HOLIDAY
-                    //    var res = await _unitOfWork.ConsultantHoliday.UpdateHolidayListWithHolidayDates(clientData, claim.Value);
-
-                    //    if (res.Success)
-                    //    {
-                    //        resultMessage = res.Message;
-                    //    }
-                    //    else
-                    //    {
-                    //        return BadRequest(new { errors = new[] { res.Message }, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Holiday list could be updated." });
-                    //    }
-                    //}
+                    _unitOfWork.Save();
                     return Ok(new
                     {
                         success = true,
-                        message = resultMessage
+                        message = $"The client {client.Name} was updated successfully!"
                     });
                 }
                 catch (Exception ex)
                 {
-                    return BadRequest(new { message = "Error", result = "error", MessageType = "Exception Error", errors = new[] { $"There was an error updating the Client. More details: " + ex.Message } });
+                    return BadRequest(new { MessageType = "Exception Error", error = $"There was an error updating the Client. More details: " + ex.Message, detail = ex.Message });
                 }
             }
             else

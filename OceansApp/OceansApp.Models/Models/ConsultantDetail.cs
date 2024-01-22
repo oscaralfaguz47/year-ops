@@ -6,6 +6,8 @@ namespace OceansApp.Models.Models
 {
     public class ConsultantDetail
     {
+        [Required]
+        public int ConsultantId { get; set; }
         [ForeignKey("Id")]
         public string UserId { get; set; }
         public DateTime StartDate { get; set; }
@@ -19,6 +21,8 @@ namespace OceansApp.Models.Models
         public string? Location { get; set; }
         [MaxLength(20)]
         public string? ShirtSize { get; set; }
+        [Required]
+        public int ConsultantPositionId { get; set; }
 
 
 
@@ -27,6 +31,8 @@ namespace OceansApp.Models.Models
 
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
+        [ValidateNever]
+        public ConsultantPosition ConsultantCategory { get; set; }
 
     }
 }

@@ -81,7 +81,7 @@ namespace OceansApp.DataAccess.Data
 
             //CONSULTANT_DETAIL TABLE
             modelBuilder.Entity<ConsultantDetail>()
-                .HasKey(rq => new { rq.UserId});
+                .HasKey(rq => new { rq.ConsultantId});
             modelBuilder.Entity<ConsultantDetail>()
                 .HasOne(cc => cc.ApplicationUser)
                 .WithMany()
@@ -91,6 +91,11 @@ namespace OceansApp.DataAccess.Data
                 .HasOne(cc => cc.Country)
                 .WithMany()
                 .HasForeignKey(CC => CC.IdCountry)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasOne(cc => cc.ConsultantCategory)
+                .WithMany()
+                .HasForeignKey(CC => CC.ConsultantPositionId)
                 .IsRequired();
 
             modelBuilder.Entity<ConsultantHoliday>()
@@ -118,9 +123,12 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(CC => CC.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
+
+            modelBuilder.Entity<Client>()
+                .Property(p => p.LatePaymentFee)
+                .HasColumnType("decimal(18, 4)");
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
@@ -142,6 +150,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
+        public DbSet<ConsultantPosition> CONSULTANT_POSITIONS { get; set; }
         public DbSet<ConsultantClient> CONSULTANT_CLIENTS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
         public DbSet<ConsultantHoliday> CONSULTANT_HOLIDAYS { get; set; }

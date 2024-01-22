@@ -186,7 +186,7 @@ function displayUpdateModal(modalId, clientId) {
             let adDate = new Date(data.clientData.admissionDate);
             createUpdateForm.find('[name="admissionDate"]').val(adDate.toISOString().split('T')[0]);
             createUpdateForm.find('[name="paymentCondition"]').val(data.clientData.paymentCondition);
-            createUpdateForm.find('[name="latePaymentFee"]').val(data.clientData.latePaymentFee);
+            createUpdateForm.find('[name="latePaymentFee"]').val(Number(data.clientData.latePaymentFee * 100).toFixed(2));
             createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
             createUpdateForm.find('[name="address"]').val(data.clientData.address);
             var isActive = data.clientData.isActive === "S" ? true : false;
@@ -245,9 +245,9 @@ function createUpdateClient(modalId) {
     var latePaymentFeeData = createUpdateForm.find('[name="latePaymentFee"]').val();
     var clientClassData = createUpdateForm.find('[name="clientClass"]').val();
     var addressData = createUpdateForm.find('[name="address"]').val();
-    var isActive = createUpdateForm.find('[name="isActive"]').val();
+    var isActive = createUpdateForm.find('[name="isActive"]').prop('checked');
     var isActiveData = isActive ? "S" : "N";
-    var allowSentLatePaymentNotificationsData = createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').val();
+    var allowSentLatePaymentNotificationsData = createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked');
     var additionalEmailsElement = document.querySelectorAll(".emailRow");
     var additionalEmaislData = "";
     Array.from(additionalEmailsElement).map(function (fila) {
@@ -266,7 +266,7 @@ function createUpdateClient(modalId) {
         Emails: emailsData,
         AdmissionDate: admissionDateData.toString(),
         PaymentCondition: paymentConditionData.toString(),
-        LatePaymentFee: Number(latePaymentFeeData),
+        LatePaymentFee: Number(latePaymentFeeData).toFixed(2),
         ClientClass: clientClassData,
         Address: addressData,
         IsActive: isActiveData,

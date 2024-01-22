@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240122202937_updateLatePaymentFeeColumnInClientsTable")]
+    partial class updateLatePaymentFeeColumnInClientsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -513,7 +515,7 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(1)");
 
                     b.Property<decimal>("LatePaymentFee")
-                        .HasColumnType("decimal(18,4)");
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -616,17 +618,11 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
                 {
-                    b.Property<int>("ConsultantId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantId"), 1L, 1);
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ConsultantPositionId")
-                        .HasColumnType("int");
 
                     b.Property<string>("IdCountry")
                         .IsRequired()
@@ -651,17 +647,9 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ConsultantId");
-
-                    b.HasIndex("ConsultantPositionId");
+                    b.HasKey("UserId");
 
                     b.HasIndex("IdCountry");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("CONSULTANT_DETAILS");
                 });
@@ -740,27 +728,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("UpdatedBy");
 
                     b.ToTable("CONSULTANT_HOLIDAY_DATES");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantPosition", b =>
-                {
-                    b.Property<int>("ConsultantPositionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantPositionId"), 1L, 1);
-
-                    b.Property<bool>("IsAdministrative")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("ConsultantPositionId");
-
-                    b.ToTable("CONSULTANT_POSITIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantQualityLevel", b =>
@@ -1617,12 +1584,6 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
                 {
-                    b.HasOne("OceansApp.Models.Models.ConsultantPosition", "ConsultantCategory")
-                        .WithMany()
-                        .HasForeignKey("ConsultantPositionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OceansApp.Models.Models.Country", "Country")
                         .WithMany()
                         .HasForeignKey("IdCountry")
@@ -1636,8 +1597,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
-
-                    b.Navigation("ConsultantCategory");
 
                     b.Navigation("Country");
                 });

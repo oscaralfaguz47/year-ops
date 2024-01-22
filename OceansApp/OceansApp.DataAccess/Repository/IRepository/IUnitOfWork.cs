@@ -18,6 +18,7 @@
         IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
         IConsultantHolidayRepository ConsultantHoliday { get; }
+        IConsultantPositionRepository ConsultantPosition { get; }
         IConsultantRoleRepository ConsultantRole { get; }
         IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }

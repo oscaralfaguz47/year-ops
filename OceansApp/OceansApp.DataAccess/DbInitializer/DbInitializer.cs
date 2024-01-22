@@ -167,6 +167,47 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                     _db.SaveChanges();
                 }
+
+                if (_db.CONSULTANT_POSITIONS.ToList().Count == 0)
+                {
+                    List<ConsultantPosition> positionsList = new List<ConsultantPosition>();
+                    positionsList.Add(new ConsultantPosition() { Name = "Success Manager", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "CEO", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "CFO", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Recruiting Manager", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Strategy Director", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Recruiter", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Marketing Manager", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "People and Culture", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Gifts Coordinator", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
+
+                    positionsList.Add(new ConsultantPosition() { Name = "Senior Developer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Data Engineer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Senior QA Engineer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Mid Developer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Project Manager", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Team Lead", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "AWS Engineer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "DevOps Engineer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "SRE Developer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "Mobile Developer", IsAdministrative = false });
+                    positionsList.Add(new ConsultantPosition() { Name = "QA Lead", IsAdministrative = false });
+
+                    foreach (var conPosition in positionsList)
+                    {
+                        ConsultantPosition consultantPosition = new()
+                        {
+                            Name = conPosition.Name,
+                            IsAdministrative = conPosition.IsAdministrative
+                        };
+                        _db.CONSULTANT_POSITIONS.Add(consultantPosition);
+                    }
+                    _db.SaveChanges();
+                }
+
                 //Create System Areaas
                 List<SystemArea> systemAreasList = new List<SystemArea>();
                 systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
@@ -217,6 +258,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                 }
                 _db.SaveChanges();
+
 
                 //Create Claims
 
