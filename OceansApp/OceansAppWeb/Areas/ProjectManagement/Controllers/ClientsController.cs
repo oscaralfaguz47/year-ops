@@ -178,6 +178,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                     client.IsActive = clientData.IsActive;
                     client.AllowSentLatePaymentNotifications = (bool)clientData.AllowSentLatePaymentNotifications;
                     client.AdditionalEmailsForNotifications = clientData.AdditionalEmailsForNotifications;
+                    client.DateLastUpdate = costaRicaTime;
 
                     _unitOfWork.Save();
                     return Ok(new
