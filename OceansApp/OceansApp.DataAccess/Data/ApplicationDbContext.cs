@@ -97,11 +97,6 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(CC => CC.IdCountry)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasOne(cc => cc.ConsultantCategory)
-                .WithMany()
-                .HasForeignKey(CC => CC.ConsultantPositionId)
-                .IsRequired();
 
             modelBuilder.Entity<ConsultantHoliday>()
                 .HasOne(cc => cc.ApplicationUser)
@@ -134,6 +129,10 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<Client>()
                 .Property(p => p.LatePaymentFee)
                 .HasColumnType("decimal(18, 4)");
+
+            // CONSULTANT AND POSITIONS
+            modelBuilder.Entity<ConsultantAndPosition>()
+                .HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
@@ -156,6 +155,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantPosition> CONSULTANT_POSITIONS { get; set; }
+        public DbSet<ConsultantAndPosition> CONSULTANTS_AND_POSITIONS { get; set; }
         public DbSet<ConsultantClient> CONSULTANT_CLIENTS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
         public DbSet<ConsultantHoliday> CONSULTANT_HOLIDAYS { get; set; }

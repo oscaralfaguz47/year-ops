@@ -21,9 +21,6 @@ namespace OceansApp.Models.Models
         public string? Location { get; set; }
         [MaxLength(20)]
         public string? ShirtSize { get; set; }
-        [Required]
-        public int ConsultantPositionId { get; set; }
-
 
 
         [ValidateNever]
@@ -31,8 +28,6 @@ namespace OceansApp.Models.Models
 
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
-        [ValidateNever]
-        public ConsultantPosition ConsultantCategory { get; set; }
 
     }
 }
