@@ -28,7 +28,8 @@ namespace OceansApp.Utility.ConstantData.Claims
 
         public static bool IsAuthorizedForProjectManagement(this ClaimsPrincipal user)
         {
-            return user.HasClaim(c => c.Type == ClientsClaimsCD.Clients_Page_ClaimType && c.Value == ClientsClaimsCD.Clients_Page_ClaimValue);
+            return user.HasClaim(c => c.Type == ClientsClaimsCD.Clients_Page_ClaimType && c.Value == ClientsClaimsCD.Clients_Page_ClaimValue)
+                || user.HasClaim(c => c.Type == ProjectsClaimsCD.Projects_Page_ClaimType && c.Value == ProjectsClaimsCD.Projects_Page_ClaimValue);
         }
     }
 }

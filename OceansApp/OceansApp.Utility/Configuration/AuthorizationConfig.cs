@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OceansApp.Utility.Configuration.AuthorizationRequirement;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.AdminCenter;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.General;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.ProjectManagement;
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
@@ -95,11 +96,25 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType, HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue));
             });
 
+            //PROJECT MANAGEMENT
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesProjectManagementRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInProjectManagement", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesProjectManagementRequirement()));
+            });
             //PROJECT MANAGEMENT - CLIENTS
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToClientsPage", policy =>
                     policy.RequireClaim(ClientsClaimsCD.Clients_Page_ClaimType, ClientsClaimsCD.Clients_Page_ClaimValue));
+            });
+
+            //PROJECT MANAGEMENT - PROJECTS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToProjectsPage", policy =>
+                    policy.RequireClaim(ProjectsClaimsCD.Projects_Page_ClaimType, ProjectsClaimsCD.Projects_Page_ClaimValue));
             });
 
 

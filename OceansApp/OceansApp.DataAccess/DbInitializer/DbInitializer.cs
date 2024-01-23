@@ -182,7 +182,10 @@ namespace OceansApp.DataAccess.DbInitializer
                     positionsList.Add(new ConsultantPosition() { Name = "People and Culture", IsAdministrative = true });
                     positionsList.Add(new ConsultantPosition() { Name = "Gifts Coordinator", IsAdministrative = true });
                     positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Sales Executive", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Payment Assistant", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Financial Assistant", IsAdministrative = true });
+                    positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer IT Support", IsAdministrative = true });
 
                     positionsList.Add(new ConsultantPosition() { Name = "Senior Developer", IsAdministrative = false });
                     positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer", IsAdministrative = false });
@@ -245,6 +248,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Clients" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Projects" });
 
                 foreach (var subArea in systemSubAreasList)
                 {
@@ -381,6 +385,15 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = ClientsClaimsCD.Clients_Page_ClaimValue,
                     Description = "Acces to view the Clients list",
                     SystemSubAreaId = clientsSubAreaId.SystemSubAreaId
+                });
+                //PROJECT MANAGEMENT - PROJECTS
+                var projectsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Projects");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ProjectsClaimsCD.Projects_Page_ClaimType,
+                    ClaimValue = ProjectsClaimsCD.Projects_Page_ClaimValue,
+                    Description = "Acces to view the Projects list",
+                    SystemSubAreaId = projectsSubAreaId.SystemSubAreaId
                 });
 
                 foreach (var claim in systemClaimsList)
