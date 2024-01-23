@@ -80,76 +80,68 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 function getSuccessManagersForFilters() {
+    const successManagerSelect = document.getElementById('succesManagerFilter');
+    if (successManagerSelect.length > 1) {
+        return;
+    }
+
+    successManagerSelect.innerHTML = '<option value="loading">Loading Options… (⏳)</option>';
+
     getSuccessManagersList()
         .then(data => {
-            const successManagerSelect = document.getElementById('succesManagerFilter');
-            successManagerSelect.innerHTML = '';
-            var loadingOption = document.createElement('option');
-            loadingOption.value = "loading";
-            loadingOption.text = "Loading Options… (⏳)";
-            successManagerSelect.appendChild(loadingOption);
-            let firstOptionValue = successManagerSelect.options[0].value;
-            let defaultOption = new Option("-Select a user-", null);
-            successManagerSelect.add(defaultOption);
-            data.successManagers.forEach(function (obj) {
-                let opcion = new Option(obj.userName, obj.userId);
-                if (firstOptionValue === obj.userId) {
-                    opcion.selected = true;
-                }
-                successManagerSelect.add(opcion);
+            successManagerSelect.innerHTML = '<option value="">-Select a user-</option>';
+            data.successManagers.forEach(obj => {
+                successManagerSelect.add(new Option(obj.userName, obj.userId));
             });
-        })
-        .finally(() => {
-            var loadingOption = document.querySelector('select option[value="loading"]');
-            if (loadingOption) {
-                loadingOption.remove();
-            }
         })
         .catch(error => {
             console.error('Error fetching success managers:', error);
         });
 }
+
 async function getSuccessManagers() {
     const successManagerSelect = document.getElementById('successManager');
-    let firstOptionValue = successManagerSelect.options[0].value;
-    console.log(firstOptionValue);
-    successManagerSelect.innerHTML = '';
-    var loadingOption = document.createElement('option');
-    loadingOption.value = "loading";
-    loadingOption.text = "Loading Options… (⏳)";
-    successManagerSelect.appendChild(loadingOption);
-        var url = "/General/ConsultantDetails/GetSuccessManagers";
-        fetch(url)
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    return response.json().then(errorData => {
-                        displayToasterError(errorData.error);
-                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
-                    });
-                }
-            })
-            .then(data => {
-                var nullOption = document.createElement('option');
-                nullOption.value = null;
-                nullOption.text = "-Select a user-";
-                successManagerSelect.appendChild(nullOption);
-                data.successManagers.forEach(function (obj) {
-                    let opcion = new Option(obj.userName, obj.userId);
-                    if (Number(firstOptionValue) === Number(obj.userId)) {
-                        opcion.selected = true;
-                    }
-                    successManagerSelect.add(opcion);
-                });
 
-            }).finally(() => {
-                var loadingOption = document.querySelector('#successManager option[value="loading"]');
-                if (loadingOption) {
-                    loadingOption.remove();
-                }
-            });
+    const selectedValue = successManagerSelect.value;
+
+    if (successManagerSelect.options.length > 1) {
+        if (selectedValue) {
+            successManagerSelect.value = selectedValue;
+        }
+        return;
+    }
+
+    successManagerSelect.innerHTML += '<option value="loading">Loading Options… (⏳)</option>';
+
+    try {
+        const response = await fetch("/General/ConsultantDetails/GetSuccessManagers");
+        if (!response.ok) {
+            const errorData = await response.json();
+            displayToasterError(errorData.error);
+            throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+        }
+        const data = await response.json();
+        successManagerSelect.innerHTML = '<option value="null">-Select a user-</option>';
+
+        data.successManagers.forEach(obj => {
+            const option = new Option(obj.userName, obj.userId);
+            successManagerSelect.add(option);
+        });
+        if (selectedValue) {
+            successManagerSelect.value = selectedValue;
+        }
+
+    } catch (error) {
+        console.error('Error fetching success managers:', error);
+    } finally {
+        const loadingOption = successManagerSelect.querySelector('option[value="loading"]');
+        if (loadingOption) {
+            loadingOption.remove();
+        }
+    }
 }
+
+
 //Activate and deactivate Clients
 async function activateDeactivate(inputElement, clientId, name, status) {
     var title = status ? "Deactivate Client" : "Activate Client";
