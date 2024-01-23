@@ -8,5 +8,6 @@ namespace OceansApp.Utility
         public const string Role_User_Simple = "Simple";
         public const string Role_User_Create_Consultants = "Crear Consultores";
         public const int SessionExpirationTime = 500;
+        public const int OpaqueTokenExpirationTime = 1500;
     }
 }

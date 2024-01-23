@@ -157,7 +157,7 @@ namespace OceansAppWeb.Account.Controllers
                                 string newToken = sharedMethod.GenerateOpaqueToken();
 
                                 applicationUser.OpaqueToken = newToken;
-                                applicationUser.OpaqueTokenExpiration = DateTime.UtcNow.AddMinutes(SD.SessionExpirationTime);
+                                applicationUser.OpaqueTokenExpiration = DateTime.UtcNow.AddMinutes(SD.OpaqueTokenExpirationTime);
 
                                 await _userManager.UpdateAsync(user);
                             }

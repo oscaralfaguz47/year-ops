@@ -89,7 +89,7 @@ function getSuccessManagersForFilters() {
 
     getSuccessManagersList()
         .then(data => {
-            successManagerSelect.innerHTML = '<option value="">-Select a user-</option>';
+            successManagerSelect.innerHTML = '<option value="">-All Success Managers-</option>';
             data.successManagers.forEach(obj => {
                 successManagerSelect.add(new Option(obj.userName, obj.userId));
             });
