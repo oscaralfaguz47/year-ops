@@ -17,6 +17,11 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<IdentityUser>()
                 .ToTable("Users")
                 .HasKey(u => u.Id);
+            modelBuilder.Entity<ApplicationUser>()
+               .HasOne(a => a.ApplicationUserCategory)
+               .WithMany()
+               .HasForeignKey(a => a.UserCategoryId)
+               .IsRequired();
 
             modelBuilder.Entity<ApplicationUserClaim>()
                 .HasDiscriminator<string>("Discriminator")

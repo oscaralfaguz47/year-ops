@@ -16,7 +16,7 @@ namespace OceansApp.Models.Models
         public int ClientId { get; set; }
         [MaxLength(130)]
         [Required]
-        public string Position { get; set; }
+        public string PositionDetail { get; set; }
         [Required]
         [ForeignKey("Id")]
         public string SuccessManager { get; set; }

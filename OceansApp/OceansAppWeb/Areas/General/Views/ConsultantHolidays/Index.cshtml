@@ -70,44 +70,39 @@
 </div>
 
 <!--MODAL CREATE HOLIDAY -->
-<div id="modal-create-holiday" style="display:none">
-    <div id="warning-message">
+<div id="modal-create-holiday" class="global-modal" style="display:none">
+    <div class="global-modal-content">
         <div class="container">
-            <div class="warning-message-container">
-                <div>
-                    <div id="warning-message-cont">
-                        <div class="body-mess-cont">
-                            <h2 id="create-edit-holiday-title">
-                            </h2>
-                            <form id="form-create-update">
-                                <div class="inputs-header-cont">
-                                    <div class="input-container col-sm-8" style="margin-top: 0">
-                                        <input id="holidaysListId" name="consultantHolidayId" type="hidden">
-                                        <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <span class="arrow-down"></span>
-                                        <select id="selectYear" name="holidayYear" class="form-select">
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="add-dates-btn-cont">
-                                    <a style="padding-right: 10px" class="blue-btn" onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
-                                </div>
-                                <div id="holidays-dates-container" class="modal-scroll-container">
-                                </div>
-                            </form>
-                            <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                                <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
-                                <button id="btn-saving" onclick="createUpdateHoliday('modal-create-holiday')" class="btn-primary-submit">
-                                    <div style="display:flex;align-items:center;">
-                                        <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
-                                        </div><span></span>
-                                    </div>
-                                </button>
-                            </div>
+            <div>
+
+                <h2 id="create-edit-holiday-title">
+                </h2>
+                <form id="form-create-update">
+                    <div class="inputs-header-cont">
+                        <div class="input-container col-sm-8" style="margin-top: 0">
+                            <input id="holidaysListId" name="consultantHolidayId" type="hidden">
+                            <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
+                        </div>
+                        <div class="col-sm-4">
+                            <span class="arrow-down"></span>
+                            <select id="selectYear" name="holidayYear" class="form-select">
+                            </select>
                         </div>
                     </div>
+                    <div class="add-dates-btn-cont">
+                        <a style="padding-right: 10px" class="blue-btn" onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>
+                    </div>
+                    <div id="holidays-dates-container" class="modal-scroll-container">
+                    </div>
+                </form>
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateHoliday('modal-create-holiday')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>

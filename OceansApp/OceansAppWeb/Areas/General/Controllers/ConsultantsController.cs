@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models.ViewModels.Components;
-using OceansApp.Models.ViewModels.Providers;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {

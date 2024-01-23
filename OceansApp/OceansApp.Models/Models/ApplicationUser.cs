@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace OceansApp.Models.Models
@@ -21,5 +22,10 @@ namespace OceansApp.Models.Models
         [MaxLength(64)]
         public string? OpaqueToken { get; set; }
         public DateTime? OpaqueTokenExpiration { get; set; }
+        [Required]
+        public int UserCategoryId { get; set; }
+
+        [ValidateNever]
+        public ApplicationUserCategory ApplicationUserCategory { get; set; }
     }
 }

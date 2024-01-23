@@ -26,7 +26,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
             parameters.Add("@IsActive", filtersAndPagination.Filters.IsActive, DbType.String);
             parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
-            parameters.Add("@SuccessManagerId", filtersAndPagination.Filters.SuccessManagerId, DbType.String);
+            parameters.Add("@SuccessManagerId", filtersAndPagination.Filters.SuccessManagerId, DbType.Int32);
             parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
             parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
             parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);

@@ -14,7 +14,7 @@ namespace OceansApp.DataAccess.Migrations
     @EndDate DATE,
     @IsActive NVARCHAR(1),
     @CompanyId NVARCHAR(8),
-    @SuccessManagerId NVARCHAR(450),
+    @SuccessManagerId INT,
     @FieldToOrder NVARCHAR(255),
     @DirectionOrder NVARCHAR(255),
     @Skip INT,
@@ -26,6 +26,7 @@ namespace OceansApp.DataAccess.Migrations
     SELECT @TotalCount = COUNT(*)
     FROM CLIENT C 
     LEFT JOIN Users U ON C.SuccessManagerId = U.Id
+    LEFT JOIN CONSULTANT_DETAILS CD ON C.SuccessManagerId = CD.UserId
     WHERE ((@SearchText IS NULL OR LOWER(C.Name) LIKE '%' + LOWER(@SearchText) + '%')
         OR (@SearchText IS NULL OR LOWER(C.Contact) LIKE '%' + LOWER(@SearchText) + '%')
 		OR (@SearchText IS NULL OR LOWER(C.Address) LIKE '%' + LOWER(@SearchText) + '%')
@@ -33,7 +34,7 @@ namespace OceansApp.DataAccess.Migrations
 		AND ((@StartDate IS NULL AND @EndDate IS NULL) OR (C.AdmissionDate >= @StartDate AND C.AdmissionDate <= @EndDate))
 		AND (@IsActive IS NULL OR C.IsActive = @IsActive)
 		AND (@CompanyId IS NULL OR C.CompanyId = @CompanyId)
-		AND (@SuccessManagerId IS NULL OR U.Id = @SuccessManagerId)
+		AND (@SuccessManagerId IS NULL OR CD.ConsultantId = @SuccessManagerId)
 		AND C.ClientCategory NOT LIKE '%CON%'
 		AND C.ClientCategory NOT IN('ND')
 		AND C.ClientCode NOT IN('OCE_C0028', 'OCE_C0029', 'OCE_C0030');
@@ -57,6 +58,7 @@ namespace OceansApp.DataAccess.Migrations
       ,C.AllowSentLatePaymentNotifications
       FROM CLIENT C 
       LEFT JOIN Users U ON C.SuccessManagerId = U.Id
+      LEFT JOIN CONSULTANT_DETAILS CD ON C.SuccessManagerId = CD.UserId
       WHERE ((@SearchText IS NULL OR LOWER(C.Name) LIKE '%' + LOWER(@SearchText) + '%')
         OR (@SearchText IS NULL OR LOWER(C.Contact) LIKE '%' + LOWER(@SearchText) + '%')
 		OR (@SearchText IS NULL OR LOWER(C.Address) LIKE '%' + LOWER(@SearchText) + '%')
@@ -64,7 +66,7 @@ namespace OceansApp.DataAccess.Migrations
 		AND ((@StartDate IS NULL AND @EndDate IS NULL) OR (C.AdmissionDate >= @StartDate AND C.AdmissionDate <= @EndDate))
 		AND (@IsActive IS NULL OR C.IsActive = @IsActive)
 		AND (@CompanyId IS NULL OR C.CompanyId = @CompanyId)
-		AND (@SuccessManagerId IS NULL OR U.Id = @SuccessManagerId)
+		AND (@SuccessManagerId IS NULL OR CD.ConsultantId = @SuccessManagerId)
 		AND C.ClientCategory NOT LIKE '%CON%'
 		AND C.ClientCategory NOT IN('ND')
 		AND C.ClientCode NOT IN('OCE_C0028', 'OCE_C0029', 'OCE_C0030')

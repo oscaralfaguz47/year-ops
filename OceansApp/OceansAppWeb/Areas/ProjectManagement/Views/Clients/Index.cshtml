@@ -62,6 +62,12 @@
                             </div>
                             <span id="dates-val-message" style="font-size:15px; display:flex;" class="text-danger"></span>
                         </div>
+                        <div class="col-sm-2">
+                            <label for="succesManagerFilter">Success Manager</label>
+                            <span class="arrow-down"></span>
+                            <select onchange="paginationSubmit(false, true)" onfocus="getSuccessManagersForFilters()" class="form-select" id="succesManagerFilter">
+                            </select>
+                        </div>
                     </div>
                     <div class="principal-buttons">
                         <a asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
@@ -193,10 +199,10 @@
                         <input type="text" class="form-control" name="address">
                     </div>
 
-                    <label for="SuccessManager">Success Manager</label>
+                    <label for="successManager">Success Manager</label>
                     <div class="custom-select">
                         <span class="arrow-down"></span>
-                        <select class="form-select" id="SuccessManager" name="SuccessManager">
+                        <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
                         </select>
                     </div>
 
@@ -235,4 +241,5 @@
 @section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/ProjectManagement/clients.js"></script>
+<script src="~/js/General/consultantDetails.js"></script>
     }

@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Text.RegularExpressions;
 
 namespace OceansApp.Utility.SharedMethods.InputValidations
 {
@@ -24,11 +25,18 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 }
             }
         }
-        public void ValidateRequiredField(string field, string fieldName, string stringToValidate, ModelStateDictionary modelState)
+        public void ValidateRequiredFieldStringValue(string field, string fieldName, string? stringToValidate, ModelStateDictionary modelState)
         {
-            if (stringToValidate.Trim() == null || stringToValidate.Trim() == "")
+            if (stringToValidate == null || stringToValidate.Trim() == "")
             {
                     modelState.AddModelError(field, $"The {fieldName} is required.");
+            }
+        }
+        public void ValidateRequiredFieldNumberValue(string field, string fieldName, decimal? numToValidate, ModelStateDictionary modelState)
+        {
+            if (numToValidate == null)
+            {
+                modelState.AddModelError(field, $"The {fieldName} is required.");
             }
         }
         public void ValidateEmail(string field, string fieldName, string email, ModelStateDictionary modelState)

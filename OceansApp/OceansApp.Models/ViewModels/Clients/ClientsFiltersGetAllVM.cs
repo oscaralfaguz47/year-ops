@@ -10,6 +10,6 @@ namespace OceansApp.Models.ViewModels.Clients
         public DateTime? EndDate { get; set; }
         public string? IsActive { get; set; }
         public string? CompanyId { get; set; }
-        public string? SuccessManagerId { get; set; }
+        public int? SuccessManagerId { get; set; }
     }
 }

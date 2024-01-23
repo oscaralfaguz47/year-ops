@@ -13,6 +13,7 @@
         public string? ClientClass { get; set; }
         public string? Address { get; set; }
         public string? CompanyId { get; set; }
+        public int? SuccessManagerId { get; set; }
         public string? SuccessManager { get; set; }
         public decimal? LatePaymentFee { get; set; }
         public string? AdditionalEmailsForNotifications { get; set; }

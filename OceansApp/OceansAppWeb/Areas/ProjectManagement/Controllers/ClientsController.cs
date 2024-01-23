@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Clients;
 using OceansApp.Models.ViewModels.Components;
-using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
@@ -134,6 +132,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             validateInputs.ValidateDateValidFormat("AdmissionDate", "Admission Date", clientData.AdmissionDate.ToString(), ModelState);
             validateInputs.ValidateNoNegativeNumber("PaymentCondition", "Payment Condition", Convert.ToDecimal(clientData.PaymentCondition), ModelState);
             validateInputs.ValidateNotRequiredAndStringLength("Address", "Client Address", clientData.Address, 160, ModelState);
+            validateInputs.ValidateRequiredFieldNumberValue("SuccessManagerId", "Success Manager", clientData.SuccessManagerId, ModelState);
 
             if (clientData.AdditionalEmailsForNotifications != null)
             {
@@ -154,7 +153,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                     var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientData.ClientId);
                     if (client == null)
                     {
-                        return BadRequest(new { MessageType = "Exception Error", error = $"The client does not exist in the database.", detail = "" });
+                        return BadRequest(new { MessageType = "Exception Error", error = $"The client does not exist in the database.", detail = "The client no longer exists." });
                     }
                     client.Name = clientData.Name.Trim();
                     client.Contact = clientData.Contact.Trim();
@@ -165,6 +164,17 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                     client.LatePaymentFee = ((decimal)clientData.LatePaymentFee / 100m);
                     client.ClientClass = clientData.ClientClass;
                     client.Address = clientData.Address.Trim();
+                    var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x=>x.ConsultantId == clientData.SuccessManagerId);
+                    if (consultant == null)
+                    {
+                        return BadRequest(new { MessageType = "Exception Error", error = $"The Consultant does not exist in the database.", detail = "The Success Manager no longer exists." });
+                    }
+                    var verifySuccessManager = await _unitOfWork.ConsultantDetail.GetNumOfUsersByCategoryConsultantIdAndPosition("Administrative", "Success Manager", consultant.ConsultantId);
+                    if (verifySuccessManager == 0)
+                    {
+                        return BadRequest(new { MessageType = "Exception Error", error = $"The selected Succes Manager is not a Success Manager.", detail = "Wrong sent data." });
+                    }
+                    client.SuccessManagerId = consultant.UserId;
                     client.IsActive = clientData.IsActive;
                     client.AllowSentLatePaymentNotifications = (bool)clientData.AllowSentLatePaymentNotifications;
                     client.AdditionalEmailsForNotifications = clientData.AdditionalEmailsForNotifications;

@@ -24,11 +24,13 @@ namespace OceansApp.DataAccess.Migrations
                          ,C.ClientClass
                          ,C.Address
                          ,C.CompanyId
+                         ,CD.ConsultantId AS SuccessManagerId
                          ,U.Name + ' ' + U.LastName AS SuccessManager
 	                     ,C.LatePaymentFee
                          ,C.AdditionalEmailsForNotifications
                          ,C.AllowSentLatePaymentNotifications
                          FROM CLIENT C 
+                         LEFT JOIN CONSULTANT_DETAILS CD ON C.SuccessManagerId = CD.UserId
                          LEFT JOIN Users U ON C.SuccessManagerId = U.Id
 	                     WHERE C.ClientId = @ClientId
                        END";

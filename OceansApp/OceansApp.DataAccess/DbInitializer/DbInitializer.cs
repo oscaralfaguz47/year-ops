@@ -64,6 +64,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>();
                 userCategoriesList.Add(new ApplicationUserCategory() { Name = "Administrative" });
                 userCategoriesList.Add(new ApplicationUserCategory() { Name = "Consultant" });
+                userCategoriesList.Add(new ApplicationUserCategory() { Name = "External User" });
                 foreach (var userCategory in userCategoriesList)
                 {
                     if (_db.UserCategories.FirstOrDefault(x => x.Name == userCategory.Name) == null)

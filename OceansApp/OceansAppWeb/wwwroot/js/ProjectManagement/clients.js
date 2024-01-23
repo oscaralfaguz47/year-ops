@@ -79,6 +79,77 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
+function getSuccessManagersForFilters() {
+    getSuccessManagersList()
+        .then(data => {
+            const successManagerSelect = document.getElementById('succesManagerFilter');
+            successManagerSelect.innerHTML = '';
+            var loadingOption = document.createElement('option');
+            loadingOption.value = "loading";
+            loadingOption.text = "Loading Options… (⏳)";
+            successManagerSelect.appendChild(loadingOption);
+            let firstOptionValue = successManagerSelect.options[0].value;
+            let defaultOption = new Option("-Select a user-", null);
+            successManagerSelect.add(defaultOption);
+            data.successManagers.forEach(function (obj) {
+                let opcion = new Option(obj.userName, obj.userId);
+                if (firstOptionValue === obj.userId) {
+                    opcion.selected = true;
+                }
+                successManagerSelect.add(opcion);
+            });
+        })
+        .finally(() => {
+            var loadingOption = document.querySelector('select option[value="loading"]');
+            if (loadingOption) {
+                loadingOption.remove();
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching success managers:', error);
+        });
+}
+async function getSuccessManagers() {
+    const successManagerSelect = document.getElementById('successManager');
+    let firstOptionValue = successManagerSelect.options[0].value;
+    console.log(firstOptionValue);
+    successManagerSelect.innerHTML = '';
+    var loadingOption = document.createElement('option');
+    loadingOption.value = "loading";
+    loadingOption.text = "Loading Options… (⏳)";
+    successManagerSelect.appendChild(loadingOption);
+        var url = "/General/ConsultantDetails/GetSuccessManagers";
+        fetch(url)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(errorData => {
+                        displayToasterError(errorData.error);
+                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                    });
+                }
+            })
+            .then(data => {
+                var nullOption = document.createElement('option');
+                nullOption.value = null;
+                nullOption.text = "-Select a user-";
+                successManagerSelect.appendChild(nullOption);
+                data.successManagers.forEach(function (obj) {
+                    let opcion = new Option(obj.userName, obj.userId);
+                    if (Number(firstOptionValue) === Number(obj.userId)) {
+                        opcion.selected = true;
+                    }
+                    successManagerSelect.add(opcion);
+                });
+
+            }).finally(() => {
+                var loadingOption = document.querySelector('#successManager option[value="loading"]');
+                if (loadingOption) {
+                    loadingOption.remove();
+                }
+            });
+}
 //Activate and deactivate Clients
 async function activateDeactivate(inputElement, clientId, name, status) {
     var title = status ? "Deactivate Client" : "Activate Client";
@@ -157,12 +228,16 @@ async function activateDeactivateNotifications(inputElement, clientId, name, sta
 
 }
 //Edit Client
-function displayUpdateModal(modalId, clientId) {
+async function displayUpdateModal(modalId, clientId) {
     var createUpdateForm = $('#form-create-update');
     inicializeModalButtons(modalId);
     resetForm('form-create-update')
     var permissionsContainer = $("#emails-container");
     permissionsContainer.empty();
+
+    const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
+    successManagerSelect.innerHTML = '';
+
     var url = "/ProjectManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
     displaySpinner();
     fetch(url)
@@ -189,6 +264,18 @@ function displayUpdateModal(modalId, clientId) {
             createUpdateForm.find('[name="latePaymentFee"]').val(Number(data.clientData.latePaymentFee * 100).toFixed(2));
             createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
             createUpdateForm.find('[name="address"]').val(data.clientData.address);
+            if (data.clientData.successManagerId !== null) {
+                var newOption = document.createElement('option');
+                newOption.value = data.clientData.successManagerId;
+                newOption.text = data.clientData.successManager;
+                newOption.selected = true;
+                successManagerSelect.appendChild(newOption);
+            } else {
+                var nullOption = document.createElement('option');
+                nullOption.value = null;
+                nullOption.text = "-Select a user-";
+                successManagerSelect.appendChild(nullOption);
+            }
             var isActive = data.clientData.isActive === "S" ? true : false;
             createUpdateForm.find('[name="isActive"]').val(isActive);
             createUpdateForm.find('[name="isActive"]').prop('checked', isActive);
@@ -232,7 +319,7 @@ function addNewAdditionalEmailRow(email) {
 }
 
 //CreateUpdate Client
-function createUpdateClient(modalId) {
+async function createUpdateClient(modalId) {
     waitingForPostMethod();
     var createUpdateForm = $('#form-create-update');
     var clientIdData = createUpdateForm.find('[name="clientId"]').val();
@@ -245,6 +332,7 @@ function createUpdateClient(modalId) {
     var latePaymentFeeData = createUpdateForm.find('[name="latePaymentFee"]').val();
     var clientClassData = createUpdateForm.find('[name="clientClass"]').val();
     var addressData = createUpdateForm.find('[name="address"]').val();
+    var successManagerData = createUpdateForm.find('[name="successManager"]').val();
     var isActive = createUpdateForm.find('[name="isActive"]').prop('checked');
     var isActiveData = isActive ? "S" : "N";
     var allowSentLatePaymentNotificationsData = createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked');
@@ -269,6 +357,7 @@ function createUpdateClient(modalId) {
         LatePaymentFee: Number(latePaymentFeeData).toFixed(2),
         ClientClass: clientClassData,
         Address: addressData,
+        SuccessManagerId: Number(successManagerData),
         IsActive: isActiveData,
         AllowSentLatePaymentNotifications: Boolean(allowSentLatePaymentNotificationsData),
         AdditionalEmailsForNotifications: additionalEmaislData
@@ -365,13 +454,15 @@ function recolectDataFromForm(filters) {
                 datesValMessageSpan.textContent = "Date From should be less than the Date Until";
             }
         }
+        var successManagerValue = Number(document.getElementById("succesManagerFilter").value) || null;
 
         var filtersData = {
             SearchText: searchText,
             IsActive: activeInactiveValue,
             CompanyId: companyValue,
             StartDate: startDateValue,
-            EndDate: endDateValue
+            EndDate: endDateValue,
+            SuccessManagerId: successManagerValue
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
