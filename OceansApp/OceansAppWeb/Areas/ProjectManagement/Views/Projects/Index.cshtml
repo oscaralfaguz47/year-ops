@@ -1,0 +1,245 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/ProjectManagement/projects.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+            <div class="search-header-container">
+                <div>
+                    <h2>PROJECTS</h2>
+                    <div class="input-container">
+                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                        <i class="bi bi-search placeholder-image"></i>
+                    </div>
+                </div>
+                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
+            </div>
+            <div class="more-filters-cont">
+                <div id="more-filters">
+                    <div class="row">
+                        <div class="col-sm-1">
+                            <div class="radio-group active-inactive-rg">
+                                <label class="radio-label">
+                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="S" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Active
+                                </label>
+                                <label class="radio-label">
+                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="N" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Inactive
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="radio-group company-radio-rg">
+                                <label class="radio-label">
+                                    <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="OCE" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Oceans Consulting
+                                </label>
+                                <label class="radio-label">
+                                    <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="LLC" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; OCE, LLC
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 text-center">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label for="startDate" class="select-label">Date From</label>
+                                    <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="endDate" class="select-label">Date Until</label>
+                                    <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
+                                </div>
+                            </div>
+                            <span id="dates-val-message" style="font-size:15px; display:flex;" class="text-danger"></span>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="succesManagerFilter">Success Manager</label>
+                            <span class="arrow-down"></span>
+                            <select onchange="paginationSubmit(false, true)" onfocus="getSuccessManagersForFilters()" class="form-select" id="succesManagerFilter">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="principal-buttons">
+                        <a asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
+                    </div>
+                </div>
+            </div>
+            <partial name="_Pagination" />
+        </div>
+    </div>
+    <div class="global-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">
+                        Client Name
+                        <span class="sort-arrow" id="sortArrowName">
+                        </span>
+                    </th>
+                    <th>Is Active</th>
+                    <th onclick="orderByTableList('Contact', 'StakeholderTableHeader', 'sortArrowStakeholder')" data-sort="ANY" name="StakeholderTableHeader" class="sortable-col">
+                        Stakeholder
+                        <span class="sort-arrow" id="sortArrowStakeholder"></span>
+                    </th>
+                    <th onclick="orderByTableList('ContactOccupation', 'ContactOccupationTableHeader', 'sortArrowContactOccupation')" data-sort="ANY" name="ContactOccupationTableHeader" class="sortable-col">
+                        Stakeholder Title
+                        <span class="sort-arrow" id="sortArrowContactOccupation">
+                        </span>
+                    </th>
+                    <th>Emails</th>
+                    <th>Send Reminders?</th>
+                    <th onclick="orderByTableList('AdmissionDate', 'AdmissionDateTableHeader', 'sortArrowAdmissionDate')" data-sort="ANY" name="AdmissionDateTableHeader" class="sortable-col">
+                        AdmissionDate
+                        <span class="sort-arrow" id="sortArrowAdmissionDate">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('PaymentCondition', 'PaymentConditionTableHeader', 'sortArrowPaymentCondition')" data-sort="ANY" name="PaymentConditionTableHeader" class="sortable-col">
+                        Payment Condition
+                        <span class="sort-arrow" id="sortArrowPaymentCondition">
+                        </span>
+                    </th>
+                    <th>Client Class</th>
+                    <th>Address</th>
+                    <th>Company</th>
+                    <th>Success Manager</th>
+                    <th onclick="orderByTableList('LatePaymentFee', 'LatePaymentFeeTableHeader', 'sortArrowLatePaymentFee')" data-sort="ANY" name="LatePaymentFeeTableHeader" class="sortable-col">
+                        Late Payment Fee
+                        <span class="sort-arrow" id="sortArrowLatePaymentFee">
+                        </span>
+                    </th>
+                    <th>Add Emails For Notifications</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="no-results"></div>
+    </div>
+</div>
+
+<!--MODAL UPDATE CREATE PROJECT -->
+<div id="modal-update-client" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2>UPDATE CLIENT</h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="clientId">
+
+                    <!-- Columna Izquierda -->
+                    <label for="Name">Client Name</label>
+                    <div class="input-container">
+                        <input type="text" class="form-control" name="clientName">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="Contact">Stakeholder Name</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="contact">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ContactOccupation">Stakeholder Title</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="contactOccupation">
+                            </div>
+                        </div>
+                    </div>
+
+                    <label for="Email">Stakeholder Email</label>
+                    <div class="input-container">
+                        <input type="email" class="form-control" name="emails">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="AdmissionDate">Client Admission Date</label>
+                            <div class="">
+                                <input type="date" class="form-control" name="admissionDate">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="PaymentCondition">Payment Condition (Days)</label>
+                            <div class="input-container">
+                                <input type="number" class="form-control" name="paymentCondition">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="LatePaymentFee">% Late Payment Fee</label>
+                            <div class="input-container">
+                                <input type="number" class="form-control" name="latePaymentFee">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ClientClass">Client Class</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="ClientClass" name="clientClass">
+                                    <option value="A">A</option>
+                                    <option value="B">AA</option>
+                                    <option value="C">Partner</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label for="Address">Client Address</label>
+                    <div class="input-container">
+                        <input type="text" class="form-control" name="address">
+                    </div>
+
+                    <label for="successManager">Success Manager</label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
+                        </select>
+                    </div>
+
+                    <div style="margin-top:8px">
+                        <div class="checkbox-cont">
+                            <input type="checkbox" class="form-check-input" id="IsActive" name="isActive">
+                            <label class="form-check-label" for="IsActive"> Is Active</label>
+                        </div>
+                        <div class="checkbox-cont">
+                            <input type="checkbox" class="form-check-input" id="AllowSentLatePaymentNotifications" name="allowSentLatePaymentNotifications">
+                            <label class="form-check-label" for="AllowSentLatePaymentNotifications"> Send Reminders for late payments</label>
+                        </div>
+                    </div>
+                    <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
+                        <label>Additional Emails for notifications</label>
+                        <a style="padding-right: 10px" class="blue-btn" onclick="addNewAdditionalEmailRow('')"><i class="bi bi-plus"></i> Add Email</a>
+                    </div>
+                    <div id="emails-container" class="modal-scroll-container">
+                    </div>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateClient('modal-update-client')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+<script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/ProjectManagement/projects.js"></script>
+<script src="~/js/General/consultantDetails.js"></script>
+    }

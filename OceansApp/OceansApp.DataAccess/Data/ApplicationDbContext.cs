@@ -133,6 +133,33 @@ namespace OceansApp.DataAccess.Data
             // CONSULTANT AND POSITIONS
             modelBuilder.Entity<ConsultantAndPosition>()
                 .HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
+
+            //PROJECTS
+            modelBuilder.Entity<Project>()
+                .HasKey(p => new { p.ProjectId });
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.ApplicationUserCreated)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.ApplicationUserUpdated)
+                .WithMany()
+                .HasForeignKey(p => p.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.Client)
+                .WithMany()
+                .HasForeignKey(p => p.ClientId)
+                .IsRequired();
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(p => p.SuccessManagerId)
+                .IsRequired();
+
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
@@ -161,6 +188,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantHoliday> CONSULTANT_HOLIDAYS { get; set; }
         public DbSet<ConsultantHolidayDate> CONSULTANT_HOLIDAY_DATES { get; set; }
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
+        public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }

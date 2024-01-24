@@ -24,6 +24,7 @@
         IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IConsultantSeniorityRepository ConsultantSeniority { get; }
+        IProjectRepository Project { get; }
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
         IDocumentCCRepository DocumentCC { get; }
