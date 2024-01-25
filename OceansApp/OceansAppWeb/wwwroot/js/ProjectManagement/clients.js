@@ -15,7 +15,11 @@ async function getListOfResults(firstTime, filters) {
                 return response.json();
             } else {
                 return response.json().then(errorData => {
-                    displayToasterErrorArray(errorData.errors);
+                    if (errorData.messageType === "Validation Error") {
+                        displayToasterWarningArray(errorData.errors);
+                    } else {
+                        displayToasterErrorArray(errorData.errors);
+                    }
                     throw new Error('The request to the server failed!. More details: ' + errorData.detail);
                 });
             }
@@ -77,25 +81,6 @@ async function getListOfResults(firstTime, filters) {
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
         }).finally(() => {
             hideSpinner();
-        });
-}
-function getSuccessManagersForFilters() {
-    const successManagerSelect = document.getElementById('succesManagerFilter');
-    if (successManagerSelect.length > 1) {
-        return;
-    }
-
-    successManagerSelect.innerHTML = '<option value="loading">Loading Options… (⏳)</option>';
-
-    getSuccessManagersList()
-        .then(data => {
-            successManagerSelect.innerHTML = '<option value="">-All Success Managers-</option>';
-            data.successManagers.forEach(obj => {
-                successManagerSelect.add(new Option(obj.userName, obj.userId));
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching success managers:', error);
         });
 }
 

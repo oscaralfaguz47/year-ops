@@ -18,7 +18,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             return View();
         }
 
-        [Authorize(Policy = "AccessToClientsPage")]
+        [Authorize(Policy = "AccessToSuccessManagersListForSelect")]
         [HttpGet]
         public async Task<IActionResult> GetSuccessManagers()
         {

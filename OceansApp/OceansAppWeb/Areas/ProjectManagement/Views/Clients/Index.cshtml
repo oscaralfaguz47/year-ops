@@ -35,28 +35,28 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-sm-1">
                             <div class="radio-group company-radio-rg">
                                 <label class="radio-label">
                                     <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="OCE" class="radio-input">
                                     <span class="radio-custom"></span>
-                                    &nbsp; Oceans Consulting
+                                    &nbsp; Oceans
                                 </label>
                                 <label class="radio-label">
                                     <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="LLC" class="radio-input">
                                     <span class="radio-custom"></span>
-                                    &nbsp; OCE, LLC
+                                    &nbsp; LLC
                                 </label>
                             </div>
                         </div>
                         <div class="col-sm-3 text-center">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label for="startDate" class="select-label">Date From</label>
+                                    <label for="startDate" class="select-label">Admission Date From</label>
                                     <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
                                 </div>
                                 <div class="col-sm-6">
-                                    <label for="endDate" class="select-label">Date Until</label>
+                                    <label for="endDate" class="select-label">Admission Date Until</label>
                                     <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
                                 </div>
                             </div>
@@ -65,7 +65,7 @@
                         <div class="col-sm-2">
                             <label for="succesManagerFilter">Success Manager</label>
                             <span class="arrow-down"></span>
-                            <select onchange="paginationSubmit(false, true)" onfocus="getSuccessManagersForFilters()" class="form-select" id="succesManagerFilter">
+                            <select onchange="paginationSubmit(false, true)" onfocus="fillSuccessManagersSelectForFilters(this)" class="form-select" id="succesManagerFilter">
                             </select>
                         </div>
                     </div>
@@ -241,5 +241,5 @@
 @section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/ProjectManagement/clients.js"></script>
-<script src="~/js/General/consultantDetails.js"></script>
+<script src="~/js/General/generalSectionFillDropdowns.js"></script>
     }

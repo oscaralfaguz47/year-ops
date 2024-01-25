@@ -11,7 +11,6 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
 {
     [Area("ProjectManagement")]
     [RequireTwoFactorEnabled]
-    [Authorize(Policy = "AccessToClientsPage")]
     public class ClientsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -19,11 +18,13 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
         {
             _unitOfWork = unitOrWork;
         }
+        [Authorize(Policy = "AccessToClientsPage")]
         public IActionResult Index()
         {
             return View();
         }
-       
+
+        [Authorize(Policy = "AccessToClientsPage")]
         [HttpGet]
         public async Task<IActionResult> GetClientsList(string model)
         {
@@ -42,6 +43,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                         {
                             ValidateInputs validateInputs = new();
                             //Validate Filter inputs
+                            validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
                             validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"].ToString(), ModelState);
                             validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"].ToString(), ModelState);
                             if (!ModelState.IsValid)
@@ -57,7 +59,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
 
                 ClientsPaginationFiltersVM clientsPaginationFilters = System.Text.Json.JsonSerializer.Deserialize<ClientsPaginationFiltersVM>(model);
 
-                ClientsPaginationFiltersVM paginationFilters = new ClientsPaginationFiltersVM();
+                ClientsPaginationFiltersVM paginationFilters = new();
                 paginationFilters.Filters = new ClientsFiltersGetAllVM();
 
                 int numAppliedFilters = 0;
@@ -92,6 +94,25 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToClientsListForSelect")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllClientsListForSelect()
+        {
+            try
+            {
+                var clients = await _unitOfWork.Client.GetAllClientsForSelectAsync();
+                return Ok(new
+                {
+                    Clients = clients
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "AccessToClientsPage")]
         [HttpGet]
         public async Task<IActionResult> GetClientDataById(int clientId)
         {
@@ -114,6 +135,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToClientsPage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateClient([FromBody] CreateUpdateClientVM clientData)
@@ -201,6 +223,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToClientsPage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateClient(int clientId)
@@ -225,6 +248,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToClientsPage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateNotifications(int clientId)

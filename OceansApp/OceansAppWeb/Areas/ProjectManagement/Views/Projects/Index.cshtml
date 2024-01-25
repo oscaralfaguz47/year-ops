@@ -24,53 +24,45 @@
                         <div class="col-sm-1">
                             <div class="radio-group active-inactive-rg">
                                 <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="S" class="radio-input">
+                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="true" class="radio-input">
                                     <span class="radio-custom"></span>
                                     &nbsp; Active
                                 </label>
                                 <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="N" class="radio-input">
+                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="false" class="radio-input">
                                     <span class="radio-custom"></span>
                                     &nbsp; Inactive
                                 </label>
                             </div>
                         </div>
                         <div class="col-sm-2">
-                            <div class="radio-group company-radio-rg">
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="OCE" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Oceans Consulting
-                                </label>
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="LLC" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; OCE, LLC
-                                </label>
-                            </div>
+                            <label for="succesManagerFilter">Client</label>
+                            <span class="arrow-down"></span>
+                            <select onchange="paginationSubmit(false, true)" onfocus="fillClientsSelectForFilters(this)" class="form-select" id="clientFilter">
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="succesManagerFilter">Success Manager</label>
+                            <span class="arrow-down"></span>
+                            <select onchange="paginationSubmit(false, true)" onfocus="fillSuccessManagersSelectForFilters(this)" class="form-select" id="succesManagerFilter">
+                            </select>
                         </div>
                         <div class="col-sm-3 text-center">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label for="startDate" class="select-label">Date From</label>
+                                    <label for="startDate" class="select-label">Start Date From</label>
                                     <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
                                 </div>
                                 <div class="col-sm-6">
-                                    <label for="endDate" class="select-label">Date Until</label>
+                                    <label for="endDate" class="select-label">Start Date Until</label>
                                     <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
                                 </div>
                             </div>
                             <span id="dates-val-message" style="font-size:15px; display:flex;" class="text-danger"></span>
                         </div>
-                        <div class="col-sm-2">
-                            <label for="succesManagerFilter">Success Manager</label>
-                            <span class="arrow-down"></span>
-                            <select onchange="paginationSubmit(false, true)" onfocus="getSuccessManagersForFilters()" class="form-select" id="succesManagerFilter">
-                            </select>
-                        </div>
                     </div>
                     <div class="principal-buttons">
-                        <a asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
+                        <a asp-area="ProjectManagement" asp-controller="Projects" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
                     </div>
                 </div>
             </div>
@@ -82,42 +74,29 @@
             <thead>
                 <tr>
                     <th onclick="orderByTableList('Name', 'NameTableHeader', 'sortArrowName')" data-sort="ANY" name="NameTableHeader" class="sortable-col">
-                        Client Name
+                        Project Name
                         <span class="sort-arrow" id="sortArrowName">
                         </span>
                     </th>
+                    <th onclick="orderByTableList('ClientName', 'ClientNameTableHeader', 'sortArrowClientName')" data-sort="ANY" name="ClientNameTableHeader" class="sortable-col">
+                        Client Name
+                        <span class="sort-arrow" id="sortArrowClientName"></span>
+                    </th>
+                    <th onclick="orderByTableList('Description', 'DescriptionTableHeader', 'sortArrowDescription')" data-sort="ANY" name="DescriptionTableHeader" class="sortable-col">
+                        Description
+                        <span class="sort-arrow" id="sortArrowDescription"></span>
+                    </th>
+                    <th onclick="orderByTableList('StartDate', 'StartDateTableHeader', 'sortArrowStartDate')" data-sort="ANY" name="StartDateTableHeader" class="sortable-col">
+                        Start Date
+                        <span class="sort-arrow" id="sortArrowStartDate">
+                        </span>
+                    </th>
                     <th>Is Active</th>
-                    <th onclick="orderByTableList('Contact', 'StakeholderTableHeader', 'sortArrowStakeholder')" data-sort="ANY" name="StakeholderTableHeader" class="sortable-col">
-                        Stakeholder
-                        <span class="sort-arrow" id="sortArrowStakeholder"></span>
-                    </th>
-                    <th onclick="orderByTableList('ContactOccupation', 'ContactOccupationTableHeader', 'sortArrowContactOccupation')" data-sort="ANY" name="ContactOccupationTableHeader" class="sortable-col">
-                        Stakeholder Title
-                        <span class="sort-arrow" id="sortArrowContactOccupation">
+                    <th onclick="orderByTableList('SuccessManagerName', 'SuccessManagerNameTableHeader', 'sortArrowSuccessManagerName')" data-sort="ANY" name="SuccessManagerNameTableHeader" class="sortable-col">
+                        Success Manager
+                        <span class="sort-arrow" id="sortArrowSuccessManagerName">
                         </span>
                     </th>
-                    <th>Emails</th>
-                    <th>Send Reminders?</th>
-                    <th onclick="orderByTableList('AdmissionDate', 'AdmissionDateTableHeader', 'sortArrowAdmissionDate')" data-sort="ANY" name="AdmissionDateTableHeader" class="sortable-col">
-                        AdmissionDate
-                        <span class="sort-arrow" id="sortArrowAdmissionDate">
-                        </span>
-                    </th>
-                    <th onclick="orderByTableList('PaymentCondition', 'PaymentConditionTableHeader', 'sortArrowPaymentCondition')" data-sort="ANY" name="PaymentConditionTableHeader" class="sortable-col">
-                        Payment Condition
-                        <span class="sort-arrow" id="sortArrowPaymentCondition">
-                        </span>
-                    </th>
-                    <th>Client Class</th>
-                    <th>Address</th>
-                    <th>Company</th>
-                    <th>Success Manager</th>
-                    <th onclick="orderByTableList('LatePaymentFee', 'LatePaymentFeeTableHeader', 'sortArrowLatePaymentFee')" data-sort="ANY" name="LatePaymentFeeTableHeader" class="sortable-col">
-                        Late Payment Fee
-                        <span class="sort-arrow" id="sortArrowLatePaymentFee">
-                        </span>
-                    </th>
-                    <th>Add Emails For Notifications</th>
                 </tr>
             </thead>
             <tbody>
@@ -241,5 +220,6 @@
 @section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/ProjectManagement/projects.js"></script>
-<script src="~/js/General/consultantDetails.js"></script>
+<script src="~/js/ProjectManagement/clientsSectionFillDropdowns.js"></script>
+<script src="~/js/General/generalSectionFillDropdowns.js"></script>
     }

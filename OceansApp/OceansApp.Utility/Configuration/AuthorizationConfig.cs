@@ -118,6 +118,24 @@ namespace OceansApp.Utility.Configuration
             });
 
 
+            //COMBINED POLICIES
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToSuccessManagersListForSelect", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType 
+                        && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ClientsClaimsCD.Clients_Page_ClaimType 
+                        && claim.Value == ClientsClaimsCD.Clients_Page_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToClientsListForSelect", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType 
+                        && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
+            });
+
         }
     }
 }
