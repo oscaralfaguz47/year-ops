@@ -25,6 +25,7 @@ async function getListOfResults(firstTime, filters) {
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tbody.empty();
+            var count = 1;
             data.projectsList.forEach(function (obj) {
                 var startDate = new Date(obj.startDate);
                 var formattedDate = ('0' + (startDate.getMonth() + 1)).slice(-2) + '/' +
@@ -44,8 +45,11 @@ async function getListOfResults(firstTime, filters) {
                     </label>
                   </td>
                   <td>${obj.successManagerName === null ? "" : obj.successManagerName}</td>
+                  <td><div class="assigned-consultants-div" id="conAssigned${count}"></div></td>
               </tr>`;
                 tbody.append(row);
+                addConsultantIcons(obj.numConsultantsAssigned, "conAssigned" + count);
+                count++;
             });
 
             if (data.projectsList.length === 0) {
@@ -55,6 +59,19 @@ async function getListOfResults(firstTime, filters) {
         }).finally(() => {
             hideSpinner();
         });
+}
+function addConsultantIcons(num, tdId) {
+    const tdElement = document.getElementById(tdId);
+    tdElement.innerHTML = "";
+    for (let i = 0; i < Math.min(num, 4); i++) {
+        tdElement.innerHTML += '<i style="z-index:' + i +'" class="bi bi-person-fill"></i>';
+    }
+    if (num > 4) {
+        tdElement.innerHTML += '<i class="more-consultants-span">+' + (num - 4)+'</i> ';
+    }
+    if (num === 0) {
+        tdElement.innerHTML += '<i style="font-size:21px; margin-right:5px;" class="bi bi-person-x-fill red-label"></i><span class="red-label"> No assigned consultants.</span>';
+    }
 }
 
 //Pagination and Filters

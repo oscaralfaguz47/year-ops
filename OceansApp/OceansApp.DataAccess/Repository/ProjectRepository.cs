@@ -33,7 +33,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            var results = await connection.QueryAsync<ProjectsGetAllWithFiltersVM>("GetAllProjectsWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var results = await connection.QueryAsync<ProjectsGetAllWithFiltersVM>("SP_GetAllProjectsWithFilters", parameters, commandType: CommandType.StoredProcedure);
             var totalCount = parameters.Get<int>("@TotalCount");
 
             var projects = results.ToList();

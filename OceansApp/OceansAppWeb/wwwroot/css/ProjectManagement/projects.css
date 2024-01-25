@@ -1,1 +1,25 @@
 ﻿
+.assigned-consultants-div {
+   display:flex;
+   align-items:center;
+}
+
+.assigned-consultants-div .bi-person-fill {
+    font-size: 18px;
+    background-color: #2aa7ff;
+    margin-right: -9px;
+    border-radius: 50%;
+    border: solid 2px #fff;
+    padding: 0px 2px;
+    color: #fff;
+}
+.more-consultants-span {
+    font-size: 14px;
+    background-color: rgba(42, 167, 255, 0.1);
+    color: #2aa7ff;
+    border-radius: 50%;
+    border: solid 2px rgba(42, 167, 255, 0.1);
+    padding: 2px;
+    margin-left: 12px;
+    align-items: center;
+}

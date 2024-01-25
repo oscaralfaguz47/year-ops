@@ -10,5 +10,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool IsActive { get; set; }
         public string ClientName { get; set; }
         public string SuccessManagerName { get; set; }
+        public int NumConsultantsAssigned { get; set; }
     }
 }

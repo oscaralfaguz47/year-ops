@@ -158,7 +158,34 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(p => p.SuccessManagerId)
                 .IsRequired();
-
+            // PROJECTS CONSULTANTS ASSIGNED
+            modelBuilder.Entity<ProjectConsultantAssigned>()
+                .HasKey(p => new { p.ProjectConsultantAssignedId });
+            modelBuilder.Entity<ProjectConsultantAssigned>()
+                .HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ProjectConsultantAssigned>()
+                .HasOne(cd => cd.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cd => cd.ConsultantId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            // PROJECTS CONSULTANTS ASSIGNED HISTORY
+            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
+                .HasNoKey();
+            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
+                .HasOne(p => p.ProjectConsultantAssigned)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectConsultantAssignedId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
+                .HasOne(a => a.ApplicationUserActionedBy)
+                .WithMany()
+                .HasForeignKey(a => a.UserActionedBy)
+                .IsRequired();
 
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
@@ -189,6 +216,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantHolidayDate> CONSULTANT_HOLIDAY_DATES { get; set; }
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
+        public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
+        public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
