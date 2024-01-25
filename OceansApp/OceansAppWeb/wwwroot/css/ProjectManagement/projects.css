@@ -46,3 +46,14 @@
         width: 100%;
     }
 }
+
+#modal-update-create-project .modal-scroll-container {
+    margin-top: 5px;
+    text-align: left;
+    color: #000;
+    overflow-y: scroll;
+    height: 195px;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+}
