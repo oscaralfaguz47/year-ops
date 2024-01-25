@@ -11,5 +11,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public string ClientName { get; set; }
         public string SuccessManagerName { get; set; }
         public int NumConsultantsAssigned { get; set; }
+        public bool ClientHasTrackingTool { get; set; }
     }
 }

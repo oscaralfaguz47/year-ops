@@ -34,6 +34,23 @@
     margin-bottom: 10px;
     border: 1px solid #ccc;
 }
+/*Inputs*/
+#form-create-update .input-container input {
+    padding-left: 10px;
+}
+
+#form-create-update .custom-select {
+    margin-top: 0px;
+}
+
+#form-create-update .input-container {
+    margin-top: 2px;
+}
+
+#form-create-update .checkbox-cont label {
+    margin-top: 0px !important;
+    cursor: pointer;
+}
 
 @keyframes fadeIn {
     from {

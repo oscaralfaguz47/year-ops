@@ -96,7 +96,7 @@ async function getSuccessManagers() {
         return;
     }
 
-    successManagerSelect.innerHTML += '<option value="loading">Loading Options… (⏳)</option>';
+    successManagerSelect.innerHTML += '<option value="loading">Loading options… (⏳)</option>';
 
     try {
         const response = await fetch("/General/ConsultantDetails/GetSuccessManagers");

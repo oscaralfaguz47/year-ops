@@ -12,14 +12,14 @@
             }
         });
 }
-function fillClientsSelectForFilters(selectElement) {
+function fillClientsSelectForFilters(selectElement, firstOption) {
     if (selectElement.length > 1) {
         return;
     }
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     getClientsList()
         .then(data => {
-            selectElement.innerHTML = '<option value="">-All Clients-</option>';
+            selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
             data.clients.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
             });

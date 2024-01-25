@@ -1,25 +1,4 @@
-﻿/*Inputs*/
-#modal-update-client .input-container input {
-    padding-left: 10px;
-}
-#modal-update-client #form-update label {
-    margin-bottom: -0px;
-    margin-top: 8px;
-    font-weight: bold;
-}
-#modal-update-client .custom-select{
-    margin-top: 0px;
-}
-#modal-update-client .input-container {
-    margin-top: 2px;
-}
-#modal-update-client .checkbox-cont label{
-    margin-top: 0px !important;
-    cursor:pointer;
-}
-#modal-update-client .blue-btn {
-    font-size: 14px;
-}
+﻿
 /*Update Modal*/
 #modal-update-client .modal-scroll-container {
     margin-top: 5px;

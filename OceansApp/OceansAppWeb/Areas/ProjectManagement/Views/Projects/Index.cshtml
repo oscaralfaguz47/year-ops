@@ -15,6 +15,9 @@
                         <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
                         <i class="bi bi-search placeholder-image"></i>
                     </div>
+                    <div class="action-buttons">
+                        <a onclick="displayUpdateModal('modal-update-create-project', 'CREATE NEW HOLIDAYS LIST',null)">Create Project</a>
+                    </div>
                 </div>
                 <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
             </div>
@@ -38,7 +41,7 @@
                         <div class="col-sm-2">
                             <label for="succesManagerFilter">Client</label>
                             <span class="arrow-down"></span>
-                            <select onchange="paginationSubmit(false, true)" onfocus="fillClientsSelectForFilters(this)" class="form-select" id="clientFilter">
+                            <select onchange="paginationSubmit(false, true)" onfocus="fillClientsSelectForFilters(this, 'All Clients')" class="form-select" id="clientFilter">
                             </select>
                         </div>
                         <div class="col-sm-2">
@@ -97,7 +100,8 @@
                         <span class="sort-arrow" id="sortArrowSuccessManagerName">
                         </span>
                     </th>
-                    <th># Assigned Consultants</th>
+                    <th>Assigned Consultants</th>
+                    <th>Client has own tracking tool</th>
                 </tr>
             </thead>
             <tbody>
@@ -108,82 +112,51 @@
 </div>
 
 <!--MODAL UPDATE CREATE PROJECT -->
-<div id="modal-update-client" class="global-modal" style="display:none">
+<div id="modal-update-create-project" class="global-modal" style="display:none">
     <div class="global-modal-content">
         <div class="container">
             <div>
-                <h2>UPDATE CLIENT</h2>
+                <h2>CREATE PROJECT</h2>
                 <form id="form-create-update">
-                    <input type="hidden" name="clientId">
-
-                    <!-- Columna Izquierda -->
-                    <label for="Name">Client Name</label>
+                    <input type="hidden" name="projectId">
+                    <label for="Name">Project Name</label>
                     <div class="input-container">
-                        <input type="text" class="form-control" name="clientName">
+                        <input type="text" class="form-control" name="projectName">
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
-                            <label for="Contact">Stakeholder Name</label>
+                        <div class="col-md-12">
+                            <label for="Contact">Description</label>
                             <div class="input-container">
-                                <input type="text" class="form-control" name="contact">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="ContactOccupation">Stakeholder Title</label>
-                            <div class="input-container">
-                                <input type="text" class="form-control" name="contactOccupation">
+                                <input type="text" class="form-control" name="description">
                             </div>
                         </div>
                     </div>
 
-                    <label for="Email">Stakeholder Email</label>
-                    <div class="input-container">
-                        <input type="email" class="form-control" name="emails">
-                    </div>
                     <div class="row">
-                        <div class="col-md-6">
-                            <label for="AdmissionDate">Client Admission Date</label>
+                        <div class="col-md-7">
+                          <label for="successManager">Client</label>
+                          <div class="custom-select">
+                              <span class="arrow-down"></span>
+                              <select onfocus="fillClientsSelectForFilters(this, 'Select a client')" class="form-select" id="ClientSelect" name="client">
+                              </select>
+                          </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="StartDate">Start Date</label>
                             <div class="">
-                                <input type="date" class="form-control" name="admissionDate">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="PaymentCondition">Payment Condition (Days)</label>
-                            <div class="input-container">
-                                <input type="number" class="form-control" name="paymentCondition">
+                                <input type="date" class="form-control" name="startDate">
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <label for="LatePaymentFee">% Late Payment Fee</label>
-                            <div class="input-container">
-                                <input type="number" class="form-control" name="latePaymentFee">
-                            </div>
+                          <label for="successManager">Success Manager</label>
+                          <div class="custom-select">
+                              <span class="arrow-down"></span>
+                              <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
+                              </select>
+                          </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="ClientClass">Client Class</label>
-                            <div class="custom-select">
-                                <span class="arrow-down"></span>
-                                <select class="form-select" id="ClientClass" name="clientClass">
-                                    <option value="A">A</option>
-                                    <option value="B">AA</option>
-                                    <option value="C">Partner</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <label for="Address">Client Address</label>
-                    <div class="input-container">
-                        <input type="text" class="form-control" name="address">
-                    </div>
-
-                    <label for="successManager">Success Manager</label>
-                    <div class="custom-select">
-                        <span class="arrow-down"></span>
-                        <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
-                        </select>
                     </div>
 
                     <div style="margin-top:8px">
@@ -192,15 +165,15 @@
                             <label class="form-check-label" for="IsActive"> Is Active</label>
                         </div>
                         <div class="checkbox-cont">
-                            <input type="checkbox" class="form-check-input" id="AllowSentLatePaymentNotifications" name="allowSentLatePaymentNotifications">
-                            <label class="form-check-label" for="AllowSentLatePaymentNotifications"> Send Reminders for late payments</label>
+                            <input type="checkbox" class="form-check-input" id="ClientHasTrackingTool" name="clientHasTrackingTool">
+                            <label class="form-check-label" for="ClientHasTrackingTool"> The client has tracking tool</label>
                         </div>
                     </div>
                     <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
-                        <label>Additional Emails for notifications</label>
-                        <a style="padding-right: 10px" class="blue-btn" onclick="addNewAdditionalEmailRow('')"><i class="bi bi-plus"></i> Add Email</a>
+                        <label>Assingned Consultants</label>
+                        <a style="padding-right: 10px" class="blue-btn" onclick="addNewAdditionalEmailRow('')"><i class="bi bi-plus"></i> Add Consultant</a>
                     </div>
-                    <div id="emails-container" class="modal-scroll-container">
+                    <div id="consultants-container" class="modal-scroll-container">
                     </div>
                 </form>
 

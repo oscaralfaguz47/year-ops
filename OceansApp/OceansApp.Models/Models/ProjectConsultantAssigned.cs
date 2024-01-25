@@ -17,6 +17,15 @@ namespace OceansApp.Models.Models
         public DateTime AssignedDate { get; set; }
         [Required]
         public bool IsActive { get; set; }
+        public decimal HourlyClientRate { get; set; }
+        public decimal HourlySalary { get; set; }
+        public decimal MonthlyClientRate { get; set; }
+        public decimal MonthlySalary { get; set; }
+        [Required]
+        public bool IsTheMontlyClientRateCalculatePerHour { get; set; }
+        [Required]
+        [MaxLength(130)]
+        public string PositionDetail { get; set; }
 
         [ValidateNever]
         public ConsultantDetail ConsultantDetail { get; set; }

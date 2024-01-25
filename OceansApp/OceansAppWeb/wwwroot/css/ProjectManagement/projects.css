@@ -7,10 +7,10 @@
 .assigned-consultants-div .bi-person-fill {
     font-size: 18px;
     background-color: #2aa7ff;
-    margin-right: -9px;
+    margin-right: -7px;
     border-radius: 50%;
     border: solid 2px #fff;
-    padding: 0px 2px;
+    padding: 0px 4px;
     color: #fff;
 }
 .more-consultants-span {
@@ -19,7 +19,30 @@
     color: #2aa7ff;
     border-radius: 50%;
     border: solid 2px rgba(42, 167, 255, 0.1);
-    padding: 2px;
+    padding: 2px 4px;
     margin-left: 12px;
     align-items: center;
+}
+.tracking-tool-td {
+    text-align: center !important;
+}
+.tracking-tool-td i{
+    font-size: 23px;
+    margin: 0;
+}
+
+/*MODAL CREATE UPDATE*/
+#modal-update-create-project #ClientSelect{
+    width: 300px;
+}
+#modal-update-create-project #successManager {
+    width: 300px;
+}
+@media only screen and (max-width: 400px) {
+    #modal-update-create-project #ClientSelect {
+        width: 100%;
+    }
+    #modal-update-create-project #successManager {
+        width: 100%;
+    }
 }
