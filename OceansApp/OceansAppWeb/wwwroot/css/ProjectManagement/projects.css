@@ -35,16 +35,21 @@
 #modal-update-create-project #ClientSelect{
     width: 300px;
 }
-#modal-update-create-project #successManager {
+#modal-update-create-project #successManagerIdSelect {
     width: 300px;
 }
 @media only screen and (max-width: 400px) {
     #modal-update-create-project #ClientSelect {
         width: 100%;
     }
-    #modal-update-create-project #successManager {
+    #modal-update-create-project #successManagerIdSelect {
         width: 100%;
     }
+}
+.consultantRow {
+    display: flex;
+    margin-bottom: 5px;
+    list-style: none;
 }
 
 #modal-update-create-project .modal-scroll-container {
@@ -66,4 +71,8 @@
 #form-add-update-consultant .radio-group {
     border: solid 2px var(--clr-grayLight);
     padding: 6px;
+}
+.consultant-icon {
+    color: #2aa7ff; 
+    margin-right: 5px;
 }
