@@ -15,6 +15,7 @@ namespace OceansApp.DataAccess.Repository
             LedgerMovements = new LedgerMovementRepository(_db);
             DataUpdateDates = new DataUpdateRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
+            ApplicationUserCategory = new ApplicationUserCategoryRepository(_db);
             ApplicationRoleClaim = new ApplicationRoleClaimRepository(_db);
             ApplicationSystemClaim = new ApplicationSystemClaimRepository(_db);
             CalculatorGlobalConfiguration = new CalculatorGlobalConfigurationRepository(_db);
@@ -51,6 +52,7 @@ namespace OceansApp.DataAccess.Repository
         public ILedgerMovementRepository LedgerMovements { get; private set; }
         public IDataUpdateDateRepository DataUpdateDates { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
+        public IApplicationUserCategoryRepository ApplicationUserCategory { get; private set; }
         public IApplicationRoleClaimRepository ApplicationRoleClaim { get; private set; }
         public ICalculatorGlobalConfigurationRepository CalculatorGlobalConfiguration { get; set; }
         public ICalculatorCostCenterIncreaseConfigurationRepository CalculatorCostCenterIncreaseConfiguration { get; set; }

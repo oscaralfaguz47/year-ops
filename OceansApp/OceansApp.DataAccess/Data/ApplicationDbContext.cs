@@ -51,39 +51,6 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(rq => rq.ConsultantSeniorityId)
                 .IsRequired();
 
-            //CONSULTANT_CLIENTS TABLE
-            modelBuilder.Entity<ConsultantClient>()
-                .HasKey(rq => new { rq.ConsultantId, rq.ClientId, rq.SuccessManager });
-            modelBuilder.Entity<ConsultantClient>()
-                .HasOne(cc => cc.ApplicationUser)
-                .WithMany()
-                .HasForeignKey(cc => cc.ConsultantId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantClient>()
-                .HasOne(cc => cc.Client)
-                .WithMany()
-                .HasForeignKey(cc => cc.ClientId)
-                .IsRequired();
-            modelBuilder.Entity<ConsultantClient>()
-                .HasOne(cc => cc.ApplicationUserSuccessManager)
-                .WithMany()
-                .HasForeignKey(cc => cc.SuccessManager)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantClient>()
-                .HasOne(cc => cc.ApplicationUserCreate)
-                .WithMany()
-                .HasForeignKey(cc => cc.CreatedBy)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantClient>()
-                .HasOne(cc => cc.ApplicationUserUpdate)
-                .WithMany()
-                .HasForeignKey(cc => cc.UpdatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
-            //CONSULTANT_CLIENTS TABLE END -------
-
             //CONSULTANT_DETAIL TABLE
             modelBuilder.Entity<ConsultantDetail>()
                 .HasKey(rq => new { rq.ConsultantId});
@@ -210,7 +177,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantPosition> CONSULTANT_POSITIONS { get; set; }
         public DbSet<ConsultantAndPosition> CONSULTANTS_AND_POSITIONS { get; set; }
-        public DbSet<ConsultantClient> CONSULTANT_CLIENTS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
         public DbSet<ConsultantHoliday> CONSULTANT_HOLIDAYS { get; set; }
         public DbSet<ConsultantHolidayDate> CONSULTANT_HOLIDAY_DATES { get; set; }

@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="~/css/ProjectManagement/projects.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/General/sharedConsultantDetailsMethods.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -134,12 +135,12 @@
 
                     <div class="row">
                         <div class="col-md-7">
-                          <label for="successManager">Client</label>
-                          <div class="custom-select">
-                              <span class="arrow-down"></span>
-                              <select onfocus="fillClientsSelectForFilters(this, 'Select a client')" class="form-select" id="ClientSelect" name="client">
-                              </select>
-                          </div>
+                            <label for="successManager">Client</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onfocus="fillClientsSelectForFilters(this, 'Select a client')" class="form-select" id="ClientSelect" name="client">
+                                </select>
+                            </div>
                         </div>
                         <div class="col-md-5">
                             <label for="StartDate">Start Date</label>
@@ -150,18 +151,18 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                          <label for="successManager">Success Manager</label>
-                          <div class="custom-select">
-                              <span class="arrow-down"></span>
-                              <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
-                              </select>
-                          </div>
+                            <label for="successManager">Success Manager</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div style="margin-top:8px">
                         <div class="checkbox-cont">
-                            <input type="checkbox" class="form-check-input" id="IsActive" name="isActive">
+                            <input type="checkbox" class="form-check-input" id="IsActive" checked name="isActive">
                             <label class="form-check-label" for="IsActive"> Is Active</label>
                         </div>
                         <div class="checkbox-cont">
@@ -171,17 +172,135 @@
                     </div>
                     <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
                         <label>Assingned Consultants</label>
-                        <a style="padding-right: 10px" class="blue-btn" onclick="addNewAdditionalEmailRow('')"><i class="bi bi-plus"></i> Add Consultant</a>
+                        <a style="padding-right: 10px" class="blue-btn" onclick="displayAddUpdateConsultant('modal-add-consultant', 'ADD CONSULTANT', null)"><i class="bi bi-plus"></i> Add Consultant</a>
                     </div>
                     <div id="consultants-container" class="modal-scroll-container">
+                        <div class="row">
+                            <div class="consultantRow">
+                            </div>
+                        </div>
                     </div>
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                    <a id="btn-cancel" onclick="hideModal('modal-create-holiday')" class="cancel-btn">Cancel</a>&nbsp;
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-project')" class="cancel-btn">Cancel</a>&nbsp;
                     <button id="btn-saving" onclick="createUpdateClient('modal-update-client')" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--MODAL ADD CONSULTANT TO PROJECT -->
+<div id="modal-add-consultant" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2>ADD CONSULTANT</h2>
+                <form id="form-add-update-consultant">
+                    <div id="consultants-search-cont">
+                        <div class="input-container">
+                            <input id="search-consultant-input" autocomplete="off" oninput="searchConsultantsBySearchText(this.value, 'consultantIdFromSearch', 'consultantNameInput', 'consultantEmailInput')" type="text" placeholder="Search consultant" class="form-control">
+                            <i class="bi bi-search placeholder-image"></i>
+                            <div id="consultant-search-results" class="search-results"></div>
+                        </div>
+                        <input type="hidden" name="consultantIdFromSearch" id="consultantIdFromSearch">
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label>Consultant Name</label>
+                            <div class="input-container">
+                                <input disabled type="text" class="form-control" id="consultantNameInput">
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Consultant Email</label>
+                            <div class="input-container">
+                                <input disabled type="text" class="form-control" id="consultantEmailInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <label>Position detail</label>
+                            <div class="input-container">
+                                <input placeholder="Enter a position description (Full Stack Developer)" type="text" class="form-control" id="positionDetail">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 5px" class="radio-group monthly-mode-rg">
+                        <label style="margin-top: 0" class="radio-label">
+                            <input onchange="validateRatesInputs()" name="client-rate-model" type="radio" value="H" checked class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Client rate hourly.<span style="font-weight: normal"> (Ex: $55)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input onchange="validateRatesInputs()" name="client-rate-model" type="radio" value="M" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Client rate monthly.<span style="font-weight: normal"> (Monthly On Time Fee. Ex: $10,000)</span>
+                        </label>
+                    </div>
+                    <div style="margin-top: 5px" class="radio-group">
+                        <label style="margin-top: 0" class="radio-label">
+                            <input onchange="validateRatesInputs()" name="consultant-rate-model" type="radio" checked value="M" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Consultant rate monthly.<span style="font-weight: normal"> (The hourly rate is calculated based on business days and monthly base)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input onchange="validateRatesInputs()" name="consultant-rate-model" type="radio" value="H" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Consultant rate hourly. <span style="font-weight: normal"> (Hourly rate is always the same)</span>
+                        </label>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6" id="monthlyClientRateEl">
+                            <label for="PaymentCondition">Monthly Client Rate</label>
+                            <div class="input-container">
+                                <input placeholder="$10,000" type="number" class="form-control" name="monthlyClientRate">
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="hourlyClientRateEl">
+                            <label for="PaymentCondition">Hourly Client Rate</label>
+                            <div class="input-container">
+                                <input placeholder="$55" type="number" class="form-control" name="hourlyClientRate">
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="monthlyConsultantSalaryEl">
+                            <label for="PaymentCondition">Monthly Consultant Salary</label>
+                            <div class="input-container">
+                                <input placeholder="$5,000" type="number" class="form-control" name="monthlySalary">
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="hourlyConsultantSalaryEl">
+                            <label for="PaymentCondition">Hourly Consultant Salary</label>
+                            <div class="input-container">
+                                <input placeholder="$22" type="number" class="form-control" name="hourlySalary">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="checkbox-cont">
+                                <input type="checkbox" class="form-check-input" id="IsAssignationActive" name="isAssignationActive" checked>
+                                <label class="form-check-label" for="IsAssignationActive"> Is the consultant active in the project?</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="second-btn-cancel" onclick="hideModal('modal-add-consultant')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="second-btn-saving" onclick="createUpdateClient('modal-update-client')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="second-spinner-saving" class="spinner-border" role="status">
                             </div><span></span>
                         </div>
                     </button>
@@ -196,4 +315,5 @@
 <script src="~/js/ProjectManagement/projects.js"></script>
 <script src="~/js/ProjectManagement/clientsSectionFillDropdowns.js"></script>
 <script src="~/js/General/generalSectionFillDropdowns.js"></script>
+<script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
     }

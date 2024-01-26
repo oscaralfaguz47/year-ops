@@ -7,6 +7,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<List<GetUsersSelectVM>> GetUsersByCategoryAndPositionForSelect(string userCategory, string userPosition);
         Task<int> GetNumOfUsersByCategoryConsultantIdAndPosition(string userCategory, string userPosition, int consultantId);
+        Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string searchText);
         void Update(ConsultantDetail obj);
     }
 }

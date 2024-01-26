@@ -61,6 +61,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         {
             if (ModelState.IsValid)
             {
+                var userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == "Administrative");
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
@@ -69,7 +70,8 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                     LastName = model.LastName,
                     Occupation = model.Occupation,
                     IsActive = true,
-                    PhoneNumber = model.PhoneNumber
+                    PhoneNumber = model.PhoneNumber,
+                    UserCategoryId = userCategory.UserCategoryId
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);

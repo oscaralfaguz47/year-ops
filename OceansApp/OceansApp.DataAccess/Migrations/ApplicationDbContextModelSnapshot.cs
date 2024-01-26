@@ -558,75 +558,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("CONSULTANTS_AND_POSITIONS");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantClient", b =>
-                {
-                    b.Property<string>("ConsultantId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SuccessManager")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateLastUpdate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double?>("HourlyClientRate")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("HourlySalary")
-                        .HasColumnType("float");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsTheMonthlyClientRateCalculatePerHour")
-                        .HasColumnType("bit");
-
-                    b.Property<double?>("MonthlyClientRate")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("MontlySalary")
-                        .HasColumnType("float");
-
-                    b.Property<string>("PositionDetail")
-                        .IsRequired()
-                        .HasMaxLength(130)
-                        .HasColumnType("nvarchar(130)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ConsultantId", "ClientId", "SuccessManager");
-
-                    b.HasIndex("ClientId");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("SuccessManager");
-
-                    b.HasIndex("UpdatedBy");
-
-                    b.ToTable("CONSULTANT_CLIENTS");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
                 {
                     b.Property<int>("ConsultantId")
@@ -1716,48 +1647,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantClient", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreate")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserSuccessManager")
-                        .WithMany()
-                        .HasForeignKey("SuccessManager")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserUpdate")
-                        .WithMany()
-                        .HasForeignKey("UpdatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("ApplicationUserCreate");
-
-                    b.Navigation("ApplicationUserSuccessManager");
-
-                    b.Navigation("ApplicationUserUpdate");
-
-                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>

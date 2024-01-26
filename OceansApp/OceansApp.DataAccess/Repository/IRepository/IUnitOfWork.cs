@@ -7,6 +7,7 @@
         ILedgerMovementRepository LedgerMovements { get; }
         IDataUpdateDateRepository DataUpdateDates { get; }
         IApplicationUserRepository ApplicationUser { get; }
+        IApplicationUserCategoryRepository ApplicationUserCategory { get; }
         IApplicationRoleClaimRepository ApplicationRoleClaim { get; }
         IApplicationSystemClaimRepository ApplicationSystemClaim { get; }
         ICalculatorGlobalConfigurationRepository CalculatorGlobalConfiguration { get; }

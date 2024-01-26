@@ -1,6 +1,5 @@
 ﻿
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Text.RegularExpressions;
 
 namespace OceansApp.Utility.SharedMethods.InputValidations
 {
@@ -17,11 +16,14 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
 
         public void ValidateNotRequiredAndStringLength(string field, string fieldName, string stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
         {
-            if (stringToValidate.Trim() != "" && stringToValidate.Trim() != null)
+            if (stringToValidate != null)
             {
-                if (stringToValidate.Trim().Length > maxCharacterNum)
+                if (stringToValidate.Trim() != "")
                 {
-                    modelState.AddModelError(field, $"The {fieldName} must be between 1 and {maxCharacterNum} characters.");
+                    if (stringToValidate.Trim().Length > maxCharacterNum)
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} must be between 1 and {maxCharacterNum} characters.");
+                    }
                 }
             }
         }

@@ -1,0 +1,56 @@
+﻿#consultants-search-cont .search-results {
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #consultants-search-cont .search-results ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    #consultants-search-cont .search-results li {
+        padding: 5px;
+        cursor: pointer;
+        border-bottom: solid 1px var(--clr-blueLight);
+        background-color: rgb(1, 192, 183,0.1);
+    }
+
+        #consultants-search-cont .search-results li:hover {
+            background-color: var(--clr-blueLight);
+            color: #fff;
+        }
+
+#form-add-update-consultant .input-container input {
+    padding-left: 10px;
+}
+#form-add-update-consultant #search-consultant-input{
+    padding-left: 30px;
+}
+#form-add-update-consultant .custom-select {
+    margin-top: 0px;
+}
+
+#form-add-update-consultant .input-container {
+    margin-top: 0px;
+}
+
+#form-add-update-consultant .checkbox-cont label {
+    margin-top: 0px !important;
+    cursor: pointer;
+}
+#form-add-update-consultant .checkbox-cont {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+#form-add-update-consultant label{
+    font-weight: bold;
+    margin-top: 8px;
+}
+#form-add-update-consultant .flex-div {
+   display: flex;
+}

@@ -133,6 +133,20 @@ function inicializeModalButtons(modalId) {
     btnCancel.onclick = originalClickHandler;
     btnCancel.style.cursor = 'pointer';
 }
+function inicializeSecondModalButtons(modalId) {
+    var spanInsideBtnSaving = $('#second-btn-saving span');
+    spanInsideBtnSaving.text('Save');
+    var spinnerSaving = $('#second-spinner-saving');
+    spinnerSaving.hide();
+    var btnSaving = $('#second-btn-saving');
+    btnSaving.prop('disabled', false);
+    var originalClickHandler = function () {
+        hideModal(modalId);
+    };
+    var btnCancel = document.getElementById('second-btn-cancel');
+    btnCancel.onclick = originalClickHandler;
+    btnCancel.style.cursor = 'pointer';
+}
 function resetForm(formId) {
     var createUpdateForm = $('#' + formId);
     createUpdateForm[0].reset();

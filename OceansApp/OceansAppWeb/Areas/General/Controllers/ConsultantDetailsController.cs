@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Utility.SharedMethods.InputValidations;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
     [Area("General")]
+    [Authorize]
     [RequireTwoFactorEnabled]
     public class ConsultantDetailsController : Controller
     {
@@ -28,6 +30,32 @@ namespace OceansAppWeb.Areas.General.Controllers
                 return Ok(new
                 {
                     SuccessManagers = users
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+        [Authorize(Policy = "AccessToSearchConsultantsBySearchText")]
+        [HttpGet]
+        public async Task<IActionResult> GetConsultantsBySearchText(string? searchText)
+        {
+            try
+            {
+                ValidateInputs validateInputs = new();
+                validateInputs.ValidateNotRequiredAndStringLength("SearchConsultant", "Search Consultant", searchText, 100, ModelState);
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors, detail = "Parameters for filters are not correct." });
+                }
+                var consultants = await _unitOfWork.ConsultantDetail.GetConsultantsBySearchText(searchText);
+                return Ok(new
+                {
+                    Consultants = consultants
                 });
             }
             catch (Exception ex)

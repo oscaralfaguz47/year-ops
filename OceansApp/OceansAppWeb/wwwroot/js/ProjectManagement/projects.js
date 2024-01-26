@@ -82,12 +82,95 @@ async function displayUpdateModal(modalId, action, id) {
     inicializeModalButtons(modalId);
     resetForm('form-create-update')
     var consultantsContainer = $("#consultants-container");
-    consultantsContainer.empty();
+    //consultantsContainer.empty();
 
     const clientSelect = createUpdateForm.find('[name="client"]')[0];
     clientSelect.innerHTML = '<option>-Select a client-</option>';
     const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
     successManagerSelect.innerHTML = '<option>-Select a user-</option>';
+    showModal(modalId);
+    var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
+    //displaySpinner();
+    //fetch(url)
+    //    .then(response => {
+    //        if (response.ok) {
+    //            return response.json();
+    //        } else {
+    //            return response.json().then(errorData => {
+    //                displayToasterError(errorData.error);
+    //                hideModal(modalId);
+    //                throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+    //            });
+    //        }
+    //    })
+    //    .then(data => {
+    //        createUpdateForm.find('[name="clientId"]').val(data.clientData.clientId);
+    //        createUpdateForm.find('[name="clientName"]').val(data.clientData.name);
+    //        createUpdateForm.find('[name="contact"]').val(data.clientData.contact);
+    //        createUpdateForm.find('[name="contactOccupation"]').val(data.clientData.contactOccupation);
+    //        createUpdateForm.find('[name="emails"]').val(data.clientData.emails);
+    //        let adDate = new Date(data.clientData.admissionDate);
+    //        createUpdateForm.find('[name="admissionDate"]').val(adDate.toISOString().split('T')[0]);
+    //        createUpdateForm.find('[name="paymentCondition"]').val(data.clientData.paymentCondition);
+    //        createUpdateForm.find('[name="latePaymentFee"]').val(Number(data.clientData.latePaymentFee * 100).toFixed(2));
+    //        createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
+    //        createUpdateForm.find('[name="address"]').val(data.clientData.address);
+    //        if (data.clientData.successManagerId !== null) {
+    //            var newOption = document.createElement('option');
+    //            newOption.value = data.clientData.successManagerId;
+    //            newOption.text = data.clientData.successManager;
+    //            newOption.selected = true;
+    //            successManagerSelect.appendChild(newOption);
+    //        } else {
+    //            var nullOption = document.createElement('option');
+    //            nullOption.value = null;
+    //            nullOption.text = "-Select a user-";
+    //            successManagerSelect.appendChild(nullOption);
+    //        }
+    //        var isActive = data.clientData.isActive === "S" ? true : false;
+    //        createUpdateForm.find('[name="isActive"]').val(isActive);
+    //        createUpdateForm.find('[name="isActive"]').prop('checked', isActive);
+    //        createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').val(data.clientData.allowSentLatePaymentNotifications);
+    //        createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked', data.clientData.allowSentLatePaymentNotifications);
+    //        if (data.clientData.additionalEmailsForNotifications !== null) {
+    //            var emailsArray = data.clientData.additionalEmailsForNotifications.split(";");
+    //            emailsArray = emailsArray.map(email => email.trim()).filter(email => email !== "");
+    //            emailsArray.forEach(function (email) {
+    //                addNewAdditionalEmailRow(email)
+    //            });
+    //        }
+    //        showModal(modalId);
+    //    })
+    //    .finally(() => {
+    //        hideSpinner();
+    //    });
+}
+function validateRatesInputs() {
+    console.log("M :" + document.querySelector('input[name="client-rate-model"]:checked').value);
+    console.log("M :" + document.querySelector('input[name="consultant-rate-model"]:checked').value);
+    if (document.querySelector('input[name="client-rate-model"]:checked').value === 'H') {
+        document.getElementById('hourlyClientRateEl').style.display = 'block';
+        document.getElementById('monthlyClientRateEl').style.display = 'none';
+    } else {
+        document.getElementById('hourlyClientRateEl').style.display = 'none';
+        document.getElementById('monthlyClientRateEl').style.display = 'block';
+    }
+    if (document.querySelector('input[name="consultant-rate-model"]:checked').value === 'M') {
+        document.getElementById('monthlyConsultantSalaryEl').style.display = 'block';
+        document.getElementById('hourlyConsultantSalaryEl').style.display = 'none';
+    } else {
+        document.getElementById('monthlyConsultantSalaryEl').style.display = 'none';
+        document.getElementById('hourlyConsultantSalaryEl').style.display = 'block';
+    }
+}
+
+//ADD / UPDATE CONSULTANT
+async function displayAddUpdateConsultant(modalId, action, id) {
+    var createUpdateForm = $('#form-add-update-consultant');
+    inicializeSecondModalButtons(modalId);
+    resetForm('form-add-update-consultant')
+    validateRatesInputs();
+
     showModal(modalId);
     var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
     //displaySpinner();
