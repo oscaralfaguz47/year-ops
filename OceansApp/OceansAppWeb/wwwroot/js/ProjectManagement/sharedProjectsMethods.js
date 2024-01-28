@@ -189,3 +189,20 @@ document.addEventListener("DOMContentLoaded", function () {
     validateInputTypeNumber('monthlySalary');
     validateInputTypeNumber('hourlySalary');
 });
+
+//HTTP REQUESTS
+async function getSuccessManagerIdAndNameByClientId(clientId) {
+    var url = "/ProjectManagement/Clients/GetSuccessManagerIdAndNameByClientId?clientId=" + encodeURIComponent(clientId);
+    try {
+        let response = await fetch(url);
+        if (response.ok) {
+            return await response.json();
+        } else {
+            let errorData = await response.json();
+            throw new Error('The request to the server failed!. More details: ' + errorData.error);
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        return null;
+    }
+}

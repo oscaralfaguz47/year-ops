@@ -142,7 +142,7 @@ namespace OceansApp.DataAccess.Data
                 .OnDelete(DeleteBehavior.Restrict);
             // PROJECTS CONSULTANTS ASSIGNED HISTORY
             modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .HasNoKey();
+                .HasKey(p => new { p.Id });
             modelBuilder.Entity<ProjectConsultantAssignedHistory>()
                 .HasOne(p => p.ProjectConsultantAssigned)
                 .WithMany()

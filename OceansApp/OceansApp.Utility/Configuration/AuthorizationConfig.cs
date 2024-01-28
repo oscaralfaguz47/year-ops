@@ -142,6 +142,13 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToGetSuccessManagerIdAndNameWhereClientId", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
+                        && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
+            });
 
         }
     }

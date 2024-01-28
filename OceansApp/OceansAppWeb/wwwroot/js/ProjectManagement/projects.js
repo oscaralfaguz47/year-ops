@@ -46,7 +46,7 @@ async function getListOfResults(firstTime, filters) {
                   </td>
                   <td>${obj.successManagerName === null ? "" : obj.successManagerName}</td>
                   <td><div class="assigned-consultants-div" id="conAssigned${count}"></div></td>
-                  <td class="tracking-tool-td">${obj.clientHasTrackingTool ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>' }</td>
+                  <td class="tracking-tool-td">${obj.clientHasTrackingTool ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
               </tr>`;
                 tbody.append(row);
                 addConsultantIcons(obj.numConsultantsAssigned, "conAssigned" + count);
@@ -65,11 +65,11 @@ function addConsultantIcons(num, tdId) {
     const tdElement = document.getElementById(tdId);
     tdElement.innerHTML = "";
     for (let i = 0; i < Math.min(num, 3); i++) {
-        tdElement.innerHTML += '<i style="z-index:' + i +'" class="bi bi-person-fill"></i>';
-       // tdElement.innerHTML += '<img src="https://ca.slack-edge.com/TJV63SXV5-U047NF10QH5-b853bea57b67-72" style="z-index:' + i + ';width:35px; border-radius:50%; margin-right: -7px;border: solid 2px #fff;">';
+        tdElement.innerHTML += '<i style="z-index:' + i + '" class="bi bi-person-fill"></i>';
+        // tdElement.innerHTML += '<img src="https://ca.slack-edge.com/TJV63SXV5-U047NF10QH5-b853bea57b67-72" style="z-index:' + i + ';width:35px; border-radius:50%; margin-right: -7px;border: solid 2px #fff;">';
     }
     if (num > 3) {
-        tdElement.innerHTML += '<i class="more-consultants-span">+' + (num - 3)+'</i> ';
+        tdElement.innerHTML += '<i class="more-consultants-span">+' + (num - 3) + '</i> ';
     }
     if (num === 0) {
         tdElement.innerHTML += '<i style="font-size:21px; margin-right:5px;" class="bi bi-person-x-fill red-label"></i><span class="red-label"> No assigned consultants.</span>';
@@ -85,9 +85,10 @@ async function displayUpdateModal(modalId, action, id) {
     consultantsContainer.empty();
 
     const clientSelect = createUpdateForm.find('[name="client"]')[0];
-    clientSelect.innerHTML = '<option>-Select a client-</option>';
+    clientSelect.innerHTML = '<option value="null">-Select a client-</option>';
     const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
-    successManagerSelect.innerHTML = '<option>-Select a user-</option>';
+    successManagerSelect.innerHTML = '<option value="null">-Select a user-</option>';
+    successManagerSelect.disabled = true;
     showModal(modalId);
     var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
     //displaySpinner();
@@ -145,9 +146,101 @@ async function displayUpdateModal(modalId, action, id) {
     //        hideSpinner();
     //    });
 }
+//CreateUpdate Project
+async function createUpdateProject(modalId) {
+    waitingForPostMethod();
+    var createUpdateForm = $('#form-create-update');
+    var projectIdData = createUpdateForm.find('[name="projectId"]').val() || null;
+    var projectNameData = createUpdateForm.find('[name="projectName"]').val();
+    var projectDetailData = createUpdateForm.find('[name="description"]').val();
+    var clientIdData = createUpdateForm.find('[name="client"]').val();
+    var startDateData = createUpdateForm.find('[name="startDate"]').val();
+    var successManagerData = createUpdateForm.find('[name="successManager"]').val();
+    var isActiveData = createUpdateForm.find('[name="isActive"]').prop('checked');
+    var clientHasTrackingToolData = createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked');
+    var consultantsElements = document.querySelectorAll(".consultantRow");
+    var consultantsData = [];
+    consultantsData = Array.from(consultantsElements).map(function (fila) {
+        var projectConsultantAssignedId = fila.querySelector('[name="projectConsultantAssignedId"]').value ? fila.querySelector('[name="projectConsultantAssignedId"]').value : null;
+        var consultantId = fila.querySelector('[name="consultantIdCreateProject"]').value;
+        var positionDetail = fila.querySelector('[name="positionDetailCreateProject"]').value;
+        var hourlyClientRateCreateProject = fila.querySelector('[name="hourlyClientRateCreateProject"]').value;
+        var monthlyClientRateCreateProject = fila.querySelector('[name="monthlyClientRateCreateProject"]').value;
+        var hourlySalaryCreateProject = fila.querySelector('[name="hourlySalaryCreateProject"]').value;
+        var monthlySalaryCreateProject = fila.querySelector('[name="monthlySalaryCreateProject"]').value;
+        return {
+            ProjectConsultantAssignedId: projectConsultantAssignedId,
+            ConsultantId: Number(consultantId),
+            HourlyClientRate: Number(hourlyClientRateCreateProject),
+            HourlySalary: Number(hourlySalaryCreateProject),
+            MonthlyClientRate: Number(monthlyClientRateCreateProject),
+            MonthlySalary: Number(monthlySalaryCreateProject),
+            PositionDetail: positionDetail
+        };
+    });
+
+    var token = $('[name="__RequestVerificationToken"]').val();
+    var data = {
+        ProjectId: projectIdData,
+        Name: projectNameData,
+        Description: projectDetailData,
+        ClientId: Number(clientIdData),
+        StartDate: startDateData ? startDateData.toString() : null,
+        SuccessManagerId: Number(successManagerData),
+        IsActive: Boolean(isActiveData),
+        ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
+        AssignedConsultants: consultantsData
+    };
+    console.log(data);
+    fetch('/ProjectManagement/Projects/CreateUpdateProject', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            RequestVerificationToken: token
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    if (errorData.messageType === "Validation Error") {
+                        displayToasterWarningArray(errorData.errors);
+                        inicializeModalButtons(modalId);
+                        throw new Error('Validation errors!');
+                    } else {
+                        displayToasterError(errorData.error);
+                        hideModal(modalId);
+                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                    }
+                });
+            }
+        })
+        .then(data => {
+            hideModal(modalId);
+            createUpdateForm[0].reset();
+            displayToasterSuccess(data.message);
+            getListOfResults(false, false);
+        });
+}
 function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
     fillClientsSelectForFilters(selectElement, firstOption);
     selectElement.onchange = function () {
+        displaySpinner();
+        getSuccessManagerIdAndNameByClientId(selectElement.value)
+            .then(data => {
+                var successManagerSelect = document.getElementById('successManagerIdSelect');
+                if (data !== null) {
+                    successManagerSelect.innerHTML = '<option selected value="' + data.successManager.userId + '">' + data.successManager.userName + '</option>';
+                } else {
+                    successManagerSelect.innerHTML = '<option selected value="null">-Select a user-</option>';
+                }
+                hideSpinner();
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
         document.getElementById('successManagerIdSelect').disabled = false;
     };
 }
@@ -164,7 +257,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
 
-    addNewConsultantRow(consultantNameValue, null, consultantIdValue, positionDetailValue,
+    addNewConsultantRow(consultantNameValue, "", consultantIdValue, positionDetailValue,
         hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue)
     hideModal(modalId);
 }
@@ -183,6 +276,9 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     projectConsultantAssignetIdInput.type = "hidden";
     projectConsultantAssignetIdInput.name = "projectConsultantAssignedId";
     row.appendChild(projectConsultantAssignetIdInput);
+    //if (holiday !== null && holiday !== undefined) {
+    //    inputHiddenId.value = holiday.consultantHolidayDateId;
+    //}
 
     var consultantIdInput = document.createElement("input");
     consultantIdInput.value = consultantId;

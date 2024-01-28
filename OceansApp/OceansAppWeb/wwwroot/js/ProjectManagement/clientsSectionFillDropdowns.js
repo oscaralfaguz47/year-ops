@@ -19,7 +19,7 @@ function fillClientsSelectForFilters(selectElement, firstOption) {
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     getClientsList()
         .then(data => {
-            selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
+            selectElement.innerHTML = '<option value="null">-' + firstOption + '-</option>';
             data.clients.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
             });

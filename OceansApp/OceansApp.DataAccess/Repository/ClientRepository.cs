@@ -5,6 +5,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Clients;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.Consultants;
 using System.Data;
 using System.Linq;
 
@@ -35,7 +36,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            var results = await connection.QueryAsync<ClientsGetAllWithFiltersVM>("GetAllClientsWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var results = await connection.QueryAsync<ClientsGetAllWithFiltersVM>("SP_CLIENT_GetAllClientsWithFilters", parameters, commandType: CommandType.StoredProcedure);
             var totalCount = parameters.Get<int>("@TotalCount");
 
             var clients = results.ToList();
@@ -55,9 +56,20 @@ namespace OceansApp.DataAccess.Repository
             var parameters = new DynamicParameters();
             parameters.Add("@ClientId", clientId);
 
-            var client = await connection.QuerySingleOrDefaultAsync<CreateUpdateClientVM>("GetClientById", parameters, commandType: CommandType.StoredProcedure);
+            var client = await connection.QuerySingleOrDefaultAsync<CreateUpdateClientVM>("SP_CLIENT_GetClientById", parameters, commandType: CommandType.StoredProcedure);
 
             return (client);
+        }
+
+        public async Task<GetUsersSelectVM> GetSuccessManagerIdAndNameByClientId(int clientId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ClientId", clientId);
+
+            var successManager = await connection.QuerySingleOrDefaultAsync<GetUsersSelectVM>("SP_CLIENT_GetSuccessManagerIdAndNameByClientId", parameters, commandType: CommandType.StoredProcedure);
+
+            return (successManager);
         }
 
         public void Update(Client obj)

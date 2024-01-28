@@ -6,11 +6,18 @@ namespace OceansApp.Models.Models
 {
     public class ProjectConsultantAssignedHistory
     {
+        [Key]
+        [Required]
+        public int Id { get; set; }
         [Required]
         public int ProjectConsultantAssignedId { get; set; }
-        [MaxLength(50)]
+        [MaxLength(30)]
         [Required]
         public string Action { get; set; }
+        [MaxLength(130)]
+        public string? OldValue { get; set; }
+        [MaxLength(130)]
+        public string? NewValue { get; set; }
         [Required]
         public DateTime ActionDate { get; set; }
         [Required]

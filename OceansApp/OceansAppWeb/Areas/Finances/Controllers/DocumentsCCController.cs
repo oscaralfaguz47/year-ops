@@ -325,9 +325,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     emailsCCBeforeRemoveDuplicates.Add(email);
                 }
-                if (client.SuccessManagerId != null)
+                if (client.SuccessManager != null)
                 {
-                    var successManagerUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == client.SuccessManagerId);
+                    var consultantDetail = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == client.SuccessManager);
+                    var successManagerUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == consultantDetail.UserId);
                     if (successManagerUser == null)
                     {
                         return Json(new { success = false, error = "No fue posible encontrar el usuario para el Success Manager en la base de datos." });

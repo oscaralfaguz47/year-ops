@@ -18,27 +18,77 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
         {
             if (stringToValidate != null)
             {
-                if (stringToValidate.Trim() != "")
+                if (stringToValidate != "")
                 {
-                    if (stringToValidate.Trim().Length > maxCharacterNum)
+                    if (stringToValidate.Trim() != "")
                     {
-                        modelState.AddModelError(field, $"The {fieldName} must be between 1 and {maxCharacterNum} characters.");
+                        if (stringToValidate.Trim().Length > maxCharacterNum)
+                        {
+                            modelState.AddModelError(field, $"The {fieldName} must be between 1 and {maxCharacterNum} characters.");
+                        }
                     }
                 }
             }
         }
         public void ValidateRequiredFieldStringValue(string field, string fieldName, string? stringToValidate, ModelStateDictionary modelState)
         {
-            if (stringToValidate == null || stringToValidate.Trim() == "")
+            if (stringToValidate != null)
             {
+                if (stringToValidate.Trim() == "")
+                {
                     modelState.AddModelError(field, $"The {fieldName} is required.");
+                }
+            }
+            else
+            {
+                modelState.AddModelError(field, $"The {fieldName} is required.");
             }
         }
-        public void ValidateRequiredFieldNumberValue(string field, string fieldName, decimal? numToValidate, ModelStateDictionary modelState)
+        public void ValidateRequiredFieldAnyValue(string field, string fieldName, object valueToValidate, ModelStateDictionary modelState)
+        {
+            if (valueToValidate == null)
+            {
+                modelState.AddModelError(field, $"The {fieldName} is required.");
+            }else if (valueToValidate is string && string.IsNullOrWhiteSpace(valueToValidate as string))
+            {
+                modelState.AddModelError(field, $"The {fieldName} is required.");
+            }
+        }
+        public void ValidateRequiredFieldBooleanType(string field, string fieldName, object valueToValidate, ModelStateDictionary modelState)
+        {
+            if (valueToValidate == null)
+            {
+                modelState.AddModelError(field, $"The {fieldName} is required.");
+            }
+            else if (valueToValidate is not bool)
+            {
+                modelState.AddModelError(field, $"The {fieldName} value should be a boolean.");
+            }
+        }
+        public void ValidateRequiredFieldIntType(string field, string fieldName, object valueToValidate, ModelStateDictionary modelState)
+        {
+            if (valueToValidate == null)
+            {
+                modelState.AddModelError(field, $"The {fieldName} is required.");
+            }
+            else if (!(valueToValidate is int))
+            {
+                modelState.AddModelError(field, $"The {fieldName} value should be an int.");
+            }
+        }
+
+        public void ValidateRequiredFieldNumberValue(string field, string fieldName, object numToValidate, ModelStateDictionary modelState)
         {
             if (numToValidate == null)
             {
                 modelState.AddModelError(field, $"The {fieldName} is required.");
+            }
+            else
+            {
+                if (!(numToValidate is int || numToValidate is decimal || numToValidate is float))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} should be a number.");
+                }
             }
         }
         public void ValidateEmail(string field, string fieldName, string email, ModelStateDictionary modelState)
@@ -76,7 +126,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
         }
 
-        public void ValidateDateValidFormat(string field, string fieldName, string dateValue, ModelStateDictionary modelState)
+        public void ValidateDateValidFormat(string field, string fieldName, object dateValue, ModelStateDictionary modelState)
         {
             var validationResult = ValidateDateFormat(dateValue, fieldName);
 
@@ -111,25 +161,33 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             public string ResultFalseMessage { get; set; }
         }
 
-        private ValidateResponse ValidateDateFormat(string dateString, string field)
+        private ValidateResponse ValidateDateFormat(object dateString, string field)
         {
             ValidateResponse response = new ValidateResponse();
 
-            if (string.IsNullOrEmpty(dateString))
+            if (dateString != null)
             {
-                response.Result = true;
-                return response;
-            }
-            bool isValidDate = DateTime.TryParse(dateString, out DateTime fechaConvertida);
+                if (string.IsNullOrEmpty(dateString.ToString()))
+                {
+                    response.Result = true;
+                    return response;
+                }
+                bool isValidDate = DateTime.TryParse(dateString.ToString(), out DateTime fechaConvertida);
 
-            if (isValidDate)
-            {
-                response.Result = true;
+                if (isValidDate)
+                {
+                    response.Result = true;
+                }
+                else
+                {
+                    response.Result = false;
+                    response.ResultFalseMessage = $"The {field} is not a valid Date.";
+                }
             }
             else
             {
                 response.Result = false;
-                response.ResultFalseMessage = $"The {field} is not a valid Date.";
+                response.ResultFalseMessage = $"The {field} is required to add a valid date.";
             }
             return response;
         }

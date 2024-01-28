@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Projects;
 using System.Data;
 
@@ -39,6 +40,77 @@ namespace OceansApp.DataAccess.Repository
             var projects = results.ToList();
 
             return (projects, totalCount);
+        }
+
+        public async Task<MethodResponse> CreateProjectWithAssignedConsultants(CreateUpdateProjectVM projectData)
+        {
+            try
+            {
+                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                using var transaction = await _db.Database.BeginTransactionAsync();
+
+                Project projectToCreate = new()
+                {
+                    Name = projectData.Name.Trim(),
+                    Description = projectData.Description.Trim(),
+                    StartDate = DateTime.Parse(projectData.StartDate),
+                    IsActive = (bool)projectData.IsActive,
+                    CreatedBy = projectData.CreatedBy,
+                    CreationDate = costaRicaTime,
+                    ClientId = (int)projectData.ClientId,
+                    SuccessManagerId = (int)projectData.SuccessManagerId,
+                    ClientHasTrackingTool = (bool)projectData.ClientHasTrackingTool
+                };
+                var createdProject = await _db.PROJECTS.AddAsync(projectToCreate);
+                await _db.SaveChangesAsync();
+
+                if (createdProject.Entity != null && createdProject.Entity.ProjectId > 0)
+                {
+                    if (projectData.AssignedConsultants != null)
+                    {
+                        foreach (var consultant in projectData.AssignedConsultants)
+                        {
+                            ProjectConsultantAssigned consultantAssignedToCreate = new()
+                            {
+                                ProjectId = createdProject.Entity.ProjectId,
+                                ConsultantId = consultant.ConsultantId,
+                                AssignedDate = costaRicaTime,
+                                IsActive = true,
+                                HourlyClientRate = consultant.HourlyClientRate,
+                                HourlySalary = consultant.HourlySalary,
+                                MonthlyClientRate = consultant.MonthlyClientRate,
+                                MonthlySalary = consultant.MonthlySalary,
+                                PositionDetail = consultant.PositionDetail
+                            };
+                          var createdAssignedConsultant =  await _db.PROJECTS_CONSULTANTS_ASSIGNED.AddAsync(consultantAssignedToCreate);
+                            await _db.SaveChangesAsync();
+                            if (createdAssignedConsultant.Entity != null && createdAssignedConsultant.Entity.ProjectConsultantAssignedId > 0)
+                            {
+                                ProjectConsultantAssignedHistory history = new()
+                                {
+                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
+                                    Action = "Consultant Assigned First Time",
+                                    ActionDate = costaRicaTime,
+                                    UserActionedBy = projectData.CreatedBy,
+                                    NewValue = $"The Consultant is assigned for the first time.",
+                                };
+                               await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(history);
+                               await _db.SaveChangesAsync();
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    return new MethodResponse { MessageType = "Saving Error", Success = false, Message = $"The Project could not be created. Something went wrong. Please report this issue." };
+                }
+                await transaction.CommitAsync();
+                return new MethodResponse { Success = true, Message = $"The Project was created successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
         }
         public void Update(Project obj)
         {

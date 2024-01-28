@@ -5,6 +5,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Projects;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.ProjectManagement.Controllers
 {
@@ -90,5 +91,95 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 return BadRequest(new { errors = new[] { $"There was an error fetching the list of projects." }, success = false, result = "errorGet", detail = ex.Message });
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdateProject([FromBody] CreateUpdateProjectVM projectData)
+        {
+            try
+            {
+                if (projectData == null)
+                {
+                    return BadRequest(new { error =  "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredAndStringLength("Name", "Project Name", projectData.Name, 150, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("Description", "Project Description", projectData.Description, 300, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDate", "Start Date", projectData.StartDate, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("IsActive", "Is Active", projectData.IsActive, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("ClientId", "Client", projectData.ClientId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("SuccessManagerId", "Success Manager", projectData.SuccessManagerId, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("ClientHasTrackingTool", "Client has tracking tool", projectData.ClientHasTrackingTool, ModelState);
+
+                if (projectData.AssignedConsultants != null)
+                {
+                    foreach (var consultant in projectData.AssignedConsultants)
+                    {
+                        validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", consultant.ConsultantId, ModelState);
+                        validateInputs.ValidateRequiredAndStringLength("PositionDetail", "Position Description", consultant.PositionDetail, 130, ModelState);
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+
+                    var claimsIdentity = (ClaimsIdentity)User.Identity;
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                    var resultMessage = "";
+
+                    //IF IS NOT PROJECT ID THEN CREATE THE PROJECT
+                    if (projectData.ProjectId == null)
+                    {
+                        projectData.CreatedBy = claim.Value;
+
+                        var res = await _unitOfWork.Project.CreateProjectWithAssignedConsultants(projectData);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            return BadRequest(new { MessageType = res.MessageType, error = res.Message , result = "ErrorSaving", detail = "The Project could be saved." });
+                        }
+                    }
+                    else
+                    {
+                        //IF IS PROJECT ID THEN UPDATE THE PROJECT
+                       // var res = await _unitOfWork.ConsultantHoliday.UpdateHolidayListWithHolidayDates(holidayData, claim.Value);
+
+                        //if (res.Success)
+                        //{
+                        //    resultMessage = res.Message;
+                        //}
+                        //else
+                        //{
+                        //    return BadRequest(new { error =  res.Message , MessageType = res.MessageType, result = "ErrorSaving", detail = "The Holiday list could be updated." });
+                        //}
+                    }
+
+                    _unitOfWork.Save();
+                    return Ok(new
+                    {
+                        success = true,
+                        message = $"The project {projectData.Name} was updated successfully!"
+                    });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
+
     }
 }

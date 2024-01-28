@@ -135,6 +135,28 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToGetSuccessManagerIdAndNameWhereClientId")]
+        [HttpGet]
+        public async Task<IActionResult> GetSuccessManagerIdAndNameByClientId(int clientId)
+        {
+            try
+            {
+                var successManager = await _unitOfWork.Client.GetSuccessManagerIdAndNameByClientId(clientId);
+                if (successManager == null)
+                {
+                    return NotFound(new { error = "The Success Manager is not longer in the database, is no longer a Success Manager or the client does not have a Success Manager." });
+                }
+                return Ok(new
+                {
+                    successManager = successManager
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
         [Authorize(Policy = "AccessToClientsPage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -151,10 +173,11 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             validateInputs.ValidateNotRequiredAndStringLength("ContactOcuppation", "Stakeholder Title", clientData.ContactOccupation, 30, ModelState);
             validateInputs.ValidateEmail("Emails", "Stakeholder Email", clientData.Emails, ModelState);
             validateInputs.ValidateRequiredAndStringLength("Emails", "Stakeholder Email", clientData.Emails, 249, ModelState);
-            validateInputs.ValidateDateValidFormat("AdmissionDate", "Admission Date", clientData.AdmissionDate.ToString(), ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("AdmissionDate", "Admission Date", clientData.AdmissionDate.ToString(), ModelState);
+            validateInputs.ValidateDateValidFormat("AdmissionDate", "Admission Date", clientData.AdmissionDate, ModelState);
             validateInputs.ValidateNoNegativeNumber("PaymentCondition", "Payment Condition", Convert.ToDecimal(clientData.PaymentCondition), ModelState);
             validateInputs.ValidateNotRequiredAndStringLength("Address", "Client Address", clientData.Address, 160, ModelState);
-            validateInputs.ValidateRequiredFieldNumberValue("SuccessManagerId", "Success Manager", clientData.SuccessManagerId, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("SuccessManagerId", "Success Manager", clientData.SuccessManagerId, ModelState);
 
             if (clientData.AdditionalEmailsForNotifications != null)
             {
@@ -196,7 +219,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                     {
                         return BadRequest(new { MessageType = "Exception Error", error = $"The selected Succes Manager is not a Success Manager.", detail = "Wrong sent data." });
                     }
-                    client.SuccessManagerId = consultant.UserId;
+                    client.SuccessManager = consultant.ConsultantId;
                     client.IsActive = clientData.IsActive;
                     client.AllowSentLatePaymentNotifications = (bool)clientData.AllowSentLatePaymentNotifications;
                     client.AdditionalEmailsForNotifications = clientData.AdditionalEmailsForNotifications;
