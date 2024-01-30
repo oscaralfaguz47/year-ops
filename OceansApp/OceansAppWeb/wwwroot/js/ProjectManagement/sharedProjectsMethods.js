@@ -79,7 +79,12 @@ async function displayAddUpdateConsultant(modalId, id) {
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     validateRatesInputs();
     showModal(modalId);
-    var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
+
+    if (id !== null) {
+        createUpdateForm.find('[name="consultantIdFromSearch"]').val(id);
+
+        var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
+    }
     //displaySpinner();
     //fetch(url)
     //    .then(response => {

@@ -278,7 +278,7 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
                              <li>${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li >
-                             <li><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
+                             <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consultantId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
                            </ul>
                          </div>
                          `;
