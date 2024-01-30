@@ -33,11 +33,10 @@ async function getListOfResults(firstTime, filters) {
                     startDate.getFullYear();
                 var row = `<tr>
                   <td>
-                  <i onclick="displayUpdateCreateModal('modal-update-client', ${obj.projectId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                  <i onclick="displayUpdateModal('modal-update-create-project', ${obj.projectId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.name}
                   </td>
                   <td>${obj.clientName}</td>
-                  <td>${obj.description === null ? "" : obj.description}</td>
                   <td>${formattedDate}</td>
                   <td style="text-align:center"><label class="switch">
                     <input onchange="activateDeactivate(this, ${obj.projectId}, '${obj.name}', ${obj.isActive})" value="${obj.isActive}" ${obj.isActive ? 'checked' : ''} type="checkbox">
@@ -47,6 +46,8 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.successManagerName === null ? "" : obj.successManagerName}</td>
                   <td><div class="assigned-consultants-div" id="conAssigned${count}"></div></td>
                   <td class="tracking-tool-td">${obj.clientHasTrackingTool ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="tracking-tool-td">${obj.isBillable ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td>${obj.description === null ? "" : obj.description}</td>
               </tr>`;
                 tbody.append(row);
                 addConsultantIcons(obj.numConsultantsAssigned, "conAssigned" + count);
@@ -77,7 +78,8 @@ function addConsultantIcons(num, tdId) {
 }
 
 //CREATE / UPDATE PROJECT
-async function displayUpdateModal(modalId, action, id) {
+async function displayUpdateModal(modalId, id) {
+    document.getElementById('create-Project-modal-title').textContent = "CREATE NEW PROJECT";
     var createUpdateForm = $('#form-create-update');
     inicializeModalButtons(modalId);
     resetForm('form-create-update')
@@ -86,65 +88,67 @@ async function displayUpdateModal(modalId, action, id) {
 
     const clientSelect = createUpdateForm.find('[name="client"]')[0];
     clientSelect.innerHTML = '<option value="null">-Select a client-</option>';
+    clientSelect.disabled = false;
     const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
     successManagerSelect.innerHTML = '<option value="null">-Select a user-</option>';
     successManagerSelect.disabled = true;
     showModal(modalId);
-    var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
-    //displaySpinner();
-    //fetch(url)
-    //    .then(response => {
-    //        if (response.ok) {
-    //            return response.json();
-    //        } else {
-    //            return response.json().then(errorData => {
-    //                displayToasterError(errorData.error);
-    //                hideModal(modalId);
-    //                throw new Error('The request to the server failed!. More details: ' + errorData.detail);
-    //            });
-    //        }
-    //    })
-    //    .then(data => {
-    //        createUpdateForm.find('[name="clientId"]').val(data.clientData.clientId);
-    //        createUpdateForm.find('[name="clientName"]').val(data.clientData.name);
-    //        createUpdateForm.find('[name="contact"]').val(data.clientData.contact);
-    //        createUpdateForm.find('[name="contactOccupation"]').val(data.clientData.contactOccupation);
-    //        createUpdateForm.find('[name="emails"]').val(data.clientData.emails);
-    //        let adDate = new Date(data.clientData.admissionDate);
-    //        createUpdateForm.find('[name="admissionDate"]').val(adDate.toISOString().split('T')[0]);
-    //        createUpdateForm.find('[name="paymentCondition"]').val(data.clientData.paymentCondition);
-    //        createUpdateForm.find('[name="latePaymentFee"]').val(Number(data.clientData.latePaymentFee * 100).toFixed(2));
-    //        createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
-    //        createUpdateForm.find('[name="address"]').val(data.clientData.address);
-    //        if (data.clientData.successManagerId !== null) {
-    //            var newOption = document.createElement('option');
-    //            newOption.value = data.clientData.successManagerId;
-    //            newOption.text = data.clientData.successManager;
-    //            newOption.selected = true;
-    //            successManagerSelect.appendChild(newOption);
-    //        } else {
-    //            var nullOption = document.createElement('option');
-    //            nullOption.value = null;
-    //            nullOption.text = "-Select a user-";
-    //            successManagerSelect.appendChild(nullOption);
-    //        }
-    //        var isActive = data.clientData.isActive === "S" ? true : false;
-    //        createUpdateForm.find('[name="isActive"]').val(isActive);
-    //        createUpdateForm.find('[name="isActive"]').prop('checked', isActive);
-    //        createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').val(data.clientData.allowSentLatePaymentNotifications);
-    //        createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked', data.clientData.allowSentLatePaymentNotifications);
-    //        if (data.clientData.additionalEmailsForNotifications !== null) {
-    //            var emailsArray = data.clientData.additionalEmailsForNotifications.split(";");
-    //            emailsArray = emailsArray.map(email => email.trim()).filter(email => email !== "");
-    //            emailsArray.forEach(function (email) {
-    //                addNewAdditionalEmailRow(email)
-    //            });
-    //        }
-    //        showModal(modalId);
-    //    })
-    //    .finally(() => {
-    //        hideSpinner();
-    //    });
+    if (id !== null) {
+        document.getElementById('create-Project-modal-title').textContent = "UPDATE PROJECT";
+        var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
+        displaySpinner();
+        fetch(url)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(errorData => {
+                        displayToasterError(errorData.error);
+                        hideModal(modalId);
+                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                    });
+                }
+            })
+            .then(data => {
+                console.log(data);
+                createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
+                createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
+                createUpdateForm.find('[name="description"]').val(data.projectData.description);
+
+                var newOptionClient = document.createElement('option');
+                newOptionClient.value = data.projectData.clientId;
+                newOptionClient.text = data.projectData.clientName;
+                newOptionClient.selected = true;
+                clientSelect.appendChild(newOptionClient);
+                clientSelect.disabled = true;
+
+                successManagerSelect.innerHTML = '';
+                var newOptionSuccessManager = document.createElement('option');
+                newOptionSuccessManager.value = data.projectData.successManagerId;
+                newOptionSuccessManager.text = data.projectData.successManagerName;
+                newOptionSuccessManager.selected = true;
+                successManagerSelect.appendChild(newOptionSuccessManager);
+                successManagerSelect.disabled = false;
+
+                let startDateDateFormat = new Date(data.projectData.startDate);
+                createUpdateForm.find('[name="startDate"]').val(startDateDateFormat.toISOString().split('T')[0]);
+
+                createUpdateForm.find('[name="isActive"]').val(data.projectData.isActive);
+                createUpdateForm.find('[name="isActive"]').prop('checked', data.projectData.isActive);
+                createUpdateForm.find('[name="isBillable"]').val(data.projectData.isBillable);
+                createUpdateForm.find('[name="isBillable"]').prop('checked', data.projectData.isBillable);
+                createUpdateForm.find('[name="clientHasTrackingTool"]').val(data.projectData.clientHasTrackingTool);
+                createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked', data.projectData.clientHasTrackingTool);
+                data.projectData.assignedConsultants.forEach(function (item, index, arr) {
+                    addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionDetail,
+                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.isActive)
+                });
+                showModal(modalId);
+            })
+            .finally(() => {
+                hideSpinner();
+            });
+    }
 }
 //CreateUpdate Project
 async function createUpdateProject(modalId) {
@@ -157,6 +161,7 @@ async function createUpdateProject(modalId) {
     var startDateData = createUpdateForm.find('[name="startDate"]').val();
     var successManagerData = createUpdateForm.find('[name="successManager"]').val();
     var isActiveData = createUpdateForm.find('[name="isActive"]').prop('checked');
+    var isBillableData = createUpdateForm.find('[name="isBillable"]').prop('checked');
     var clientHasTrackingToolData = createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked');
     var consultantsElements = document.querySelectorAll(".consultantRow");
     var consultantsData = [];
@@ -188,6 +193,7 @@ async function createUpdateProject(modalId) {
         StartDate: startDateData ? startDateData.toString() : null,
         SuccessManagerId: Number(successManagerData),
         IsActive: Boolean(isActiveData),
+        IsBillable: Boolean(isBillableData),
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
         AssignedConsultants: consultantsData
     };
@@ -258,14 +264,25 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
 
     addNewConsultantRow(consultantNameValue, "", consultantIdValue, positionDetailValue,
-        hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue)
+        hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null)
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
-    hourlyConsultantSalary, monthlyConsultantSalary) {
+    hourlyConsultantSalary, monthlyConsultantSalary, isActive) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
+
+    var dotsIcon = document.createElement("i");
+    dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
+                         <div class="menu-options" id="menuOptions-${consProjAssId}">
+                           <ul>
+                             <li>${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li >
+                             <li><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
+                           </ul>
+                         </div>
+                         `;
+    row.appendChild(dotsIcon);
 
     var profileIcon = document.createElement("i");
     profileIcon.innerHTML = '<i class="bi bi-person-circle consultant-icon"></i>';
@@ -276,9 +293,6 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     projectConsultantAssignetIdInput.type = "hidden";
     projectConsultantAssignetIdInput.name = "projectConsultantAssignedId";
     row.appendChild(projectConsultantAssignetIdInput);
-    //if (holiday !== null && holiday !== undefined) {
-    //    inputHiddenId.value = holiday.consultantHolidayDateId;
-    //}
 
     var consultantIdInput = document.createElement("input");
     consultantIdInput.value = consultantId;
@@ -287,7 +301,12 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     row.appendChild(consultantIdInput);
 
     var spanElement = document.createElement("span");
-    spanElement.textContent = consultantName;
+    if (isActive !== null) {
+        var isActiveSpan = isActive ? '<span class="green-label">(Active)</span>' : '<span class="red-label">(Inactive)</span>';
+        spanElement.innerHTML = consultantName + ' ' + isActiveSpan + '';
+    } else {
+        spanElement.textContent = consultantName;
+    }
     row.appendChild(spanElement);
 
     var positionDetailInput = document.createElement("input");
@@ -321,13 +340,16 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     row.appendChild(monthlyConsultantSalaryInput);
 
     // Create delete button
-    var btnDelete = document.createElement("button");
-    btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
-    btnDelete.className = "btn-delete";
-    btnDelete.onclick = function () {
-        this.parentElement.remove();
-    };
-    row.appendChild(btnDelete);
+    if (consProjAssId === '' || consProjAssId === null) {
+        var btnDelete = document.createElement("button");
+        btnDelete.innerHTML = '<i class="bi bi-trash3"></i>';
+        btnDelete.className = "btn-delete";
+        btnDelete.onclick = function () {
+            this.parentElement.remove();
+        };
+        row.appendChild(btnDelete);
+    }
+
 
     document.getElementById("consultants-container").appendChild(row);
 }

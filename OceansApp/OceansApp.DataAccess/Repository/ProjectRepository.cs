@@ -34,12 +34,40 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            var results = await connection.QueryAsync<ProjectsGetAllWithFiltersVM>("SP_GetAllProjectsWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var results = await connection.QueryAsync<ProjectsGetAllWithFiltersVM>("SP_PROJECTS_GetAllProjectsWithFilters", parameters, commandType: CommandType.StoredProcedure);
             var totalCount = parameters.Get<int>("@TotalCount");
-
             var projects = results.ToList();
 
             return (projects, totalCount);
+        }
+
+        public async Task<CreateUpdateProjectVM> GetProjectDataById(int projectId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectId", projectId);
+
+            using (var multiResultSet = await connection.QueryMultipleAsync("SP_PROJECTS_GetProjectDataById", parameters, commandType: CommandType.StoredProcedure))
+            {
+                var project = await multiResultSet.ReadFirstOrDefaultAsync<CreateUpdateProjectVM>();
+                var assignedConsultants = await multiResultSet.ReadAsync<CreateUpdateProjectConsultantAssignedVM>();
+
+                return new CreateUpdateProjectVM
+                {
+                    ProjectId = project.ProjectId,
+                    Name = project.Name,
+                    Description = project.Description,
+                    StartDate = project.StartDate,
+                    IsActive = project.IsActive,
+                    IsBillable = project.IsBillable,
+                    ClientId = project.ClientId,
+                    ClientName = project.ClientName,
+                    SuccessManagerId = project.SuccessManagerId,
+                    SuccessManagerName = project.SuccessManagerName,
+                    ClientHasTrackingTool = project.ClientHasTrackingTool,
+                    AssignedConsultants = (List<CreateUpdateProjectConsultantAssignedVM>)assignedConsultants
+                };
+            }
         }
 
         public async Task<MethodResponse> CreateProjectWithAssignedConsultants(CreateUpdateProjectVM projectData)
@@ -55,6 +83,7 @@ namespace OceansApp.DataAccess.Repository
                     Description = projectData.Description.Trim(),
                     StartDate = DateTime.Parse(projectData.StartDate),
                     IsActive = (bool)projectData.IsActive,
+                    IsBillable = (bool)projectData.IsBillable,
                     CreatedBy = projectData.CreatedBy,
                     CreationDate = costaRicaTime,
                     ClientId = (int)projectData.ClientId,

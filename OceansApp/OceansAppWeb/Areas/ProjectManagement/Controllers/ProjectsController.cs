@@ -23,6 +23,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
         {
             return View();
         }
+
         [HttpGet]
         public async Task<IActionResult> GetProjectsList(string model)
         {
@@ -92,6 +93,28 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetProjectDataById(int projectId)
+        {
+            try
+            {
+                var projectData = await _unitOfWork.Project.GetProjectDataById(projectId);
+                if (projectData == null)
+                {
+                    return BadRequest(new { error = "The project is not longer in the database.", detail = "The project was not found in the database." });
+                }
+
+                return Ok(new
+                {
+                    projectData = projectData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateProject([FromBody] CreateUpdateProjectVM projectData)
@@ -108,6 +131,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 validateInputs.ValidateNotRequiredAndStringLength("Description", "Project Description", projectData.Description, 300, ModelState);
                 validateInputs.ValidateDateValidFormat("StartDate", "Start Date", projectData.StartDate, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsActive", "Is Active", projectData.IsActive, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("IsBillable", "Is Billable", projectData.IsBillable, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("ClientId", "Client", projectData.ClientId, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("SuccessManagerId", "Success Manager", projectData.SuccessManagerId, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("ClientHasTrackingTool", "Client has tracking tool", projectData.ClientHasTrackingTool, ModelState);

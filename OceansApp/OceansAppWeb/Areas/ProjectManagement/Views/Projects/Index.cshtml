@@ -16,7 +16,7 @@
                         <i class="bi bi-search placeholder-image"></i>
                     </div>
                     <div class="action-buttons">
-                        <a onclick="displayUpdateModal('modal-update-create-project', 'CREATE NEW HOLIDAYS LIST',null)">Create Project</a>
+                        <a onclick="displayUpdateModal('modal-update-create-project',null)">Create Project</a>
                     </div>
                 </div>
                 <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
@@ -85,10 +85,6 @@
                         Client Name
                         <span class="sort-arrow" id="sortArrowClientName"></span>
                     </th>
-                    <th onclick="orderByTableList('Description', 'DescriptionTableHeader', 'sortArrowDescription')" data-sort="ANY" name="DescriptionTableHeader" class="sortable-col">
-                        Description
-                        <span class="sort-arrow" id="sortArrowDescription"></span>
-                    </th>
                     <th onclick="orderByTableList('StartDate', 'StartDateTableHeader', 'sortArrowStartDate')" data-sort="ANY" name="StartDateTableHeader" class="sortable-col">
                         Start Date
                         <span class="sort-arrow" id="sortArrowStartDate">
@@ -102,6 +98,11 @@
                     </th>
                     <th>Assigned Consultants</th>
                     <th>Client has own tracking tool</th>
+                    <th>Is Billable</th>
+                    <th onclick="orderByTableList('Description', 'DescriptionTableHeader', 'sortArrowDescription')" data-sort="ANY" name="DescriptionTableHeader" class="sortable-col">
+                        Description
+                        <span class="sort-arrow" id="sortArrowDescription"></span>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -116,7 +117,7 @@
     <div class="global-modal-content">
         <div class="container">
             <div>
-                <h2>CREATE PROJECT</h2>
+                <h2 id="create-Project-modal-title"></h2>
                 <form id="form-create-update">
                     <input type="hidden" name="projectId">
                     <label for="Name">Project Name</label>
@@ -165,10 +166,15 @@
                             <label class="form-check-label" for="IsActive"> Is Active</label>
                         </div>
                         <div class="checkbox-cont">
+                            <input type="checkbox" class="form-check-input" id="IsBillable" checked name="isBillable">
+                            <label class="form-check-label" for="IsBillable"> Is billable $</label>
+                        </div>
+                        <div class="checkbox-cont">
                             <input type="checkbox" class="form-check-input" id="ClientHasTrackingTool" name="clientHasTrackingTool">
                             <label class="form-check-label" for="ClientHasTrackingTool"> The client has tracking tool</label>
                         </div>
                     </div>
+
                     <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
                         <label>Assingned Consultants</label>
                         <a style="padding-right: 10px" class="blue-btn" onclick="displayAddUpdateConsultant('modal-add-consultant', null)"><i class="bi bi-plus"></i> Add Consultant</a>
@@ -192,10 +198,11 @@
 </div>
 
 <!--MODAL ADD CONSULTANT TO PROJECT -->
-     <partial name="_AddConsultantToProjectModalPartial" />
+<partial name="_AddConsultantToProjectModalPartial" />
 
 @section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/Shared/sharedComponents.js"></script>
 <script src="~/js/ProjectManagement/projects.js"></script>
 <script src="~/js/ProjectManagement/clientsSectionFillDropdowns.js"></script>
 <script src="~/js/General/generalSectionFillDropdowns.js"></script>

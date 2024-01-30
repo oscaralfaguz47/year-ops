@@ -87,3 +87,37 @@
     background-color: transparent;
     padding-right: 2px;
 }
+
+/* MENU FROM 3 DOOTS*/
+.menu-options {
+    display: none;
+    position: absolute;
+    background-color: #2c3e50;
+    box-shadow: 1px 1px 5px #2c3e50;
+}
+
+    .menu-options.show {
+        display: block;
+    }
+
+.bi-three-dots-vertical {
+    cursor: pointer;
+}
+.menu-options ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    color: #fff;
+}
+
+    .menu-options ul li {
+        box-shadow: 0px 0px 1px #fff;
+        padding: 7px;
+        cursor: pointer;
+    }
+        .menu-options ul li:hover {
+            background-color: rgb(198, 198, 200, 0.5 );
+        }
+        .menu-options ul li .bi-pencil-square {
+            color: #2aa7ff;
+        }

@@ -30,6 +30,8 @@ namespace OceansApp.Models.Models
         public int SuccessManagerId { get; set; }
         [Required]
         public bool ClientHasTrackingTool { get; set; }
+        public bool IsBillable { get; set; }
+
 
         [ValidateNever]
         public ConsultantDetail ConsultantDetail { get; set; }

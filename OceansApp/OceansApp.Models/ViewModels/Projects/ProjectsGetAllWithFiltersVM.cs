@@ -8,6 +8,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public string? Description { get; set; }
         public DateTime StartDate { get; set; }
         public bool IsActive { get; set; }
+        public bool IsBillable { get; set; }
         public string ClientName { get; set; }
         public string SuccessManagerName { get; set; }
         public int NumConsultantsAssigned { get; set; }
