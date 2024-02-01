@@ -197,7 +197,6 @@ async function createUpdateProject(modalId) {
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
         AssignedConsultants: consultantsData
     };
-    console.log(data);
     fetch('/ProjectManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
@@ -255,6 +254,7 @@ function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
 
 function addConsultantToModalCreateUpdateProject(modalId) {
     var createUpdateConsultantForm = $('#form-add-update-consultant');
+    var consultantProjectAssignedId = createUpdateConsultantForm.find('[name="proConsAssignedId"]').val();
     var consultantIdValue = createUpdateConsultantForm.find('[name="consultantIdFromSearch"]').val();
     var consultantNameValue = createUpdateConsultantForm.find('[name="consultantNameInput"]').val();
     var positionDetailValue = createUpdateConsultantForm.find('[name="positionDetail"]').val();
@@ -263,8 +263,16 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
 
-    addNewConsultantRow(consultantNameValue, "", consultantIdValue, positionDetailValue,
-        hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null)
+    if (consultantProjectAssignedId === "") {
+        addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
+            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null)
+    } else {
+        document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
+        document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
+        document.getElementById('monthlyClientRate-' + consultantProjectAssignedId).value = monthlyClientRateValue;
+        document.getElementById('hourlySalary-' + consultantProjectAssignedId).value = hourlyConsultantRateValue;
+        document.getElementById('monthlySalary-' + consultantProjectAssignedId).value = monthlyConsultantRateValue;
+    }
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
@@ -272,17 +280,18 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
-
-    var dotsIcon = document.createElement("i");
-    dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
+    if (consProjAssId !== '') {
+        var dotsIcon = document.createElement("i");
+        dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
                              <li>${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li >
-                             <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consultantId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
+                             <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
                            </ul>
                          </div>
                          `;
-    row.appendChild(dotsIcon);
+        row.appendChild(dotsIcon);
+    }
 
     var profileIcon = document.createElement("i");
     profileIcon.innerHTML = '<i class="bi bi-person-circle consultant-icon"></i>';
@@ -311,30 +320,35 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
 
     var positionDetailInput = document.createElement("input");
     positionDetailInput.value = positionDetail;
+    positionDetailInput.id = `positionDetail-${consProjAssId}`;
     positionDetailInput.name = "positionDetailCreateProject";
     positionDetailInput.type = "hidden";
     row.appendChild(positionDetailInput);
 
     var hourlyClientRateInput = document.createElement("input");
     hourlyClientRateInput.value = hourlyClientRate;
+    hourlyClientRateInput.id = `hourlyClientRate-${consProjAssId}`;
     hourlyClientRateInput.name = "hourlyClientRateCreateProject";
     hourlyClientRateInput.type = "hidden";
     row.appendChild(hourlyClientRateInput);
 
     var monthlyClientRateInput = document.createElement("input");
     monthlyClientRateInput.value = monthlyClientRate;
+    monthlyClientRateInput.id = `monthlyClientRate-${consProjAssId}`;
     monthlyClientRateInput.name = "monthlyClientRateCreateProject";
     monthlyClientRateInput.type = "hidden";
     row.appendChild(monthlyClientRateInput);
 
     var hourlyConsultantSalaryInput = document.createElement("input");
     hourlyConsultantSalaryInput.value = hourlyConsultantSalary;
+    hourlyConsultantSalaryInput.id = `hourlySalary-${consProjAssId}`;
     hourlyConsultantSalaryInput.name = "hourlySalaryCreateProject";
     hourlyConsultantSalaryInput.type = "hidden";
     row.appendChild(hourlyConsultantSalaryInput);
 
     var monthlyConsultantSalaryInput = document.createElement("input");
     monthlyConsultantSalaryInput.value = monthlyConsultantSalary;
+    monthlyConsultantSalaryInput.id = `monthlySalary-${consProjAssId}`;
     monthlyConsultantSalaryInput.name = "monthlySalaryCreateProject";
     monthlyConsultantSalaryInput.type = "hidden";
     row.appendChild(monthlyConsultantSalaryInput);

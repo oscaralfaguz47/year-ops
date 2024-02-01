@@ -7,11 +7,12 @@
                 <h2 id="add-consultant-modal-title"></h2>
                 <form id="form-add-update-consultant">
                     <div id="consultants-search-cont">
-                        <div class="input-container">
+                        <div id="search-input-cont" class="input-container">
                             <input id="search-consultant-input" autocomplete="off" oninput="searchConsultantsBySearchText(this, 'consultantIdFromSearch', 'consultantNameInput', 'consultantEmailInput')" type="text" placeholder="Search consultant" class="form-control">
                             <i class="bi bi-search placeholder-image"></i>
                             <div id="consultant-search-results" class="search-results"></div>
                         </div>
+                        <input type="hidden" name="proConsAssignedId" id="proConsAssignedId">
                         <input type="hidden" name="consultantIdFromSearch" id="consultantIdFromSearch">
                     </div>
                     <div class="row">

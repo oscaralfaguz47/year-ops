@@ -76,86 +76,71 @@ async function displayAddUpdateConsultant(modalId, id) {
     var modalTitle = document.getElementById('add-consultant-modal-title');
     modalTitle.textContent = id === null ? 'ADD CONSULTANT TO THE PROJECT' : 'EDIT CONSULTANT ASSIGNATION PROJECT';
     resetForm('form-add-update-consultant');
+    createUpdateForm.find('[name="proConsAssignedId"]').val("");
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     validateRatesInputs();
-    showModal(modalId);
+    document.getElementById('search-input-cont').style.display = 'block';
 
     if (id !== null) {
-        createUpdateForm.find('[name="consultantIdFromSearch"]').val(id);
+        createUpdateForm.find('[name="proConsAssignedId"]').val(id);
+        document.getElementById('search-input-cont').style.display = 'none';
 
-        var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
+        var url = "/ProjectManagement/Projects/GetAssignedConsultantToProjectById?consultantProjectAssignedtId=" + encodeURIComponent(id);
+        displaySpinner();
+        fetch(url)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(errorData => {
+                        displayToasterError(errorData.error);
+                        hideModal(modalId);
+                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                    });
+                }
+            })
+            .then(data => {
+                console.log(data);
+                createUpdateForm.find('[name="consultantNameInput"]').val(data.consultantAssignation.consultantName);
+                document.getElementById('consultantEmailInput').value = data.consultantAssignation.email;
+                createUpdateForm.find('[name="positionDetail"]').val(data.consultantAssignation.positionDetail);
+
+                if (data.consultantAssignation.hourlyClientRate !== 0) document.getElementsByName('client-rate-model')[0].checked = true;
+                if (data.consultantAssignation.monthlyClientRate !== 0) document.getElementsByName('client-rate-model')[1].checked = true;
+                if (data.consultantAssignation.monthlySalary !== 0) document.getElementsByName('consultant-rate-model')[0].checked = true;
+                if (data.consultantAssignation.hourlySalary !== 0) document.getElementsByName('consultant-rate-model')[1].checked = true;
+                validateRatesInputs();
+                createUpdateForm.find('[name="monthlyClientRate"]').val(data.consultantAssignation.monthlyClientRate);
+                createUpdateForm.find('[name="hourlyClientRate"]').val(data.consultantAssignation.hourlyClientRate);
+                createUpdateForm.find('[name="monthlySalary"]').val(data.consultantAssignation.monthlySalary);
+                createUpdateForm.find('[name="hourlySalary"]').val(data.consultantAssignation.hourlySalary);
+                showModal(modalId);
+            })
+            .finally(() => {
+                hideSpinner();
+            });
+    } else {
+        showModal(modalId);
     }
-    //displaySpinner();
-    //fetch(url)
-    //    .then(response => {
-    //        if (response.ok) {
-    //            return response.json();
-    //        } else {
-    //            return response.json().then(errorData => {
-    //                displayToasterError(errorData.error);
-    //                hideModal(modalId);
-    //                throw new Error('The request to the server failed!. More details: ' + errorData.detail);
-    //            });
-    //        }
-    //    })
-    //    .then(data => {
-    //        createUpdateForm.find('[name="clientId"]').val(data.clientData.clientId);
-    //        createUpdateForm.find('[name="clientName"]').val(data.clientData.name);
-    //        createUpdateForm.find('[name="contact"]').val(data.clientData.contact);
-    //        createUpdateForm.find('[name="contactOccupation"]').val(data.clientData.contactOccupation);
-    //        createUpdateForm.find('[name="emails"]').val(data.clientData.emails);
-    //        let adDate = new Date(data.clientData.admissionDate);
-    //        createUpdateForm.find('[name="admissionDate"]').val(adDate.toISOString().split('T')[0]);
-    //        createUpdateForm.find('[name="paymentCondition"]').val(data.clientData.paymentCondition);
-    //        createUpdateForm.find('[name="latePaymentFee"]').val(Number(data.clientData.latePaymentFee * 100).toFixed(2));
-    //        createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
-    //        createUpdateForm.find('[name="address"]').val(data.clientData.address);
-    //        if (data.clientData.successManagerId !== null) {
-    //            var newOption = document.createElement('option');
-    //            newOption.value = data.clientData.successManagerId;
-    //            newOption.text = data.clientData.successManager;
-    //            newOption.selected = true;
-    //            successManagerSelect.appendChild(newOption);
-    //        } else {
-    //            var nullOption = document.createElement('option');
-    //            nullOption.value = null;
-    //            nullOption.text = "-Select a user-";
-    //            successManagerSelect.appendChild(nullOption);
-    //        }
-    //        var isActive = data.clientData.isActive === "S" ? true : false;
-    //        createUpdateForm.find('[name="isActive"]').val(isActive);
-    //        createUpdateForm.find('[name="isActive"]').prop('checked', isActive);
-    //        createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').val(data.clientData.allowSentLatePaymentNotifications);
-    //        createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked', data.clientData.allowSentLatePaymentNotifications);
-    //        if (data.clientData.additionalEmailsForNotifications !== null) {
-    //            var emailsArray = data.clientData.additionalEmailsForNotifications.split(";");
-    //            emailsArray = emailsArray.map(email => email.trim()).filter(email => email !== "");
-    //            emailsArray.forEach(function (email) {
-    //                addNewAdditionalEmailRow(email)
-    //            });
-    //        }
-    //        showModal(modalId);
-    //    })
-    //    .finally(() => {
-    //        hideSpinner();
-    //    });
 }
 //ADD CONSULTANT TO PROJECT 
 function addConsultantToProject(modalId) {
+    var projectConsultantAssignedValue = createUpdateForm.find('[name="proConsAssignedId"]').val();
+    console.log("HOLA: " + projectConsultantAssignedValue);
     var hourlyClientRateValue = createUpdateForm.find('[name="hourlyClientRate"]').val();
     var monthlyClientRateValue = createUpdateForm.find('[name="monthlyClientRate"]').val();
     var hourlyConsultantRateValue = createUpdateForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateForm.find('[name="monthlySalary"]').val();
     var clientRateMethodRb = document.querySelector('input[name="client-rate-model"]:checked').value;
     var consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
-    var positonDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
+    var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
     var modelState = true;
-    if (createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
-        || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') {
+    if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
+        || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
         modelState = false;
         displayToasterWarning('You must search and select a Consultant.');
     }
-    if (positonDetailValue.length === 0) {
+    if (positionDetailValue.length === 0) {
         modelState = false;
         displayToasterWarning('The Position Description is required.');
     }
@@ -179,6 +164,55 @@ function addConsultantToProject(modalId) {
 
     if (modelState) {
         addConsultantToModalCreateUpdateProject(modalId);
+        //EDIT CONSULTANT PARAMETERS
+        if (projectConsultantAssignedValue !== "") {
+            console.log("VALUE: " + projectConsultantAssignedValue);
+            displaySpinner();
+
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var data = {
+                ProjectConsultantAssignedId: Number(projectConsultantAssignedValue),
+                HourlyClientRate: Number(hourlyClientRateValue),
+                HourlySalary: Number(hourlyConsultantRateValue),
+                MonthlyClientRate: Number(monthlyClientRateValue),
+                MonthlySalary: Number(monthlyConsultantRateValue),
+                PositionDetail: positionDetailValue
+            };
+            console.log(data);
+            fetch('/ProjectManagement/Projects/UpdateConsultantParameters', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    RequestVerificationToken: token
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.json().then(errorData => {
+                            if (errorData.messageType === "Validation Error") {
+                                displayToasterWarningArray(errorData.errors);
+                                throw new Error('Validation errors!');
+                            } else {
+                                displayToasterError(errorData.error);
+                                hideModal(modalId);
+                                throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                            }
+                        });
+                    }
+                })
+                .then(data => {
+                    hideModal(modalId);
+                    createUpdateForm[0].reset();
+                    displayToasterSuccess(data.message);
+                    getListOfResults(false, false);
+                })
+                .finally(() => {
+                    hideSpinner();
+                })
+        }
     }
 }
 // INPUT VALIDATIONS

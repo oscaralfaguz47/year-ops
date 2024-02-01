@@ -11,7 +11,7 @@ namespace OceansApp.Models.Models
         public int Id { get; set; }
         [Required]
         public int ProjectConsultantAssignedId { get; set; }
-        [MaxLength(30)]
+        [MaxLength(40)]
         [Required]
         public string Action { get; set; }
         [MaxLength(130)]
