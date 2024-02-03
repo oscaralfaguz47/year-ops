@@ -39,7 +39,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.clientName}</td>
                   <td>${formattedDate}</td>
                   <td style="text-align:center"><label class="switch">
-                    <input onchange="activateDeactivate(this, ${obj.projectId}, '${obj.name}', ${obj.isActive})" value="${obj.isActive}" ${obj.isActive ? 'checked' : ''} type="checkbox">
+                    <input onchange="activateDeactivateProject(this, ${obj.projectId}, '${obj.name}', ${obj.isActive})" value="${obj.isActive}" ${obj.isActive ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
                     </label>
                   </td>
@@ -85,6 +85,7 @@ async function displayUpdateModal(modalId, id) {
     resetForm('form-create-update')
     var consultantsContainer = $("#consultants-container");
     consultantsContainer.empty();
+    createUpdateForm.find('[name="projectId"]').val("");
 
     const clientSelect = createUpdateForm.find('[name="client"]')[0];
     clientSelect.innerHTML = '<option value="null">-Select a client-</option>';
@@ -110,7 +111,6 @@ async function displayUpdateModal(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
                 createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
                 createUpdateForm.find('[name="description"]').val(data.projectData.description);
@@ -289,7 +289,7 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
         dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
-                             <li>${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li >
+                             <li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li>
                              <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
                            </ul>
                          </div>
@@ -315,7 +315,7 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
 
     var spanElement = document.createElement("span");
     if (isActive !== null) {
-        var isActiveSpan = isActive ? '<span class="green-label">(Active)</span>' : '<span class="red-label">(Inactive)</span>';
+        var isActiveSpan = isActive ? '<label id="a-i-label-' + consProjAssId + '"><span class="green-label">(Active)</span></label>' : '<label id="a-i-label-' + consProjAssId + '"><span class="red-label">(Inactive)</span></label>';
         spanElement.innerHTML = consultantName + ' ' + isActiveSpan + '';
     } else {
         spanElement.textContent = consultantName;
@@ -416,6 +416,78 @@ async function getSuccessManagers(thisElement) {
             loadingOption.remove();
         }
     }
+}
+// Activate / Deactivate consultant
+async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status) {
+    try {
+        const data = await activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status);
+        if (data) {
+            var updatedStatus = status ? false : true;
+            var activateInactivateBtn = document.getElementById('activate-deactivate-li-' + projectConsultantAssignedId);
+            var activateInactivateLabel = document.getElementById('a-i-label-' + projectConsultantAssignedId);
+
+            var iTag = activateInactivateBtn.querySelector('i');
+            if (iTag) {
+                iTag.parentNode.removeChild(iTag);
+            }
+            activateInactivateBtn.innerHTML = updatedStatus ? `
+                             <i class="bi bi-x-lg red-label"></i>${updatedStatus ? ' Deactivate from Project' : ' Activate in the Project'}` :
+                `<i class="bi bi-plus-lg green-label"></i>${updatedStatus ? ' Deactivate from Project' : ' Activate in the Project'}`;
+            activateInactivateBtn.setAttribute('onclick', `activateDeactivateConFromProject(${projectConsultantAssignedId}, '${name}', ${updatedStatus})`);
+            activateInactivateLabel.innerHTML = '';
+            activateInactivateLabel.innerHTML = updatedStatus ? `<span class="green-label">(Active)</span>` :
+                `<span class="red-label"> (Inactive)</span>`;
+        }
+    } catch (error) {
+        console.error("Error: ", error);
+    }
+}
+
+// Activate / Deactivate project
+async function activateDeactivateProject(inputElement, projectId, name, status) {
+    var title = status ? "Deactivate Project" : "Activate Project";
+    var textAction = status ? "Deactivate" : "Activate";
+    Swal.fire({
+        title: title,
+        text: 'Are you sure you want to ' + textAction + ' the "' + name + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, do it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var formData = new FormData();
+            formData.append('projectId', projectId);
+            fetch("/ProjectManagement/Projects/ActivateDeactivateProject"
+                , {
+                    method: 'POST',
+                    headers: {
+                        RequestVerificationToken: token
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        getListOfResults(false, false);
+                    } else {
+                        inputElement.checked = status;
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+        } else {
+            inputElement.checked = status;
+        }
+    });
 }
 
 //Pagination and Filters

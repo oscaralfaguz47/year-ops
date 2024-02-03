@@ -289,5 +289,52 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateDeactivateConsultantFromProject(int projectConsultantAssignedId)
+        {
+            try
+            {
+                var consultantAssignation = _unitOfWork.ProjectConsultantAssigned.GetFirstOrDefault(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
+                if (consultantAssignation == null)
+                {
+                    return BadRequest(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
+                }
+                consultantAssignation.IsActive = consultantAssignation.IsActive ? false : true;
+                _unitOfWork.Save();
+
+                var successMessage = "The consultant was " + (consultantAssignation.IsActive ? "Activated" : "Deactivated") + " from the project!";
+
+                return Ok(new { success = true, message = successMessage });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the consultant assignation could not be updated.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateDeactivateProject(int projectId)
+        {
+            try
+            {
+                var project = _unitOfWork.Project.GetFirstOrDefault(x => x.ProjectId == projectId);
+                if (project == null)
+                {
+                    return BadRequest(new { error = "The Project no longer exist in the database.", MessageType = "No Exists Error" });
+                }
+                project.IsActive = project.IsActive ? false : true;
+                _unitOfWork.Save();
+                var successMessage = "The project " + project.Name+ " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
+
+                return Ok(new { success = true, message = successMessage });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the project could not be updated.", detail = ex.Message });
+            }
+        }
+
     }
 }

@@ -103,6 +103,10 @@
 .bi-three-dots-vertical {
     cursor: pointer;
 }
+    .bi-three-dots-vertical:hover {
+        background-color: rgb(230, 230, 234);
+        border-radius: 10px;
+    }
 .menu-options ul {
     list-style-type: none;
     padding-left: 0;

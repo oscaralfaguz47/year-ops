@@ -1,4 +1,18 @@
-﻿var createUpdateForm = $('#form-add-update-consultant');
+﻿
+document.addEventListener("DOMContentLoaded", function () {
+    var actionDate = document.getElementById('actionDate');
+    var today = new Date();
+    var todayFormatted = today.toISOString().substr(0, 10);
+    actionDate.min = todayFormatted;
+    function validateDate() {
+        if (actionDate.value < actionDate.min) {
+            actionDate.value = actionDate.min;
+        }
+    }
+    actionDate.addEventListener('change', validateDate);
+});
+
+var createUpdateForm = $('#form-add-update-consultant');
 
 function hideConsultantResults() {
     let resultsContainer = document.getElementById('consultant-search-results');
@@ -165,6 +179,11 @@ function addConsultantToProject(modalId) {
     if (actionDateValue === '') {
         modelState = false;
         displayToasterWarning('The Action Date is required.');
+    } else {
+        if (!isValidDate(actionDateValue.toString())) {
+            modelState = false;
+            displayToasterWarning('The Action Date is not a valid date.');
+        }
     }
 
     if (modelState) {
@@ -251,3 +270,69 @@ async function getSuccessManagerIdAndNameByClientId(clientId) {
         return null;
     }
 }
+
+async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId) {
+    var url = "/ProjectManagement/Projects/ActivateDeactivateConsultantFromProject";
+    try {
+        var token = $('[name="__RequestVerificationToken"]').val();
+        var formData = new FormData();
+        formData.append('projectConsultantAssignedId', projectConsultantAssignedId);
+        let response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        });
+        if (response.ok) {
+            return await response.json();
+        } else {
+            if (response.status === 404) {
+                displayToasterError("Resource not found (404).");
+                throw new Error('404 Not Found: The requested resource could not be found!');
+            } else {
+                let errorData = await response.json();
+                displayToasterError(errorData.error || 'An unknown error occurred.');
+                throw new Error('The request to the server failed!. More details: ' + errorData.error);
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        return null;
+    }
+}
+
+//Activate and deactivate Consultant from project
+async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
+    var title = status ? "Deactivate Consultant" : "Activate Consultant";
+    var textAction = status ? "Deactivate" : "Activate";
+
+    try {
+        const result = await Swal.fire({
+            title: title,
+            text: 'Are you sure you want to ' + textAction + ' "' + name + '" from the project?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, do it!',
+            cancelButtonText: 'Cancel'
+        });
+        if (result.isConfirmed) {
+            displaySpinner();
+            const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId);
+            toastr.success(data.message);
+            hideSpinner();
+            return data.success;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error(error);
+        hideSpinner();
+        return false;
+    }
+}
+
+
+
