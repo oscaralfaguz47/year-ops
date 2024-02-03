@@ -149,9 +149,14 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(p => p.ProjectConsultantAssignedId)
                 .IsRequired();
             modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .HasOne(a => a.ApplicationUserActionedBy)
+                .HasOne(a => a.ConsultantUserActionedBy)
                 .WithMany()
                 .HasForeignKey(a => a.UserActionedBy)
+                .IsRequired();
+            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
+                .HasOne(a => a.Action)
+                .WithMany()
+                .HasForeignKey(a => a.ActionId)
                 .IsRequired();
 
         }
@@ -184,6 +189,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
+        public DbSet<ProjectConsultantAssignedHistoryAction> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }

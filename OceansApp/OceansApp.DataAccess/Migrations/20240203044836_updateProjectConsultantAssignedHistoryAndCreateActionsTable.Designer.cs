@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240203044836_updateProjectConsultantAssignedHistoryAndCreateActionsTable")]
+    partial class updateProjectConsultantAssignedHistoryAndCreateActionsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1215,11 +1217,11 @@ namespace OceansApp.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectConsultantAssignedId"), 1L, 1);
 
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("ConsultantId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<decimal?>("HourlyClientRate")
                         .HasColumnType("decimal(18,2)");
@@ -1287,8 +1289,10 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("ProjectConsultantAssignedId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserActionedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UserActionedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -1957,7 +1961,7 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OceansApp.Models.Models.ConsultantDetail", "ConsultantUserActionedBy")
+                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserActionedBy")
                         .WithMany()
                         .HasForeignKey("UserActionedBy")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1965,7 +1969,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Navigation("Action");
 
-                    b.Navigation("ConsultantUserActionedBy");
+                    b.Navigation("ApplicationUserActionedBy");
 
                     b.Navigation("ProjectConsultantAssigned");
                 });

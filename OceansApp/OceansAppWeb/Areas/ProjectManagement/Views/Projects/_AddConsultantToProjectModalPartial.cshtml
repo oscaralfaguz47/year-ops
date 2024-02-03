@@ -62,7 +62,7 @@
                             &nbsp; Consultant rate hourly. <span style="font-weight: normal"> (Hourly rate is always the same)</span>
                         </label>
                     </div>
-                    <div class="row mb-4">
+                    <div class="row">
                         <div class="col-md-6" id="monthlyClientRateEl">
                             <label for="PaymentCondition">Monthly Client Rate</label>
                             <div class="input-container">
@@ -85,6 +85,20 @@
                             <label for="PaymentCondition">Hourly Consultant Salary</label>
                             <div class="input-container">
                                 <input placeholder="Example: $22" type="number" class="form-control" step="0.01" name="hourlySalary" id="hourlySalary">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="StartDate">Action Date</label> <div class="tooltip-container ">
+                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <div class="tooltip-content">
+                                    <div class="tooltip-arrow"></div>
+                                    Date on which the changes will take effect
+                                </div>
+                            </div>
+                            <div class="">
+                                <input type="date" class="form-control" name="actionDate">
                             </div>
                         </div>
                     </div>

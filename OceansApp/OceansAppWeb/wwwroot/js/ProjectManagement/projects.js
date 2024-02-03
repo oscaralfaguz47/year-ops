@@ -173,6 +173,7 @@ async function createUpdateProject(modalId) {
         var monthlyClientRateCreateProject = fila.querySelector('[name="monthlyClientRateCreateProject"]').value;
         var hourlySalaryCreateProject = fila.querySelector('[name="hourlySalaryCreateProject"]').value;
         var monthlySalaryCreateProject = fila.querySelector('[name="monthlySalaryCreateProject"]').value;
+        var actionDateCreateProject = fila.querySelector('[name="actionDateCreateProject"]').value;
         return {
             ProjectConsultantAssignedId: projectConsultantAssignedId,
             ConsultantId: Number(consultantId),
@@ -180,7 +181,8 @@ async function createUpdateProject(modalId) {
             HourlySalary: Number(hourlySalaryCreateProject),
             MonthlyClientRate: Number(monthlyClientRateCreateProject),
             MonthlySalary: Number(monthlySalaryCreateProject),
-            PositionDetail: positionDetail
+            PositionDetail: positionDetail,
+            ActionDate: actionDateCreateProject ? actionDateCreateProject.toString() : null
         };
     });
 
@@ -197,6 +199,7 @@ async function createUpdateProject(modalId) {
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
         AssignedConsultants: consultantsData
     };
+    console.log(data);
     fetch('/ProjectManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
@@ -262,10 +265,11 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var monthlyClientRateValue = createUpdateConsultantForm.find('[name="monthlyClientRate"]').val();
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
+    var actionDateValue = createUpdateConsultantForm.find('[name="actionDate"]').val();
 
     if (consultantProjectAssignedId === "") {
         addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
-            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null)
+            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue)
     } else {
         document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
@@ -276,7 +280,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
-    hourlyConsultantSalary, monthlyConsultantSalary, isActive) {
+    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
@@ -353,6 +357,12 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     monthlyConsultantSalaryInput.type = "hidden";
     row.appendChild(monthlyConsultantSalaryInput);
 
+    var actionDateInput = document.createElement("input");
+    actionDateInput.value = actionDate === undefined ? null : actionDate;
+    actionDateInput.name = "actionDateCreateProject";
+    actionDateInput.type = "hidden";
+    row.appendChild(actionDateInput);
+
     // Create delete button
     if (consProjAssId === '' || consProjAssId === null) {
         var btnDelete = document.createElement("button");
@@ -363,7 +373,6 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
         };
         row.appendChild(btnDelete);
     }
-
 
     document.getElementById("consultants-container").appendChild(row);
 }

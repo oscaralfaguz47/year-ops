@@ -86,6 +86,7 @@ namespace OceansApp.DataAccess.Repository
             try
             {
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == projectData.CreatedBy);
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
                 Project projectToCreate = new()
@@ -114,7 +115,7 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 ProjectId = createdProject.Entity.ProjectId,
                                 ConsultantId = consultant.ConsultantId,
-                                AssignedDate = costaRicaTime,
+                                CreationDate = costaRicaTime,
                                 IsActive = true,
                                 HourlyClientRate = consultant.HourlyClientRate,
                                 HourlySalary = consultant.HourlySalary,
@@ -128,15 +129,38 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 var clientRate = consultant.HourlyClientRate > 0 ? consultant.HourlyClientRate : consultant.MonthlyClientRate;
                                 var consultantRate = consultant.HourlySalary > 0 ? consultant.HourlySalary : consultant.MonthlySalary;
-                                ProjectConsultantAssignedHistory history = new()
+                                var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x=>x.Name== "Consultant Assigned First Time");
+                                ProjectConsultantAssignedHistory historyClient = new()
                                 {
                                     ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
-                                    Action = "Consultant Assigned First Time",
-                                    ActionDate = costaRicaTime,
-                                    UserActionedBy = projectData.CreatedBy,
-                                    NewValue = $"The Consultant is assigned to the project with a rate of ${consultantRate} and with a rate for the client of ${clientRate}."
+                                    ActionId = action.ActionId,
+                                    ActionDate = DateTime.Parse(consultant.ActionDate),
+                                    CreationDate = costaRicaTime,
+                                    UserActionedBy = userActionedBy.ConsultantId,
+                                    NewValue = clientRate
                                 };
-                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(history);
+                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyClient);
+
+                                ProjectConsultantAssignedHistory historyConsultant = new()
+                                {
+                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
+                                    ActionId = action.ActionId,
+                                    ActionDate = DateTime.Parse(consultant.ActionDate),
+                                    CreationDate = costaRicaTime,
+                                    UserActionedBy = userActionedBy.ConsultantId,
+                                    NewValue = consultantRate
+                                };
+                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyConsultant);
+                                ProjectConsultantAssignedHistory historyDetail = new()
+                                {
+                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
+                                    ActionId = action.ActionId,
+                                    ActionDate = DateTime.Parse(consultant.ActionDate),
+                                    CreationDate = costaRicaTime,
+                                    UserActionedBy = userActionedBy.ConsultantId,
+                                    NewValueDetail = consultant.PositionDetail
+                                };
+                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyDetail);
                                 await _db.SaveChangesAsync();
                             }
                         }
@@ -161,6 +185,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 var existingProject = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == projectData.ProjectId);
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == projectData.CreatedBy);
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
                 existingProject.Name = projectData.Name;
@@ -183,7 +208,7 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 ProjectId = existingProject.ProjectId,
                                 ConsultantId = consultant.ConsultantId,
-                                AssignedDate = costaRicaTime,
+                                CreationDate = costaRicaTime,
                                 IsActive = true,
                                 HourlyClientRate = consultant.HourlyClientRate,
                                 HourlySalary = consultant.HourlySalary,
@@ -197,15 +222,38 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 var clientRate = consultant.HourlyClientRate > 0 ? consultant.HourlyClientRate : consultant.MonthlyClientRate;
                                 var consultantRate = consultant.HourlySalary > 0 ? consultant.HourlySalary : consultant.MonthlySalary;
-                                ProjectConsultantAssignedHistory history = new()
+                                var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant Assigned First Time");
+                                ProjectConsultantAssignedHistory historyClient = new()
                                 {
                                     ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
-                                    Action = "Consultant Assigned First Time",
-                                    ActionDate = costaRicaTime,
-                                    UserActionedBy = projectData.CreatedBy,
-                                    NewValue = $"The Consultant is assigned to the project with a rate of ${consultantRate} and with a rate for the client of ${clientRate}."
+                                    ActionId = action.ActionId,
+                                    ActionDate = DateTime.Parse(consultant.ActionDate),
+                                    CreationDate = costaRicaTime,
+                                    UserActionedBy = userActionedBy.ConsultantId,
+                                    NewValue = clientRate
                                 };
-                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(history);
+                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyClient);
+
+                                ProjectConsultantAssignedHistory historyConsultant = new()
+                                {
+                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
+                                    ActionId = action.ActionId,
+                                    ActionDate = DateTime.Parse(consultant.ActionDate),
+                                    CreationDate = costaRicaTime,
+                                    UserActionedBy = userActionedBy.ConsultantId,
+                                    NewValue = consultantRate
+                                };
+                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyConsultant);
+                                ProjectConsultantAssignedHistory historyDetail = new()
+                                {
+                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
+                                    ActionId = action.ActionId,
+                                    ActionDate = DateTime.Parse(consultant.ActionDate),
+                                    CreationDate = costaRicaTime,
+                                    UserActionedBy = userActionedBy.ConsultantId,
+                                    NewValueDetail = consultant.PositionDetail
+                                };
+                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyDetail);
                                 await _db.SaveChangesAsync();
                             }
                         }
@@ -235,106 +283,117 @@ namespace OceansApp.DataAccess.Repository
                 }
 
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userUpdatedBy);
 
                 var historyToSaveList = new List<ProjectConsultantAssignedHistory>();
 
                 if (existingConsultantAssignation.PositionDetail != consultantAssignationData.PositionDetail)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Position Details updated");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Position Details updated";
-                    newHistory.NewValue = consultantAssignationData.PositionDetail;
-                    newHistory.OldValue = existingConsultantAssignation.PositionDetail;
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
+                    newHistory.NewValueDetail = consultantAssignationData.PositionDetail;
+                    newHistory.OldValueDetail = existingConsultantAssignation.PositionDetail;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.HourlyClientRate != consultantAssignationData.HourlyClientRate)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Hourly Client Rate updated");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Hourly Client Rate updated";
-                    newHistory.NewValue = consultantAssignationData.HourlyClientRate.ToString();
-                    newHistory.OldValue = existingConsultantAssignation.HourlyClientRate.ToString();
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
+                    newHistory.NewValue = consultantAssignationData.HourlyClientRate;
+                    newHistory.OldValue = existingConsultantAssignation.HourlyClientRate;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.MonthlyClientRate != consultantAssignationData.MonthlyClientRate)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Monthly Client Rate updated");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Monthly Client Rate updated";
-                    newHistory.NewValue = consultantAssignationData.MonthlyClientRate.ToString();
-                    newHistory.OldValue = existingConsultantAssignation.MonthlyClientRate.ToString();
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
+                    newHistory.NewValue = consultantAssignationData.MonthlyClientRate;
+                    newHistory.OldValue = existingConsultantAssignation.MonthlyClientRate;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.HourlySalary != consultantAssignationData.HourlySalary)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Hourly Salary updated");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Hourly Salary updated";
-                    newHistory.NewValue = consultantAssignationData.HourlySalary.ToString();
-                    newHistory.OldValue = existingConsultantAssignation.HourlySalary.ToString();
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
+                    newHistory.NewValue = consultantAssignationData.HourlySalary;
+                    newHistory.OldValue = existingConsultantAssignation.HourlySalary;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.MonthlySalary != consultantAssignationData.MonthlySalary)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Monthly Salary updated");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Monthly Salary updated";
-                    newHistory.NewValue = consultantAssignationData.MonthlySalary.ToString();
-                    newHistory.OldValue = existingConsultantAssignation.MonthlySalary.ToString();
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
+                    newHistory.NewValue = consultantAssignationData.MonthlySalary;
+                    newHistory.OldValue = existingConsultantAssignation.MonthlySalary;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.HourlyClientRate > 0 && consultantAssignationData.HourlyClientRate == 0)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Client pricing method updated (Monthly)");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Client pricing method updated";
-                    newHistory.NewValue = "Monthly";
-                    newHistory.OldValue = "Hourly";
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.MonthlyClientRate > 0 && consultantAssignationData.MonthlyClientRate == 0)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Client pricing method updated (Hourly)");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Client pricing method updated";
-                    newHistory.NewValue = "Hourly";
-                    newHistory.OldValue = "Monthly";
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.HourlySalary > 0 && consultantAssignationData.HourlySalary == 0)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant pricing method updated (Monthly)");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Consultant pricing method updated";
-                    newHistory.NewValue = "Monthly";
-                    newHistory.OldValue = "Hourly";
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
                 if (existingConsultantAssignation.MonthlySalary > 0 && consultantAssignationData.MonthlySalary == 0)
                 {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant pricing method updated (Hourly)");
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = costaRicaTime;
-                    newHistory.UserActionedBy = userUpdatedBy;
-                    newHistory.Action = "Consultant pricing method updated";
-                    newHistory.NewValue = "Hourly";
-                    newHistory.OldValue = "Monthly";
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
                 using var transaction = await _db.Database.BeginTransactionAsync();

@@ -211,8 +211,32 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                     _db.SaveChanges();
                 }
+                //CREATE PROJECT HISTORY ACTIONS
+                if (_db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.ToList().Count == 0)
+                {
+                    List<ProjectConsultantAssignedHistoryAction> actionsList = new();
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant Assigned First Time" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Position Details updated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Hourly Client Rate updated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Monthly Client Rate updated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Hourly Salary updated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Monthly Salary updated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Monthly)" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Hourly)" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Monthly)" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Hourly)" });
+                    foreach (var action in actionsList)
+                    {
+                        ProjectConsultantAssignedHistoryAction actionToSave = new()
+                        {
+                            Name = action.Name
+                        };
+                        _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.Add(actionToSave);
+                    }
+                    _db.SaveChanges();
+                }
 
-                //Create System Areaas
+                //Create System Areas
                 List<SystemArea> systemAreasList = new List<SystemArea>();
                 systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
                 systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
@@ -235,7 +259,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
-                //Create System Sub Areaas
+                //Create System Sub Areas
                 List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>();
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });

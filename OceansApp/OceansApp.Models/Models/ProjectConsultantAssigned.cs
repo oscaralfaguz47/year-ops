@@ -14,7 +14,7 @@ namespace OceansApp.Models.Models
         [Required]
         public int ConsultantId { get; set; }
         [Required]
-        public DateTime AssignedDate { get; set; }
+        public DateTime CreationDate { get; set; }
         [Required]
         public bool IsActive { get; set; }
         public decimal? HourlyClientRate { get; set; }

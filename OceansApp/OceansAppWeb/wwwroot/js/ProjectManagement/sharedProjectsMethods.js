@@ -134,6 +134,7 @@ function addConsultantToProject(modalId) {
     var clientRateMethodRb = document.querySelector('input[name="client-rate-model"]:checked').value;
     var consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
     var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
+    var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -161,6 +162,10 @@ function addConsultantToProject(modalId) {
         modelState = false;
         displayToasterWarning('The Monthly Consultant Salary is required.');
     }
+    if (actionDateValue === '') {
+        modelState = false;
+        displayToasterWarning('The Action Date is required.');
+    }
 
     if (modelState) {
         addConsultantToModalCreateUpdateProject(modalId);
@@ -176,7 +181,8 @@ function addConsultantToProject(modalId) {
                 HourlySalary: Number(hourlyConsultantRateValue),
                 MonthlyClientRate: Number(monthlyClientRateValue),
                 MonthlySalary: Number(monthlyConsultantRateValue),
-                PositionDetail: positionDetailValue
+                PositionDetail: positionDetailValue,
+                ActionDate: actionDateValue ? actionDateValue.toString() : null
             };
             console.log(data);
             fetch('/ProjectManagement/Projects/UpdateConsultantParameters', {

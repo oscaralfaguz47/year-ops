@@ -11,23 +11,27 @@ namespace OceansApp.Models.Models
         public int Id { get; set; }
         [Required]
         public int ProjectConsultantAssignedId { get; set; }
-        [MaxLength(40)]
         [Required]
-        public string Action { get; set; }
+        public int ActionId { get; set; }
+        public decimal? OldValue { get; set; }
+        public decimal? NewValue { get; set; }
         [MaxLength(130)]
-        public string? OldValue { get; set; }
+        public string? OldValueDetail { get; set; }
         [MaxLength(130)]
-        public string? NewValue { get; set; }
+        public string? NewValueDetail { get; set; }
         [Required]
         public DateTime ActionDate { get; set; }
         [Required]
-        [MaxLength(450)]
-        public string UserActionedBy { get; set; }
+        public DateTime CreationDate { get; set; }
+        [Required]
+        public int UserActionedBy { get; set; }
 
         [ValidateNever]
         public ProjectConsultantAssigned ProjectConsultantAssigned { get; set; }
         [ValidateNever]
-        public ApplicationUser ApplicationUserActionedBy { get; set; }
-        
+        public ConsultantDetail ConsultantUserActionedBy { get; set; }
+        [ValidateNever]
+        public ProjectConsultantAssignedHistoryAction Action { get; set; }
+
     }
 }

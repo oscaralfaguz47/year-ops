@@ -169,6 +169,10 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                             ModelState.AddModelError("ConsultantId", $"You are adding duplicated consultants in the list.");
                             continue;
                         }
+                        if (consultant.ProjectConsultantAssignedId == null)
+                        {
+                            validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultant.ActionDate, ModelState);
+                        }
                         validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", consultant.ConsultantId, ModelState);
                         validateInputs.ValidateRequiredAndStringLength("PositionDetail", "Position Description", consultant.PositionDetail, 130, ModelState);
                     }
@@ -244,6 +248,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 }
                 ValidateInputs validateInputs = new();
 
+                validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultantParametersData.ActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("ProjectConsultantAssignedId", "Project Consultant Assigned Id", consultantParametersData.ProjectConsultantAssignedId, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PositionDetail", "Position Description", consultantParametersData.PositionDetail, 130, ModelState);
 
