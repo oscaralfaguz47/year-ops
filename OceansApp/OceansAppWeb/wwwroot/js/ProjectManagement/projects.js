@@ -291,6 +291,7 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
                            <ul>
                              <li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li>
                              <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
+                              <li onclick="getProjectConsultantHistory(${consProjAssId}, 'modal-consultant-history')"><i class="bi bi-clock-history"></i> View History</li>
                            </ul>
                          </div>
                          `;
@@ -487,6 +488,60 @@ async function activateDeactivateProject(inputElement, projectId, name, status) 
         } else {
             inputElement.checked = status;
         }
+    });
+}
+
+// GET CONSULTANT HISTORY
+async function getProjectConsultantHistory(projectConsultantAssignedId, modalId) {
+    displaySpinner();
+    var bodyList = document.getElementById('consultant-history-body');
+    var actionIcon = "";
+    await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
+        console.log(data.historyList.result);
+        showModal(modalId);
+        var count = 0;
+        var firstRow = "";
+        var row = "";
+        data.historyList.result.forEach(function (obj) {
+            if (obj.action === 'Consultant Assigned First Time') {
+                actionIcon = '<i class="bi bi-plus-square green-label"></i>';
+            } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated' || obj.action === 'Position Details updated'
+                || obj.action === 'Consultant pricing method updated (Hourly)' || obj.action === 'Client pricing method updated (Monthly)'
+                || obj.action === 'Monthly Client Rate updated' || obj.action === 'Hourly Salary updated' || obj.action === 'Consultant pricing method updated (Monthly)'
+                || obj.action === 'Client pricing method updated (Hourly)') {
+                actionIcon = '<i style="color:#2aa7ff" class="bi bi-pencil-square"></i>';
+            } else if (obj.action === 'Consultant Deactivated') {
+                actionIcon = '<i class="bi bi-x-lg red-label"></i>';
+            } else if (obj.action === 'Consultant Activated') {
+                actionIcon = '<i class="bi bi-plus-lg green-label"></i>';
+            }
+            var actionDate = new Date(obj.actionDate);
+            var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
+                ('0' + actionDate.getDate()).slice(-2) + '/' +
+                actionDate.getFullYear();
+            if (obj.action === 'Consultant Assigned First Time' && count < 3) {
+                if (count === 0) {
+                    firstRow += `<li>${actionIcon} <strong>${obj.action}</strong> (${formattedDate}): ${obj.newValueDetail} Client Rate: $${obj.newValue}`;
+                } else if (count === 1) {
+                    firstRow += `, ${obj.newValueDetail} Consultant Salary: $${obj.newValue}, `;
+                } else if (count === 2) {
+                    firstRow += `Position: ${obj.newValueDetail}.</li>`;
+                    row += firstRow;
+                }
+            } else {
+                if (obj.action !== "Consultant pricing method updated (Hourly)" && obj.action !== "Client pricing method updated (Monthly)"
+                    && obj.action !== "Position Details updated" && obj.action !== "Consultant Deactivated" && obj.action !== "Consultant Activated") {
+                    row += `<li>${actionIcon} <strong>${obj.action}</strong> (${formattedDate}): New value: ${obj.newValue}, Old Value: ${obj.oldValue}</li>`;
+                } else if (obj.action === "Position Details updated") {
+                    row += `<li>${actionIcon} <strong>${obj.action}</strong> (${formattedDate}): New value: ${obj.newValueDetail}, Old Value: ${obj.oldValueDetail}</li>`;
+                } else {
+                    row += `<li>${actionIcon} <strong>${obj.action}</strong> (${formattedDate})</li>`;
+                }
+            }
+            count++;
+        });
+        bodyList.innerHTML = row;
+        hideSpinner();
     });
 }
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Projects;
 using OceansApp.Utility.SharedMethods.InputValidations;
@@ -291,7 +292,7 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateConsultantFromProject(int projectConsultantAssignedId)
+        public async Task<IActionResult> ActivateDeactivateConsultantFromProject(int projectConsultantAssignedId, DateTime actionDate)
         {
             try
             {
@@ -299,6 +300,40 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 if (consultantAssignation == null)
                 {
                     return BadRequest(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
+                }
+                var actionDescription = consultantAssignation.IsActive ? "Consultant Deactivated" : "Consultant Activated";
+                var action = _unitOfWork.ProjectConsultantAssignedHistoryAction.GetFirstOrDefault(x => x.Name == actionDescription);
+                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                var userActionedBy = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == claim.Value);
+                if (consultantAssignation.IsActive)
+                {
+                    ProjectConsultantAssignedHistory historyConsultant = new()
+                    {
+                        ProjectConsultantAssignedId = projectConsultantAssignedId,
+                        ActionId = action.ActionId,
+                        ActionDate = actionDate,
+                        CreationDate = costaRicaTime,
+                        UserActionedBy = userActionedBy.ConsultantId,
+                        NewValue = 0,
+                        OldValue = 1
+                    };
+                    _unitOfWork.ProjectConsultantAssignedHistory.Add(historyConsultant);
+                }
+                else
+                {
+                    ProjectConsultantAssignedHistory historyConsultant = new()
+                    {
+                        ProjectConsultantAssignedId = projectConsultantAssignedId,
+                        ActionId = action.ActionId,
+                        ActionDate = actionDate,
+                        CreationDate = costaRicaTime,
+                        UserActionedBy = userActionedBy.ConsultantId,
+                        NewValue = 1,
+                        OldValue = 0
+                    };
+                    _unitOfWork.ProjectConsultantAssignedHistory.Add(historyConsultant);
                 }
                 consultantAssignation.IsActive = consultantAssignation.IsActive ? false : true;
                 _unitOfWork.Save();
@@ -326,13 +361,31 @@ namespace OceansAppWeb.Areas.ProjectManagement.Controllers
                 }
                 project.IsActive = project.IsActive ? false : true;
                 _unitOfWork.Save();
-                var successMessage = "The project " + project.Name+ " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
+                var successMessage = "The project " + project.Name + " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
 
                 return Ok(new { success = true, message = successMessage });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { error = $"There was an error in the server, the project could not be updated.", detail = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectConsultantAssignedHistoryById(int projectConsultantAssignedId)
+        {
+            try
+            {
+                var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId);
+
+                return Ok(new
+                {
+                    HistoryList = historyList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error =  $"There was an error fetching the list.", success = false, result = "errorGet", detail = ex.Message });
             }
         }
 

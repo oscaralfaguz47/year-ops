@@ -254,6 +254,62 @@ document.addEventListener("DOMContentLoaded", function () {
     validateInputTypeNumber('hourlySalary');
 });
 
+//Activate and deactivate Consultant from project
+async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
+    var title = status ? "Deactivate Consultant" : "Activate Consultant";
+    var textAction = status ? "Deactivate" : "Activate";
+    var textSpan = status ? "Deactivated" : "Activated";
+    var validationMessage = status ? "The Deactivation Date is required." : "The Activation Date is required.";
+
+    try {
+        const result = await Swal.fire({
+            title: title,
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: textAction,
+            cancelButtonText: 'Cancel',
+            html: `<div><span>Select a date when ${name} will be ${textSpan}</span></div>
+            <input type="date" id="swal-input-action-date" class="swal2-input" required>`,
+            focusConfirm: false,
+            preConfirm: () => {
+                const actionDate = document.getElementById('swal-input-action-date').value;
+                if (!actionDate) {
+                    Swal.showValidationMessage(validationMessage);
+                    return false;
+                }
+                return [actionDate];
+            },
+            didOpen: () => {
+                const today = new Date();
+                const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                document.getElementById('swal-input-action-date').setAttribute('min', localDate);
+                document.getElementById('swal-input-action-date').onkeydown = (e) => {
+                    e.preventDefault();
+                };
+            }
+        });
+
+        if (result.isConfirmed) {
+            displaySpinner();
+            var actionDate = document.getElementById('swal-input-action-date').value;
+            console.log(actionDate);
+            const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate);
+            toastr.success(data.message);
+            hideSpinner();
+            return data.success;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error(error);
+        hideSpinner();
+        return false;
+    }
+}
+
+
+
 //HTTP REQUESTS
 async function getSuccessManagerIdAndNameByClientId(clientId) {
     var url = "/ProjectManagement/Clients/GetSuccessManagerIdAndNameByClientId?clientId=" + encodeURIComponent(clientId);
@@ -271,12 +327,13 @@ async function getSuccessManagerIdAndNameByClientId(clientId) {
     }
 }
 
-async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId) {
+async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate) {
     var url = "/ProjectManagement/Projects/ActivateDeactivateConsultantFromProject";
     try {
         var token = $('[name="__RequestVerificationToken"]').val();
         var formData = new FormData();
         formData.append('projectConsultantAssignedId', projectConsultantAssignedId);
+        formData.append('actionDate', actionDate);
         let response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -302,37 +359,27 @@ async function activateDeactivateConsultantFromProjectHttps(projectConsultantAss
     }
 }
 
-//Activate and deactivate Consultant from project
-async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
-    var title = status ? "Deactivate Consultant" : "Activate Consultant";
-    var textAction = status ? "Deactivate" : "Activate";
-
+async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
+    var url = "/ProjectManagement/Projects/GetProjectConsultantAssignedHistoryById?projectConsultantAssignedId="
+        + encodeURIComponent(projectConsultantAssignedId);
     try {
-        const result = await Swal.fire({
-            title: title,
-            text: 'Are you sure you want to ' + textAction + ' "' + name + '" from the project?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, do it!',
-            cancelButtonText: 'Cancel'
-        });
-        if (result.isConfirmed) {
-            displaySpinner();
-            const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId);
-            toastr.success(data.message);
-            hideSpinner();
-            return data.success;
+        let response = await fetch(url);
+        if (response.ok) {
+            return await response.json();
         } else {
-            return false;
+            if (response.status === 404) {
+                displayToasterError("Resource not found (404).");
+                throw new Error('404 Not Found: The requested resource could not be found!');
+            } else {
+                let errorData = await response.json();
+                displayToasterError(errorData.error || 'An unknown error occurred.');
+                throw new Error('The request to the server failed!. More details: ' + errorData.error);
+            }
         }
     } catch (error) {
-        console.error(error);
-        hideSpinner();
-        return false;
+        displayToasterError('Error fetching data: ' + error);
+        console.error('Error fetching data:', error);
+        return null;
     }
 }
-
-
 

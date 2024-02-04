@@ -129,6 +129,8 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 var clientRate = consultant.HourlyClientRate > 0 ? consultant.HourlyClientRate : consultant.MonthlyClientRate;
                                 var consultantRate = consultant.HourlySalary > 0 ? consultant.HourlySalary : consultant.MonthlySalary;
+                                var clientRateMethod = consultant.MonthlyClientRate > 0 ? "Monthly" : "Hourly";
+                                var consultantRateMethod = consultant.MonthlySalary > 0 ? "Monthly" : "Hourly";
                                 var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x=>x.Name== "Consultant Assigned First Time");
                                 ProjectConsultantAssignedHistory historyClient = new()
                                 {
@@ -137,7 +139,8 @@ namespace OceansApp.DataAccess.Repository
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
                                     CreationDate = costaRicaTime,
                                     UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValue = clientRate
+                                    NewValue = clientRate,
+                                    NewValueDetail = clientRateMethod
                                 };
                                 await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyClient);
 
@@ -148,7 +151,8 @@ namespace OceansApp.DataAccess.Repository
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
                                     CreationDate = costaRicaTime,
                                     UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValue = consultantRate
+                                    NewValue = consultantRate,
+                                    NewValueDetail = consultantRateMethod
                                 };
                                 await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyConsultant);
                                 ProjectConsultantAssignedHistory historyDetail = new()
@@ -222,6 +226,8 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 var clientRate = consultant.HourlyClientRate > 0 ? consultant.HourlyClientRate : consultant.MonthlyClientRate;
                                 var consultantRate = consultant.HourlySalary > 0 ? consultant.HourlySalary : consultant.MonthlySalary;
+                                var clientRateMethod = consultant.MonthlyClientRate > 0 ? "Monthly" : "Hourly";
+                                var consultantRateMethod = consultant.MonthlySalary > 0 ? "Monthly" : "Hourly";
                                 var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant Assigned First Time");
                                 ProjectConsultantAssignedHistory historyClient = new()
                                 {
@@ -230,7 +236,8 @@ namespace OceansApp.DataAccess.Repository
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
                                     CreationDate = costaRicaTime,
                                     UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValue = clientRate
+                                    NewValue = clientRate,
+                                    NewValueDetail = clientRateMethod
                                 };
                                 await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyClient);
 
@@ -241,7 +248,8 @@ namespace OceansApp.DataAccess.Repository
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
                                     CreationDate = costaRicaTime,
                                     UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValue = consultantRate
+                                    NewValue = consultantRate,
+                                    NewValueDetail = consultantRateMethod
                                 };
                                 await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyConsultant);
                                 ProjectConsultantAssignedHistory historyDetail = new()

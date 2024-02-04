@@ -27,6 +27,8 @@
         IConsultantSeniorityRepository ConsultantSeniority { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
+        IProjectConsultantAssignedHistoryActionRepository ProjectConsultantAssignedHistoryAction { get; }
+        IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; }
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
         IDocumentCCRepository DocumentCC { get; }

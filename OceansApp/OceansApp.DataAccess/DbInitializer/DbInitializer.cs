@@ -225,6 +225,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Hourly)" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Monthly)" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Hourly)" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant Activated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant Deactivated" });
                     foreach (var action in actionsList)
                     {
                         ProjectConsultantAssignedHistoryAction actionToSave = new()
