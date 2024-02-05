@@ -237,6 +237,7 @@ function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
         displaySpinner();
         getSuccessManagerIdAndNameByClientId(selectElement.value)
             .then(data => {
+                console.log(data);
                 var successManagerSelect = document.getElementById('successManagerIdSelect');
                 if (data !== null) {
                     successManagerSelect.innerHTML = '<option selected value="' + data.successManager.userId + '">' + data.successManager.userName + '</option>';
