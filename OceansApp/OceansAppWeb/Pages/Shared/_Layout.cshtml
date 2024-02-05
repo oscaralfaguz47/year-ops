@@ -4,7 +4,7 @@
 @using OceansApp.Utility.ConstantData.Claims.AdminCenter
 @using OceansApp.Utility.ConstantData.Claims.Finances
 @using OceansApp.Utility.ConstantData.Claims.General
-@using OceansApp.Utility.ConstantData.Claims.ProjectManagement
+@using OceansApp.Utility.ConstantData.Claims.AccountManagement
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -70,19 +70,19 @@
                                                 </div>
                                             </li>
                                         }
-                                        @if (User.IsAuthorizedForProjectManagement())
+                                        @if (User.IsAuthorizedForAccountManagement())
                                         {
                                             <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-journal-check"></i> Project Management</a>
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-journal-check"></i> Account Management</a>
 
                                                 <div class="dropdown-menu">
                                                     @if (User.HasClaim(c => c.Type == ClientsClaimsCD.Clients_Page_ClaimType && c.Value == ClientsClaimsCD.Clients_Page_ClaimValue))
                                                     {
-                                                        <a class="nav-link text-dark" asp-area="ProjectManagement" asp-controller="Clients" asp-action="Index">Clients</a>
+                                                        <a class="nav-link text-dark" asp-area="AccountManagement" asp-controller="Clients" asp-action="Index">Clients</a>
                                                     }
                                                     @if (User.HasClaim(c => c.Type == ProjectsClaimsCD.Projects_Page_ClaimType && c.Value == ProjectsClaimsCD.Projects_Page_ClaimValue))
                                                     {
-                                                        <a class="nav-link text-dark" asp-area="ProjectManagement" asp-controller="Projects" asp-action="Index">Projects</a>
+                                                        <a class="nav-link text-dark" asp-area="AccountManagement" asp-controller="Projects" asp-action="Index">Projects</a>
                                                     }
                                                 </div>
                                             </li>

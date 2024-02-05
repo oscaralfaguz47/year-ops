@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using OceansApp.Utility.Configuration.AuthorizationRequirement;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.AdminCenter;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.General;
-using OceansApp.Utility.Configuration.AuthorizationRequirement.ProjectManagement;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.AccountManagement;
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
-using OceansApp.Utility.ConstantData.Claims.ProjectManagement;
+using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -97,11 +97,11 @@ namespace OceansApp.Utility.Configuration
             });
 
             //PROJECT MANAGEMENT
-            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesProjectManagementRequirementHandler>();
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesAccountManagementRequirementHandler>();
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("AnyOfPoliciesInProjectManagement", policy =>
-                    policy.Requirements.Add(new AnyOfPoliciesProjectManagementRequirement()));
+                options.AddPolicy("AnyOfPoliciesInAccountManagement", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesAccountManagementRequirement()));
             });
             //PROJECT MANAGEMENT - CLIENTS
             services.AddAuthorization(options =>

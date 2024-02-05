@@ -7,7 +7,7 @@ async function getListOfResults(firstTime, filters) {
     displaySpinner();
     var formData = firstTime ? {} : recolectDataFromForm(filters);
     var queryString = JSON.stringify(formData);
-    var url = "/ProjectManagement/Clients/GetClientsList?model=" + encodeURIComponent(queryString);
+    var url = "/AccountManagement/Clients/GetClientsList?model=" + encodeURIComponent(queryString);
 
     fetch(url)
         .then(response => {
@@ -35,7 +35,7 @@ async function getListOfResults(firstTime, filters) {
                     ('0' + admissionDate.getDate()).slice(-2) + '/' +
                     admissionDate.getFullYear();
                 var isActive = false;
-                var clientClass = obj.clientClass;
+                var clientClass = "AAA";
                 if (obj.clientClass === 'B') {
                     clientClass = "AA";
                 } else if (obj.clientClass === 'C') {
@@ -146,7 +146,7 @@ async function activateDeactivate(inputElement, clientId, name, status) {
             var token = $('[name="__RequestVerificationToken"]').val();
             var formData = new FormData();
             formData.append('clientId', clientId);
-            fetch("/ProjectManagement/Clients/ActivateDeactivateClient"
+            fetch("/AccountManagement/Clients/ActivateDeactivateClient"
                 , {
                     method: 'POST',
                     headers: {
@@ -180,7 +180,7 @@ async function activateDeactivateNotifications(inputElement, clientId, name, sta
     var token = $('[name="__RequestVerificationToken"]').val();
     var formData = new FormData();
     formData.append('clientId', clientId);
-    fetch("/ProjectManagement/Clients/ActivateDeactivateNotifications"
+    fetch("/AccountManagement/Clients/ActivateDeactivateNotifications"
         , {
             method: 'POST',
             headers: {
@@ -215,7 +215,7 @@ async function displayUpdateModal(modalId, clientId) {
     const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
     successManagerSelect.innerHTML = '';
 
-    var url = "/ProjectManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
+    var url = "/AccountManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
     displaySpinner();
     fetch(url)
         .then(response => {
@@ -339,7 +339,7 @@ async function createUpdateClient(modalId) {
         AllowSentLatePaymentNotifications: Boolean(allowSentLatePaymentNotificationsData),
         AdditionalEmailsForNotifications: additionalEmaislData
     };
-    fetch('/ProjectManagement/Clients/CreateUpdateClient', {
+    fetch('/AccountManagement/Clients/CreateUpdateClient', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

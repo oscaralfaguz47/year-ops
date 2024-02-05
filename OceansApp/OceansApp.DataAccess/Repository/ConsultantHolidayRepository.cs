@@ -39,7 +39,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            var results = await connection.QueryAsync<HolidaysGetAllWithFiltersVM>("GetAllConsultantHolidaysWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var results = await connection.QueryAsync<HolidaysGetAllWithFiltersVM>("SP_CONSULTANT_HOLIDAYS_GetAllConsultantHolidaysWithFilters", parameters, commandType: CommandType.StoredProcedure);
             var totalCount = parameters.Get<int>("@TotalCount");
 
             var holidays = results.ToList();
@@ -73,12 +73,8 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var existingHoliday = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.Name == holidayData.Name.Trim());
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-                if (existingHoliday != null)
-                {
-                    return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a list of Holidays with the name '{holidayData.Name.Trim()}'. Please try another one." };
-                }
+
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
                 ConsultantHoliday holidayListToCreate = new()
@@ -124,12 +120,7 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var existingHoliday = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.Name == holidayData.Name.Trim() && x.ConsultantHolidayId != holidayData.ConsultantHolidayId);
                 var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-                if (existingHoliday != null)
-                {
-                    return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a list of Holidays with the name '{holidayData.Name.Trim()}'. Please try another one." };
-                }
 
                 var holidayListToUpdate = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId);
 

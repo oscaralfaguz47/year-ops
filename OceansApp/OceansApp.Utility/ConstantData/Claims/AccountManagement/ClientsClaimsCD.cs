@@ -1,5 +1,5 @@
 ﻿
-namespace OceansApp.Utility.ConstantData.Claims.ProjectManagement
+namespace OceansApp.Utility.ConstantData.Claims.AccountManagement
 {
     public class ClientsClaimsCD
     {

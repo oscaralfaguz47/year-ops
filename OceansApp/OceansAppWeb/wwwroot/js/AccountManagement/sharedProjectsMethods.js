@@ -99,7 +99,7 @@ async function displayAddUpdateConsultant(modalId, id) {
         createUpdateForm.find('[name="proConsAssignedId"]').val(id);
         document.getElementById('search-input-cont').style.display = 'none';
 
-        var url = "/ProjectManagement/Projects/GetAssignedConsultantToProjectById?consultantProjectAssignedtId=" + encodeURIComponent(id);
+        var url = "/AccountManagement/Projects/GetAssignedConsultantToProjectById?consultantProjectAssignedtId=" + encodeURIComponent(id);
         displaySpinner();
         fetch(url)
             .then(response => {
@@ -200,7 +200,7 @@ function addConsultantToProject(modalId) {
                 PositionDetail: positionDetailValue,
                 ActionDate: actionDateValue ? actionDateValue.toString() : null
             };
-            fetch('/ProjectManagement/Projects/UpdateConsultantParameters', {
+            fetch('/AccountManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -365,7 +365,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
 
 //HTTP REQUESTS
 async function getSuccessManagerIdAndNameByClientId(clientId) {
-    var url = "/ProjectManagement/Clients/GetSuccessManagerIdAndNameByClientId?clientId=" + encodeURIComponent(clientId);
+    var url = "/AccountManagement/Clients/GetSuccessManagerIdAndNameByClientId?clientId=" + encodeURIComponent(clientId);
     try {
         let response = await fetch(url);
         if (response.ok) {
@@ -381,7 +381,7 @@ async function getSuccessManagerIdAndNameByClientId(clientId) {
 }
 
 async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate) {
-    var url = "/ProjectManagement/Projects/ActivateDeactivateConsultantFromProject";
+    var url = "/AccountManagement/Projects/ActivateDeactivateConsultantFromProject";
     try {
         var token = $('[name="__RequestVerificationToken"]').val();
         var formData = new FormData();
@@ -413,7 +413,7 @@ async function activateDeactivateConsultantFromProjectHttps(projectConsultantAss
 }
 
 async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
-    var url = "/ProjectManagement/Projects/GetProjectConsultantAssignedHistoryById?projectConsultantAssignedId="
+    var url = "/AccountManagement/Projects/GetProjectConsultantAssignedHistoryById?projectConsultantAssignedId="
         + encodeURIComponent(projectConsultantAssignedId);
     try {
         let response = await fetch(url);

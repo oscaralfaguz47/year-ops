@@ -9,5 +9,6 @@ namespace OceansApp.Models.ViewModels.Holidays
         public string Name { get; set; }
         public DateTime CreationDate { get; set; }
         public string CreatedByName { get; set; }
+        public int NumHolidays { get; set; }
     }
 }

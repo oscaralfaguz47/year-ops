@@ -1,5 +1,5 @@
 ﻿async function getClientsList() {
-    var url = "/ProjectManagement/Clients/GetAllClientsListForSelect";
+    var url = "/AccountManagement/Clients/GetAllClientsListForSelect";
     return fetch(url)
         .then(response => {
             if (response.ok) {

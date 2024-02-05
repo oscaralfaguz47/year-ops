@@ -8,7 +8,7 @@ using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
-using OceansApp.Utility.ConstantData.Claims.ProjectManagement;
+using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 
 namespace OceansApp.DataAccess.DbInitializer
 {
@@ -246,7 +246,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemAreasList.Add(new SystemArea() { Name = "Reporte de Horas" });
                 systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
                 systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
-                systemAreasList.Add(new SystemArea() { Name = "Project Management" });
+                systemAreasList.Add(new SystemArea() { Name = "Account Management" });
 
                 foreach (var area in systemAreasList)
                 {

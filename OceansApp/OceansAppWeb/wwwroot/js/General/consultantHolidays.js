@@ -84,6 +84,7 @@ function getHolidaysList(firstTime, filters) {
                     <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.consultantHolidayId})" title="Click to see the Holidays">${holiday.name}</span>
                 </td>
                 <td>${holiday.year}</td>
+                <td>${holiday.numHolidays}</td>
                 <td>${formattedDate}</td>
                 <td>${holiday.createdByName}</td>
             </tr>`;

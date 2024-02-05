@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace OceansApp.Utility.Configuration.AuthorizationRequirement.ProjectManagement
+namespace OceansApp.Utility.Configuration.AuthorizationRequirement.AccountManagement
 {
-    public class AnyOfPoliciesProjectManagementRequirementHandler : AuthorizationHandler<AnyOfPoliciesProjectManagementRequirement>
+    public class AnyOfPoliciesAccountManagementRequirementHandler : AuthorizationHandler<AnyOfPoliciesAccountManagementRequirement>
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public AnyOfPoliciesProjectManagementRequirementHandler(IServiceProvider serviceProvider)
+        public AnyOfPoliciesAccountManagementRequirementHandler(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
-        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AnyOfPoliciesProjectManagementRequirement requirement)
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AnyOfPoliciesAccountManagementRequirement requirement)
         {
             using (var scope = _serviceProvider.CreateScope())
             {

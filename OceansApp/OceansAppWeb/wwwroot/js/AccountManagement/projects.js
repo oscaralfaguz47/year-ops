@@ -7,7 +7,7 @@ async function getListOfResults(firstTime, filters) {
     displaySpinner();
     var formData = firstTime ? {} : recolectDataFromForm(filters);
     var queryString = JSON.stringify(formData);
-    var url = "/ProjectManagement/Projects/GetProjectsList?model=" + encodeURIComponent(queryString);
+    var url = "/AccountManagement/Projects/GetProjectsList?model=" + encodeURIComponent(queryString);
 
     fetch(url)
         .then(response => {
@@ -96,7 +96,7 @@ async function displayUpdateModal(modalId, id) {
     showModal(modalId);
     if (id !== null) {
         document.getElementById('create-Project-modal-title').textContent = "UPDATE PROJECT";
-        var url = "/ProjectManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
+        var url = "/AccountManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
         displaySpinner();
         fetch(url)
             .then(response => {
@@ -199,7 +199,7 @@ async function createUpdateProject(modalId) {
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
         AssignedConsultants: consultantsData
     };
-    fetch('/ProjectManagement/Projects/CreateUpdateProject', {
+    fetch('/AccountManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -462,7 +462,7 @@ async function activateDeactivateProject(inputElement, projectId, name, status) 
             var token = $('[name="__RequestVerificationToken"]').val();
             var formData = new FormData();
             formData.append('projectId', projectId);
-            fetch("/ProjectManagement/Projects/ActivateDeactivateProject"
+            fetch("/AccountManagement/Projects/ActivateDeactivateProject"
                 , {
                     method: 'POST',
                     headers: {

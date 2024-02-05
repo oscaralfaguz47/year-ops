@@ -7,9 +7,9 @@ using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
-namespace OceansAppWeb.Areas.ProjectManagement.Controllers
+namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
-    [Area("ProjectManagement")]
+    [Area("AccountManagement")]
     [RequireTwoFactorEnabled]
     public class ClientsController : Controller
     {
