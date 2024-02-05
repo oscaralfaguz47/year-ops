@@ -199,7 +199,6 @@ async function createUpdateProject(modalId) {
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
         AssignedConsultants: consultantsData
     };
-    console.log(data);
     fetch('/ProjectManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {

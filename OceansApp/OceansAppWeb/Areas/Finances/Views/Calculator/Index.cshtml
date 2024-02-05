@@ -4,6 +4,8 @@
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @model CalculatorCCVM
 
+    <link rel="stylesheet" href="~/css/Finances/calculator.css" asp-append-version="true" />
+
 <div class="container" id="calculatorForm">
     @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimValue))
     {

@@ -114,7 +114,6 @@ async function displayAddUpdateConsultant(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.consultantAssignation.consultantName);
                 document.getElementById('consultantEmailInput').value = data.consultantAssignation.email;
                 createUpdateForm.find('[name="positionDetail"]').val(data.consultantAssignation.positionDetail);
@@ -140,7 +139,6 @@ async function displayAddUpdateConsultant(modalId, id) {
 //ADD CONSULTANT TO PROJECT 
 function addConsultantToProject(modalId) {
     var projectConsultantAssignedValue = createUpdateForm.find('[name="proConsAssignedId"]').val();
-    console.log("HOLA: " + projectConsultantAssignedValue);
     var hourlyClientRateValue = createUpdateForm.find('[name="hourlyClientRate"]').val();
     var monthlyClientRateValue = createUpdateForm.find('[name="monthlyClientRate"]').val();
     var hourlyConsultantRateValue = createUpdateForm.find('[name="hourlySalary"]').val();
@@ -190,7 +188,6 @@ function addConsultantToProject(modalId) {
         addConsultantToModalCreateUpdateProject(modalId);
         //EDIT CONSULTANT PARAMETERS
         if (projectConsultantAssignedValue !== "") {
-            console.log("VALUE: " + projectConsultantAssignedValue);
             displaySpinner();
 
             var token = $('[name="__RequestVerificationToken"]').val();
@@ -203,7 +200,6 @@ function addConsultantToProject(modalId) {
                 PositionDetail: positionDetailValue,
                 ActionDate: actionDateValue ? actionDateValue.toString() : null
             };
-            console.log(data);
             fetch('/ProjectManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',
                 headers: {
@@ -293,7 +289,6 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
         if (result.isConfirmed) {
             displaySpinner();
             var actionDate = document.getElementById('swal-input-action-date').value;
-            console.log(actionDate);
             const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate);
             toastr.success(data.message);
             hideSpinner();
@@ -314,7 +309,6 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
     var bodyList = document.getElementById('consultant-history-body');
     var actionIcon = "";
     await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        console.log(data.historyList.result);
         showModal(modalId);
         var count = 0;
         var firstRow = "";
