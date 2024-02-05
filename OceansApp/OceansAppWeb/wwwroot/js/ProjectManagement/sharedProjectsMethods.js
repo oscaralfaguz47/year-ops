@@ -308,6 +308,65 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
     }
 }
 
+// GET CONSULTANT HISTORY
+async function getProjectConsultantHistory(projectConsultantAssignedId, modalId) {
+    displaySpinner();
+    var bodyList = document.getElementById('consultant-history-body');
+    var actionIcon = "";
+    await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
+        console.log(data.historyList.result);
+        showModal(modalId);
+        var count = 0;
+        var firstRow = "";
+        var row = "";
+        var titleLabelClass = "";
+        data.historyList.result.forEach(function (obj) {
+            if (obj.action === 'Consultant Assigned First Time') {
+                actionIcon = '<i class="bi bi-plus-square green-label"></i>';
+                titleLabelClass = 'consultant-added';
+            } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated' || obj.action === 'Position Details updated'
+                || obj.action === 'Consultant pricing method updated (Hourly)' || obj.action === 'Client pricing method updated (Monthly)'
+                || obj.action === 'Monthly Client Rate updated' || obj.action === 'Hourly Salary updated' || obj.action === 'Consultant pricing method updated (Monthly)'
+                || obj.action === 'Client pricing method updated (Hourly)') {
+                actionIcon = '<i style="color:#2aa7ff" class="bi bi-pencil-square"></i>';
+                titleLabelClass = 'consultant-updated';
+            } else if (obj.action === 'Consultant Deactivated') {
+                actionIcon = '<i class="bi bi-x-lg red-label"></i>';
+                titleLabelClass = 'consultant-deactivated';
+            } else if (obj.action === 'Consultant Activated') {
+                actionIcon = '<i class="bi bi-plus-lg green-label"></i>';
+                titleLabelClass = 'consultant-activated';
+            }
+            var actionDate = new Date(obj.actionDate);
+            var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
+                ('0' + actionDate.getDate()).slice(-2) + '/' +
+                actionDate.getFullYear();
+            if (obj.action === 'Consultant Assigned First Time' && count < 3) {
+                if (count === 0) {
+                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>`;
+                } else if (count === 1) {
+                    firstRow += `, ${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
+                } else if (count === 2) {
+                    firstRow += `Position: <strong>${obj.newValueDetail}</strong>. Assigned by: ${obj.userActionedBy}.</li>`;
+                    row += firstRow;
+                }
+            } else {
+                if (obj.action !== "Consultant pricing method updated (Hourly)" && obj.action !== "Consultant pricing method updated (Monthly)"
+                    && obj.action !== "Client pricing method updated (Monthly)" && obj.action !== "Client pricing method updated (Hourly)"
+                    && obj.action !== "Position Details updated" && obj.action !== "Consultant Deactivated" && obj.action !== "Consultant Activated") {
+                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): Old Value: <strong>$${obj.oldValue}</strong>, New value: <strong>$${obj.newValue}</strong>. Updated by: ${obj.userActionedBy}.</li>`;
+                } else if (obj.action === "Position Details updated") {
+                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): Old Value: <strong>${obj.oldValueDetail}</strong>, New value: <strong>${obj.newValueDetail}</strong>. Updated by: ${obj.userActionedBy}.</li>`;
+                } else {
+                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}). Updated by: ${obj.userActionedBy}.</li>`;
+                }
+            }
+            count++;
+        });
+        bodyList.innerHTML = row;
+        hideSpinner();
+    });
+}
 
 
 //HTTP REQUESTS

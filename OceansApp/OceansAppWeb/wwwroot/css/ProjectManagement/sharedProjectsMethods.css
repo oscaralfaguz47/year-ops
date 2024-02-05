@@ -54,3 +54,26 @@
 #form-add-update-consultant .flex-div {
    display: flex;
 }
+/* CONSULTANT HISTORY MODAL */
+#consultant-history-body{
+    list-style-type: none;
+    padding: 0;
+}
+.history-title {
+    color: #fff;
+    padding: 1px 2px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.consultant-added {
+    background-color: RGB(10, 187, 34);
+}
+.consultant-updated {
+    background-color: #2aa7ff;
+}
+.consultant-activated {
+    background-color: RGB(10, 187, 34);
+}
+.consultant-deactivated {
+    background-color: red;
+}
