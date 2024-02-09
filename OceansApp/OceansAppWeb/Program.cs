@@ -104,15 +104,13 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseCors("AllowSpecificOrigin");
-
 SeedDatabase();
 app.UseMiddleware<RedirectToDashboardMiddleware>();
 
 app.UseSession();
 app.UseCookiePolicy();
 app.UseAuthentication();
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthorization();
 app.UseStaticFiles();
 

@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Cors;
 
 namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
+    [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
     [Authorize(Policy = "AccessToUpdateDataFromSoftlandSection")]
     public class DataFromSoftlandController : Controller

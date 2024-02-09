@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
@@ -9,6 +10,7 @@ using System.Security.Claims;
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
+    [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
     [Authorize(Policy = "AccessToUserRolesAndPermissions")]
     public class UserRolesPermissionsController : Controller

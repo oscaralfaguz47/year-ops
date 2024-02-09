@@ -5,6 +5,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IConsultantDetailRepository : IRepository<ConsultantDetail> 
     {
+        Task<(List<ConsultantsGetAllWithFiltersVM> consultants, int totalCount)> GetAllConsultantsWithFiltersAsync(ConsultantsPaginationFiltersVM filtersAndPagination);
         Task<List<GetUsersSelectVM>> GetUsersByCategoryAndPositionForSelect(string userCategory, string userPosition);
         Task<int> GetNumOfUsersByCategoryConsultantIdAndPosition(string userCategory, string userPosition, int consultantId);
         Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string searchText);
