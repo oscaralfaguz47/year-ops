@@ -32,7 +32,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
         public void Initialize()
         {
-            bool isThereNewMigrationToUpdate = false; // False if no migration updates in the DB are needed
+            bool isThereNewMigrationToUpdate = true; // False if no migration updates in the DB are needed
             if (isThereNewMigrationToUpdate)
             {
                 //Migrations if they are not applied
@@ -49,7 +49,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
             }
 
-            bool createDefaultDataToDatabase = false; // False if no updates in the DB are needed
+            bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
 
             if (createDefaultDataToDatabase)
             {
@@ -268,7 +268,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
@@ -374,12 +374,19 @@ namespace OceansApp.DataAccess.DbInitializer
                 });
 
                 //GENERAL - CONSULTANTS
-                var consultantsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultores");
+                var consultantsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultants");
                 systemClaimsList.Add(new ApplicationSystemClaim()
                 {
                     ClaimType = ConsultantsClaimsCD.Consultants_Page_ClaimType,
                     ClaimValue = ConsultantsClaimsCD.Consultants_Page_ClaimValue,
-                    Description = "Acceso para ver a todos los consultores",
+                    Description = "Access to manage only Computer Consultants (Developers, QAs...)",
+                    SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType,
+                    ClaimValue = ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue,
+                    Description = "Access to manage all consultants, including Administrative Consultants",
                     SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
                 });
 

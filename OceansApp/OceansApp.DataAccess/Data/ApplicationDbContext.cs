@@ -60,6 +60,14 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(CC => CC.UserId)
                 .IsRequired();
             modelBuilder.Entity<ConsultantDetail>()
+               .HasOne(cc => cc.ApplicationUserCreated)
+               .WithMany()
+               .HasForeignKey(CC => CC.UserCreatedBy);
+            modelBuilder.Entity<ConsultantDetail>()
+               .HasOne(cc => cc.ApplicationUserUpdated)
+               .WithMany()
+               .HasForeignKey(CC => CC.UserLastUpdatedBy);
+            modelBuilder.Entity<ConsultantDetail>()
                 .HasOne(cc => cc.Country)
                 .WithMany()
                 .HasForeignKey(CC => CC.IdCountry)

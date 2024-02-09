@@ -6,7 +6,7 @@ namespace OceansAppWeb.Areas.General.Controllers
 {
     [Area("General")]
     [RequireTwoFactorEnabled]
-    [Authorize(Policy = "AccessToConsultantsPage")]
+    [Authorize(Policy = "AccessToViewNoSensitiveInfoForAllConsultants")]
     public class ConsultantsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
