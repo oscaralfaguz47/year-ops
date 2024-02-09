@@ -17,7 +17,7 @@ namespace OceansApp.Models.ViewModels.Consultants
         public bool TwoFactorEnabled { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool IsActive { get; set; }
-        public DateTimeOffset? LockoutEnd { get; set; }
+        public bool IsLockedOut { get; set; }
         public string UserCategoryName { get; set; }
         public string? ConsultantPositions { get; set; }
         public string? ConsultantProjects { get; set; }

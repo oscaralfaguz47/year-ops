@@ -125,3 +125,14 @@
         .menu-options ul li .bi-pencil-square {
             color: #2aa7ff;
         }
+
+/* TABLE */
+.shared-table-td {
+    text-align: center !important;
+    font-weight: bold;
+}
+
+    .shared-table-td i {
+        font-size: 23px;
+        margin: 0;
+    }

@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" href="~/css/General/consultants.css" />
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -71,11 +72,7 @@
                         <span class="sort-arrow" id="sortArrowUserCategoryName"></span>
                     </th>
                     <th>Position</th>
-                    <th>Projects</th>
-                    <th onclick="orderByTableList('IsActive', 'IsActiveTableHeader', 'sortArrowIsActive')" data-sort="ANY" name="IsActiveTableHeader" class="sortable-col">
-                        User Status
-                        <span class="sort-arrow" id="sortArrowIsActive"></span>
-                    </th>
+                    <th>Assigned Projects</th>
                     <th>Primary Phone</th>
                     <th>Phone 2</th>
                     <th>Address</th>
@@ -83,6 +80,10 @@
                     <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
                         Shirt Size
                         <span class="sort-arrow" id="sortArrowShirtSize"></span>
+                    </th>
+                    <th onclick="orderByTableList('IsActive', 'IsActiveTableHeader', 'sortArrowIsActive')" data-sort="ANY" name="IsActiveTableHeader" class="sortable-col">
+                        User Status
+                        <span class="sort-arrow" id="sortArrowIsActive"></span>
                     </th>
                     <th onclick="orderByTableList('TwoFactorEnabled', 'TwoFactorEnabledTableHeader', 'sortArrowTwoFactorEnabled')" data-sort="ANY" name="TwoFactorEnabledTableHeader" class="sortable-col">
                         Two Factor Enabled?
