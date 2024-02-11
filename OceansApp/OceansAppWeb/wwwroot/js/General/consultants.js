@@ -29,6 +29,15 @@ async function getListOfResults(firstTime, filters) {
             tableRows.css("display", "block");
             tbody.empty();
             data.consultantsList.forEach(function (obj) {
+                var projectsJson = JSON.parse(obj.consultantProjects);
+                var projectsSpan = "";
+                if (projectsJson !== null) {
+                    projectsJson.forEach(function (pos) {
+                        projectsSpan += `<span class="project-span"><span>${pos.Name}</span>${pos.IsActive ? '<span class="green-label"> (Active)</span>' : '<span class="red-label"> (Inactive)</span>'}</span>`;
+                    });
+                } else {
+                    projectsSpan = '<strong class="red-label">Not yet assigned to a project.</strong>';
+                }
                 var row = `<tr>
                   <td>
                   <i onclick="displayUpdateModal('modal-update-create-project', ${obj.consultantId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
@@ -39,18 +48,17 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.countryName}</td>
                   <td>${obj.userCategoryName}</td>
                   <td>${obj.consultantPositions === null ? "" : obj.consultantPositions}</td>
-                  <td>${obj.consultantProjects === null ? "" : obj.consultantProjects}</td>
+                  <td>${projectsSpan}</td>
                   <td>${obj.phoneNumber === null ? "" : obj.phoneNumber}</td>
                   <td>${obj.phone2 === null ? "" : obj.phone2}</td>
                   <td>${obj.address === null ? "" : obj.address}</td>
-                  <td>${obj.location === null ? "" : `<div class="location-cont">
+                  <!--<td>${obj.location === null ? "" : `<div class="location-cont">
                         <button onclick="copyToClipboard('${obj.location}', 'The location of: ' + '${obj.consultantName}' + ' was copied to the clipboard!')" >
                             <i class="bi bi-clipboard-fill"></i> Copy location
                         </button> &nbsp;
                         <a href="${obj.location}" target="_blank" class="link"><i class="bi bi-geo-alt-fill"></i> Redirect to location</a>
                                     </div>`}
-                  </td>
-                  <td>${obj.shirtSize === null ? "" : obj.shirtSize}</td>
+                  </td>-->
                    <td class="shared-table-td">${obj.isActive ? '<span class="green-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
                   <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
                   <td class="shared-table-td">${obj.emailConfirmed ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
