@@ -35,7 +35,7 @@ async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, 
             let resultList = document.createElement('ul');
             for (let item of data.consultants) {
                 let listItem = document.createElement('li');
-                listItem.innerHTML = '<strong>' + item.consultantName + '</strong>' + ' (' + item.email + ')';
+                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span class="green-label">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
                 listItem.onclick = function () {
                     document.getElementById(hiddenInputForId).value = item.consultantId;
                     document.getElementById(consultantNameInput).value = item.consultantName;
@@ -78,10 +78,12 @@ function validateRatesInputs() {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlySalary').value = null;
+        document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'block';
     } else {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('monthlySalary').value = null;
+        document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'none';
     }
 }
 //DISPLAY MODAL
@@ -94,6 +96,18 @@ async function displayAddUpdateConsultant(modalId, id) {
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     validateRatesInputs();
     document.getElementById('search-input-cont').style.display = 'block';
+    var isBillableValue = document.getElementById("IsBillable").value;
+    var clientRateSection = document.getElementById("client-rate-section");
+    var clientRateInputs = document.getElementById("client-rate-inputs");
+    if (isBillableValue === "true") {
+        console.log("IS TRUE");
+        clientRateSection.style.display = 'block';
+        clientRateInputs.style.display = 'flex';
+    } else {
+        console.log("IS FALSE");
+        clientRateSection.style.display = 'none';
+        clientRateInputs.style.display = 'none';
+    }
 
     if (id !== null) {
         createUpdateForm.find('[name="proConsAssignedId"]').val(id);
@@ -147,6 +161,7 @@ function addConsultantToProject(modalId) {
     var consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
     var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
     var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
+    var isBillableValue = document.getElementById("IsBillable").value;
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -158,11 +173,11 @@ function addConsultantToProject(modalId) {
         displayToasterWarning('The Position Description is required.');
     }
 
-    if (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H') {
+    if (isBillableValue === "true" && (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H')) {
         modelState = false;
         displayToasterWarning('The Hourly Client Rate is required.');
     }
-    if (Number(monthlyClientRateValue) === 0 && clientRateMethodRb === 'M') {
+    if (isBillableValue === "true" && (Number(monthlyClientRateValue) === 0 && clientRateMethodRb === 'M')) {
         modelState = false;
         displayToasterWarning('The Monthly Client Rate is required.');
     }

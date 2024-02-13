@@ -138,6 +138,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                     _db.SaveChanges();
                 }
+                
                 if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
                 {
                     List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
@@ -209,6 +210,27 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.CONSULTANT_POSITIONS.Add(consultantPosition);
                     }
+                    _db.SaveChanges();
+                }
+                //Create Default Client for Administrative Consultants
+
+                if (_db.CLIENT.FirstOrDefault(x=> x.Name == "Oceans Code Experts") == null)
+                {
+                    Client client = new() {
+                        Name = "Oceans Code Experts",
+                        ClientCode = "OCEADMIN01",
+                        Alias = "Oceans Code Experts",
+                        AdmissionDate = DateTime.Now,
+                        PaymentCondition = "ND",
+                        Discount = 0,
+                        IsActive = "S",
+                        ClientCategory = "OCEADMIN",
+                        CreationDate = DateTime.Now,
+                        CompanyId = "OCE/LLC",
+                        LatePaymentFee = 0,
+                        AllowSentLatePaymentNotifications = false
+                    };
+                    _db.CLIENT.Add(client);
                     _db.SaveChanges();
                 }
                 //CREATE PROJECT HISTORY ACTIONS

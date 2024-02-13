@@ -154,8 +154,22 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateNotRequiredAndStringLength("Description", "Project Description", projectData.Description, 300, ModelState);
                 validateInputs.ValidateDateValidFormat("StartDate", "Start Date", projectData.StartDate, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsActive", "Is Active", projectData.IsActive, ModelState);
-                validateInputs.ValidateRequiredFieldBooleanType("IsBillable", "Is Billable", projectData.IsBillable, ModelState);
-                validateInputs.ValidateRequiredFieldIntType("ClientId", "Client", projectData.ClientId, ModelState);
+                if (projectData.ProjectType == "E")
+                {
+                    validateInputs.ValidateRequiredFieldIntType("ClientId", "Client", projectData.ClientId, ModelState);
+                    validateInputs.ValidateRequiredFieldBooleanType("IsBillable", "Is Billable", projectData.IsBillable, ModelState);
+                }
+                else
+                {
+                    var internalClient = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == "OCEADMIN01");
+                    if (internalClient == null)
+                    {
+                        return BadRequest(new { error = "The internal client was not found.", detail = "Client not found." });
+                    }
+                    projectData.ClientId = internalClient.ClientId;
+                    projectData.ClientHasTrackingTool = false;
+                    projectData.IsBillable = false;
+                }
                 validateInputs.ValidateRequiredFieldIntType("SuccessManagerId", "Success Manager", projectData.SuccessManagerId, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("ClientHasTrackingTool", "Client has tracking tool", projectData.ClientHasTrackingTool, ModelState);
 
@@ -186,15 +200,17 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                     var resultMessage = "";
                     projectData.CreatedBy = claim.Value;
+                    int createdProjectId = 0;
 
                     //IF IS NOT PROJECT ID THEN CREATE THE PROJECT
                     if (projectData.ProjectId == null)
                     {
-                        var res = await _unitOfWork.Project.CreateProjectWithAssignedConsultants(projectData);
+                        var res = await _unitOfWork.Project.CreateProject(projectData);
 
                         if (res.Success)
                         {
                             resultMessage = res.Message;
+                            createdProjectId = (int)res.IdCreatedElement;
                         }
                         else
                         {
@@ -220,7 +236,8 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     return Ok(new
                     {
                         success = true,
-                        message = $"The project {projectData.Name} was updated successfully!"
+                        message = resultMessage,
+                        projectId = createdProjectId
                     });
                 }
                 else

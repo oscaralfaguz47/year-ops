@@ -77,6 +77,7 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 
+
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {
     getListOfResults(firstTime, filters);

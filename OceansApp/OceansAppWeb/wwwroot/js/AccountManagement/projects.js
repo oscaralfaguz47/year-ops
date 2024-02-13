@@ -86,18 +86,33 @@ async function displayUpdateModal(modalId, id) {
     var consultantsContainer = $("#consultants-container");
     consultantsContainer.empty();
     createUpdateForm.find('[name="projectId"]').val("");
-
+    var projectTypeInputsCont = document.getElementById("project-type-inputs-cont");
+    projectTypeInputsCont.style.display = 'block';
+    var projectTypeLabel = document.getElementById("saved-project-type-label");
+    projectTypeLabel.style.display = 'none';
     const clientSelect = createUpdateForm.find('[name="client"]')[0];
+    var clientSelectCont = document.getElementById("client-select-cont");
+    clientSelectCont.style.display = 'block';
     clientSelect.innerHTML = '<option value="null">-Select a client-</option>';
     clientSelect.disabled = false;
     const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
     successManagerSelect.innerHTML = '<option value="null">-Select a user-</option>';
     successManagerSelect.disabled = true;
+    var billableTrackingToolCont = document.getElementById("billable-tracking-tool-cont");
+    billableTrackingToolCont.style.display = 'block';
+    var consultantsAssignedSection = document.getElementById("consultants-assigned-section");
+    consultantsAssignedSection.style.display = 'none';
+    document.getElementById("saved-project-message").style.display = "none";
+    var billableInput = document.getElementById("IsBillable");
+    billableInput.disabled = false;
     showModal(modalId);
     if (id !== null) {
+        billableInput.disabled = true;
         document.getElementById('create-Project-modal-title').textContent = "UPDATE PROJECT";
         var url = "/AccountManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
         displaySpinner();
+        projectTypeInputsCont.style.display = 'none';
+        projectTypeLabel.style.display = 'block';
         fetch(url)
             .then(response => {
                 if (response.ok) {
@@ -111,10 +126,17 @@ async function displayUpdateModal(modalId, id) {
                 }
             })
             .then(data => {
+                consultantsAssignedSection.style.display = 'block';
                 createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
                 createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
                 createUpdateForm.find('[name="description"]').val(data.projectData.description);
-
+                if (data.projectData.clientName === "Oceans Code Experts") {
+                    clientSelectCont.style.display = 'none';
+                    billableTrackingToolCont.style.display = 'none';
+                    document.getElementById("saved-project-type-span").textContent = '"Administrative Internal"';
+                } else {
+                    document.getElementById("saved-project-type-span").textContent = '"Client External"';
+                }
                 var newOptionClient = document.createElement('option');
                 newOptionClient.value = data.projectData.clientId;
                 newOptionClient.text = data.projectData.clientName;
@@ -150,6 +172,23 @@ async function displayUpdateModal(modalId, id) {
             });
     }
 }
+function validateProjectType() {
+    var externalProjectType = document.querySelector('input[name="projectTypeRb"]:checked').value;
+    var clientSelectContainer = document.getElementById("client-select-cont");
+    var clientSelect = document.getElementById("ClientSelect");
+    var successManagerSelect = document.getElementById("successManagerIdSelect");
+    var billableTrackingToolCont = document.getElementById("billable-tracking-tool-cont");
+    
+    if (externalProjectType === 'E') {
+        clientSelectContainer.style.display = 'block';
+        clientSelect.value = null;
+        billableTrackingToolCont.style.display = 'block';
+    } else {
+        clientSelectContainer.style.display = 'none';
+        successManagerSelect.disabled = false;
+        billableTrackingToolCont.style.display = 'none';
+    }
+}
 //CreateUpdate Project
 async function createUpdateProject(modalId) {
     waitingForPostMethod();
@@ -164,6 +203,8 @@ async function createUpdateProject(modalId) {
     var isBillableData = createUpdateForm.find('[name="isBillable"]').prop('checked');
     var clientHasTrackingToolData = createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked');
     var consultantsElements = document.querySelectorAll(".consultantRow");
+    var projectTypeValue = document.querySelector('input[name="projectTypeRb"]:checked').value;
+    var billableInput = document.getElementById("IsBillable");
     var consultantsData = [];
     consultantsData = Array.from(consultantsElements).map(function (fila) {
         var projectConsultantAssignedId = fila.querySelector('[name="projectConsultantAssignedId"]').value ? fila.querySelector('[name="projectConsultantAssignedId"]').value : null;
@@ -197,7 +238,8 @@ async function createUpdateProject(modalId) {
         IsActive: Boolean(isActiveData),
         IsBillable: Boolean(isBillableData),
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
-        AssignedConsultants: consultantsData
+        AssignedConsultants: consultantsData,
+        ProjectType: projectTypeValue
     };
     fetch('/AccountManagement/Projects/CreateUpdateProject', {
         method: 'POST',
@@ -225,9 +267,25 @@ async function createUpdateProject(modalId) {
             }
         })
         .then(data => {
-            hideModal(modalId);
-            createUpdateForm[0].reset();
+            document.getElementById("consultants-assigned-section").style.display = "block";
+            billableInput.disabled = true;
+            inicializeModalButtons(modalId);
             displayToasterSuccess(data.message);
+            console.log(data.projectId);
+            if (data.projectId > 0) {
+                billableInput.value = isBillableData;
+                document.getElementById("saved-project-type-label").style.display = 'block';
+                if (projectTypeValue === "I") {
+                    document.getElementById("saved-project-type-span").textContent = '"Administrative Internal"';
+                } else {
+                    document.getElementById("saved-project-type-span").textContent = '"Client External"';
+                }
+                document.getElementById("project-type-inputs-cont").style.display = "none";
+                document.getElementById("saved-project-message").style.display = "block";
+                createUpdateForm.find('[name="projectId"]').val(data.projectId);
+            } else {
+                hideModal(modalId);
+            }
             getListOfResults(false, false);
         });
 }
@@ -237,7 +295,6 @@ function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
         displaySpinner();
         getSuccessManagerIdAndNameByClientId(selectElement.value)
             .then(data => {
-                console.log(data);
                 var successManagerSelect = document.getElementById('successManagerIdSelect');
                 if (data !== null) {
                     successManagerSelect.innerHTML = '<option selected value="' + data.successManager.userId + '">' + data.successManager.userName + '</option>';

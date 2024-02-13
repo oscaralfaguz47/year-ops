@@ -1,7 +1,7 @@
 ﻿<link rel="stylesheet" href="~/css/AccountManagement/sharedProjectsMethods.css" />
 
 <div id="modal-add-consultant" class="global-modal" style="display:none">
-    <div class="global-modal-content">
+    <div style="width: 650px" class="global-modal-content">
         <div class="container">
             <div>
                 <h2 id="add-consultant-modal-title"></h2>
@@ -38,7 +38,7 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 5px" class="radio-group monthly-mode-rg">
+                    <div id="client-rate-section" style="margin-top: 5px" class="radio-group monthly-mode-rg">
                         <label style="margin-top: 0" class="radio-label">
                             <input onchange="validateRatesInputs()" name="client-rate-model" type="radio" value="H" checked class="radio-input">
                             <span class="radio-custom"></span>
@@ -54,7 +54,7 @@
                         <label style="margin-top: 0" class="radio-label">
                             <input onchange="validateRatesInputs()" name="consultant-rate-model" type="radio" checked value="M" class="radio-input">
                             <span class="radio-custom"></span>
-                            &nbsp; Consultant rate monthly.<span style="font-weight: normal"> (The hourly rate is calculated based on business days and monthly base)</span>
+                            &nbsp; Consultant rate monthly.<span style="font-weight: normal"> (Set Monthly rate)</span>
                         </label>
                         <label class="radio-label">
                             <input onchange="validateRatesInputs()" name="consultant-rate-model" type="radio" value="H" class="radio-input">
@@ -63,45 +63,62 @@
                         </label>
                     </div>
                     <div class="row">
-                        <div class="col-md-6" id="monthlyClientRateEl">
-                            <label for="PaymentCondition">Monthly Client Rate</label>
-                            <div class="input-container">
-                                <input placeholder="Example: $10,000" type="number" class="form-control" step="0.01" name="monthlyClientRate" id="monthlyClientRate">
-                            </div>
-                        </div>
-                        <div class="col-md-6" id="hourlyClientRateEl">
-                            <label for="PaymentCondition">Hourly Client Rate</label>
-                            <div class="input-container">
-                                <input placeholder="Example: $55" type="number" class="form-control" step="0.01" name="hourlyClientRate" id="hourlyClientRate">
-                            </div>
-                        </div>
-                        <div class="col-md-6" id="monthlyConsultantSalaryEl">
-                            <label for="PaymentCondition">Monthly Consultant Salary</label>
-                            <div class="input-container">
-                                <input placeholder="Example: $5,000" type="number" class="form-control" step="0.01" name="monthlySalary" id="monthlySalary">
-                            </div>
-                        </div>
-                        <div class="col-md-6" id="hourlyConsultantSalaryEl">
-                            <label for="PaymentCondition">Hourly Consultant Salary</label>
-                            <div class="input-container">
-                                <input placeholder="Example: $22" type="number" class="form-control" step="0.01" name="hourlySalary" id="hourlySalary">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="StartDate">Action Date</label> <div class="tooltip-container ">
-                                <i class="bi bi-question-circle tooltip-target"></i>
-                                <div class="tooltip-content">
-                                    <div class="tooltip-arrow"></div>
-                                    Date on which the changes will take effect
+                        <div id="client-rate-inputs">
+                            <div class="col-md-6" id="monthlyClientRateEl">
+                                <label for="PaymentCondition">Monthly Client Rate</label>
+                                <div class="input-container">
+                                    <input placeholder="Example: $10,000" type="number" class="form-control" step="0.01" name="monthlyClientRate" id="monthlyClientRate">
                                 </div>
                             </div>
-                            <div class="">
-                                <input type="date" class="form-control" name="actionDate" id="actionDate">
+                            <div class="col-md-6" id="hourlyClientRateEl">
+                                <label for="PaymentCondition">Hourly Client Rate</label>
+                                <div class="input-container">
+                                    <input placeholder="Example: $55" type="number" class="form-control" step="0.01" name="hourlyClientRate" id="hourlyClientRate">
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <div style="display: flex">
+                            <div class="col-md-6" id="monthlyConsultantSalaryEl">
+                                <label for="PaymentCondition">Monthly Consultant Salary</label>
+                                <div class="input-container">
+                                    <input placeholder="Example: $5,000" type="number" class="form-control" step="0.01" name="monthlySalary" id="monthlySalary">
+                                </div>
+                            </div>
+                            <div style="text-align: center" class="col-md-6" id="isMonthlySalaryCalculatedPerHour">
+                                <label for="PaymentCondition">Monthly salary calculation method</label>
+                                <div class="checkbox-cont">
+                                    <input type="checkbox" class="form-check-input" id="calculationMethod" checked name="isMonthlySalaryCalculatedPerHour">
+                                    <label class="form-check-label" for="calculationMethod"> Is calculated per hour</label>
+                                    <div class="tooltip-container ">
+                                        <i class="bi bi-question-circle tooltip-target"></i>
+                                        <div class="tooltip-content">
+                                            <div class="tooltip-arrow"></div>
+                                            Uncheck if the salary  is always the same (Monthly), salary does not change even if number of hours change.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="hourlyConsultantSalaryEl">
+                                <label for="PaymentCondition">Hourly Consultant Salary</label>
+                                <div class="input-container">
+                                    <input placeholder="Example: $22" type="number" class="form-control" step="0.01" name="hourlySalary" id="hourlySalary">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="StartDate">Action Date</label> <div class="tooltip-container ">
+                                    <i class="bi bi-question-circle tooltip-target"></i>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-arrow"></div>
+                                        Date on which the changes will take effect
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <input type="date" class="form-control" name="actionDate" id="actionDate">
+                                </div>
+                            </div>
+                        </div>
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">

@@ -1,0 +1,9 @@
+﻿.global-modal-content{
+    width: 670px;
+}
+
+@media only screen and (max-width: 695px) {
+    .global-modal-content {
+        width: 95%;
+    }
+}

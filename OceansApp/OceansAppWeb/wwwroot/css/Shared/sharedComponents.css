@@ -87,7 +87,12 @@
     background-color: transparent;
     padding-right: 2px;
 }
+.required-asterisk{
+    color:red;
+    font-weight: bold;
+    font-size: 20px;
 
+}
 /* MENU FROM 3 DOOTS*/
 .menu-options {
     display: none;

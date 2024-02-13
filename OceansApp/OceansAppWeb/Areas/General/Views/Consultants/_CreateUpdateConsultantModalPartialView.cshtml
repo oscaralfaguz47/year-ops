@@ -1,0 +1,109 @@
+﻿<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/General/createUpdateConsultantModal.css" />
+
+<!--MODAL UPDATE CREATE CONSULTANT-->
+<div id="modal-update-create-consultant" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-consultant-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="consultantId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Consultant Name <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Consultant Last Name <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="lastName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Oceans Email <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="email" class="form-control" name="userName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Personal Email</label>
+                            <div class="input-container">
+                                <input type="email" class="form-control" name="personalEmail">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="Contact">Principal Phone Number</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="phoneNumber">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Contact">Phone 2</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="phone2">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="StartDate">Position <span class="required-asterisk">*</span></label>
+                            <div class="">
+                                <input type="date" class="form-control" name="positions">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ClientSelect">Country <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onfocus="fillClientsSelectForCreateProjectModal(this, 'Select a client')" class="form-select" id="CountrySelect" name="idCountry">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="Contact">Address</label>
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="address">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="Contact">Location url (Google Maps, Waze, etc.)</label>
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="location">
+                        </div>
+                    </div>
+
+
+                    <div style="display: flex;justify-content: space-between;align-items: center; margin-top:15px;">
+                        <label><strong>Assigned Projects <span class="required-asterisk">*</span></strong></label>
+                        <a style="padding-right: 10px; margin-bottom: 5px;" class="blue-btn" onclick="displayAddUpdateConsultant('modal-update-create-consultant', null)"><i class="bi bi-plus"></i> Add Project</a>
+                    </div>
+                    <div id="projects-container" class="modal-scroll-container">
+                    </div>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-consultant')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateProject('modal-update-create-project')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+<script src="~/js/General/createUpdateConsultantModal.js"></script>
+    }
