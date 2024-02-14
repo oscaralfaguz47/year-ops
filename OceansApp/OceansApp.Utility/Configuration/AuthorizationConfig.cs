@@ -172,6 +172,13 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
                         ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllRolesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
 
         }
     }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions;
+using OceansApp.Models.ViewModels.Components;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
@@ -93,6 +94,28 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Error al traer los datos", result = "error", detail = ex.Message });
+            }
+        }
+        [Authorize(Policy = "AccessToAllRolesList")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllRolesListForSelect()
+        {
+            try
+            {
+                List<SelectVM> rolesList = new();
+                var roles = _roleManager.Roles.ToList().OrderBy(x => x.Name);
+                foreach (var role in roles)
+                {
+                    rolesList.Add(new SelectVM { Value = role.Name, Name = role.Name });
+                }
+                return Ok(new
+                {
+                    Roles = rolesList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
 
