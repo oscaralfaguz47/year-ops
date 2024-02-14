@@ -1,4 +1,5 @@
 ﻿using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -9,6 +10,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<List<GetUsersSelectVM>> GetUsersByCategoryAndPositionForSelect(string userCategory, string userPosition);
         Task<int> GetNumOfUsersByCategoryConsultantIdAndPosition(string userCategory, string userPosition, int consultantId);
         Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string searchText);
+        Task<MethodResponse> CreateConsultant(string createdUserId, string userIdCreatedBy, CreateUpdateConsultantVM consultantData);
+        Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData);
         void Update(ConsultantDetail obj);
     }
 }

@@ -58,7 +58,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Master });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Admin });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Simple });
-                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Create_Consultants });
+                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Computer_Consultant });
 
                 //Create Default User Categories
                 List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>();

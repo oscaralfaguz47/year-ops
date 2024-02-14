@@ -1,10 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Utility.LazyLoading;
+using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
@@ -14,9 +20,18 @@ namespace OceansAppWeb.Areas.General.Controllers
     public class ConsultantsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ConsultantsController(IUnitOfWork unitOrWork)
+        private readonly IConfiguration _config;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmail;
+        private readonly IAuthorizationService _authorizationService;
+        public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager,
+            LazyServiceProvider<ISendEmailRepository> emailSender, IAuthorizationService authorizationService)
         {
             _unitOfWork = unitOrWork;
+            _config = config;
+            _userManager = userManager;
+            _sendEmail = emailSender;
+            _authorizationService = authorizationService;
         }
 
         public IActionResult Index()
@@ -91,6 +106,150 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdateConsultant([FromBody] CreateUpdateConsultantVM consultantData)
+        {
+            try
+            {
+                if (consultantData == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredAndStringLength("Name", "Name", consultantData.Name, 100, ModelState);
+                validateInputs.ValidateRequiredAndStringLength("LastName", "Last Name", consultantData.LastName, 150, ModelState);
+                validateInputs.ValidateRequiredAndStringLength("Email", "Oceans Email", consultantData.Email, 249, ModelState);
+                validateInputs.ValidateRequiredFieldStringValue("UserCategoryId", "User Category", consultantData.UserCategoryName, ModelState);
+                validateInputs.ValidateRequiredFieldStringValue("IdCountry", "Country", consultantData.IdCountry, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", consultantData.PhoneNumber, 100, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("Phone2", "Phone 2", consultantData.Phone2, 100, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("Address", "Address", consultantData.Address, 400, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("PersonalEmail", "Personal Email", consultantData.PersonalEmail, 249, ModelState);
+
+                if (ModelState.IsValid)
+                {
+                    var claimsIdentity = (ClaimsIdentity)User.Identity;
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
+                    var resultMessage = "";
+                    var userActionedBy = claim.Value;
+                    int createdConsultantId = 0;
+                    var callbackurl = "";
+                    var code = "";
+                    var userRole = "";
+                    ApplicationUserCategory? userCategory = null;
+                    var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
+
+                    if (authToManageAdminitrativeConsultants.Succeeded)
+                    {
+                        userRole = consultantData.UserRole;
+                        userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == consultantData.UserCategoryName);
+                        if (userCategory == null)
+                        {
+                            return BadRequest(new { MessageType = "Not Found", error = $"User category not found.", detail = "The user category was not found." });
+                        }
+                    }
+                    else
+                    {
+                        userRole = "Computer Consultant";
+                        userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == "Consultant");
+                        if (userCategory == null)
+                        {
+                            return BadRequest(new { MessageType = "Not Found", error = $"User category not found.", detail = "The user category was not found." });
+                        }
+                    }
+                    //IF IS NOT CONSULTANT ID THEN CREATE THE CONSULTANT
+                    if (consultantData.ConsultantId == null)
+                    {
+                        var user = new ApplicationUser
+                        {
+                            UserName = consultantData.Email.Trim(),
+                            Email = consultantData.Email.Trim(),
+                            Name = consultantData.Name.Trim(),
+                            LastName = consultantData.LastName.Trim(),
+                            IsActive = true,
+                            PhoneNumber = consultantData.PhoneNumber,
+                            UserCategoryId = userCategory.UserCategoryId
+                        };
+
+                        using var transaction = await _unitOfWork.BeginTran();
+                        string password = GenerateTokensAndRandomStrings.GeneratePassword();
+                        var result = await _userManager.CreateAsync(user, password);
+
+                        if (result.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(user, userRole);
+
+                            code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                            callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                            return RedirectToAction("Index");
+                        }
+                        foreach (var error in result.Errors)
+                        {
+                            if (error.Code == "DuplicateUserName")
+                            {
+                                return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"The consultant with email '{consultantData.Email.Trim()}' already exists." }, detail = "Duplication error." });
+                            }
+                            else
+                            {
+                                return BadRequest(new { MessageType = "Exception Error", error = $"Something went wrong creating the consultant.", detail = error.Description });
+                            }
+                        }
+                        var res = await _unitOfWork.ConsultantDetail.CreateConsultant(user.Id, userActionedBy, consultantData);
+
+                        if (res.Success)
+                        {
+                            await transaction.CommitAsync();
+                            var emailToSend = new SendEmailVM();
+                            emailToSend.Subject = "Confirm your account - Oceans App";
+                            emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
+                            emailToSend.EmailTo = consultantData.Email;
+                            emailToSend.Body = "Confirm your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
+                            await _sendEmail.Value.SendEmail(emailToSend);
+                            resultMessage = res.Message;
+                            createdConsultantId = (int)res.IdCreatedElement;
+                        }
+                        else
+                        {
+                            return BadRequest(new { MessageType = res.MessageType, error = res.Message, result = "ErrorSaving", detail = "The Consultant could be saved." });
+                        }
+                    }
+                    else
+                    {
+                        //IF IS CONSULTANT ID THEN UPDATE THE CONSULTANT
+                        var res = await _unitOfWork.ConsultantDetail.UpdateUserConsultant(userActionedBy, consultantData);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Consultant could be updated." });
+                        }
+                    }
+                    return Ok(new
+                    {
+                        success = true,
+                        message = resultMessage,
+                        projectId = createdConsultantId
+                    });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
 
 
     }

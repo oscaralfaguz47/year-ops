@@ -1,4 +1,5 @@
-﻿<link rel="stylesheet" href="~/css/AccountManagement/sharedProjectsMethods.css" />
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/AccountManagement/sharedProjectsMethods.css" />
 
 <div id="modal-add-consultant" class="global-modal" style="display:none">
     <div style="width: 650px" class="global-modal-content">
@@ -123,7 +124,7 @@
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
                     <a id="second-btn-cancel" onclick="hideModal('modal-add-consultant')" class="cancel-btn">Cancel</a>&nbsp;
-                    <button id="second-btn-saving" onclick="addConsultantToProject('modal-add-consultant')" class="btn-primary-submit">
+                    <button type="button" id="second-btn-saving" onclick="addConsultantToProject('modal-add-consultant')" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="second-spinner-saving" class="spinner-border" role="status">
                             </div><span></span>

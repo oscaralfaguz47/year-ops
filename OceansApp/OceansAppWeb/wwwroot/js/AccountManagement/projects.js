@@ -323,10 +323,11 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
     var actionDateValue = createUpdateConsultantForm.find('[name="actionDate"]').val();
+    var monthlySalaryCalculatedPerHourValue = createUpdateConsultantForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
 
     if (consultantProjectAssignedId === "") {
         addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
-            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue)
+            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue, monthlySalaryCalculatedPerHourValue)
     } else {
         document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
@@ -337,7 +338,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
-    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate) {
+    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate, monthlySalaryCalculatedPerHour) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
@@ -414,6 +415,13 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     monthlyConsultantSalaryInput.name = "monthlySalaryCreateProject";
     monthlyConsultantSalaryInput.type = "hidden";
     row.appendChild(monthlyConsultantSalaryInput);
+
+    var monthlySalaryCalculatedPerHourInput = document.createElement("input");
+    monthlySalaryCalculatedPerHourInput.value = monthlySalaryCalculatedPerHour;
+    monthlySalaryCalculatedPerHourInput.id = `monthlySalaryCalculatedPerHour-${consProjAssId}`;
+    monthlySalaryCalculatedPerHourInput.name = "monthlySalaryCalculatedPerHourCreateProject";
+    monthlySalaryCalculatedPerHourInput.type = "hidden";
+    row.appendChild(monthlySalaryCalculatedPerHourInput);
 
     var actionDateInput = document.createElement("input");
     actionDateInput.value = actionDate === undefined ? null : actionDate;

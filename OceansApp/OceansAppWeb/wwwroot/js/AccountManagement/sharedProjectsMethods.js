@@ -79,11 +79,15 @@ function validateRatesInputs() {
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlySalary').value = null;
         document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'block';
+        document.getElementById("calculationMethod").value = true;
+        document.getElementById("calculationMethod").checked = true;
     } else {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('monthlySalary').value = null;
         document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'none';
+        document.getElementById("calculationMethod").value = false;
+        document.getElementById("calculationMethod").checked = false;
     }
 }
 //DISPLAY MODAL
@@ -100,11 +104,9 @@ async function displayAddUpdateConsultant(modalId, id) {
     var clientRateSection = document.getElementById("client-rate-section");
     var clientRateInputs = document.getElementById("client-rate-inputs");
     if (isBillableValue === "true") {
-        console.log("IS TRUE");
         clientRateSection.style.display = 'block';
         clientRateInputs.style.display = 'flex';
     } else {
-        console.log("IS FALSE");
         clientRateSection.style.display = 'none';
         clientRateInputs.style.display = 'none';
     }
@@ -128,6 +130,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 }
             })
             .then(data => {
+                console.log(data);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.consultantAssignation.consultantName);
                 document.getElementById('consultantEmailInput').value = data.consultantAssignation.email;
                 createUpdateForm.find('[name="positionDetail"]').val(data.consultantAssignation.positionDetail);
@@ -141,6 +144,8 @@ async function displayAddUpdateConsultant(modalId, id) {
                 createUpdateForm.find('[name="hourlyClientRate"]').val(data.consultantAssignation.hourlyClientRate);
                 createUpdateForm.find('[name="monthlySalary"]').val(data.consultantAssignation.monthlySalary);
                 createUpdateForm.find('[name="hourlySalary"]').val(data.consultantAssignation.hourlySalary);
+                createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').val(data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
+                createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 showModal(modalId);
             })
             .finally(() => {
@@ -162,6 +167,9 @@ function addConsultantToProject(modalId) {
     var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
     var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
     var isBillableValue = document.getElementById("IsBillable").value;
+    var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
+    
+    console.log("CHECKED: " + isMonthlySalaryCalculatedPerHourVal);
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -198,7 +206,6 @@ function addConsultantToProject(modalId) {
             displayToasterWarning('The Action Date is not a valid date.');
         }
     }
-
     if (modelState) {
         addConsultantToModalCreateUpdateProject(modalId);
         //EDIT CONSULTANT PARAMETERS
@@ -213,7 +220,8 @@ function addConsultantToProject(modalId) {
                 MonthlyClientRate: Number(monthlyClientRateValue),
                 MonthlySalary: Number(monthlyConsultantRateValue),
                 PositionDetail: positionDetailValue,
-                ActionDate: actionDateValue ? actionDateValue.toString() : null
+                ActionDate: actionDateValue ? actionDateValue.toString() : null,
+                IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal)
             };
             fetch('/AccountManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',
@@ -324,7 +332,6 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
     var bodyList = document.getElementById('consultant-history-body');
     var actionIcon = "";
     await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        showModal(modalId);
         var count = 0;
         var firstRow = "";
         var row = "";
@@ -374,6 +381,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
         });
         bodyList.innerHTML = row;
         hideSpinner();
+        showModal(modalId);
     });
 }
 

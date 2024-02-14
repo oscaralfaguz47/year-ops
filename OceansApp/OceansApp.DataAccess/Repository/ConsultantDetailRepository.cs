@@ -1,19 +1,26 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using System.Data;
+using System.Security.Policy;
 
 namespace OceansApp.DataAccess.Repository
 {
     public class ConsultantDetailRepository : Repository<ConsultantDetail>, IConsultantDetailRepository
     {
         private ApplicationDbContext _db;
-        public ConsultantDetailRepository(ApplicationDbContext db) : base(db)
+        private readonly IConfiguration _config;
+        public ConsultantDetailRepository(ApplicationDbContext db, IConfiguration config) : base(db)
         {
             _db = db;
+            _config = config;
         }
         public async Task<(List<ConsultantsGetAllWithFiltersVM> consultants, int totalCount)> GetAllConsultantsWithFiltersAsync(ConsultantsPaginationFiltersVM filtersAndPagination)
         {
@@ -75,6 +82,84 @@ namespace OceansApp.DataAccess.Repository
             return result.ToList();
         }
 
+        public async Task<MethodResponse> CreateConsultant(string createdUserId, string userIdCreatedBy, CreateUpdateConsultantVM consultantData)
+        {
+            try
+            {
+                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
+                ConsultantDetail consultantToCreate = new()
+                {
+                    UserId  = createdUserId,
+                    CreationDate = timeZone,
+                    IdCountry = consultantData.IdCountry,
+                    Phone2 = consultantData.Phone2,
+                    Address = consultantData.Address,
+                    PersonalEmail = consultantData.PersonalEmail,
+                    Location = consultantData.Location,
+                    UserCreatedBy = userIdCreatedBy
+                };
+                var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
+                await _db.SaveChangesAsync();
+
+                if (createdConsultant.Entity.ConsultantId > 0)
+                {
+                    return new MethodResponse
+                    {
+                        Success = true,
+                        Message = $"The Consultant {consultantData.Name} {consultantData.LastName} was created successfully.",
+                        IdCreatedElement = createdConsultant.Entity.ConsultantId
+                    };
+                }
+                else
+                {
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the consultant, please try again." };
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
+        }
+        public async Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData)
+        {
+            try
+            {
+                var existingConsultant = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == consultantData.ConsultantId);
+                if (existingConsultant == null)
+                {
+                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "The consultant was not found." };
+                }
+                var existingUser = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == existingConsultant.UserId);
+                if (existingUser == null)
+                {
+                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "The user was not found." };
+                }
+                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
+
+                using var transaction = await _db.Database.BeginTransactionAsync();
+
+                existingConsultant.IdCountry = consultantData.IdCountry;
+                existingConsultant.Phone2 = consultantData.Phone2;
+                existingConsultant.Address = consultantData.Address;
+                existingConsultant.PersonalEmail = consultantData.PersonalEmail;
+                existingConsultant.Location = consultantData.Location;
+                existingConsultant.LastUpdatedDate = timeZone;
+                existingConsultant.UserLastUpdatedBy = userActionedBy;
+
+                existingUser.Name = consultantData.Name.Trim();
+                existingUser.LastName = consultantData.LastName.Trim();
+                existingUser.PhoneNumber = consultantData.PhoneNumber.Trim();
+
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return new MethodResponse { Success = true, Message = $"The Consultant {consultantData.Name} {consultantData.LastName} was updated successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
+        }
         public void Update(ConsultantDetail obj)
         {
             _db.CONSULTANT_DETAILS.Update(obj);

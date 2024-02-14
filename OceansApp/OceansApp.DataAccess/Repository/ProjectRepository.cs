@@ -349,6 +349,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultantAssignation.HourlyClientRate = consultantAssignationData.HourlyClientRate;
                 existingConsultantAssignation.MonthlySalary = consultantAssignationData.MonthlySalary;
                 existingConsultantAssignation.HourlySalary = consultantAssignationData.HourlySalary;
+                existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.isMonthlySalaryCalculatedPerHour;
 
                 await _db.SaveChangesAsync();
 

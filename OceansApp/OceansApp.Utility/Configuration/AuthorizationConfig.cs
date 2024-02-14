@@ -163,6 +163,15 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
                         ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllCountriesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
 
         }
     }
