@@ -141,3 +141,78 @@
         font-size: 23px;
         margin: 0;
     }
+
+/* dropdown with checkboxes */
+/* Estilo del dropdown */
+.dropdown {
+  
+}
+.position-background {
+    padding: 5px;
+    background-color: var(--clr-grayLight);
+    border-radius: 15px;
+    display: flex;
+}
+.selected-opts-cont {
+    width: -webkit-fill-available;
+    text-align: center;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+/* Botón para desplegar el dropdown */
+.dropbtn {
+    background-color: #2c3e50;
+    color: white;
+    padding: 4px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 15px;
+    width: max-content;
+}
+/* Contenido del dropdown */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    overflow-y: auto;
+    max-height: 200px; /* Ajusta para controlar la altura del scroll */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+.dropdown-content input {
+    margin: 4px;
+}
+
+/* Estilos para las opciones dentro del dropdown */
+.dropdown-content div {
+    color: black;
+    padding: 5px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Estilo para la barra de desplazamiento (el track) */
+.dropdown-content::-webkit-scrollbar {
+    width: 5px; /* Ancho de la barra de desplazamiento */
+}
+
+/* Estilo para el track de la barra de desplazamiento */
+.dropdown-content::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color de fondo del track */
+    border-radius: 10px; /* Bordes redondeados para el track */
+}
+
+/* Estilo para el thumb de la barra de desplazamiento */
+.dropdown-content::-webkit-scrollbar-thumb {
+    background: #888; /* Color de fondo del thumb */
+    border-radius: 10px; /* Bordes redondeados para el thumb */
+}
+
+    /* Estilo para el thumb de la barra de desplazamiento al pasar el mouse */
+    .dropdown-content::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color de fondo del thumb al pasar el mouse */
+    }
