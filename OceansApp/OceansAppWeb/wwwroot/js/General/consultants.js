@@ -40,7 +40,7 @@ async function getListOfResults(firstTime, filters) {
                 }
                 var row = `<tr>
                   <td>
-                  <i onclick="displayUpdateModal('modal-update-create-project', ${obj.consultantId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                  <i onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.consultantName}
                   </td>
                   <td>${obj.internalEmail}</td>

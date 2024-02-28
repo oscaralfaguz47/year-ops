@@ -6,6 +6,7 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
+using OceansApp.Models.ViewModels.AdminCenter.ConsultantPositions;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using System.Data;
@@ -89,7 +90,7 @@ namespace OceansApp.DataAccess.Repository
                 var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                 ConsultantDetail consultantToCreate = new()
                 {
-                    UserId  = createdUserId,
+                    UserId = createdUserId,
                     CreationDate = timeZone,
                     IdCountry = consultantData.IdCountry,
                     Phone2 = consultantData.Phone2,
@@ -103,6 +104,20 @@ namespace OceansApp.DataAccess.Repository
 
                 if (createdConsultant.Entity.ConsultantId > 0)
                 {
+                    foreach (var position in consultantData.Positions)
+                    {
+                        ConsultantAndPosition consultantPosition = new()
+                        {
+                            ConsultantId = createdConsultant.Entity.ConsultantId,
+                            ConsultantPositionId = position.ConsultantPositionId
+                        };
+                        var createdConsultantPosition = await _db.CONSULTANTS_AND_POSITIONS.AddAsync(consultantPosition);
+                        await _db.SaveChangesAsync();
+                        if (createdConsultant.Entity.ConsultantId < 1)
+                        {
+                            return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the consultant position, please try again." };
+                        }
+                    }
                     return new MethodResponse
                     {
                         Success = true,
@@ -158,6 +173,38 @@ namespace OceansApp.DataAccess.Repository
             catch (Exception ex)
             {
                 return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
+        }
+
+        public async Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId);
+
+            using (var multiResultSet = await connection.QueryMultipleAsync("SP_CONSULTANT_DETAILS_GetConsultantDataById", parameters, commandType: CommandType.StoredProcedure))
+            {
+                var consultant = await multiResultSet.ReadFirstOrDefaultAsync<CreateUpdateConsultantVM>();
+                var consultantProjects = await multiResultSet.ReadAsync<CreateUpdateConsultantsAndPositionsVM>();
+
+                return new CreateUpdateConsultantVM
+                {
+                    ConsultantId = consultant.ConsultantId,
+                    Name = consultant.Name,
+                    LastName = consultant.LastName,
+                    IdCountry = consultant.IdCountry,
+                    CountryName = consultant.CountryName,
+                    Phone2 = consultant.Phone2,
+                    Address = consultant.Address,
+                    PersonalEmail = consultant.PersonalEmail,
+                    Location = consultant.Location,
+                    Email = consultant.Email,
+                    PhoneNumber = consultant.PhoneNumber,
+                    UserCategoryId = consultant.UserCategoryId,
+                    UserCategoryName = consultant.UserCategoryName,
+                    UserRole = consultant.UserRole,
+                    Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
+                };
             }
         }
         public void Update(ConsultantDetail obj)

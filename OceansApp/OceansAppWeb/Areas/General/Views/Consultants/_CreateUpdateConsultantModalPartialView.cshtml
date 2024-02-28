@@ -1,4 +1,11 @@
-﻿<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+﻿@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    var isAuthorizedForManageAdministrativeUsers = await AuthorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
+}
+
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
 <link rel="stylesheet" href="~/css/General/createUpdateConsultantModal.css" />
 
@@ -52,17 +59,40 @@
                             </div>
                         </div>
                     </div>
+                    @if (isAuthorizedForManageAdministrativeUsers.Succeeded)
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="UserCategorySelect">User Category <span class="required-asterisk">*</span></label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select onchange="selectCategory(this.value)" class="form-select" id="UserCategorySelect" name="userCategoryName">
+                                        <option value="Administrative">Administrative</option>
+                                        <option selected value="Consultant">Consultant</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="UserRoleSelect">User Role <span class="required-asterisk">*</span></label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select class="form-select" id="UserRoleSelect" name="userRole">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    }
                     <div class="row">
                         <div class="col-md-6">
                             <label for="CountrySelect">Positions <span class="required-asterisk">*</span></label>
                             <div class="dropdown">
                                 <div class="position-background">
-                                   <div>
+                                    <div>
                                         <button type="button" class="dropbtn"><i class="bi bi-hand-index-thumb"></i> Select</button>
-                                   </div>
+                                    </div>
                                     <div class="selected-opts-cont">
-                                         <span id="selectedCount">Selected Positions: 0</span>
-                                   </div>
+                                        <span id="selectedCount">Selected Positions: 0</span>
+                                    </div>
 
                                 </div>
                                 <div class="dropdown-content">
@@ -71,36 +101,12 @@
                                     </div>
                                 </div>
                             </div>
-
-
-
                         </div>
                         <div class="col-md-6">
                             <label for="CountrySelect">Country <span class="required-asterisk">*</span></label>
                             <div class="custom-select">
                                 <span class="arrow-down"></span>
                                 <select onfocus="fillCountriesSelectForFilters(this, 'Select a country')" class="form-select" id="CountrySelect" name="idCountry">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="UserCategorySelect">User Category <span class="required-asterisk">*</span></label>
-                            <div class="custom-select">
-                                <span class="arrow-down"></span>
-                                <select class="form-select" id="UserCategorySelect" name="userCategoryName">
-                                    <option value="">-Select a category-</option>
-                                    <option value="Administrative">Administrative</option>
-                                    <option selected value="Consultant">Consultant</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="UserRoleSelect">User Role <span class="required-asterisk">*</span></label>
-                            <div class="custom-select">
-                                <span class="arrow-down"></span>
-                                <select onfocus="fillRolesSelectForFilters(this, 'Select a role')" class="form-select" id="UserRoleSelect" name="userRole">
                                 </select>
                             </div>
                         </div>

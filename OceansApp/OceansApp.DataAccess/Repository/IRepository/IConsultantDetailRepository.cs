@@ -12,6 +12,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string searchText);
         Task<MethodResponse> CreateConsultant(string createdUserId, string userIdCreatedBy, CreateUpdateConsultantVM consultantData);
         Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData);
+        Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId);
         void Update(ConsultantDetail obj);
     }
 }

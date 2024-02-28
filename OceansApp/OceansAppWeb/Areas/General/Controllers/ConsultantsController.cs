@@ -106,6 +106,28 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetConsultantDataById(int consultantId)
+        {
+            try
+            {
+                var consultantData = await _unitOfWork.ConsultantDetail.GetConsultantDataById(consultantId);
+                if (consultantData == null)
+                {
+                    return BadRequest(new { error = "The Consultant is not longer in the database.", detail = "The Consultant was not found in the database." });
+                }
+
+                return Ok(new
+                {
+                    consultantData = consultantData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateConsultant([FromBody] CreateUpdateConsultantVM consultantData)
@@ -127,6 +149,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 validateInputs.ValidateNotRequiredAndStringLength("Phone2", "Phone 2", consultantData.Phone2, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Address", "Address", consultantData.Address, 400, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PersonalEmail", "Personal Email", consultantData.PersonalEmail, 249, ModelState);
+                validateInputs.ValidateNotEmptyArray("Positions", "Position", consultantData.Positions, ModelState);
 
                 if (ModelState.IsValid)
                 {
@@ -184,7 +207,6 @@ namespace OceansAppWeb.Areas.General.Controllers
 
                             code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                             callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                            return RedirectToAction("Index");
                         }
                         foreach (var error in result.Errors)
                         {
