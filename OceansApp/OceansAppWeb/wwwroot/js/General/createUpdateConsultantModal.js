@@ -13,7 +13,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
     projectsAssignedSection.style.display = "none";
     const countrySelect = createUpdateForm.find('[name="idCountry"]')[0];
     countrySelect.innerHTML = '<option value="">-Select a country-</option>';
-    selectCategory('Consultant');
     if (id !== null) {
         modalTitle.textContent = "UPDATE CONSULTANT";
         var url = "/General/Consultants/GetConsultantDataById?consultantId=" + encodeURIComponent(id);
@@ -32,44 +31,29 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
             })
             .then(data => {
                 console.log(data);
-                //createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
-                //createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
-                //createUpdateForm.find('[name="description"]').val(data.projectData.description);
+                createUpdateForm.find('[name="consultantId"]').val(data.consultantData.consultantId);
+                createUpdateForm.find('[name="name"]').val(data.consultantData.name);
+                createUpdateForm.find('[name="lastName"]').val(data.consultantData.lastName);
+                createUpdateForm.find('[name="userName"]').val(data.consultantData.email);
+                createUpdateForm.find('[name="personalEmail"]').val(data.consultantData.personalEmail);
+                createUpdateForm.find('[name="phoneNumber"]').val(data.consultantData.phoneNumber);
+                createUpdateForm.find('[name="phone2"]').val(data.consultantData.phone2);
+                createUpdateForm.find('[name="userCategoryName"]').val(data.consultantData.userCategoryName);
+                createUpdateForm.find('[name="userRole"]').val(data.consultantData.userRole);
+                selectCategory(data.consultantData.userCategoryName, data.consultantData.positions);
 
-                //var newOptionClient = document.createElement('option');
-                //newOptionClient.value = data.projectData.clientId;
-                //newOptionClient.text = data.projectData.clientName;
-                //newOptionClient.selected = true;
-                //clientSelect.appendChild(newOptionClient);
-                //clientSelect.disabled = true;
-
-                //successManagerSelect.innerHTML = '';
-                //var newOptionSuccessManager = document.createElement('option');
-                //newOptionSuccessManager.value = data.projectData.successManagerId;
-                //newOptionSuccessManager.text = data.projectData.successManagerName;
-                //newOptionSuccessManager.selected = true;
-                //successManagerSelect.appendChild(newOptionSuccessManager);
-                //successManagerSelect.disabled = false;
-
-                //let startDateDateFormat = new Date(data.projectData.startDate);
-                //createUpdateForm.find('[name="startDate"]').val(startDateDateFormat.toISOString().split('T')[0]);
-
-                //createUpdateForm.find('[name="isActive"]').val(data.projectData.isActive);
-                //createUpdateForm.find('[name="isActive"]').prop('checked', data.projectData.isActive);
-                //createUpdateForm.find('[name="isBillable"]').val(data.projectData.isBillable);
-                //createUpdateForm.find('[name="isBillable"]').prop('checked', data.projectData.isBillable);
-                //createUpdateForm.find('[name="clientHasTrackingTool"]').val(data.projectData.clientHasTrackingTool);
-                //createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked', data.projectData.clientHasTrackingTool);
-                //data.projectData.assignedConsultants.forEach(function (item, index, arr) {
-                //    addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionDetail,
-                //        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.isActive)
-                //});
+                var countrySelect = createUpdateForm.find('[name="idCountry"]');
+                countrySelect.html('<option value="' + data.consultantData.idCountry + '">' + data.consultantData.countryName + '</option>');
+                createUpdateForm.find('[name="idCountry"]').val(data.consultantData.idCountry);
+                createUpdateForm.find('[name="address"]').val(data.consultantData.address);
+                createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 showModal(modalId);
             })
             .finally(() => {
                 hideSpinner();
             });
     } else {
+        selectCategory('Consultant');
         showModal(modalId);
     }
 }
@@ -158,7 +142,11 @@ async function createUpdateConsultant(modalId) {
 }
 
 //SELECT CATEGORY
-function selectCategory(selectedValue) {
+function selectCategory(selectedValue, selectedOptions) {
+    var selectedOptionsArray = [];
+    if (selectedOptions !== undefined) {
+        selectedOptionsArray = selectedOptions;
+    }
     var isAdministrative = selectedValue === 'Administrative' ? true : false;
     displaySpinner();
     getPositionsList(isAdministrative)
@@ -174,11 +162,12 @@ function selectCategory(selectedValue) {
             options.forEach(option => {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = option.value;
+                checkbox.id = 'positionId-' + option.value;
+                checkbox.name = 'positionName-' + option.value;
                 checkbox.value = option.value;
 
                 const label = document.createElement('label');
-                label.htmlFor = option.value;
+                label.htmlFor = 'positionId-' + option.value;
                 label.appendChild(document.createTextNode(option.text));
 
                 const div = document.createElement('div');
@@ -186,6 +175,17 @@ function selectCategory(selectedValue) {
                 div.appendChild(label);
                 optionsContainer.appendChild(div);
             });
+            if (selectedOptionsArray !== undefined) {
+                selectedCount.textContent = `Selected Positions: ${selectedOptionsArray.length}`;
+                selectedOptionsArray.forEach(function (item, index, arr) {
+                    var checkbox = document.getElementById('positionId-' + item.consultantPositionId);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    } else {
+                        console.log("The checkbox element was not found:", item.consultantPositionId);
+                    }
+                });
+            }
         })
         .catch(error => {
             hideSpinner();
