@@ -24,14 +24,19 @@ namespace OceansAppWeb.Areas.General.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly LazyServiceProvider<ISendEmailRepository> _sendEmail;
         private readonly IAuthorizationService _authorizationService;
+        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager,
-            LazyServiceProvider<ISendEmailRepository> emailSender, IAuthorizationService authorizationService)
+            LazyServiceProvider<ISendEmailRepository> emailSender, IAuthorizationService authorizationService,
+            IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory serviceScopeFactory)
         {
             _unitOfWork = unitOrWork;
             _config = config;
             _userManager = userManager;
             _sendEmail = emailSender;
             _authorizationService = authorizationService;
+            _backgroundTaskQueue = backgroundTaskQueue;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public IActionResult Index()
@@ -232,66 +237,71 @@ namespace OceansAppWeb.Areas.General.Controllers
                         if (res.Success)
                         {
                             await transaction.CommitAsync();
-                            _ = Task.Run(async () =>
+                            resultMessage = res.Message;
+                            createdConsultantId = (int)res.IdCreatedElement;
+
+                            // Sent email and create notification in the database
+                            _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
                             {
-                                try
+                                using (var scope = scopeFactory.CreateScope())
                                 {
-                                    Console.WriteLine("INICIANDO THREAD");
-                                    var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
-                                    Console.WriteLine("BUSCÓ NOTIFICATION STATUS");
-                                    var emailToSend = new SendEmailVM();
-                                    emailToSend.Subject = "Confirm your account - Oceans App";
-                                    emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
-                                    emailToSend.EmailTo = consultantData.Email;
-                                    emailToSend.Body = "Confirm your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
+                                    // Get the necessary services from the scope
+                                    var unitOfWork2 = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                                    var sendEmail2 = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
+
+                                    // logic to send the mail and create the notification
                                     try
                                     {
-                                        var emailSent = await _sendEmail.Value.SendEmail(emailToSend);
-                                        Console.WriteLine("ENVIÓ EL EMAIL");
+                                        var notificationStatus = unitOfWork2.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                                        var emailToSend = new SendEmailVM();
+                                        emailToSend.Subject = "Confirm your account - Oceans App";
+                                        emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
+                                        emailToSend.EmailTo = consultantData.Email;
+                                        emailToSend.Body = "Confirm your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
+                                        try
+                                        {
+                                            var emailSent = await sendEmail2.SendEmail(emailToSend);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            notificationStatus = unitOfWork2.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                                        }
+                                        var notificatinType = unitOfWork2.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
+                                        var emailNotification = new Notification()
+                                        {
+                                            NotificationTypeId = notificatinType.NotificationTypeId,
+                                            Body = emailToSend.Body,
+                                            Subject = emailToSend.Subject,
+                                            Remitent = emailToSend.SharedEmailFrom,
+                                            SentDate = timeZone,
+                                            SentByUser = userActionedBy
+                                        };
+                                        using var transaction2 = await unitOfWork2.BeginTran();
+                                        unitOfWork2.Notification.Add(emailNotification);
+                                        unitOfWork2.Save();
+                                        if (emailNotification.NotificationId > 0)
+                                        {
+                                            var notificationMedia = unitOfWork2.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+                                            var recipientUser = unitOfWork2.ApplicationUser.GetFirstOrDefault(x => x.Email == consultantData.Email);
+                                            var notificationRecipient = new NotificationRecipient()
+                                            {
+                                                RecipientMediaInfo = consultantData.Email,
+                                                NotificationId = emailNotification.NotificationId,
+                                                NotificationMediaId = notificationMedia.NotificationMediaId,
+                                                NotificationStatusId = notificationStatus.NotificationStatusId,
+                                                RecipientUserId = recipientUser?.Id
+                                            };
+                                            unitOfWork2.NotificationRecipient.Add(notificationRecipient);
+                                            unitOfWork2.Save();
+                                            await transaction2.CommitAsync();
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine("FALLÓ EL ENVÍO EMAIL");
-                                        notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                                        Console.WriteLine(ex);
                                     }
-                                    var notificatinType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
-                                    var emailNotification = new Notification()
-                                    {
-                                        NotificationTypeId = notificatinType.NotificationTypeId,
-                                        Body = emailToSend.Body,
-                                        Subject = emailToSend.Subject,
-                                        Remitent = emailToSend.SharedEmailFrom,
-                                        SentDate = timeZone,
-                                        SentByUser = userActionedBy
-                                    };
-                                    using var transaction2 = await _unitOfWork.BeginTran();
-                                    _unitOfWork.Notification.Add(emailNotification);
-                                    _unitOfWork.Save();
-                                    if (emailNotification.NotificationId > 0)
-                                    {
-                                        var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
-                                        var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == consultantData.Email);
-                                        var notificationRecipient = new NotificationRecipient()
-                                        {
-                                            RecipientMediaInfo = consultantData.Email,
-                                            NotificationId = emailNotification.NotificationId,
-                                            NotificationMediaId = notificationMedia.NotificationMediaId,
-                                            NotificationStatusId = notificationStatus.NotificationStatusId,
-                                            RecipientUserId = recipientUser?.Id
-                                        };
-                                        _unitOfWork.NotificationRecipient.Add(notificationRecipient);
-                                        _unitOfWork.Save();
-                                        Console.WriteLine("CULMINÓ TODO BIEN");
-                                        await transaction2.CommitAsync();
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine(ex);
                                 }
                             });
-                            resultMessage = res.Message;
-                            createdConsultantId = (int)res.IdCreatedElement;
                         }
                         else
                         {
