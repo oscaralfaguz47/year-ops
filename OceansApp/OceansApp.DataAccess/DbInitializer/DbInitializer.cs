@@ -138,7 +138,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                     _db.SaveChanges();
                 }
-                
+
                 if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
                 {
                     List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
@@ -155,11 +155,12 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                     _db.SaveChanges();
                 }
-                if (_db.NOTIFICATION_TYPES.ToList().Count == 0)
+                List<NotificationType> notificationTypeList = new List<NotificationType>();
+                notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
+                notificationTypeList.Add(new NotificationType() { Name = "Create new Consultant" });
+                foreach (var notType in notificationTypeList)
                 {
-                    List<NotificationType> notificationTypeList = new List<NotificationType>();
-                    notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
-                    foreach (var notType in notificationTypeList)
+                    if (_db.NOTIFICATION_TYPES.FirstOrDefault(x => x.Name == notType.Name) == null)
                     {
                         NotificationType notificationType = new()
                         {
@@ -167,8 +168,9 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.NOTIFICATION_TYPES.Add(notificationType);
                     }
-                    _db.SaveChanges();
                 }
+                _db.SaveChanges();
+
 
                 if (_db.CONSULTANT_POSITIONS.ToList().Count == 0)
                 {
@@ -214,9 +216,10 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 //Create Default Client for Administrative Consultants
 
-                if (_db.CLIENT.FirstOrDefault(x=> x.Name == "Oceans Code Experts") == null)
+                if (_db.CLIENT.FirstOrDefault(x => x.Name == "Oceans Code Experts") == null)
                 {
-                    Client client = new() {
+                    Client client = new()
+                    {
                         Name = "Oceans Code Experts",
                         ClientCode = "OCEADMIN01",
                         Alias = "Oceans Code Experts",

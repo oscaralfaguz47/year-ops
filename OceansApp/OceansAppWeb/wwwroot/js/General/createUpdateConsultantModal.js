@@ -25,6 +25,7 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                     return response.json().then(errorData => {
                         displayToasterError(errorData.error);
                         hideModal(modalId);
+                        getListOfResults(false, false);
                         throw new Error('The request to the server failed!. More details: ' + errorData.detail);
                     });
                 }
@@ -35,13 +36,12 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="name"]').val(data.consultantData.name);
                 createUpdateForm.find('[name="lastName"]').val(data.consultantData.lastName);
                 createUpdateForm.find('[name="userName"]').val(data.consultantData.email);
+                createUpdateForm.find('[name="userName"]').prop('disabled', true);
                 createUpdateForm.find('[name="personalEmail"]').val(data.consultantData.personalEmail);
                 createUpdateForm.find('[name="phoneNumber"]').val(data.consultantData.phoneNumber);
                 createUpdateForm.find('[name="phone2"]').val(data.consultantData.phone2);
+                selectCategory(data.consultantData.userCategoryName, data.consultantData.positions, true, data.consultantData.userRole);
                 createUpdateForm.find('[name="userCategoryName"]').val(data.consultantData.userCategoryName);
-                createUpdateForm.find('[name="userRole"]').val(data.consultantData.userRole);
-                selectCategory(data.consultantData.userCategoryName, data.consultantData.positions);
-
                 var countrySelect = createUpdateForm.find('[name="idCountry"]');
                 countrySelect.html('<option value="' + data.consultantData.idCountry + '">' + data.consultantData.countryName + '</option>');
                 createUpdateForm.find('[name="idCountry"]').val(data.consultantData.idCountry);
@@ -53,7 +53,8 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 hideSpinner();
             });
     } else {
-        selectCategory('Consultant');
+        selectCategory('Consultant', undefined, false);
+        createUpdateForm.find('[name="userName"]').prop('disabled', false);
         showModal(modalId);
     }
 }
@@ -142,7 +143,7 @@ async function createUpdateConsultant(modalId) {
 }
 
 //SELECT CATEGORY
-function selectCategory(selectedValue, selectedOptions) {
+function selectCategory(selectedValue, selectedOptions, isEditingConsultant, userRole) {
     var selectedOptionsArray = [];
     if (selectedOptions !== undefined) {
         selectedOptionsArray = selectedOptions;
@@ -191,9 +192,9 @@ function selectCategory(selectedValue, selectedOptions) {
             hideSpinner();
             console.error('Error fetching the positions:', error);
         });
-    fillRolesForSelect(isAdministrative);
+    fillRolesForSelect(isAdministrative, isEditingConsultant, userRole);
 }
-function fillRolesForSelect(isAdministrative) {
+function fillRolesForSelect(isAdministrative, isEditingConsultant, userRole) {
     var selectElement = document.getElementById("UserRoleSelect");
     if (selectElement !== null) {
         selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
@@ -206,10 +207,18 @@ function fillRolesForSelect(isAdministrative) {
                             selectElement.add(new Option(obj.name, obj.value));
                         }
                     });
-                    selectElement.value = 'Simple';
+                    if (!isEditingConsultant) {
+                        selectElement.value = 'Simple';
+                    } else {
+                        selectElement.value = userRole;
+                    }
                 } else {
                     selectElement.add(new Option('Computer Consultant', 'Computer Consultant'));
-                    selectElement.value = 'Computer Consultant';
+                    if (!isEditingConsultant) {
+                        selectElement.value = 'Computer Consultant';
+                    } else {
+                        selectElement.value = userRole;
+                    }
                 }
             })
             .catch(error => {

@@ -94,12 +94,15 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
         }
         public void ValidateEmail(string field, string fieldName, string email, ModelStateDictionary modelState)
         {
-            if (email.Trim() != null && email.Trim() != "")
+            if (email != null)
             {
-                ValidateData validateData = new();
-                if (!validateData.IsValidEmail(email.Trim()))
+                if (email.Trim() != null && email.Trim() != "")
                 {
-                    modelState.AddModelError(field, $"The {fieldName} is not a valid email.");
+                    ValidateData validateData = new();
+                    if (!validateData.IsValidEmail(email.Trim()))
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} is not a valid email.");
+                    }
                 }
             }
         }

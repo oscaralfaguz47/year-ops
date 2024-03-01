@@ -5,12 +5,10 @@ using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
-using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.AdminCenter.ConsultantPositions;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using System.Data;
-using System.Security.Policy;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -18,10 +16,12 @@ namespace OceansApp.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         private readonly IConfiguration _config;
-        public ConsultantDetailRepository(ApplicationDbContext db, IConfiguration config) : base(db)
+        private readonly UserManager<IdentityUser> _userManager;
+        public ConsultantDetailRepository(ApplicationDbContext db, IConfiguration config, UserManager<IdentityUser> userManager) : base(db)
         {
             _db = db;
             _config = config;
+            _userManager = userManager;
         }
         public async Task<(List<ConsultantsGetAllWithFiltersVM> consultants, int totalCount)> GetAllConsultantsWithFiltersAsync(ConsultantsPaginationFiltersVM filtersAndPagination)
         {
@@ -136,7 +136,7 @@ namespace OceansApp.DataAccess.Repository
                 return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
             }
         }
-        public async Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData)
+        public async Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData, bool isAuthForManageAdminUsers)
         {
             try
             {
@@ -145,15 +145,46 @@ namespace OceansApp.DataAccess.Repository
                 {
                     return new MethodResponse { MessageType = "Not Found", Success = false, Message = "The consultant was not found." };
                 }
+                var existingConsultantPositions = await _db.CONSULTANTS_AND_POSITIONS
+                    .Where(x => x.ConsultantId == existingConsultant.ConsultantId)
+                    .ToListAsync();
+
+                if (existingConsultantPositions == null)
+                {
+                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Positions were not found." };
+                }
                 var existingUser = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == existingConsultant.UserId);
                 if (existingUser == null)
                 {
                     return new MethodResponse { MessageType = "Not Found", Success = false, Message = "The user was not found." };
                 }
+                var actualUserRole = _userManager.GetRolesAsync(existingUser).Result;
+                if (actualUserRole == null)
+                {
+                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "User role not found." };
+                }
                 var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
 
                 using var transaction = await _db.Database.BeginTransactionAsync();
-
+                _db.CONSULTANTS_AND_POSITIONS.RemoveRange(existingConsultantPositions);
+                foreach (var position in consultantData.Positions)
+                {
+                    ConsultantAndPosition consultantPosition = new()
+                    {
+                        ConsultantId = existingConsultant.ConsultantId,
+                        ConsultantPositionId = position.ConsultantPositionId
+                    };
+                    _db.CONSULTANTS_AND_POSITIONS.Add(consultantPosition);
+                }
+                if (isAuthForManageAdminUsers)
+                {
+                    if (actualUserRole[0] != consultantData.UserRole)
+                    {
+                        _userManager.RemoveFromRoleAsync(existingUser, actualUserRole[0]).GetAwaiter().GetResult();
+                        _userManager.AddToRoleAsync(existingUser, consultantData.UserRole).GetAwaiter().GetResult();
+                    }
+                    existingUser.UserCategoryId = (int)consultantData.UserCategoryId;
+                }
                 existingConsultant.IdCountry = consultantData.IdCountry;
                 existingConsultant.Phone2 = consultantData.Phone2;
                 existingConsultant.Address = consultantData.Address;
@@ -164,7 +195,7 @@ namespace OceansApp.DataAccess.Repository
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
-                existingUser.PhoneNumber = consultantData.PhoneNumber.Trim();
+                existingUser.PhoneNumber = consultantData.PhoneNumber;
 
                 await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -186,25 +217,32 @@ namespace OceansApp.DataAccess.Repository
             {
                 var consultant = await multiResultSet.ReadFirstOrDefaultAsync<CreateUpdateConsultantVM>();
                 var consultantProjects = await multiResultSet.ReadAsync<CreateUpdateConsultantsAndPositionsVM>();
-
-                return new CreateUpdateConsultantVM
+                if (consultant != null)
                 {
-                    ConsultantId = consultant.ConsultantId,
-                    Name = consultant.Name,
-                    LastName = consultant.LastName,
-                    IdCountry = consultant.IdCountry,
-                    CountryName = consultant.CountryName,
-                    Phone2 = consultant.Phone2,
-                    Address = consultant.Address,
-                    PersonalEmail = consultant.PersonalEmail,
-                    Location = consultant.Location,
-                    Email = consultant.Email,
-                    PhoneNumber = consultant.PhoneNumber,
-                    UserCategoryId = consultant.UserCategoryId,
-                    UserCategoryName = consultant.UserCategoryName,
-                    UserRole = consultant.UserRole,
-                    Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
-                };
+                    return new CreateUpdateConsultantVM
+                    {
+                        ConsultantId = consultant.ConsultantId,
+                        Name = consultant.Name,
+                        LastName = consultant.LastName,
+                        IdCountry = consultant.IdCountry,
+                        CountryName = consultant.CountryName,
+                        Phone2 = consultant.Phone2,
+                        Address = consultant.Address,
+                        PersonalEmail = consultant.PersonalEmail,
+                        Location = consultant.Location,
+                        Email = consultant.Email,
+                        PhoneNumber = consultant.PhoneNumber,
+                        UserCategoryId = consultant.UserCategoryId,
+                        UserCategoryName = consultant.UserCategoryName,
+                        UserRole = consultant.UserRole,
+                        Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
+                    };
+                }
+                else
+                {
+                    return null;
+                }
+
             }
         }
         public void Update(ConsultantDetail obj)

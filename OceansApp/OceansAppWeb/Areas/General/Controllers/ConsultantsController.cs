@@ -139,17 +139,23 @@ namespace OceansAppWeb.Areas.General.Controllers
                     return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
                 }
                 ValidateInputs validateInputs = new();
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 
                 validateInputs.ValidateRequiredAndStringLength("Name", "Name", consultantData.Name, 100, ModelState);
                 validateInputs.ValidateRequiredAndStringLength("LastName", "Last Name", consultantData.LastName, 150, ModelState);
                 validateInputs.ValidateRequiredAndStringLength("Email", "Oceans Email", consultantData.Email, 249, ModelState);
-                validateInputs.ValidateRequiredFieldStringValue("UserCategoryId", "User Category", consultantData.UserCategoryName, ModelState);
+                validateInputs.ValidateEmail("Email", "Oceans Email", consultantData.Email, ModelState);
+                if (authToManageAdminitrativeConsultants.Succeeded)
+                {
+                    validateInputs.ValidateRequiredFieldStringValue("UserCategoryId", "User Category", consultantData.UserCategoryName, ModelState);
+                }
+                validateInputs.ValidateNotEmptyArray("Positions", "Position", consultantData.Positions, ModelState);
                 validateInputs.ValidateRequiredFieldStringValue("IdCountry", "Country", consultantData.IdCountry, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", consultantData.PhoneNumber, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Phone2", "Phone 2", consultantData.Phone2, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Address", "Address", consultantData.Address, 400, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PersonalEmail", "Personal Email", consultantData.PersonalEmail, 249, ModelState);
-                validateInputs.ValidateNotEmptyArray("Positions", "Position", consultantData.Positions, ModelState);
+                validateInputs.ValidateEmail("PersonalEmail", "Personal Email", consultantData.PersonalEmail, ModelState);
 
                 if (ModelState.IsValid)
                 {
@@ -163,12 +169,13 @@ namespace OceansAppWeb.Areas.General.Controllers
                     var code = "";
                     var userRole = "";
                     ApplicationUserCategory? userCategory = null;
-                    var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
-
+                    var isAuthForManageAdminUsers = false;
                     if (authToManageAdminitrativeConsultants.Succeeded)
                     {
+                        isAuthForManageAdminUsers = true;
                         userRole = consultantData.UserRole;
                         userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == consultantData.UserCategoryName);
+                        consultantData.UserCategoryId = userCategory.UserCategoryId;
                         if (userCategory == null)
                         {
                             return BadRequest(new { MessageType = "Not Found", error = $"User category not found.", detail = "The user category was not found." });
@@ -178,6 +185,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     {
                         userRole = "Computer Consultant";
                         userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == "Consultant");
+                        consultantData.UserCategoryId = userCategory.UserCategoryId;
                         if (userCategory == null)
                         {
                             return BadRequest(new { MessageType = "Not Found", error = $"User category not found.", detail = "The user category was not found." });
@@ -224,12 +232,64 @@ namespace OceansAppWeb.Areas.General.Controllers
                         if (res.Success)
                         {
                             await transaction.CommitAsync();
-                            var emailToSend = new SendEmailVM();
-                            emailToSend.Subject = "Confirm your account - Oceans App";
-                            emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
-                            emailToSend.EmailTo = consultantData.Email;
-                            emailToSend.Body = "Confirm your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
-                            await _sendEmail.Value.SendEmail(emailToSend);
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    Console.WriteLine("INICIANDO THREAD");
+                                    var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                                    Console.WriteLine("BUSCÓ NOTIFICATION STATUS");
+                                    var emailToSend = new SendEmailVM();
+                                    emailToSend.Subject = "Confirm your account - Oceans App";
+                                    emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
+                                    emailToSend.EmailTo = consultantData.Email;
+                                    emailToSend.Body = "Confirm your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
+                                    try
+                                    {
+                                        var emailSent = await _sendEmail.Value.SendEmail(emailToSend);
+                                        Console.WriteLine("ENVIÓ EL EMAIL");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("FALLÓ EL ENVÍO EMAIL");
+                                        notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                                    }
+                                    var notificatinType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
+                                    var emailNotification = new Notification()
+                                    {
+                                        NotificationTypeId = notificatinType.NotificationTypeId,
+                                        Body = emailToSend.Body,
+                                        Subject = emailToSend.Subject,
+                                        Remitent = emailToSend.SharedEmailFrom,
+                                        SentDate = timeZone,
+                                        SentByUser = userActionedBy
+                                    };
+                                    using var transaction2 = await _unitOfWork.BeginTran();
+                                    _unitOfWork.Notification.Add(emailNotification);
+                                    _unitOfWork.Save();
+                                    if (emailNotification.NotificationId > 0)
+                                    {
+                                        var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+                                        var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == consultantData.Email);
+                                        var notificationRecipient = new NotificationRecipient()
+                                        {
+                                            RecipientMediaInfo = consultantData.Email,
+                                            NotificationId = emailNotification.NotificationId,
+                                            NotificationMediaId = notificationMedia.NotificationMediaId,
+                                            NotificationStatusId = notificationStatus.NotificationStatusId,
+                                            RecipientUserId = recipientUser?.Id
+                                        };
+                                        _unitOfWork.NotificationRecipient.Add(notificationRecipient);
+                                        _unitOfWork.Save();
+                                        Console.WriteLine("CULMINÓ TODO BIEN");
+                                        await transaction2.CommitAsync();
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine(ex);
+                                }
+                            });
                             resultMessage = res.Message;
                             createdConsultantId = (int)res.IdCreatedElement;
                         }
@@ -241,8 +301,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     else
                     {
                         //IF IS CONSULTANT ID THEN UPDATE THE CONSULTANT
-                        var res = await _unitOfWork.ConsultantDetail.UpdateUserConsultant(userActionedBy, consultantData);
-
+                        var res = await _unitOfWork.ConsultantDetail.UpdateUserConsultant(userActionedBy, consultantData, isAuthForManageAdminUsers);
                         if (res.Success)
                         {
                             resultMessage = res.Message;
