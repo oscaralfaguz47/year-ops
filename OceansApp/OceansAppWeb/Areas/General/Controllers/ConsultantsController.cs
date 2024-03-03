@@ -22,21 +22,17 @@ namespace OceansAppWeb.Areas.General.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmail;
         private readonly IAuthorizationService _authorizationService;
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager,
-            LazyServiceProvider<ISendEmailRepository> emailSender, IAuthorizationService authorizationService,
-            IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory serviceScopeFactory)
+        public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager, 
+            IAuthorizationService authorizationService,
+            IBackgroundTaskQueue backgroundTaskQueue)
         {
             _unitOfWork = unitOrWork;
             _config = config;
             _userManager = userManager;
-            _sendEmail = emailSender;
             _authorizationService = authorizationService;
             _backgroundTaskQueue = backgroundTaskQueue;
-            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public IActionResult Index()

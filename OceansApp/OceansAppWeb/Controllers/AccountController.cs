@@ -23,10 +23,12 @@ namespace OceansAppWeb.Account.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _config;
         private readonly LazyServiceProvider<ISendEmailRepository> _sendEmailRepository;
+        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
-            IHttpContextAccessor httpContextAccessor, IConfiguration config, LazyServiceProvider<ISendEmailRepository> sendEmailRepository)
+            IHttpContextAccessor httpContextAccessor, IConfiguration config, LazyServiceProvider<ISendEmailRepository> sendEmailRepository,
+            IBackgroundTaskQueue backgroundTaskQueue)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -37,6 +39,7 @@ namespace OceansAppWeb.Account.Controllers
             _httpContextAccessor = httpContextAccessor;
             _config = config;
             _sendEmailRepository = sendEmailRepository;
+            _backgroundTaskQueue = backgroundTaskQueue;
         }
         public IActionResult Index()
         {
@@ -157,7 +160,7 @@ namespace OceansAppWeb.Account.Controllers
                         var applicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
                         if (applicationUser.IsActive)
                         {
-                            if ((DateTime.UtcNow > applicationUser.OpaqueTokenExpiration) 
+                            if ((DateTime.UtcNow > applicationUser.OpaqueTokenExpiration)
                                 || (applicationUser.OpaqueToken == null && applicationUser.OpaqueTokenExpiration == null))
                             {
                                 GenerateTokensAndRandomStrings sharedMethod = new();
@@ -358,9 +361,21 @@ namespace OceansAppWeb.Account.Controllers
                     Body = "Change your password by clicking: <a href=\"" + callbackurl + "\">Aquí</a>",
                     SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
                 };
-
-                string? result = await _sendEmailRepository.Value.SendEmail(emailModel);
-
+                _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+                {
+                    using (var scope = scopeFactory.CreateScope())
+                    {
+                        var sendEmail = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
+                        try
+                        {
+                            string? result = await sendEmail.SendEmail(emailModel);
+                        }
+                        catch (Exception ex)
+                        {
+                           //Log the error
+                        }
+                    }
+                });
                 return RedirectToAction("ForgotPasswordConfirmation");
             }
 
