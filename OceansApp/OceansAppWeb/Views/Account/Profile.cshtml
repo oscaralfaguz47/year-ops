@@ -1,14 +1,14 @@
 ﻿@using OceansApp.Models.ViewModels
 @model ProfileVM
 
-    <link rel="stylesheet" href="~/css/Account/global.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/Account/global.css" asp-append-version="true" />
 
 <div class="container">
-    <h2 class="title-h1-account"><i class="bi bi-person-gear"></i> <strong>Configuración de mi Cuenta</strong></h2>
+    <h2 class="title-h1-account"><i class="bi bi-person-gear"></i> <strong>My Account Settings</strong></h2>
     <hr />
     <div class="row">
         <div class="col-lg-6 text-center">
-            <h2><strong>Información Personal</strong></h2>
+            <h2><strong>Personal Information</strong></h2>
             <form id="registerForm" asp-area="" asp-controller="Account" asp-action="UpdateProfile" method="post">
                 <div class="row">
                     <div class="col-md-6">
@@ -49,24 +49,27 @@
                         <br />
                     </div>
                     <div class="text-center">
-                                                <a asp-area="" asp-controller="Home" asp-action="Dashboard" class="cancel-btn">
-                            Cancelar
+                        <a asp-area="" asp-controller="Home" asp-action="Dashboard" class="cancel-btn">
+                            Cancel
                         </a> &nbsp;
-                        <button id="registerSubmit" type="submit" class="btn-primary-submit">Guardar Cambios</button>
+                        <button id="registerSubmit" type="submit" class="btn-primary-submit">Save Changes</button>
                     </div>
                 </div>
             </form>
             <br /><br />
         </div>
         <div class="col-lg-6 text-center">
-            <h2><strong>Seguridad de mi cuenta</strong></h2>
+            <h2><strong>Security</strong></h2>
             <p>TO-DO</p>
         </div>
 
     </div>
 </div>
 
-<br /><br /><br /><br />
+<br />
+<br />
+<br />
+<br />
 
 
 @section Scripts {

@@ -60,7 +60,7 @@ namespace OceansAppWeb.Account.Controllers
                 Ocupation = userFromDb.Occupation,
                 PhoneNumber = userFromDb.PhoneNumber
             };
-            ViewData["Title"] = "Mi Perfil";
+            ViewData["Title"] = "My Account Settings";
             return View(myInfo);
         }
 
@@ -81,7 +81,7 @@ namespace OceansAppWeb.Account.Controllers
 
                     _unitOfWork.Save();
 
-                    TempData["success"] = "¡Los datos fueron guardados con éxito!";
+                    TempData["success"] = "Data was saved successfully!";
                     return View("Profile", model);
                 }
                 catch (Exception e)
@@ -106,8 +106,15 @@ namespace OceansAppWeb.Account.Controllers
                 return View("Error");
             }
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            ViewData["Title"] = "Confirmación de Correo";
-            return View(result.Succeeded ? "ConfirmEmail" : "Error");
+            if (result.Succeeded)
+            {
+                var resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
+                return RedirectToAction("CreatePassword", "Account", new { code = resetCode });
+            }
+            else
+            {
+                return View("Error");
+            }
 
         }
 
@@ -183,10 +190,10 @@ namespace OceansAppWeb.Account.Controllers
                         }
                         else
                         {
-                            // Considerar registrar el intento de inicio de sesión de una cuenta inactiva
+                            // Consider logging the login attempt of an inactive account
                         }
                     }
-                    ModelState.AddModelError(string.Empty, "Tu usuario o contraseña son incorrectos.");
+                    ModelState.AddModelError(string.Empty, "Your credentials are incorrect.");
                 }
                 catch (Exception e)
                 {
@@ -196,8 +203,6 @@ namespace OceansAppWeb.Account.Controllers
 
             return View(model);
         }
-
-
 
         [HttpGet]
         [Authorize]
@@ -220,7 +225,7 @@ namespace OceansAppWeb.Account.Controllers
             {
                 ViewData["TwoFactorNoEnabled"] = true;
             }
-            ViewData["Title"] = "Habilitar Autenticación de 2 factores";
+            ViewData["Title"] = "Enable 2-factor authentication";
             return View(model);
         }
 
@@ -250,7 +255,7 @@ namespace OceansAppWeb.Account.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("Code", "El código que ingresaste es incorrecto.");
+                    ModelState.AddModelError("Code", "The code you entered is incorrect.");
                     return View(model);
                 }
                 return RedirectToAction(nameof(AuthenticatorConfirmation));
@@ -262,7 +267,7 @@ namespace OceansAppWeb.Account.Controllers
         public IActionResult AuthenticatorConfirmation()
         {
             ViewData["TwoFactorNoEnabled"] = true;
-            ViewData["Title"] = "Confirmacion Autenticación";
+            ViewData["Title"] = "Confirmation Authentication";
             return View();
         }
 
@@ -280,7 +285,7 @@ namespace OceansAppWeb.Account.Controllers
                 returnUrl = Url.Content("~/");
             }
             ViewData["ReturnUrl"] = returnUrl;
-            ViewData["Title"] = "Verificación de Autenticación";
+            ViewData["Title"] = "Authentication Verification";
             return View(new VerifyAuthenticatorVM { ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
@@ -306,7 +311,7 @@ namespace OceansAppWeb.Account.Controllers
             }
             else
             {
-                ModelState.AddModelError("Code", "El código que ingresaste es incorrecto.");
+                ModelState.AddModelError("Code", "The code you entered is incorrect.");
                 return View(model);
             }
         }
@@ -326,7 +331,7 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
-            ViewData["Title"] = "Olvidé Contraseña";
+            ViewData["Title"] = "Forgot Password";
             return View();
         }
 
@@ -348,9 +353,9 @@ namespace OceansAppWeb.Account.Controllers
                 var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
                 SendEmailVM emailModel = new()
                 {
-                    Subject = "Cambiar Contraseña",
+                    Subject = "Change Password",
                     EmailTo = model.Email,
-                    Body = "Cambia tu contraseña haciendo click: <a href=\"" + callbackurl + "\">Aquí</a>",
+                    Body = "Change your password by clicking: <a href=\"" + callbackurl + "\">Aquí</a>",
                     SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
                 };
 
@@ -366,7 +371,7 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ForgotPasswordConfirmation()
         {
-            ViewData["Title"] = "Olvidé Contraseña";
+            ViewData["Title"] = "Forgot Password";
             return View();
         }
 
@@ -374,7 +379,7 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ResetPassword(string code)
         {
-            ViewData["Title"] = "Cambio de Contraseña";
+            ViewData["Title"] = "Password Change";
             return code == null ? View("Error") : View();
         }
 
@@ -406,8 +411,47 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation()
         {
-            ViewData["Title"] = "Confirmación Cambio de Contraseña";
+            ViewData["Title"] = "Confirmation Password Change";
             return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult CreatePasswordConfirmation()
+        {
+            ViewData["Title"] = "Confirmation Password Creation";
+            return View();
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult CreatePassword(string code)
+        {
+            ViewData["Title"] = "Create Password";
+            return code == null ? View("Error") : View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreatePassword(ResetPasswordVM model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    return RedirectToAction("CreatePasswordConfirmation");
+                }
+
+                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("CreatePasswordConfirmation");
+                }
+                AddErrors(result);
+            }
+
+            return View(model);
         }
 
         private void AddErrors(IdentityResult result)
@@ -428,7 +472,7 @@ namespace OceansAppWeb.Account.Controllers
                 {
                     Expires = DateTime.Now.AddDays(-1),
                     HttpOnly = true,
-                    Secure = true, // Utiliza 'true' si tu aplicación está utilizando HTTPS.
+                    Secure = true, // Use 'true' if your application is using HTTPS.
                     SameSite = SameSiteMode.Strict
                 };
 

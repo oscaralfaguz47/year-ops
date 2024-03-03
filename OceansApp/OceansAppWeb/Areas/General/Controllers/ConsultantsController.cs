@@ -254,10 +254,10 @@ namespace OceansAppWeb.Areas.General.Controllers
                                     {
                                         var notificationStatus = unitOfWork2.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
                                         var emailToSend = new SendEmailVM();
-                                        emailToSend.Subject = "Confirm your account - Oceans App";
+                                        emailToSend.Subject = "Create your account - Oceans App";
                                         emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
                                         emailToSend.EmailTo = consultantData.Email;
-                                        emailToSend.Body = "Confirm your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
+                                        emailToSend.Body = "Create your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
                                         try
                                         {
                                             var emailSent = await sendEmail2.SendEmail(emailToSend);

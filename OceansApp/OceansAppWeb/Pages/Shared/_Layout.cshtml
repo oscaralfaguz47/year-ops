@@ -51,7 +51,7 @@
                                         @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_ClaimValue))
                                         {
                                             <li class="nav-item">
-                                                <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index"><i class="bi bi-calculator"></i> Calculadora</a>
+                                                <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index"><i class="bi bi-calculator"></i> Calculator</a>
                                             </li>
                                         }
                                         @if (User.IsAuthorizedForGeneral())
@@ -94,7 +94,7 @@
                                                 @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
                                                 {
                                                     <div class="dropdown-menu">
-                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Cuentas por Cobrar</a>
+                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Receivables</a>
                                                     </div>
                                                 }
                                             </li>
@@ -102,7 +102,7 @@
                                         @if (User.IsAuthorizedForAdminCenter())
                                         {
                                             <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrador</a>
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrator</a>
                                                 <div class="dropdown-menu">
                                                     <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="Home" asp-action="Index">Admin Center</a>
                                                 </div>
@@ -137,7 +137,7 @@
                     <span class="sr-only"></span>
                 </div>
                 <div>
-                    <span><i class="bi bi-hourglass-split"></i> Procesando datos, espera.... </span>
+                    <span><i class="bi bi-hourglass-split"></i> Processing data, wait.... </span>
                 </div>
             </div>
         </div>
@@ -146,9 +146,8 @@
     {
         <footer>
             <div>
-                Advertencia: Esta plataforma constituye software propietario de Oceans Code Experts y su uso no autorizado, copia, o
-                distribución para usos ajenos a la operación de Oceans Code Experts está estrictamente prohibido. Todos los derechos
-                reservados. Oceans Code Experts 2023.
+                Warning: This platform constitutes proprietary software of Oceans Code Experts and its unauthorized use, copying, or distribution 
+                for uses outside the operation of Oceans Code Experts is strictly prohibited. All rights reserved. Oceans Code Experts <span id="copyright-year"></span>.
             </div>
         </footer>
     }

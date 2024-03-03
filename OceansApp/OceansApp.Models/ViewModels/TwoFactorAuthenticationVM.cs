@@ -6,7 +6,7 @@ namespace OceansApp.Models.ViewModels
     public class TwoFactorAuthenticationVM
     {
         //used to login
-        [Required(ErrorMessage = "El código es requerido")]
+        [Required(ErrorMessage = "The Code is required.")]
         public string Code { get; set; }
 
         //used to register / signup

@@ -4,12 +4,12 @@ namespace OceansApp.Models.ViewModels
 {
     public class VerifyAuthenticatorVM
     {
-        [Required(ErrorMessage = "El código es requerido")]
-        [MaxLength(10, ErrorMessage = "El código no puede tener más de 10 caracteres.")]
-        [Display(Name = "Código")]
+        [Required(ErrorMessage = "The Code is required.")]
+        [MaxLength(10, ErrorMessage = "The code cannot be more than 10 characters.")]
+        [Display(Name = "Code")]
         public string Code { get; set; }
         public string? ReturnUrl { get; set; }
-        [Display(Name = "¿Recordarme?")]
+        [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
     }
 }
