@@ -6,6 +6,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
 using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
+using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
@@ -354,11 +355,14 @@ namespace OceansAppWeb.Account.Controllers
 
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                EmailTemplates emailTemplates = new();
+                var forgotPassBody = emailTemplates.ForgotPasswordBody(callbackurl, model.Email);
+                var templateEmail = emailTemplates.EmailTemplate("RESET YOUR PASSWORD", forgotPassBody);
                 SendEmailVM emailModel = new()
                 {
                     Subject = "Change Password",
                     EmailTo = model.Email,
-                    Body = "Change your password by clicking: <a href=\"" + callbackurl + "\">Aquí</a>",
+                    Body = templateEmail,
                     SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
                 };
                 _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>

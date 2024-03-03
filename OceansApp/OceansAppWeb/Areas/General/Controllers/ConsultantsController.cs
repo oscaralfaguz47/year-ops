@@ -8,6 +8,7 @@ using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Utility.LazyLoading;
+using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
@@ -252,8 +253,9 @@ namespace OceansAppWeb.Areas.General.Controllers
                                         var emailToSend = new SendEmailVM();
                                         emailToSend.Subject = "Create your account - Oceans App";
                                         emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
-                                        emailToSend.EmailTo = consultantData.Email;
+                                        emailToSend.EmailTo = consultantData.Email;                               
                                         emailToSend.Body = "Create your account by clicking <a href=\"" + callbackurl + "\">Here</a>";
+
                                         try
                                         {
                                             var emailSent = await sendEmail2.SendEmail(emailToSend);

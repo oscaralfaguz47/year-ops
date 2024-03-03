@@ -3,11 +3,141 @@ namespace OceansApp.Utility.NotificationTemplates
 {
     public class EmailTemplates
     {
-        public static string EmailHeader()
+        public string EmailTemplate(string title, string body)
         {
-            var header = "";
-
-            return header;
+            var template = @"<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+             <tr>
+                 <td>
+                     <table cellspacing=""0"" cellpadding=""0"" width=""500"" style=""background-color: #fff;"">
+                                <tr>
+                                    <td>
+                                        <table cellspacing=""0"" cellpadding=""0"" width=""500"">
+                                                 <tr>
+                                                     <td align=""left"">
+                                                          <table cellspacing=""0"" cellpadding=""0"" width=""100%""
+                                            style=""background-color: #e7eaef; padding: 10px;"">
+                                            <tr>
+                                                <td>
+                                                    <table cellspacing=""0"" cellpadding=""0"" width=""100%""> 
+                                                             <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1612882702/logos/logo-color_xdip1b.png""
+                                                            alt=""Oceans Code Experts"" width=""150""/>
+                                                      </table>
+                                                  </td>
+                                              </tr>
+                                          </table>
+                                          <table cellspacing=""0"" cellpadding=""0"" width=""500""
+                                            style=""background-color: #fff; margin: 0 auto; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; position: relative; padding: 0 30px 30px 30px"">
+                                            <tr>
+                                                <td>
+                                                    <div>
+                                                        <div>
+                                                            <table cellspacing=""0"" cellpadding=""0"" width=""100%""
+                                                                style=""font-family: 'nexa', Arial, sans-serif;"">
+                                                                <tr>
+                                                                    <td>
+                                                                        <table cellspacing=""0"" cellpadding=""0""
+                                                                            width=""100%"">
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <h2 style=""text-align: center; margin-bottom: 0; margin-top: 25px; color: #058993;"">
+                                                                                        " + title + @"</h2>
+                                                                                    <div style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                       " + body + @"
+                                                                        <p style=""margin-bottom: 2px; color: #437fc0;"" >
+                                                                             Thank you!
+                                                                         </p>
+                                                                         <p style=""margin: 0;"" >
+                                                                              Oceans Code Experts
+                                                                          </p>
+                                                                      </td>
+                                                                  </tr>
+                                                              </table>
+                                                          </div>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                          </table>
+                                          <table cellspacing=""0"" cellpadding=""0"" width=""100%""
+                                            style=""background-color: #e7eaef;padding: 10px;"">
+                                            <tr>
+                                                <td>
+                                                    <table cellspacing=""0"" cellpadding = ""0"" width = ""500""
+                                                        style=""margin: 0 auto; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; position: relative; padding: 10px"">
+                                                        <tr>
+                                                             <td align=""center"">
+                                                                 <p style=""margin: 0;"">
+                                                                      <strong> This is an automatically
+                                                                        generated email.</strong>
+                                                                </p>
+                                                                <p style=""margin: 0;"">
+                                                                     <strong> Please do not reply to it.</strong>
+                                                                    </p>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>";
+            return template;
+        }
+        public string ForgotPasswordBody(string url, string userEmail)
+        {
+            return @"<div style=""text-align: center;"">
+                        <p> Hello " + userEmail + @",</p>
+                            <p> It seems that you have forgotten the
+                           password for your Oceans App account.
+                       </p>
+                       <p> Don't worry, you can set a new one here.
+                       </p>
+                   </div>
+                   <table cellspacing=""0"" cellpadding=""0""
+                       width=""100%"">
+                       <tr>
+                           <td align=""center"">
+                               <div
+                                   style=""margin-top: 20px; margin-bottom: 20px;"">
+                                   <table role=""presentation"" cellspacing=""0"" cellpadding=""0"" border=""0"" style=""border-collapse: separate;"">
+                             <tr>
+       <td style=""border-radius: 25px; background-color: #5bbb71; padding: 10px 40px;"" align=""center"">
+          <a href=""" + url + @""" style=""font-family: 'Montserrat', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; cursor: pointer; display: inline-block;"">
+               Change Password
+             </a>
+           </td>
+         </tr>
+       </table>
+                                      </div>
+                               <div
+                                   style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
+                               </div>
+                           </td>
+                       </tr>
+                   </table>
+                   <p>
+                       If you didn't request to change your
+                       password you don't have to do anything.
+                       Ignore this email, your old password will be
+                       kept.
+                   </p>";
         }
     }
 }
