@@ -40,6 +40,13 @@ async function getListOfResults(firstTime, filters) {
                 }
                 var row = `<tr>
                   <td>
+                    <i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
+                          <div class="menu-options" id="menuOptions-${obj.consultantId}">
+                           <ul>
+                             <li id="activate-deactivate-li-${obj.consultantId}">${obj.isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${obj.isActive ? ' Deactivate user' : ' Activate user'}</li>
+                             <li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})""><i class="bi bi-pencil-square"></i> Edit Consultant</li>
+                           </ul>
+                         </div>
                   <i onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.consultantName}
                   </td>

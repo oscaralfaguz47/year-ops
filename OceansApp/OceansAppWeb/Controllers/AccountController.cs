@@ -113,7 +113,7 @@ namespace OceansAppWeb.Account.Controllers
             if (result.Succeeded)
             {
                 var resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
-                return RedirectToAction("CreatePassword", "Account", new { code = resetCode });
+                return RedirectToAction("CreatePassword", "Account", new { code = resetCode, email = user.Email });
             }
             else
             {
@@ -352,11 +352,15 @@ namespace OceansAppWeb.Account.Controllers
                 {
                     return RedirectToAction("ForgotPasswordConfirmation");
                 }
-
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
                 EmailTemplates emailTemplates = new();
-                var forgotPassBody = emailTemplates.ForgotPasswordBody(callbackurl, model.Email);
+                var userDetails = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+                if (userDetails == null)
+                {
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
+                var forgotPassBody = emailTemplates.ForgotPasswordBody(callbackurl, userDetails.Name);
                 var templateEmail = emailTemplates.EmailTemplate("RESET YOUR PASSWORD", forgotPassBody);
                 SendEmailVM emailModel = new()
                 {
@@ -441,9 +445,10 @@ namespace OceansAppWeb.Account.Controllers
             ViewData["Title"] = "Confirmation Password Creation";
             return View();
         }
+
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult CreatePassword(string code)
+        public IActionResult CreatePassword(string code, string email)
         {
             ViewData["Title"] = "Create Password";
             return code == null ? View("Error") : View();

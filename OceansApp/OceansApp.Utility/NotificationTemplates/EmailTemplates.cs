@@ -44,7 +44,7 @@ namespace OceansApp.Utility.NotificationTemplates
                                                                             width=""100%"">
                                                                             <tr>
                                                                                 <td>
-                                                                                    <h2 style=""text-align: center; margin-bottom: 0; margin-top: 25px; color: #058993;"">
+                                                                                         <h2 style=""text-align: center; margin-bottom: 0; margin-top: 25px; color: #058993;"">
                                                                                         " + title + @"</h2>
                                                                                     <div style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
                                                                                     </div>
@@ -100,10 +100,10 @@ namespace OceansApp.Utility.NotificationTemplates
     </html>";
             return template;
         }
-        public string ForgotPasswordBody(string url, string userEmail)
+        public string ForgotPasswordBody(string url, string userName)
         {
             return @"<div style=""text-align: center;"">
-                        <p> Hello " + userEmail + @",</p>
+                        <p> Hello " + userName + @",</p>
                             <p> It seems that you have forgotten the
                            password for your Oceans App account.
                        </p>
@@ -137,6 +137,42 @@ namespace OceansApp.Utility.NotificationTemplates
                        password you don't have to do anything.
                        Ignore this email, your old password will be
                        kept.
+                   </p>";
+        }
+
+        public string CreatePasswordBody(string url, string userName)
+        {
+            return @"<div style=""text-align: center;"">
+                        <p> Hello " + userName + @",</p>
+                       <p>Oceans Code Experts is inviting you to be part of the Team.
+                       </p>
+                       <p> Please click on the button below to create your password and join the Team.
+                       </p>
+                   </div>
+                   <table cellspacing=""0"" cellpadding=""0""
+                       width=""100%"">
+                       <tr>
+                           <td align=""center"">
+                               <div
+                                   style=""margin-top: 20px; margin-bottom: 20px;"">
+                                   <table role=""presentation"" cellspacing=""0"" cellpadding=""0"" border=""0"" style=""border-collapse: separate;"">
+                             <tr>
+       <td style=""border-radius: 25px; background-color: #5bbb71; padding: 10px 40px;"" align=""center"">
+          <a href=""" + url + @""" style=""font-family: 'Montserrat', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; cursor: pointer; display: inline-block;"">
+               Create Password
+             </a>
+           </td>
+         </tr>
+       </table>
+                                      </div>
+                               <div
+                                   style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
+                               </div>
+                           </td>
+                       </tr>
+                   </table>
+                   <p>
+                       We are delighted to extend a warm welcome to you!
                    </p>";
         }
     }
