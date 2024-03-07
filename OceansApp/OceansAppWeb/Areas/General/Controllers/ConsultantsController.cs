@@ -344,6 +344,61 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [HttpPost]
+        [RequireTwoFactorEnabled]
+        public async Task<IActionResult> ResetAuthenticatorFromUser(int consultantId)
+        {
+            try
+            {
+                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == consultantId);
+                if (consultant == null)
+                {
+                     return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
+                }
+                var user = await _userManager.FindByIdAsync(consultant.UserId);
+                await _userManager.ResetAuthenticatorKeyAsync(user);
+                await _userManager.SetTwoFactorEnabledAsync(user, false);
+                return Json(new { success = true, message = "Two-factor authentication was successfully reset!" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ActivateDeactivateConsultantUser(int consultantId)
+        {
+            try
+            {
+                var message = "";
+                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == consultantId);
+                if (consultant == null)
+                {
+                    return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
+                }
+                var userToUpdate = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == consultant.UserId);
+                if (userToUpdate.IsActive == true)
+                {
+                    userToUpdate.IsActive = false;
+                    userToUpdate.LockoutEnd = DateTime.Now.AddYears(1000);
+                    message = "The user was successfully deactivated!";
+                }
+                else
+                {
+                    userToUpdate.IsActive = true;
+                    userToUpdate.LockoutEnd = DateTime.Now.AddDays(-1);
+                    message = "The user was successfully activated!";
+                }
+                _unitOfWork.Save();
+                return Json(new { success = true, message = message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
     }
 }

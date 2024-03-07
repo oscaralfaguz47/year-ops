@@ -37,6 +37,28 @@
                                 </label>
                             </div>
                         </div>
+                        <div class="col-sm-2">
+                            <div class="radio-group twoFactor-rg">
+                                <label class="radio-label">
+                                    <input onchange="paginationSubmit(false, true)" name="two-factor" type="radio" value="true" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Two-Factor Auth Enabled
+                                </label>
+                                <label class="radio-label">
+                                    <input onchange="paginationSubmit(false, true)" name="two-factor" type="radio" value="false" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Two-Factor Auth Disabled
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="year" class="select-label">Country</label>
+                            <div class="">
+                                <span class="arrow-down"></span>
+                                <select id="CountrySelect" class="form-select" onfocus="fillCountriesSelectForFilters(this, 'Select a country')" onchange="paginationSubmit(false, true)">
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="principal-buttons">
                         <a asp-area="General" asp-controller="Consultants" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
@@ -77,10 +99,10 @@
                     <th>Phone 2</th>
                     <th>Address</th>
                     @*<th>Location</th>*@
-                   @* <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
+                    @* <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
                         Shirt Size
                         <span class="sort-arrow" id="sortArrowShirtSize"></span>
-                    </th>*@
+                        </th>*@
                     <th onclick="orderByTableList('IsActive', 'IsActiveTableHeader', 'sortArrowIsActive')" data-sort="ANY" name="IsActiveTableHeader" class="sortable-col">
                         User Status
                         <span class="sort-arrow" id="sortArrowIsActive"></span>

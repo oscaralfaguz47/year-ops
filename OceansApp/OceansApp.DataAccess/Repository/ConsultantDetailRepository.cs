@@ -29,7 +29,7 @@ namespace OceansApp.DataAccess.Repository
 
             var parameters = new DynamicParameters();
             parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
-            parameters.Add("@CountryId", filtersAndPagination.Filters.CountryId, DbType.Int32);
+            parameters.Add("@CountryId", filtersAndPagination.Filters.CountryId, DbType.String);
             parameters.Add("@IsTwoFactorEnabled", filtersAndPagination.Filters.IsTwoFactorEnabled, DbType.Boolean);
             parameters.Add("@EmailConfirmed", filtersAndPagination.Filters.EmailConfirmed, DbType.Boolean);
             parameters.Add("@IsActive", filtersAndPagination.Filters.IsActive, DbType.Boolean);

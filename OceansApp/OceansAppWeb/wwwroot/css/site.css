@@ -666,19 +666,19 @@ table {
 }
 
         .global-table-container th:first-child {
-            position: -webkit-sticky;
+       
             position: sticky;
             left: 0;
-            z-index: 3;
+            z-index: 4;
             background-color: var(--clr-blueLight);
             width: 100px;
         }
 
-    .global-table-container td:first-child {
+    .global-table-container td:first-child { 
         position: sticky;
         left: 0;
         background-color: #e3faf9;
-        z-index: 2;
+        z-index: 3;
         font-weight: bold;
     }
 
