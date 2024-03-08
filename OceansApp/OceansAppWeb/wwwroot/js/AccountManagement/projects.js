@@ -271,7 +271,7 @@ async function createUpdateProject(modalId) {
             billableInput.disabled = true;
             inicializeModalButtons(modalId);
             displayToasterSuccess(data.message);
-            console.log(data.projectId);
+            createUpdateForm.find('[name="client"]').prop('disabled', true);
             if (data.projectId > 0) {
                 billableInput.value = isBillableData;
                 document.getElementById("saved-project-type-label").style.display = 'block';

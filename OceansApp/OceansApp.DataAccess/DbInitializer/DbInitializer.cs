@@ -139,13 +139,15 @@ namespace OceansApp.DataAccess.DbInitializer
                     _db.SaveChanges();
                 }
 
-                if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
+                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviando" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
+                foreach (var notStatus in notificatinStatusList)
                 {
-                    List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
-                    notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
-                    notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
-                    notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
-                    foreach (var notStatus in notificatinStatusList)
+                    var existingNS = _db.NOTIFICATION_STATUS.FirstOrDefault(x => x.Name == notStatus.Name);
+                    if (existingNS == null)
                     {
                         NotificationStatus notificationStatus = new()
                         {
@@ -153,8 +155,9 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.NOTIFICATION_STATUS.Add(notificationStatus);
                     }
-                    _db.SaveChanges();
                 }
+                _db.SaveChanges();
+
                 List<NotificationType> notificationTypeList = new List<NotificationType>();
                 notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
                 notificationTypeList.Add(new NotificationType() { Name = "Create new Consultant" });

@@ -237,77 +237,15 @@ namespace OceansAppWeb.Areas.General.Controllers
 
                         if (res.Success)
                         {
-                            await transaction.CommitAsync();
                             resultMessage = res.Message;
                             createdConsultantId = (int)res.IdCreatedElement;
+                            await transaction.CommitAsync();
 
-                            // Sent email and create notification in the database
-                            _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+                            var createSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, consultantData.Name, consultantData.Email, timeZone, userActionedBy);
+                            if (!createSendNotification.Success)
                             {
-                                using (var scope = scopeFactory.CreateScope())
-                                {
-                                    // Get the necessary services from the scope
-                                    var unitOfWork2 = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                                    var sendEmail2 = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
-
-                                    // logic to send the mail and create the notification
-                                    try
-                                    {
-                                        var notificationStatus = unitOfWork2.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
-                                        var emailToSend = new SendEmailVM();
-                                        EmailTemplates emailTemplates = new();
-                                        var createPassBody = emailTemplates.CreatePasswordBody(callbackurl, consultantData.Name.Trim());
-                                        var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
-
-                                        emailToSend.Subject = "Create your account - Oceans App";
-                                        emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]);
-                                        emailToSend.EmailTo = consultantData.Email;
-                                        emailToSend.Body = templateEmail;
-
-                                        try
-                                        {
-                                            var emailSent = await sendEmail2.SendEmail(emailToSend);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            notificationStatus = unitOfWork2.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
-                                        }
-                                        var notificatinType = unitOfWork2.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
-                                        var emailNotification = new Notification()
-                                        {
-                                            NotificationTypeId = notificatinType.NotificationTypeId,
-                                            Body = emailToSend.Body,
-                                            Subject = emailToSend.Subject,
-                                            Remitent = emailToSend.SharedEmailFrom,
-                                            SentDate = timeZone,
-                                            SentByUser = userActionedBy
-                                        };
-                                        using var transaction2 = await unitOfWork2.BeginTran();
-                                        unitOfWork2.Notification.Add(emailNotification);
-                                        unitOfWork2.Save();
-                                        if (emailNotification.NotificationId > 0)
-                                        {
-                                            var notificationMedia = unitOfWork2.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
-                                            var recipientUser = unitOfWork2.ApplicationUser.GetFirstOrDefault(x => x.Email == consultantData.Email);
-                                            var notificationRecipient = new NotificationRecipient()
-                                            {
-                                                RecipientMediaInfo = consultantData.Email,
-                                                NotificationId = emailNotification.NotificationId,
-                                                NotificationMediaId = notificationMedia.NotificationMediaId,
-                                                NotificationStatusId = notificationStatus.NotificationStatusId,
-                                                RecipientUserId = recipientUser?.Id
-                                            };
-                                            unitOfWork2.NotificationRecipient.Add(notificationRecipient);
-                                            unitOfWork2.Save();
-                                            await transaction2.CommitAsync();
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine(ex);
-                                    }
-                                }
-                            });
+                                return BadRequest(new { MessageType = "Exception Error", error = createSendNotification.Message });
+                            }
                         }
                         else
                         {
@@ -345,6 +283,161 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
+
+        public MethodResponse CreateAndSendCreatePasswordEmailNotification(string callbackUrl, string consultantName, string consultantEmail, DateTime sentDate, string userActionedBy)
+        {
+            try
+            {
+                // Prepare email content
+                var emailToSend = PrepareEmailContent(callbackUrl, consultantName.Trim(), consultantEmail.Trim());
+                var emailNotification = CreateNotification(emailToSend, sentDate, userActionedBy);
+
+                // Check if notification was successfully created
+                if (emailNotification == null || emailNotification.NotificationId <= 0)
+                {
+                    return new MethodResponse { Success = false, Message = "Failed to create notification." };
+                }
+
+                // Queue background task to send email and update notification status
+                QueueEmailSendingTask(emailToSend, emailNotification.NotificationId);
+
+                return new MethodResponse { Success = true, Message = "Notification created and email sending queued." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { Success = false, Message = $"An error occurred: {ex.Message}" };
+            }
+        }
+
+        private SendEmailVM PrepareEmailContent(string callbackUrl, string consultantName, string consultantEmail)
+        {
+            var emailTemplates = new EmailTemplates();
+            var createPassBody = emailTemplates.CreatePasswordBody(callbackUrl, consultantName.Trim());
+            var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
+
+            return new SendEmailVM
+            {
+                Subject = "Create your account - Oceans App",
+                SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]),
+                EmailTo = consultantEmail.Trim(),
+                Body = templateEmail
+            };
+        }
+
+        private Notification CreateNotification(SendEmailVM emailToSend, DateTime sentDate, string userActionedBy)
+        {
+            var notificatinType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
+
+            if (notificatinType == null)
+            {
+                throw new InvalidOperationException("Notification type 'Create new Consultant' not found.");
+            }
+
+            var emailNotification = new Notification
+            {
+                NotificationTypeId = notificatinType.NotificationTypeId,
+                Body = emailToSend.Body,
+                Subject = emailToSend.Subject,
+                Remitent = emailToSend.SharedEmailFrom,
+                SentDate = sentDate,
+                SentByUser = userActionedBy
+            };
+            _unitOfWork.Notification.Add(emailNotification);
+            _unitOfWork.Save();
+            var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
+            var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == emailToSend.EmailTo);
+            var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviando");
+            var notificationRecipient = new NotificationRecipient()
+            {
+                RecipientMediaInfo = emailToSend.EmailTo,
+                NotificationId = emailNotification.NotificationId,
+                NotificationMediaId = notificationMedia.NotificationMediaId,
+                NotificationStatusId = notificationStatus.NotificationStatusId,
+                RecipientUserId = recipientUser?.Id
+            };
+            _unitOfWork.NotificationRecipient.Add(notificationRecipient);
+            _unitOfWork.Save();
+
+            return emailNotification;
+        }
+
+        private void QueueEmailSendingTask(SendEmailVM emailToSend, int notificationId)
+        {
+            _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                    var sendEmailService = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
+
+                    await SendEmailAndUpdateStatus(unitOfWork, sendEmailService, emailToSend, notificationId, cancellationToken);
+                }
+            });
+        }
+
+        private static async Task SendEmailAndUpdateStatus(IUnitOfWork unitOfWork, ISendEmailRepository sendEmailService, SendEmailVM emailToSend, int notificationId, CancellationToken cancellationToken)
+        {
+            NotificationStatus notificationStatusForUpdate;
+
+            try
+            {
+                var emailSent = await sendEmailService.SendEmail(emailToSend);
+                notificationStatusForUpdate = unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+            }
+            catch (Exception)
+            {
+                notificationStatusForUpdate = unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+            }
+
+            if (notificationStatusForUpdate == null)
+            {
+                throw new InvalidOperationException("Notification status 'Enviado' or 'Envío fallido' not found.");
+            }
+
+            var savedNotificationRecipients = unitOfWork.NotificationRecipient.GetAll(x => x.NotificationId == notificationId);
+
+            foreach (var recipient in savedNotificationRecipients)
+            {
+                recipient.NotificationStatusId = notificationStatusForUpdate.NotificationStatusId;
+            }
+
+            unitOfWork.Save();
+        }
+
+        [HttpPost]
+        [RequireTwoFactorEnabled]
+        public async Task<IActionResult> ResentInvite(int consultantId)
+        {
+            try
+            {
+                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == consultantId);
+                if (consultant == null)
+                {
+                    return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
+                }
+                var user = await _userManager.FindByIdAsync(consultant.UserId);
+                var userDetails = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+                if (userDetails == null)
+                {
+                    return BadRequest(new { MessageType = "Not Found", error = $"The User was not found in the database. " });
+                }
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                var createAndSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, userDetails.Name, user.Email, timeZone, claim.Value);
+                if (!createAndSendNotification.Success)
+                {
+                    return BadRequest(new { MessageType = "Exception Error", error = createAndSendNotification.Message });
+                }
+                return Json(new { success = true, message = $"The invite was successfully sent to " + userDetails.Name + $" " + userDetails.LastName + $"!" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
             }
         }
 

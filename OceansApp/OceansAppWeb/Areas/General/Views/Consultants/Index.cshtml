@@ -90,32 +90,6 @@
                         <span class="sort-arrow" id="sortArrowConsultantName">
                         </span>
                     </th>
-                    <th onclick="orderByTableList('InternalEmail', 'InternalEmailTableHeader', 'sortArrowInternalEmail')" data-sort="ANY" name="InternalEmailTableHeader" class="sortable-col">
-                        Internal Email
-                        <span class="sort-arrow" id="sortArrowInternalEmail"></span>
-                    </th>
-                    <th onclick="orderByTableList('PersonalEmail', 'PersonalEmailTableHeader', 'sortArrowPersonalEmail')" data-sort="ANY" name="PersonalEmailTableHeader" class="sortable-col">
-                        Personal Email
-                        <span class="sort-arrow" id="sortArrowPersonalEmail"></span>
-                    </th>
-                    <th onclick="orderByTableList('CountryName', 'CountryNameTableHeader', 'sortArrowCountryName')" data-sort="ANY" name="CountryNameTableHeader" class="sortable-col">
-                        Country
-                        <span class="sort-arrow" id="sortArrowCountryName"></span>
-                    </th>
-                    <th onclick="orderByTableList('UserCategoryName', 'UserCategoryNameTableHeader', 'sortArrowUserCategoryName')" data-sort="ANY" name="UserCategoryNameTableHeader" class="sortable-col">
-                        User Category
-                        <span class="sort-arrow" id="sortArrowUserCategoryName"></span>
-                    </th>
-                    <th>Position</th>
-                    <th>Assigned Projects</th>
-                    <th>Primary Phone</th>
-                    <th>Phone 2</th>
-                    <th>Address</th>
-                    @*<th>Location</th>*@
-                    @* <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
-                        Shirt Size
-                        <span class="sort-arrow" id="sortArrowShirtSize"></span>
-                        </th>*@
                     <th onclick="orderByTableList('IsActive', 'IsActiveTableHeader', 'sortArrowIsActive')" data-sort="ANY" name="IsActiveTableHeader" class="sortable-col">
                         User Status
                         <span class="sort-arrow" id="sortArrowIsActive"></span>
@@ -128,7 +102,33 @@
                         Email Confirmed?
                         <span class="sort-arrow" id="sortArrowEmailConfirmed"></span>
                     </th>
-                    <th>User is blocked?</th>
+                    <th>User Blocked?</th>
+                    <th onclick="orderByTableList('InternalEmail', 'InternalEmailTableHeader', 'sortArrowInternalEmail')" data-sort="ANY" name="InternalEmailTableHeader" class="sortable-col">
+                        Internal Email
+                        <span class="sort-arrow" id="sortArrowInternalEmail"></span>
+                    </th>
+                    <th onclick="orderByTableList('PersonalEmail', 'PersonalEmailTableHeader', 'sortArrowPersonalEmail')" data-sort="ANY" name="PersonalEmailTableHeader" class="sortable-col">
+                        Personal Email
+                        <span class="sort-arrow" id="sortArrowPersonalEmail"></span>
+                    </th>
+                    <th>Assigned Projects</th>
+                    <th onclick="orderByTableList('CountryName', 'CountryNameTableHeader', 'sortArrowCountryName')" data-sort="ANY" name="CountryNameTableHeader" class="sortable-col">
+                        Country
+                        <span class="sort-arrow" id="sortArrowCountryName"></span>
+                    </th>
+                    <th onclick="orderByTableList('UserCategoryName', 'UserCategoryNameTableHeader', 'sortArrowUserCategoryName')" data-sort="ANY" name="UserCategoryNameTableHeader" class="sortable-col">
+                        User Category
+                        <span class="sort-arrow" id="sortArrowUserCategoryName"></span>
+                    </th>
+                    <th>Position</th>
+                    <th>Primary Phone</th>
+                    <th>Phone 2</th>
+                    <th>Address</th>
+                    @*<th>Location</th>*@
+                    @* <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
+                        Shirt Size
+                        <span class="sort-arrow" id="sortArrowShirtSize"></span>
+                        </th>*@
                 </tr>
             </thead>
             <tbody>

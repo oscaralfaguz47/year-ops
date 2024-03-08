@@ -353,7 +353,7 @@ namespace OceansAppWeb.Account.Controllers
                     return RedirectToAction("ForgotPasswordConfirmation");
                 }
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code, email = model.Email }, protocol: HttpContext.Request.Scheme);
                 EmailTemplates emailTemplates = new();
                 var userDetails = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
                 if (userDetails == null)
@@ -400,7 +400,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPassword(string code)
+        public IActionResult ResetPassword(string code, string email)
         {
             ViewData["Title"] = "Password Change";
             return code == null ? View("Error") : View();

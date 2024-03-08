@@ -28,7 +28,6 @@ async function getListOfResults(firstTime, filters) {
             noResultsMessage.empty();
             tableRows.css("display", "block");
             tbody.empty();
-            var count = 5;
             data.consultantsList.forEach(function (obj) {
                 var projectsJson = JSON.parse(obj.consultantProjects);
                 var projectsSpan = "";
@@ -43,6 +42,10 @@ async function getListOfResults(firstTime, filters) {
                 if (obj.twoFactorEnabled) {
                     resetTwoFactorBtn = `<li onclick="resetTwoFactorAuth(${obj.consultantId}, '${obj.consultantName}')"><i class="bi bi-arrow-counterclockwise"></i> Reset Two-Factor</li>`;
                 }
+                var resendInviteBtn = '';
+                if (!obj.emailConfirmed) {
+                    resendInviteBtn = `<li onclick="resendInviteToConsultant(${obj.consultantId}, '${obj.consultantName}')""><i class="bi bi-send"></i> Resend Invite</li>`;
+                }
                 var row = `<tr>
                   <td>
                         <i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
@@ -50,17 +53,22 @@ async function getListOfResults(firstTime, filters) {
                            <ul>
                              <li onclick="activateInactivateConsultantUser(${obj.consultantId}, '${obj.consultantName}', ${obj.isActive})" id="activate-deactivate-li-${obj.consultantId}">${obj.isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${obj.isActive ? ' Deactivate user' : ' Activate user'}</li>
                              <li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})""><i class="bi bi-pencil-square"></i> Edit Consultant</li>
+                             ${resendInviteBtn}
                              ${resetTwoFactorBtn}
                            </ul>
                          </div>
                       ${obj.consultantName}
                   </td>
+                  <td class="shared-table-td">${obj.isActive ? '<span class="green-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
+                  <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="shared-table-td">${obj.emailConfirmed ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="shared-table-td">${!obj.isLockedOut ? '<i class="bi bi-unlock-fill green-label"></i>' : '<i class="bi bi-lock-fill red-label"></i>'}</td>
                   <td>${obj.internalEmail}</td>
                   <td>${obj.personalEmail === null ? "" : obj.personalEmail}</td>
+                  <td>${projectsSpan}</td>
                   <td>${obj.countryName}</td>
                   <td>${obj.userCategoryName}</td>
                   <td>${obj.consultantPositions === null ? "" : obj.consultantPositions}</td>
-                  <td>${projectsSpan}</td>
                   <td>${obj.phoneNumber === null ? "" : obj.phoneNumber}</td>
                   <td>${obj.phone2 === null ? "" : obj.phone2}</td>
                   <td>${obj.address === null ? "" : obj.address}</td>
@@ -71,13 +79,8 @@ async function getListOfResults(firstTime, filters) {
                         <a href="${obj.location}" target="_blank" class="link"><i class="bi bi-geo-alt-fill"></i> Redirect to location</a>
                                     </div>`}
                   </td>-->
-                   <td class="shared-table-td">${obj.isActive ? '<span class="green-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
-                  <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
-                  <td class="shared-table-td">${obj.emailConfirmed ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
-                  <td class="shared-table-td">${!obj.isLockedOut ? '<i class="bi bi-unlock-fill green-label"></i>' : '<i class="bi bi-lock-fill red-label"></i>'}</td>
               </tr>`;
                 tbody.append(row);
-                count++;
             });
 
             if (data.consultantsList.length === 0) {
@@ -211,6 +214,47 @@ async function activateInactivateConsultantUser(consultantId, name, status) {
             var formData = new FormData();
             formData.append('consultantId', consultantId);
             fetch("/General/Consultants/ActivateDeactivateConsultantUser"
+                , {
+                    method: 'POST',
+                    headers: {
+                        RequestVerificationToken: token
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                    } else {
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
+                    getListOfResults(false, false);
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+        }
+    });
+}
+// Resend invite to consultant
+async function resendInviteToConsultant(consultantId, name) {
+    Swal.fire({
+        title: 'Resend Invite',
+        text: 'Are you sure you want to resend the invite to ' + name + '?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, send!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var formData = new FormData();
+            formData.append('consultantId', consultantId);
+            fetch("/General/Consultants/ResentInvite"
                 , {
                     method: 'POST',
                     headers: {
