@@ -13,7 +13,6 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
-    [Authorize(Policy = "AccessToUserRolesAndPermissions")]
     public class UserRolesPermissionsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -31,6 +30,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             return View();
         }
 
+        [Authorize(Policy = "AccessToUserRolesAndPermissions")]
         [HttpGet]
         public async Task<List<GetRolesPermissionsVM>> GetRolePermissionsList()
         {
@@ -49,6 +49,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             return rolesPermissionsList;
         }
 
+        [Authorize(Policy = "AccessToUserRolesAndPermissions")]
         [HttpGet]
         public async Task<IActionResult> GetPermissionsWhereRoleList(string roleId)
         {
@@ -77,6 +78,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToUserRolesAndPermissions")]
         [HttpGet]
         public async Task<IActionResult> GetPermissionsList()
         {
@@ -103,7 +105,12 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             try
             {
                 List<SelectVM> rolesList = new();
-                var roles = _roleManager.Roles.ToList().OrderBy(x => x.Name);
+                var missingRole = "";
+                if (!User.IsInRole("Master"))
+                {
+                    missingRole = "Master";
+                }
+                var roles = _roleManager.Roles.ToList().Where(x => x.Name != missingRole).OrderBy(x => x.Name);
                 foreach (var role in roles)
                 {
                     rolesList.Add(new SelectVM { Value = role.Name, Name = role.Name });
@@ -119,6 +126,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToUserRolesAndPermissions")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateRole([FromBody] CreateNewRoleVM roleData)
@@ -267,6 +275,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { message = "Error de validación", result = "error", errors = errors });
             }
         }
+        [Authorize(Policy = "AccessToUserRolesAndPermissions")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteRole(string roleId)

@@ -174,8 +174,12 @@ namespace OceansAppWeb.Areas.General.Controllers
                     var isAuthForManageAdminUsers = false;
                     if (authToManageAdminitrativeConsultants.Succeeded)
                     {
-                        isAuthForManageAdminUsers = true;
+                        if (!User.IsInRole("Master") && consultantData.UserRole == "Master")
+                        {
+                            return BadRequest(new { MessageType = "Exception Error", error = $"You are not authorized to manage the entered role." });
+                        }
                         userRole = consultantData.UserRole;
+                        isAuthForManageAdminUsers = true;
                         userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == consultantData.UserCategoryName);
                         consultantData.UserCategoryId = userCategory.UserCategoryId;
                         if (userCategory == null)

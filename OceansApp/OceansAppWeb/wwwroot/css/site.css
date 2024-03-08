@@ -654,7 +654,7 @@ table {
 }
 
 .global-table-container th {
-    position: sticky;
+    /*position: sticky;*/
     top: -2px;
     background-color: var(--clr-blueLight);
     color: var(--clr-dark1);
@@ -667,7 +667,7 @@ table {
 
         .global-table-container th:first-child {
        
-            position: sticky;
+            /*position: sticky;*/
             left: 0;
             z-index: 4;
             background-color: var(--clr-blueLight);
@@ -675,7 +675,7 @@ table {
         }
 
     .global-table-container td:first-child { 
-        position: sticky;
+        /*position: sticky;*/
         left: 0;
         background-color: #e3faf9;
         z-index: 3;
@@ -684,7 +684,7 @@ table {
 
 
     .global-table-container tbody th:first-child {
-        position: sticky;
+        /*position: sticky;*/
         top: 0;
         z-index: 3;
     }

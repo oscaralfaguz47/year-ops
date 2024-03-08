@@ -46,7 +46,7 @@ namespace OceansApp.Utility.NotificationTemplates
                                                                                 <td>
                                                                                          <h2 style=""text-align: center; margin-bottom: 0; margin-top: 25px; color: #058993;"">
                                                                                         " + title + @"</h2>
-                                                                                    <div style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
+                                                                                    <div style=""background-color: #baf7f4; width: 100%; height: 1px;margin-top: 20px;"">
                                                                                     </div>
                                                                                 </td>
                                                                             </tr>
@@ -127,7 +127,7 @@ namespace OceansApp.Utility.NotificationTemplates
        </table>
                                       </div>
                                <div
-                                   style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
+                                   style=""background-color: #baf7f4; width: 100%; height: 1px;margin-top: 20px;"">
                                </div>
                            </td>
                        </tr>
@@ -166,7 +166,7 @@ namespace OceansApp.Utility.NotificationTemplates
        </table>
                                       </div>
                                <div
-                                   style=""background-color: rgb(1, 192, 183, 0.2); width: 100%; height: 1px;margin-top: 20px;"">
+                                   style=""background-color: #baf7f4; width: 100%; height: 1px;margin-top: 20px;"">
                                </div>
                            </td>
                        </tr>

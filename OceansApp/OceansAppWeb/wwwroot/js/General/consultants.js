@@ -53,7 +53,6 @@ async function getListOfResults(firstTime, filters) {
                              ${resetTwoFactorBtn}
                            </ul>
                          </div>
-                       <i onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.consultantName}
                   </td>
                   <td>${obj.internalEmail}</td>
@@ -109,13 +108,19 @@ function recolectDataFromForm(filters) {
         if (twoFactorRadioElement !== null) {
             isTwoFactorEnabledValue = Boolean(document.querySelector('input[name="two-factor"]:checked').value === 'true');
         }
+        const confirmedEmailElement = document.querySelector('.confirmedEmail-rg input[type="radio"]:checked');
+        var confirmedEmailValue = null;
+        if (confirmedEmailElement !== null) {
+            confirmedEmailValue = Boolean(document.querySelector('input[name="confirmedEmail"]:checked').value === 'true');
+        }
         var countryValue = document.getElementById("CountrySelect").value || null;
 
         var filtersData = {
             SearchText: searchText,
             IsActive: activeInactiveValue,
             CountryId: countryValue,
-            IsTwoFactorEnabled: isTwoFactorEnabledValue
+            IsTwoFactorEnabled: isTwoFactorEnabledValue,
+            EmailConfirmed: confirmedEmailValue
         };
         console.log(filtersData);
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
@@ -174,11 +179,11 @@ async function resetTwoFactorAuth(consultantId, name) {
                 .then(data => {
                     if (data.success) {
                         toastr.success(data.message);
-                        getListOfResults(false, false);
                     } else {
                         displayToasterError(data.error);
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
+                    getListOfResults(false, false);
                 })
                 .finally(() => {
                     hideSpinner();
@@ -217,11 +222,11 @@ async function activateInactivateConsultantUser(consultantId, name, status) {
                 .then(data => {
                     if (data.success) {
                         toastr.success(data.message);
-                        getListOfResults(false, false);
                     } else {
                         displayToasterError(data.error);
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
+                    getListOfResults(false, false);
                 })
                 .finally(() => {
                     hideSpinner();
