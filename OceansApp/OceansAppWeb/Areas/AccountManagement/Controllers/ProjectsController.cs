@@ -16,9 +16,11 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
     public class ProjectsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ProjectsController(IUnitOfWork unitOrWork)
+        private readonly IAuthorizationService _authorizationService;
+        public ProjectsController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
         {
             _unitOfWork = unitOrWork;
+            _authorizationService = authorizationService;
         }
         public IActionResult Index()
         {
@@ -104,10 +106,12 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     return BadRequest(new { error = "The project is not longer in the database.", detail = "The project was not found in the database." });
                 }
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 
                 return Ok(new
                 {
-                    projectData = projectData
+                    projectData = projectData,
+                    allowedManageAdminConsultants = authToManageAdminitrativeConsultants.Succeeded
                 });
             }
             catch (Exception ex)
@@ -126,7 +130,15 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     return BadRequest(new { error = "The consultant assignation is not longer in the database.", detail = "The consultant assignation was not found in the database." });
                 }
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 
+                if (!authToManageAdminitrativeConsultants.Succeeded)
+                {
+                    if (consultantAssignationData.UserCategoryName == "Administrative")
+                    {
+                        return BadRequest(new { error = "You are not allow to retrieve data from Administrative consultants.", detail = "Without permissions to retrieve data." });
+                    }
+                }
                 return Ok(new
                 {
                     consultantAssignation = consultantAssignationData
@@ -393,8 +405,17 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId);
-
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
+                string? userCategoryName = null;
+                if (!authToManageAdminitrativeConsultants.Succeeded)
+                {
+                    userCategoryName = "Consultant";
+                }
+                var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId, userCategoryName);
+                if (historyList.Result.Count == 0)
+                {
+                    return BadRequest(new { error = "The consultant does not have history or the user does not have permission to retrive the data."});
+                }
                 return Ok(new
                 {
                     HistoryList = historyList

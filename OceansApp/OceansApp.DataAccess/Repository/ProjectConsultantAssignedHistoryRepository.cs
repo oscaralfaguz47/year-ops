@@ -16,11 +16,12 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-        public async Task<List<GetProjectConsultantAssignedHistoryVM>> GetProjectConsultantAssignedHistoryByAssignationId(int projectConsultantAssignedId)
+        public async Task<List<GetProjectConsultantAssignedHistoryVM>> GetProjectConsultantAssignedHistoryByAssignationId(int projectConsultantAssignedId, string? userCategoryName)
         {
             var connection = _db.Database.GetDbConnection();
             var parameters = new DynamicParameters();
             parameters.Add("@ProjectConsultantAssignedId", projectConsultantAssignedId, DbType.Int32);
+            parameters.Add("@UserCategoryName", userCategoryName, DbType.String);
             var results = await connection.QueryAsync<GetProjectConsultantAssignedHistoryVM>("SP_PROJECT_GetProjectConsultantAssignedHistoryByAssignationId", parameters, commandType: CommandType.StoredProcedure);
             return results.ToList();
         }

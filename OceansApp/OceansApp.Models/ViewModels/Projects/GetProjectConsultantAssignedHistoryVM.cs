@@ -10,5 +10,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public string Action { get; set; }
         public string? NewValueDetail { get; set; }
         public string? OldValueDetail { get; set; }
+        public string UserCategory { get; set; }
     }
 }

@@ -163,7 +163,7 @@ async function displayUpdateModal(modalId, id) {
                 createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked', data.projectData.clientHasTrackingTool);
                 data.projectData.assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionDetail,
-                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.isActive)
+                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.isActive, null, null, data.allowedManageAdminConsultants, item.userCategoryName);
                 });
                 showModal(modalId);
             })
@@ -327,7 +327,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
 
     if (consultantProjectAssignedId === "") {
         addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
-            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue, monthlySalaryCalculatedPerHourValue)
+            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue, monthlySalaryCalculatedPerHourValue, null, null)
     } else {
         document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
@@ -338,18 +338,24 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
-    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate, monthlySalaryCalculatedPerHour) {
+    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate, monthlySalaryCalculatedPerHour, allowedMAdminConsultants, userCategoryName) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
     if (consProjAssId !== '') {
         var dotsIcon = document.createElement("i");
+        var editConsultantParametersBtn = '';
+        var viewHistoryBtn = '';
+        if (allowedMAdminConsultants || userCategoryName === 'Consultant') {
+            editConsultantParametersBtn = `<li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>`;
+            viewHistoryBtn = `<li onclick="getProjectConsultantHistory(${consProjAssId}, 'modal-consultant-history')"><i class="bi bi-clock-history"></i> View History</li>`;
+        }
         dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
                              <li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li>
-                             <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
-                              <li onclick="getProjectConsultantHistory(${consProjAssId}, 'modal-consultant-history')"><i class="bi bi-clock-history"></i> View History</li>
+                               ${editConsultantParametersBtn}
+                               ${viewHistoryBtn}
                            </ul>
                          </div>
                          `;

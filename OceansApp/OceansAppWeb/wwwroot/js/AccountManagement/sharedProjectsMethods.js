@@ -451,10 +451,12 @@ async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
                 displayToasterError(errorData.error || 'An unknown error occurred.');
                 throw new Error('The request to the server failed!. More details: ' + errorData.error);
             }
+            hideSpinner();
         }
     } catch (error) {
         displayToasterError('Error fetching data: ' + error);
         console.error('Error fetching data:', error);
+        hideSpinner();
         return null;
     }
 }
