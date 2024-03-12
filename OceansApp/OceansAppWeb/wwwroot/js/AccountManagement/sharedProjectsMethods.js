@@ -1,16 +1,16 @@
 ﻿
-document.addEventListener("DOMContentLoaded", function () {
-    var actionDate = document.getElementById('actionDate');
-    var today = new Date();
-    var todayFormatted = today.toISOString().substr(0, 10);
-    actionDate.min = todayFormatted;
-    function validateDate() {
-        if (actionDate.value < actionDate.min) {
-            actionDate.value = actionDate.min;
-        }
-    }
-    actionDate.addEventListener('change', validateDate);
-});
+//document.addEventListener("DOMContentLoaded", function () {
+//    var actionDate = document.getElementById('actionDate');
+//    var today = new Date();
+//    var todayFormatted = today.toISOString().substr(0, 10);
+//    actionDate.min = todayFormatted;
+//    function validateDate() {
+//        if (actionDate.value < actionDate.min) {
+//            actionDate.value = actionDate.min;
+//        }
+//    }
+//    actionDate.addEventListener('change', validateDate);
+//});
 
 var createUpdateForm = $('#form-add-update-consultant');
 
@@ -100,10 +100,9 @@ async function displayAddUpdateConsultant(modalId, id) {
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     validateRatesInputs();
     document.getElementById('search-input-cont').style.display = 'block';
-    var isBillableValue = document.getElementById("IsBillable").value;
     var clientRateSection = document.getElementById("client-rate-section");
     var clientRateInputs = document.getElementById("client-rate-inputs");
-    if (isBillableValue === "true") {
+    if (document.getElementById('external-pt').checked) {
         clientRateSection.style.display = 'block';
         clientRateInputs.style.display = 'flex';
     } else {
@@ -169,7 +168,6 @@ function addConsultantToProject(modalId) {
     var isBillableValue = document.getElementById("IsBillable").value;
     var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
     
-    console.log("CHECKED: " + isMonthlySalaryCalculatedPerHourVal);
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -298,15 +296,15 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
                     return false;
                 }
                 return [actionDate];
-            },
-            didOpen: () => {
-                const today = new Date();
-                const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-                document.getElementById('swal-input-action-date').setAttribute('min', localDate);
-                document.getElementById('swal-input-action-date').onkeydown = (e) => {
-                    e.preventDefault();
-                };
-            }
+            }//,
+            //didOpen: () => {
+            //    const today = new Date();
+            //    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            //    document.getElementById('swal-input-action-date').setAttribute('min', localDate);
+            //    document.getElementById('swal-input-action-date').onkeydown = (e) => {
+            //        e.preventDefault();
+            //    };
+            //}
         });
 
         if (result.isConfirmed) {
@@ -357,11 +355,16 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
             var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
                 ('0' + actionDate.getDate()).slice(-2) + '/' +
                 actionDate.getFullYear();
+            var isExternalProject = document.getElementById('external-pt').checked;
+            var clientRateLabel = '';
+            if (isExternalProject) {
+                clientRateLabel = `${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>, `;
+            }
             if (obj.action === 'Consultant Assigned First Time' && count < 3) {
                 if (count === 0) {
-                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>`;
+                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${clientRateLabel}`;
                 } else if (count === 1) {
-                    firstRow += `, ${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
+                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
                 } else if (count === 2) {
                     firstRow += `Position: <strong>${obj.newValueDetail}</strong>. Assigned by: ${obj.userActionedBy}.</li>`;
                     row += firstRow;

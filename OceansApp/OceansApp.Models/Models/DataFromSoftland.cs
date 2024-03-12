@@ -5,9 +5,9 @@ namespace OceansApp.Models.Models
 {
     public class DataFromSoftland
     {
-        [Display(Name = "Datos a Actualizar")]
+        [Display(Name = "Update Data")]
         [NotMapped]
-        [Required(ErrorMessage ="El Objeto JSON es requerido")]
+        [Required(ErrorMessage ="The JSON object is required")]
         public string DataToSave { get; set; }
     }
 }

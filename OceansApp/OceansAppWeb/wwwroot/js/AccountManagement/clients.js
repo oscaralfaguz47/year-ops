@@ -68,7 +68,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.address === null ? "" : obj.address}</td>
                   <td>${obj.companyId}</td>
                   <td>${obj.successManager === null ? "" : obj.successManager}</td>
-                  <td>${obj.latePaymentFee}</td>
+                  <td>${(obj.latePaymentFee * 100)}%</td>
                   <td>${obj.additionalEmailsForNotifications === null ? "" : obj.additionalEmailsForNotifications}</td>
               </tr>`;
 

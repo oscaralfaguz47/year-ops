@@ -220,7 +220,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                             await _userManager.AddToRoleAsync(user, userRole);
 
                             code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                            callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                            callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", code = user.Id + ":" + code }, protocol: HttpContext.Request.Scheme);
                         }
                         foreach (var error in result.Errors)
                         {

@@ -33,7 +33,7 @@ namespace OceansApp.Areas.Admin.Controllers
             else
             {
                 TempData["globalLastDate"] = DateTime.Now;
-                TempData["globalLastDateSection"] = "Aún no existen registros";
+                TempData["globalLastDateSection"] = "There are no records yet";
             }
 
             return View();
@@ -93,7 +93,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Cuentas Contables /";
+                                    updatedSections = updatedSections + "Accounting Accounts /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -120,7 +120,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Centros de Costo /";
+                                    updatedSections = updatedSections + "Centers of costs /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -164,7 +164,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Movimientos del Mayor /";
+                                    updatedSections = updatedSections + "Ledger Movements /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -211,7 +211,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Clientes /";
+                                    updatedSections = updatedSections + "Clients /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -237,7 +237,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Categorias de Proveedor /";
+                                    updatedSections = updatedSections + "Provider Categories /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -262,7 +262,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Paises /";
+                                    updatedSections = updatedSections + "Countries /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -373,7 +373,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Proveedores /";
+                                    updatedSections = updatedSections + "Providers /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -422,7 +422,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Documentos CC /";
+                                    updatedSections = updatedSections + "Documents CC /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -440,42 +440,42 @@ namespace OceansApp.Areas.Admin.Controllers
                                 _unitOfWork.DataUpdateDates.Add(dataUpdateDate);
                                 _unitOfWork.Save();
                             }
-                            TempData["success"] = updatedRecords + " registros fueron afectados.";
+                            TempData["success"] = updatedRecords + " records were affected.";
                             return RedirectToAction("Index");
                         }
                         else
                         {
                             if (!validateCorrectJsonStructureAccountingAccount(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para las Cuentas Contables Contables");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Accounting Accounts");
                             }
                             if (!validateCorrectJsonStructureCostCenter(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Centros de Costo");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Cost Centers");
                             }
                             if (!validateCorrectJsonStructureLedgerMovement(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los movimientos del Mayor");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for the Mayor's movements");
                             }
                             if (!validateCorrectJsonStructureClients(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Clientes");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Clients");
                             }
                             if (!validateCorrectJsonStructureProviderCategory(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para la categoría de Proveedores");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for the Suppliers category");
                             }
                             if (!validateCorrectJsonStructureCountry(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los paises");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for countries");
                             }
                             if (!validateCorrectJsonStructureProvider(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los proveedores");
+                                ModelState.AddModelError("dataToSave", "JSON structure is not correct for providers");
                             }
                             if (!validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Documentos CC");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for CC Documents");
                             }
 
                             return View("Index");
@@ -483,7 +483,7 @@ namespace OceansApp.Areas.Admin.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("dataToSave", "El dato a incluir debe de ser un JSON valido");
+                        ModelState.AddModelError("dataToSave", "The data to be included must be valid JSON");
                         return View("Index");
                     }
                 }

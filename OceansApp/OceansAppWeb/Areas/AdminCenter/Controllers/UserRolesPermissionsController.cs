@@ -61,7 +61,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 var role = _roleManager.FindByIdAsync(roleId);
                 if (role == null)
                 {
-                    return BadRequest(new { message = "Error al encontrar el rol", result = "error", detail = "El rol probablemente acaba de ser eliminado de la base de datos" });
+                    return BadRequest(new { message = "The role was not found", result = "error", detail = "The role was probably just deleted from the database" });
                 }
 
                 var rolesPermissionsList = new GetRolesPermissionsVM()
@@ -74,7 +74,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Error al traer los datos", result = "error", detail = ex.Message });
+                return BadRequest(new { message = "Error fetching data", result = "error", detail = ex.Message });
             }
         }
 
@@ -95,7 +95,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Error al traer los datos", result = "error", detail = ex.Message });
+                return BadRequest(new { message = "Error fetching data", result = "error", detail = ex.Message });
             }
         }
         [Authorize(Policy = "AccessToAllRolesList")]
@@ -143,7 +143,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                         var existingRole = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
                         if (roleData.RoleId == "" && existingRole != null)
                         {
-                            return BadRequest(new { errors = new[] { $"Ya existe un rol con el nombre '{roleData.RoleName.Trim()}'." }, result = "duplicated" });
+                            return BadRequest(new { errors = new[] { $"There is already a role with the name '{roleData.RoleName.Trim()}'." }, result = "duplicated" });
                         }
                         var res = await _roleManager.CreateAsync(new IdentityRole(roleData.RoleName.Trim()));
 
@@ -175,28 +175,28 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                         }
                                         catch (Exception ex)
                                         {
-                                            return BadRequest(new { errors = new[] { $"Error al agregar el RoleClaim." }, result = "error saving", detail = ex });
+                                            return BadRequest(new { errors = new[] { $"Error adding RoleClaim." }, result = "error saving", detail = ex });
                                         }
                                     }
                                     else
                                     {
-                                        return BadRequest(new { errors = new[] { $"No se pudo encontrar el claim." }, result = "error saving", detail = "Claim no encontrado en la base de datos." });
+                                        return BadRequest(new { errors = new[] { $"The claim could not be found." }, result = "error saving", detail = "Claim not found in the database." });
                                     }
                                 }
                             }
                         }
                         else
                         {
-                            return BadRequest(new { errors = new[] { $"Hubo un error creando el rol." }, result = "error saving", detail = "Hubo un error mientras se guardaba el rol." });
+                            return BadRequest(new { errors = new[] { $"There was an error creating the role." }, result = "error saving", detail = "There was an error while saving the role." });
                         }
-                        return Ok(new { message = "El rol fue creado con éxito!", result = "success" });
+                        return Ok(new { message = "The role was created successfully!", result = "success" });
                     }
                     else //IF ROLEID THEN EDIT THE ROLE
                     {
                         var existingRole = await _roleManager.FindByIdAsync(roleData.RoleId);
                         if (existingRole == null)
                         {
-                            return BadRequest(new { errors = new[] { $"El rol no fue encontrado en la base de datos." }, result = "NotFound", detail = "El rol ya no existe en la base de datos." });
+                            return BadRequest(new { errors = new[] { $"The role was not found in the database." }, result = "NotFound", detail = "The role no longer exists in the database." });
                         }
 
                         if (existingRole.Name != roleData.RoleName)
@@ -204,13 +204,13 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                             var rolWithSameName = await _roleManager.FindByNameAsync(roleData.RoleName.Trim());
                             if (rolWithSameName != null)
                             {
-                                return BadRequest(new { errors = new[] { $"Ya existe un rol con el nombre '{roleData.RoleName.Trim()}'." }, result = "duplicated" });
+                                return BadRequest(new { errors = new[] { $"There is already a role with the name '{roleData.RoleName.Trim()}'." }, result = "duplicated" });
                             }
                             existingRole.Name = roleData.RoleName;
                             var resultUpdateRoleName = await _roleManager.UpdateAsync(existingRole);
                             if (!resultUpdateRoleName.Succeeded)
                             {
-                                return BadRequest(new { errors = new[] { $"Error al actualizar el nombre al rol." }, result = "error saving" });
+                                return BadRequest(new { errors = new[] { $"Error updating name to role." }, result = "error saving" });
                             }
                         }
                         var roleClaimsInRole = await _roleManager.GetClaimsAsync(existingRole);
@@ -219,7 +219,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                             var rolePermissionInDB = _unitOfWork.ApplicationSystemClaim.GetFirstOrDefault(x => x.ClaimId == permission.ClaimId);
                             if (rolePermissionInDB == null)
                             {
-                                return BadRequest(new { errors = new[] { $"El permiso o Claim no fue encontrado en la base de datos." }, result = "NotFound", detail = "El claim no existe en la base de datos." });
+                                return BadRequest(new { errors = new[] { $"The permit or Claim was not found in the database." }, result = "NotFound", detail = "The claim does not exist in the database." });
                             }
                             var claimExist = roleClaimsInRole.Any(c => c.Type == rolePermissionInDB.ClaimType && c.Value == rolePermissionInDB.ClaimValue);
                             if (claimExist)
@@ -229,7 +229,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                     var removeClaimResult = await _roleManager.RemoveClaimAsync(existingRole, new Claim(rolePermissionInDB.ClaimType, rolePermissionInDB.ClaimValue));
                                     if (!removeClaimResult.Succeeded)
                                     {
-                                        return BadRequest(new { errors = new[] { $"Error al eliminar el permiso: " + rolePermissionInDB.Description + " al rol." }, result = "ErrorDeleting", detail = "No se pudo eliminar el permiso" });
+                                        return BadRequest(new { errors = new[] { $"Error removing permission: " + rolePermissionInDB.Description + " al rol." }, result = "ErrorDeleting", detail = "Could not remove permission" });
                                     }
                                 }
                             }
@@ -254,17 +254,17 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                     }
                                     catch (Exception ex)
                                     {
-                                        return BadRequest(new { errors = new[] { $"Hubo un error agregando el permiso al rol." }, result = "ErrorSaving", detail = ex });
+                                        return BadRequest(new { errors = new[] { $"There was an error adding the permission to the role." }, result = "ErrorSaving", detail = ex });
                                     }
                                 }
                             }
                         }
-                        return Ok(new { message = "El rol fue actualizado con éxito!", result = "success" });
+                        return Ok(new { message = "The role was successfully updated!", result = "success" });
                     }
                 }
                 catch (Exception ex)
                 {
-                    return BadRequest(new { errors = new[] { $"Hubo un error al creando el rol, no se pudo guardar." }, result = "ErrorSaving", detail = ex });
+                    return BadRequest(new { errors = new[] { $"There was an error creating the role, it could not be saved." }, result = "ErrorSaving", detail = ex });
                 }
             }
             else
@@ -272,7 +272,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors)
                                               .Select(e => e.ErrorMessage)
                                               .ToList();
-                return BadRequest(new { message = "Error de validación", result = "error", errors = errors });
+                return BadRequest(new { message = "Validation error", result = "error", errors = errors });
             }
         }
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
@@ -285,12 +285,12 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 var roleToDelete = await _roleManager.FindByIdAsync(roleId);
                 if (roleToDelete == null)
                 {
-                    return BadRequest(new { errors = new[] { $"El rol no fue encontrado en la base de datos." }, result = "NotFound", detail = "El rol ya no existe en la base de datos." });
+                    return BadRequest(new { errors = new[] { $"The role was not found in the database." }, result = "NotFound", detail = "The role no longer exists in the database." });
                 }
                 var usersInRole = await _userManager.GetUsersInRoleAsync(roleToDelete.Name);
                 if (usersInRole.Count > 0)
                 {
-                    return BadRequest(new { errors = new[] { $"Este rol ya está asignado a " + usersInRole.Count + " usuarios, para eliminarlo debes de remover el rol al usuario." }, result = "ErrorDelete", detail = "El rol está asignado a usuarios." });
+                    return BadRequest(new { errors = new[] { $"This role is already assigned to " + usersInRole.Count + " users, to delete it you must remove the user's role." }, result = "ErrorDelete", detail = "The role is assigned to users." });
                 }
                 var roleClaimsInRole = await _roleManager.GetClaimsAsync(roleToDelete);
                 foreach (var claim in roleClaimsInRole)
@@ -298,19 +298,19 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                     var removeClaimResult = await _roleManager.RemoveClaimAsync(roleToDelete, new Claim(claim.Type, claim.Value));
                     if (!removeClaimResult.Succeeded)
                     {
-                        return BadRequest(new { errors = new[] { $"Error al eliminar el claim." }, result = "ErrorDeleting", detail = "No se pudo eliminar el claim o permiso." });
+                        return BadRequest(new { errors = new[] { $"Error when deleting the claim." }, result = "ErrorDeleting", detail = "Could not delete claim or permission." });
                     }
                 }
                 var resultDeleteRole = await _roleManager.DeleteAsync(roleToDelete);
                 if (!resultDeleteRole.Succeeded)
                 {
-                    return BadRequest(new { errors = new[] { $"Hubo un error a la hora de eliminar el rol." }, result = "ErrorDeleting", detail = "El rol no pudo ser eliminado." });
+                    return BadRequest(new { errors = new[] { $"There was an error while deleting the role." }, result = "ErrorDeleting", detail = "The role could not be deleted." });
                 }
-                return Ok(new { message = "El rol y todos sus permisos fueron eliminados con éxito!", result = "success" });
+                return Ok(new { message = "The role and all its permissions were successfully deleted!", result = "success" });
             }
             catch(Exception ex)
             {
-                return BadRequest(new { errors = new[] { $"Hubo un error en la conexión con el servidor, el rol no se pudo eliminar." }, result = "ErrorDeleting", detail = ex });
+                return BadRequest(new { errors = new[] { $"There was an error connecting to the server, the role could not be deleted." }, result = "ErrorDeleting", detail = ex });
             }
         }
 

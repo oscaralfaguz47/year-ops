@@ -134,8 +134,12 @@ async function displayUpdateModal(modalId, id) {
                     clientSelectCont.style.display = 'none';
                     billableTrackingToolCont.style.display = 'none';
                     document.getElementById("saved-project-type-span").textContent = '"Administrative Internal"';
+                    document.getElementById('internal-pt').checked = true;
+                    document.getElementById('external-pt').checked = false;
                 } else {
                     document.getElementById("saved-project-type-span").textContent = '"Client External"';
+                    document.getElementById('external-pt').checked = true;
+                    document.getElementById('internal-pt').checked = false;
                 }
                 var newOptionClient = document.createElement('option');
                 newOptionClient.value = data.projectData.clientId;

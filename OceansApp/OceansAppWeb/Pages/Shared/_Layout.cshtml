@@ -90,7 +90,7 @@
                                         @if (User.IsAuthorizedForFinances())
                                         {
                                             <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finanzas</a>
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finances</a>
                                                 @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
                                                 {
                                                     <div class="dropdown-menu">

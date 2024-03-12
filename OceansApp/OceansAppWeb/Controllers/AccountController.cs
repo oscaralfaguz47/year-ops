@@ -98,22 +98,30 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        public async Task<IActionResult> ConfirmEmail(string code)
         {
-            if (userId == null || code == null)
+            if (string.IsNullOrEmpty(code))
             {
                 return View("Error");
             }
+            var parts = code.Split(':');
+            if (parts.Length != 2)
+            {
+                return View("Error");
+            }
+
+            var userId = parts[0];
+            var confirmationCode = parts[1];
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return View("Error");
             }
-            var result = await _userManager.ConfirmEmailAsync(user, code);
+            var result = await _userManager.ConfirmEmailAsync(user, confirmationCode);
             if (result.Succeeded)
             {
                 var resetCode = await _userManager.GeneratePasswordResetTokenAsync(user);
-                return RedirectToAction("CreatePassword", "Account", new { code = resetCode, email = user.Email });
+                return RedirectToAction("CreatePassword", "Account", new { code = resetCode });
             }
             else
             {
@@ -161,17 +169,6 @@ namespace OceansAppWeb.Account.Controllers
                         var applicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
                         if (applicationUser.IsActive)
                         {
-                            if ((DateTime.UtcNow > applicationUser.OpaqueTokenExpiration)
-                                || (applicationUser.OpaqueToken == null && applicationUser.OpaqueTokenExpiration == null))
-                            {
-                                GenerateTokensAndRandomStrings sharedMethod = new();
-                                string newToken = sharedMethod.GenerateOpaqueToken();
-
-                                applicationUser.OpaqueToken = newToken;
-                                applicationUser.OpaqueTokenExpiration = DateTime.UtcNow.AddMinutes(SD.OpaqueTokenExpirationTime);
-
-                                await _userManager.UpdateAsync(user);
-                            }
                             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                             if (result.Succeeded)
                             {
@@ -217,7 +214,8 @@ namespace OceansAppWeb.Account.Controllers
             var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var token = await _userManager.GetAuthenticatorKeyAsync(user);
-            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("OceansApp"),
+            string appName = Environment.GetEnvironmentVariable(_config["TwoFactorAppName"]);
+            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode(appName),
                 _urlEncoder.Encode(user.Email), token);
             var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
 
@@ -344,16 +342,16 @@ namespace OceansAppWeb.Account.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordVM model)
         {
-
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user == null)
+                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
                     return RedirectToAction("ForgotPasswordConfirmation");
                 }
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code, email = model.Email }, protocol: HttpContext.Request.Scheme);
+                var callbackurl = Url.Action("ResetPassword", "Account",
+                    new { code = code }, protocol: HttpContext.Request.Scheme);
                 EmailTemplates emailTemplates = new();
                 var userDetails = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
                 if (userDetails == null)
@@ -380,7 +378,7 @@ namespace OceansAppWeb.Account.Controllers
                         }
                         catch (Exception ex)
                         {
-                           //Log the error
+                            //Log the error
                         }
                     }
                 });
@@ -400,7 +398,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPassword(string code, string email)
+        public IActionResult ResetPassword(string code)
         {
             ViewData["Title"] = "Password Change";
             return code == null ? View("Error") : View();
@@ -416,7 +414,8 @@ namespace OceansAppWeb.Account.Controllers
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null)
                 {
-                    return RedirectToAction("ResetPasswordConfirmation");
+                    ModelState.AddModelError("Email", "Your Email is incorrect");
+                    return View(model);
                 }
 
                 var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
@@ -424,9 +423,8 @@ namespace OceansAppWeb.Account.Controllers
                 {
                     return RedirectToAction("ResetPasswordConfirmation");
                 }
-                AddErrors(result);
+                ModelState.AddModelError("Email", "Your Email is incorrect");
             }
-
             return View(model);
         }
 
@@ -448,7 +446,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult CreatePassword(string code, string email)
+        public IActionResult CreatePassword(string code)
         {
             ViewData["Title"] = "Create Password";
             return code == null ? View("Error") : View();
@@ -464,7 +462,8 @@ namespace OceansAppWeb.Account.Controllers
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null)
                 {
-                    return RedirectToAction("CreatePasswordConfirmation");
+                    ModelState.AddModelError("Email", "Your Email is incorrect");
+                    return View(model);
                 }
 
                 var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
@@ -472,9 +471,8 @@ namespace OceansAppWeb.Account.Controllers
                 {
                     return RedirectToAction("CreatePasswordConfirmation");
                 }
-                AddErrors(result);
+                ModelState.AddModelError("Email", "Your Email is incorrect");
             }
-
             return View(model);
         }
 
