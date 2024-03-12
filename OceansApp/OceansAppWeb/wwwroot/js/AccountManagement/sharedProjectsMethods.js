@@ -1,16 +1,16 @@
 ﻿
-document.addEventListener("DOMContentLoaded", function () {
-    var actionDate = document.getElementById('actionDate');
-    var today = new Date();
-    var todayFormatted = today.toISOString().substr(0, 10);
-    actionDate.min = todayFormatted;
-    function validateDate() {
-        if (actionDate.value < actionDate.min) {
-            actionDate.value = actionDate.min;
-        }
-    }
-    actionDate.addEventListener('change', validateDate);
-});
+//document.addEventListener("DOMContentLoaded", function () {
+//    var actionDate = document.getElementById('actionDate');
+//    var today = new Date();
+//    var todayFormatted = today.toISOString().substr(0, 10);
+//    actionDate.min = todayFormatted;
+//    function validateDate() {
+//        if (actionDate.value < actionDate.min) {
+//            actionDate.value = actionDate.min;
+//        }
+//    }
+//    actionDate.addEventListener('change', validateDate);
+//});
 
 var createUpdateForm = $('#form-add-update-consultant');
 
@@ -35,7 +35,7 @@ async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, 
             let resultList = document.createElement('ul');
             for (let item of data.consultants) {
                 let listItem = document.createElement('li');
-                listItem.innerHTML = '<strong>' + item.consultantName + '</strong>' + ' (' + item.email + ')';
+                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span class="green-label">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
                 listItem.onclick = function () {
                     document.getElementById(hiddenInputForId).value = item.consultantId;
                     document.getElementById(consultantNameInput).value = item.consultantName;
@@ -78,10 +78,16 @@ function validateRatesInputs() {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlySalary').value = null;
+        document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'block';
+        document.getElementById("calculationMethod").value = true;
+        document.getElementById("calculationMethod").checked = true;
     } else {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('monthlySalary').value = null;
+        document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'none';
+        document.getElementById("calculationMethod").value = false;
+        document.getElementById("calculationMethod").checked = false;
     }
 }
 //DISPLAY MODAL
@@ -94,6 +100,15 @@ async function displayAddUpdateConsultant(modalId, id) {
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     validateRatesInputs();
     document.getElementById('search-input-cont').style.display = 'block';
+    var clientRateSection = document.getElementById("client-rate-section");
+    var clientRateInputs = document.getElementById("client-rate-inputs");
+    if (document.getElementById('external-pt').checked) {
+        clientRateSection.style.display = 'block';
+        clientRateInputs.style.display = 'flex';
+    } else {
+        clientRateSection.style.display = 'none';
+        clientRateInputs.style.display = 'none';
+    }
 
     if (id !== null) {
         createUpdateForm.find('[name="proConsAssignedId"]').val(id);
@@ -114,6 +129,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 }
             })
             .then(data => {
+                console.log(data);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.consultantAssignation.consultantName);
                 document.getElementById('consultantEmailInput').value = data.consultantAssignation.email;
                 createUpdateForm.find('[name="positionDetail"]').val(data.consultantAssignation.positionDetail);
@@ -127,6 +143,8 @@ async function displayAddUpdateConsultant(modalId, id) {
                 createUpdateForm.find('[name="hourlyClientRate"]').val(data.consultantAssignation.hourlyClientRate);
                 createUpdateForm.find('[name="monthlySalary"]').val(data.consultantAssignation.monthlySalary);
                 createUpdateForm.find('[name="hourlySalary"]').val(data.consultantAssignation.hourlySalary);
+                createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').val(data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
+                createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 showModal(modalId);
             })
             .finally(() => {
@@ -147,6 +165,9 @@ function addConsultantToProject(modalId) {
     var consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
     var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
     var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
+    var isBillableValue = document.getElementById("IsBillable").value;
+    var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
+    
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -158,11 +179,11 @@ function addConsultantToProject(modalId) {
         displayToasterWarning('The Position Description is required.');
     }
 
-    if (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H') {
+    if (isBillableValue === "true" && (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H')) {
         modelState = false;
         displayToasterWarning('The Hourly Client Rate is required.');
     }
-    if (Number(monthlyClientRateValue) === 0 && clientRateMethodRb === 'M') {
+    if (isBillableValue === "true" && (Number(monthlyClientRateValue) === 0 && clientRateMethodRb === 'M')) {
         modelState = false;
         displayToasterWarning('The Monthly Client Rate is required.');
     }
@@ -183,7 +204,6 @@ function addConsultantToProject(modalId) {
             displayToasterWarning('The Action Date is not a valid date.');
         }
     }
-
     if (modelState) {
         addConsultantToModalCreateUpdateProject(modalId);
         //EDIT CONSULTANT PARAMETERS
@@ -198,7 +218,8 @@ function addConsultantToProject(modalId) {
                 MonthlyClientRate: Number(monthlyClientRateValue),
                 MonthlySalary: Number(monthlyConsultantRateValue),
                 PositionDetail: positionDetailValue,
-                ActionDate: actionDateValue ? actionDateValue.toString() : null
+                ActionDate: actionDateValue ? actionDateValue.toString() : null,
+                IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal)
             };
             fetch('/AccountManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',
@@ -275,15 +296,15 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
                     return false;
                 }
                 return [actionDate];
-            },
-            didOpen: () => {
-                const today = new Date();
-                const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-                document.getElementById('swal-input-action-date').setAttribute('min', localDate);
-                document.getElementById('swal-input-action-date').onkeydown = (e) => {
-                    e.preventDefault();
-                };
-            }
+            }//,
+            //didOpen: () => {
+            //    const today = new Date();
+            //    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            //    document.getElementById('swal-input-action-date').setAttribute('min', localDate);
+            //    document.getElementById('swal-input-action-date').onkeydown = (e) => {
+            //        e.preventDefault();
+            //    };
+            //}
         });
 
         if (result.isConfirmed) {
@@ -309,7 +330,6 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
     var bodyList = document.getElementById('consultant-history-body');
     var actionIcon = "";
     await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        showModal(modalId);
         var count = 0;
         var firstRow = "";
         var row = "";
@@ -335,11 +355,16 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
             var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
                 ('0' + actionDate.getDate()).slice(-2) + '/' +
                 actionDate.getFullYear();
+            var isExternalProject = document.getElementById('external-pt').checked;
+            var clientRateLabel = '';
+            if (isExternalProject) {
+                clientRateLabel = `${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>, `;
+            }
             if (obj.action === 'Consultant Assigned First Time' && count < 3) {
                 if (count === 0) {
-                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>`;
+                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${clientRateLabel}`;
                 } else if (count === 1) {
-                    firstRow += `, ${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
+                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
                 } else if (count === 2) {
                     firstRow += `Position: <strong>${obj.newValueDetail}</strong>. Assigned by: ${obj.userActionedBy}.</li>`;
                     row += firstRow;
@@ -359,6 +384,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
         });
         bodyList.innerHTML = row;
         hideSpinner();
+        showModal(modalId);
     });
 }
 
@@ -428,10 +454,12 @@ async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
                 displayToasterError(errorData.error || 'An unknown error occurred.');
                 throw new Error('The request to the server failed!. More details: ' + errorData.error);
             }
+            hideSpinner();
         }
     } catch (error) {
         displayToasterError('Error fetching data: ' + error);
         console.error('Error fetching data:', error);
+        hideSpinner();
         return null;
     }
 }

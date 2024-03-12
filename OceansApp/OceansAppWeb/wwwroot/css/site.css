@@ -175,6 +175,9 @@ nav {
 .green-label {
     color: RGB(10, 187, 34) !important;
 }
+.blue-label {
+    color: #2196F3 !important;
+}
 
 .red-label {
     color: red !important;
@@ -651,7 +654,7 @@ table {
 }
 
 .global-table-container th {
-    position: sticky;
+    /*position: sticky;*/
     top: -2px;
     background-color: var(--clr-blueLight);
     color: var(--clr-dark1);
@@ -662,26 +665,27 @@ table {
     border: 1px solid #ccc;
 }
 
+
         .global-table-container th:first-child {
-            position: -webkit-sticky;
-            position: sticky;
+       
+            /*position: sticky;*/
             left: 0;
-            z-index: 3;
+            z-index: 4;
             background-color: var(--clr-blueLight);
             width: 100px;
         }
 
-    .global-table-container td:first-child {
-        position: sticky;
+    .global-table-container td:first-child { 
+        /*position: sticky;*/
         left: 0;
         background-color: #e3faf9;
-        z-index: 2;
+        z-index: 3;
         font-weight: bold;
     }
 
 
     .global-table-container tbody th:first-child {
-        position: sticky;
+        /*position: sticky;*/
         top: 0;
         z-index: 3;
     }

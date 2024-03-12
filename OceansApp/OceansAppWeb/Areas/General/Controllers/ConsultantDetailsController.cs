@@ -11,9 +11,11 @@ namespace OceansAppWeb.Areas.General.Controllers
     public class ConsultantDetailsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ConsultantDetailsController(IUnitOfWork unitOrWork)
+        private readonly IAuthorizationService _authorizationService;
+        public ConsultantDetailsController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
         {
             _unitOfWork = unitOrWork;
+            _authorizationService = authorizationService;
         }
         public IActionResult Index()
         {
@@ -52,7 +54,13 @@ namespace OceansAppWeb.Areas.General.Controllers
                                                   .ToList();
                     return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors, detail = "Parameters for filters are not correct." });
                 }
-                var consultants = await _unitOfWork.ConsultantDetail.GetConsultantsBySearchText(searchText);
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
+                string? userCategoryName = "Consultant";
+                if (authToManageAdminitrativeConsultants.Succeeded)
+                {
+                    userCategoryName = null;
+                }
+                var consultants = await _unitOfWork.ConsultantDetail.GetConsultantsBySearchText(searchText, userCategoryName);
                 return Ok(new
                 {
                     Consultants = consultants

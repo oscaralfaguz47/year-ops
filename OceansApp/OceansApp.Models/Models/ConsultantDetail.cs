@@ -9,8 +9,16 @@ namespace OceansApp.Models.Models
         [Required]
         public int ConsultantId { get; set; }
         [ForeignKey("Id")]
+        [Required]
         public string UserId { get; set; }
-        public DateTime StartDate { get; set; }
+        [Required]
+        public DateTime CreationDate { get; set; }
+        [MaxLength(450)]
+        public string? UserCreatedBy { get; set; }
+        public DateTime? LastUpdatedDate { get; set; }
+        [MaxLength(450)]
+        public string? UserLastUpdatedBy { get; set; }
+
         [MaxLength(4)]
         public string? IdCountry { get; set; }
         [MaxLength(50)]
@@ -28,6 +36,11 @@ namespace OceansApp.Models.Models
 
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
+
+        [ValidateNever]
+        public ApplicationUser? ApplicationUserCreated { get; set; }
+        [ValidateNever]
+        public ApplicationUser? ApplicationUserUpdated { get; set; }
 
     }
 }

@@ -10,11 +10,11 @@ namespace OceansApp.Models.ViewModels
         public String? Email { get; set; }
         public String? PhoneNumber { get; set; }
 
-        [Required(ErrorMessage = "El nombre es requerido")]
-        [Display(Name = "Nombre")]
+        [Required(ErrorMessage = "The Name is required")]
+        [Display(Name = "Name")]
         public String Name { get; set; }
-        [Required(ErrorMessage = "El apellido es requerido")]
-        [Display(Name = "Apellido")]
+        [Required(ErrorMessage = "The Last Name is required")]
+        [Display(Name = "Last Name")]
         public String LastName { get; set; }
         [MaxLength(100)]
         public String? Ocupation { get; set; }

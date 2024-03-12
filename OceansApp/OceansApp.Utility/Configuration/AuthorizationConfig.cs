@@ -82,6 +82,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToConsultantsPage", policy =>
                     policy.RequireClaim(ConsultantsClaimsCD.Consultants_Page_ClaimType, ConsultantsClaimsCD.Consultants_Page_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageAdministrativeConsultants", policy =>
+                    policy.RequireClaim(ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType, ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue));
+            });
             //GENERAL - HOLIDAYS
             services.AddAuthorization(options =>
             {
@@ -123,16 +128,16 @@ namespace OceansApp.Utility.Configuration
             {
                 options.AddPolicy("AccessToSuccessManagersListForSelect", policy =>
                     policy.RequireAssertion(context =>
-                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType 
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue) ||
-                        context.User.HasClaim(claim => claim.Type == ClientsClaimsCD.Clients_Page_ClaimType 
+                        context.User.HasClaim(claim => claim.Type == ClientsClaimsCD.Clients_Page_ClaimType
                         && claim.Value == ClientsClaimsCD.Clients_Page_ClaimValue)));
             });
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToClientsListForSelect", policy =>
                     policy.RequireAssertion(context =>
-                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType 
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
             });
             services.AddAuthorization(options =>
@@ -148,6 +153,40 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToViewNoSensitiveInfoForAllConsultants", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllCountriesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllConsultantPositionsList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllRolesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
             });
 
         }

@@ -7,15 +7,15 @@
     <div class="custom-box">
         <div class="sub-box">
             <div>
-                <h2>Por favor configura tu autenticación de dos factores para poder continuar con tu cuenta.</h2>
+                <h2>Please set up your two-factor authentication to continue with your account.</h2>
                 <p>
-                    Ingresa el código de abajo en tu applicación de Autenticación de dos factores.
+                    Enter the code below into your Two-Factor Authentication app.
                 </p>
                 <p style="color: var(--clr-blueLight)">
                     @Model.Token
                 </p>
                 <p>
-                    O bien puedes escanear el código QR a continuación con tu teléfono móvil.
+                    Or you can scan the QR code below with your mobile phone.
                 </p>
                 <div class="row">
                     <div class="col-lg-6">
@@ -28,12 +28,12 @@
                     <input hidden asp-for="Token" />
                     <div class="form-group">
                         <input hidden asp-for="QRCodeUrl" />
-                        <label> Ingresa el Código que se muestra en tu aplicación móvil:</label>
-                        <input type="text" placeholder="Código" class="form-control" asp-for="Code" />
+                        <label>Enter the Code displayed in your mobile application:</label>
+                        <input type="text" placeholder="Code" class="form-control" asp-for="Code" />
                         <span asp-validation-for="Code" class="text-danger"></span>
                         <br />
                     </div>
-                    <button style="width:100%" type="submit" class="btn-primary-submit">Enviar</button>
+                    <button style="width:100%" type="submit" class="btn-primary-submit">Submit</button>
                 </form>
                     </div>
                 </div>

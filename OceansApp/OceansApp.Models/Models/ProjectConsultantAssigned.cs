@@ -21,6 +21,7 @@ namespace OceansApp.Models.Models
         public decimal? HourlySalary { get; set; }
         public decimal? MonthlyClientRate { get; set; }
         public decimal? MonthlySalary { get; set; }
+        public bool? IsMonthlySalaryCalculatedPerHour { get; set; }
         [Required]
         [MaxLength(130)]
         public string PositionDetail { get; set; }

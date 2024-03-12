@@ -18,8 +18,6 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<string?> SendEmail(SendEmailVM emailModel)
         {
-            try
-            {
                 var message = new MimeMessage();
                 if (emailModel.SharedEmailFrom != null)
                 {
@@ -53,11 +51,6 @@ namespace OceansApp.DataAccess.Repository
                     await client.DisconnectAsync(true);
                 }
                 return null;
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
         }
     }
 }

@@ -81,7 +81,7 @@ namespace OceansApp.DataAccess.Repository
             return consultantAssignation;
         }
 
-        public async Task<MethodResponse> CreateProjectWithAssignedConsultants(CreateUpdateProjectVM projectData)
+        public async Task<MethodResponse> CreateProject(CreateUpdateProjectVM projectData)
         {
             try
             {
@@ -104,78 +104,17 @@ namespace OceansApp.DataAccess.Repository
                 };
                 var createdProject = await _db.PROJECTS.AddAsync(projectToCreate);
                 await _db.SaveChangesAsync();
-
-                if (createdProject.Entity != null && createdProject.Entity.ProjectId > 0)
+                await transaction.CommitAsync();
+                if (createdProject.Entity.ProjectId > 0)
                 {
-                    if (projectData.AssignedConsultants != null)
-                    {
-                        foreach (var consultant in projectData.AssignedConsultants)
-                        {
-                            ProjectConsultantAssigned consultantAssignedToCreate = new()
-                            {
-                                ProjectId = createdProject.Entity.ProjectId,
-                                ConsultantId = consultant.ConsultantId,
-                                CreationDate = costaRicaTime,
-                                IsActive = true,
-                                HourlyClientRate = consultant.HourlyClientRate,
-                                HourlySalary = consultant.HourlySalary,
-                                MonthlyClientRate = consultant.MonthlyClientRate,
-                                MonthlySalary = consultant.MonthlySalary,
-                                PositionDetail = consultant.PositionDetail
-                            };
-                            var createdAssignedConsultant = await _db.PROJECTS_CONSULTANTS_ASSIGNED.AddAsync(consultantAssignedToCreate);
-                            await _db.SaveChangesAsync();
-                            if (createdAssignedConsultant.Entity != null && createdAssignedConsultant.Entity.ProjectConsultantAssignedId > 0)
-                            {
-                                var clientRate = consultant.HourlyClientRate > 0 ? consultant.HourlyClientRate : consultant.MonthlyClientRate;
-                                var consultantRate = consultant.HourlySalary > 0 ? consultant.HourlySalary : consultant.MonthlySalary;
-                                var clientRateMethod = consultant.MonthlyClientRate > 0 ? "Monthly" : "Hourly";
-                                var consultantRateMethod = consultant.MonthlySalary > 0 ? "Monthly" : "Hourly";
-                                var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x=>x.Name== "Consultant Assigned First Time");
-                                ProjectConsultantAssignedHistory historyClient = new()
-                                {
-                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
-                                    ActionId = action.ActionId,
-                                    ActionDate = DateTime.Parse(consultant.ActionDate),
-                                    CreationDate = costaRicaTime,
-                                    UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValue = clientRate,
-                                    NewValueDetail = clientRateMethod
-                                };
-                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyClient);
-
-                                ProjectConsultantAssignedHistory historyConsultant = new()
-                                {
-                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
-                                    ActionId = action.ActionId,
-                                    ActionDate = DateTime.Parse(consultant.ActionDate),
-                                    CreationDate = costaRicaTime,
-                                    UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValue = consultantRate,
-                                    NewValueDetail = consultantRateMethod
-                                };
-                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyConsultant);
-                                ProjectConsultantAssignedHistory historyDetail = new()
-                                {
-                                    ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
-                                    ActionId = action.ActionId,
-                                    ActionDate = DateTime.Parse(consultant.ActionDate),
-                                    CreationDate = costaRicaTime,
-                                    UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValueDetail = consultant.PositionDetail
-                                };
-                                await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyDetail);
-                                await _db.SaveChangesAsync();
-                            }
-                        }
-                    }
+                    return new MethodResponse { Success = true, Message = $"The Project {projectData.Name} was created successfully.", 
+                        IdCreatedElement =  createdProject.Entity.ProjectId};
                 }
                 else
                 {
-                    return new MethodResponse { MessageType = "Saving Error", Success = false, Message = $"The Project could not be created. Something went wrong. Please report this issue." };
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the project, please try again." };
                 }
-                await transaction.CommitAsync();
-                return new MethodResponse { Success = true, Message = $"The Project was created successfully." };
+                
             }
             catch (Exception ex)
             {
@@ -198,7 +137,6 @@ namespace OceansApp.DataAccess.Repository
                 existingProject.IsActive = (bool)projectData.IsActive;
                 existingProject.SuccessManagerId = (int)projectData.SuccessManagerId;
                 existingProject.ClientHasTrackingTool = (bool)projectData.ClientHasTrackingTool;
-                existingProject.IsBillable = (bool)projectData.IsBillable;
                 existingProject.UpdatedBy = projectData.CreatedBy;
                 existingProject.DateLastUpdate = costaRicaTime;
 
@@ -270,7 +208,7 @@ namespace OceansApp.DataAccess.Repository
 
                 await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return new MethodResponse { Success = true, Message = $"The Project was updated successfully." };
+                return new MethodResponse { Success = true, Message = $"The Project {existingProject.Name} was updated successfully." };
             }
             catch (Exception ex)
             {
@@ -411,6 +349,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultantAssignation.HourlyClientRate = consultantAssignationData.HourlyClientRate;
                 existingConsultantAssignation.MonthlySalary = consultantAssignationData.MonthlySalary;
                 existingConsultantAssignation.HourlySalary = consultantAssignationData.HourlySalary;
+                existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.isMonthlySalaryCalculatedPerHour;
 
                 await _db.SaveChangesAsync();
 

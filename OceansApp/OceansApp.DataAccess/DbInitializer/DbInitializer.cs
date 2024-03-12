@@ -32,7 +32,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
         public void Initialize()
         {
-            bool isThereNewMigrationToUpdate = false; // False if no migration updates in the DB are needed
+            bool isThereNewMigrationToUpdate = true; // False if no migration updates in the DB are needed
             if (isThereNewMigrationToUpdate)
             {
                 //Migrations if they are not applied
@@ -49,7 +49,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
             }
 
-            bool createDefaultDataToDatabase = false; // False if no updates in the DB are needed
+            bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
 
             if (createDefaultDataToDatabase)
             {
@@ -58,7 +58,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Master });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Admin });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Simple });
-                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Create_Consultants });
+                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Computer_Consultant });
 
                 //Create Default User Categories
                 List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>();
@@ -138,13 +138,16 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                     _db.SaveChanges();
                 }
-                if (_db.NOTIFICATION_STATUS.ToList().Count == 0)
+
+                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviando" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
+                notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
+                foreach (var notStatus in notificatinStatusList)
                 {
-                    List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
-                    notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
-                    notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
-                    notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
-                    foreach (var notStatus in notificatinStatusList)
+                    var existingNS = _db.NOTIFICATION_STATUS.FirstOrDefault(x => x.Name == notStatus.Name);
+                    if (existingNS == null)
                     {
                         NotificationStatus notificationStatus = new()
                         {
@@ -152,13 +155,15 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.NOTIFICATION_STATUS.Add(notificationStatus);
                     }
-                    _db.SaveChanges();
                 }
-                if (_db.NOTIFICATION_TYPES.ToList().Count == 0)
+                _db.SaveChanges();
+
+                List<NotificationType> notificationTypeList = new List<NotificationType>();
+                notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
+                notificationTypeList.Add(new NotificationType() { Name = "Create new Consultant" });
+                foreach (var notType in notificationTypeList)
                 {
-                    List<NotificationType> notificationTypeList = new List<NotificationType>();
-                    notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
-                    foreach (var notType in notificationTypeList)
+                    if (_db.NOTIFICATION_TYPES.FirstOrDefault(x => x.Name == notType.Name) == null)
                     {
                         NotificationType notificationType = new()
                         {
@@ -166,8 +171,9 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.NOTIFICATION_TYPES.Add(notificationType);
                     }
-                    _db.SaveChanges();
                 }
+                _db.SaveChanges();
+
 
                 if (_db.CONSULTANT_POSITIONS.ToList().Count == 0)
                 {
@@ -209,6 +215,28 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.CONSULTANT_POSITIONS.Add(consultantPosition);
                     }
+                    _db.SaveChanges();
+                }
+                //Create Default Client for Administrative Consultants
+
+                if (_db.CLIENT.FirstOrDefault(x => x.Name == "Oceans Code Experts") == null)
+                {
+                    Client client = new()
+                    {
+                        Name = "Oceans Code Experts",
+                        ClientCode = "OCEADMIN01",
+                        Alias = "Oceans Code Experts",
+                        AdmissionDate = DateTime.Now,
+                        PaymentCondition = "ND",
+                        Discount = 0,
+                        IsActive = "S",
+                        ClientCategory = "OCEADMIN",
+                        CreationDate = DateTime.Now,
+                        CompanyId = "OCE/LLC",
+                        LatePaymentFee = 0,
+                        AllowSentLatePaymentNotifications = false
+                    };
+                    _db.CLIENT.Add(client);
                     _db.SaveChanges();
                 }
                 //CREATE PROJECT HISTORY ACTIONS
@@ -268,7 +296,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultores" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
@@ -374,12 +402,19 @@ namespace OceansApp.DataAccess.DbInitializer
                 });
 
                 //GENERAL - CONSULTANTS
-                var consultantsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultores");
+                var consultantsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultants");
                 systemClaimsList.Add(new ApplicationSystemClaim()
                 {
                     ClaimType = ConsultantsClaimsCD.Consultants_Page_ClaimType,
                     ClaimValue = ConsultantsClaimsCD.Consultants_Page_ClaimValue,
-                    Description = "Acceso para ver a todos los consultores",
+                    Description = "Access to manage only Computer Consultants (Developers, QAs...)",
+                    SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType,
+                    ClaimValue = ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue,
+                    Description = "Access to manage all consultants, including Administrative Consultants",
                     SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
                 });
 

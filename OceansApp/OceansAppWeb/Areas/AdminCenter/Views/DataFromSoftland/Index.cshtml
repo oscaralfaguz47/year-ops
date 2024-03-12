@@ -5,26 +5,26 @@
     <link rel="stylesheet" href="~/css/AdminCenter/dataFromSoftland.css" asp-append-version="true" />
 
 <div class="text-center">
-    <h2 class="" style="font-weight: bold">CARGA DE DATOS DESDE SOFTLAND </h2>
+    <h2 class="" style="font-weight: bold">LOADING DATA FROM SOFTLAND </h2>
     <hr /> <br />
 
     <div class="container">
         <div class="dates-container">
             <ol>
-                <li><strong>Fecha última actualización de datos: </strong> @TempData["globalLastDate"] , en las secciones: @TempData["globalLastDateSection"]</li>
+                <li><strong>Last data update date: </strong> @TempData["globalLastDate"] , en las secciones: @TempData["globalLastDateSection"]</li>
             </ol>
         </div>
         <form asp-action="UpdateData" class="dataToUpdateForm">
             <div class="border p-3">
                 <div class="mb-3">
                     <label asp-for="DataToSave"></label>
-                    <textarea asp-for="DataToSave" rows="3" class="form-control" placeholder="Inserta acá el JSON {} con los datos a actualizar"></textarea>
+                    <textarea asp-for="DataToSave" rows="3" class="form-control" placeholder="Insert the JSON {} here with the data to update"></textarea>
                     <span asp-validation-for="DataToSave" class="text-danger"></span>
                 </div>
                  <a asp-area="AdminCenter" asp-controller="Home" asp-action="Index" class="cancel-btn">
-                    Cancelar
+                    Cancel
                 </a> &nbsp;
-                <button type="submit" class="btn-primary-submit">Actualizar Datos</button> 
+                <button type="submit" class="btn-primary-submit">Update Data</button> 
             </div>
         </form>
     </div>

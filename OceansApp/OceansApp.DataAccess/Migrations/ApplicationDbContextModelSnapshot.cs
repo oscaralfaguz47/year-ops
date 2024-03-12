@@ -568,10 +568,16 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("IdCountry")
                         .IsRequired()
                         .HasMaxLength(4)
                         .HasColumnType("nvarchar(4)");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
@@ -588,18 +594,27 @@ namespace OceansApp.DataAccess.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("UserCreatedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserLastUpdatedBy")
+                        .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ConsultantId");
 
                     b.HasIndex("IdCountry");
 
+                    b.HasIndex("UserCreatedBy");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserLastUpdatedBy");
 
                     b.ToTable("CONSULTANT_DETAILS");
                 });
@@ -1230,6 +1245,9 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool?>("IsMonthlySalaryCalculatedPerHour")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("MonthlyClientRate")
                         .HasColumnType("decimal(18,2)");
 
@@ -1697,13 +1715,25 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreated")
+                        .WithMany()
+                        .HasForeignKey("UserCreatedBy");
+
                     b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserUpdated")
+                        .WithMany()
+                        .HasForeignKey("UserLastUpdatedBy");
+
                     b.Navigation("ApplicationUser");
+
+                    b.Navigation("ApplicationUserCreated");
+
+                    b.Navigation("ApplicationUserUpdated");
 
                     b.Navigation("Country");
                 });

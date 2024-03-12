@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Collections;
 
 namespace OceansApp.Utility.SharedMethods.InputValidations
 {
@@ -93,12 +94,15 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
         }
         public void ValidateEmail(string field, string fieldName, string email, ModelStateDictionary modelState)
         {
-            if (email.Trim() != null && email.Trim() != "")
+            if (email != null)
             {
-                ValidateData validateData = new();
-                if (!validateData.IsValidEmail(email.Trim()))
+                if (email.Trim() != null && email.Trim() != "")
                 {
-                    modelState.AddModelError(field, $"The {fieldName} is not a valid email.");
+                    ValidateData validateData = new();
+                    if (!validateData.IsValidEmail(email.Trim()))
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} is not a valid email.");
+                    }
                 }
             }
         }
@@ -150,6 +154,19 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 if (numToValidate < minNum || numToValidate > maxNum)
                 {
                     modelState.AddModelError(field, $"The {fieldName} must be between {minNum} and {maxNum}.");
+                }
+            }
+        }
+        public void ValidateNotEmptyArray(string field, string fieldName, object arrayToValidate, ModelStateDictionary modelState)
+        {
+            if (arrayToValidate != null)
+            {
+                if (arrayToValidate is IEnumerable array)
+                {
+                    if (!array.Cast<object>().Any())
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} is required.");
+                    }
                 }
             }
         }

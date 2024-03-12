@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 
@@ -7,9 +9,13 @@ namespace OceansApp.DataAccess.Repository
     public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _db;
-        public UnitOfWork(ApplicationDbContext db)
+        private readonly IConfiguration _config;
+        private readonly UserManager<IdentityUser> _userManager;
+        public UnitOfWork(ApplicationDbContext db, IConfiguration config, UserManager<IdentityUser> userManager)
         {
             _db = db;
+            _config = config;
+            _userManager = userManager;
             AccountingAccounts = new AccountingAccountRepository(_db);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
@@ -26,7 +32,7 @@ namespace OceansApp.DataAccess.Repository
             ProviderCategory = new ProviderCategoryRepository(_db);
             Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
-            ConsultantDetail = new ConsultantDetailRepository(_db);
+            ConsultantDetail = new ConsultantDetailRepository(_db, _config, _userManager);
             ConsultantPosition = new ConsultantPositionRepository(_db);
             ConsultantHoliday = new ConsultantHolidayRepository(_db);
             ConsultantRole = new ConsultantRoleRepository(_db);

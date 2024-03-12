@@ -1,0 +1,155 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+@{
+    var isAuthorizedForManageAdministrativeUsers = await AuthorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
+}
+
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/General/createUpdateConsultantModal.css" />
+
+<!--MODAL UPDATE CREATE CONSULTANT-->
+<div id="modal-update-create-consultant" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-consultant-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="consultantId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Consultant Name <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Consultant Last Name <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="lastName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Oceans Email <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="email" class="form-control" name="userName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Personal Email</label>
+                            <div class="input-container">
+                                <input type="email" class="form-control" name="personalEmail">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="Contact">Principal Phone Number</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="phoneNumber">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Contact">Phone 2</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="phone2">
+                            </div>
+                        </div>
+                    </div>
+                    @if (isAuthorizedForManageAdministrativeUsers.Succeeded)
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="UserCategorySelect">User Category <span class="required-asterisk">*</span></label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select onchange="selectCategory(this.value)" class="form-select" id="UserCategorySelect" name="userCategoryName">
+                                        <option value="Administrative">Administrative</option>
+                                        <option selected value="Consultant">Consultant</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="UserRoleSelect">User Role <span class="required-asterisk">*</span></label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select class="form-select" id="UserRoleSelect" name="userRole">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="CountrySelect">Positions <span class="required-asterisk">*</span></label>
+                            <div class="dropdown">
+                                <div class="position-background">
+                                    <div>
+                                        <button type="button" class="dropbtn"><i class="bi bi-hand-index-thumb"></i> Select</button>
+                                    </div>
+                                    <div class="selected-opts-cont">
+                                        <span id="selectedCount">Selected Positions: 0</span>
+                                    </div>
+
+                                </div>
+                                <div class="dropdown-content">
+                                    <input type="text" id="filterInput" placeholder="Search...">
+                                    <div id="optionsContainer">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="CountrySelect">Country <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onfocus="fillCountriesSelectForFilters(this, 'Select a country')" class="form-select" id="CountrySelect" name="idCountry">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="Contact">Address</label>
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="address">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="Contact">Location url (Google Maps, Waze, etc.)</label>
+                        <div class="input-container">
+                            <input type="text" class="form-control" name="location">
+                        </div>
+                    </div>
+                    <div class="green-label m-3" id="saved-consultant-message" style="text-align: center">
+                        <label>Now you can add projects to the consultant <i class="bi bi-check-circle-fill"></i></label>
+                    </div>
+                    <div id="projects-assigned-section">
+                        <div style="display: flex;justify-content: space-between;align-items: center; margin-top:15px;">
+                            <label><strong>Assigned Projects <span class="required-asterisk">*</span></strong></label>
+                            <a style="padding-right: 10px; margin-bottom: 5px;" class="blue-btn" onclick="displayAddUpdateConsultant('modal-update-create-consultant', null)"><i class="bi bi-plus"></i> Add Project</a>
+                        </div>
+                        <div id="projects-container" class="modal-scroll-container">
+                        </div>
+                    </div>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-consultant')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateConsultant('modal-update-create-consultant')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+<script src="~/js/General/createUpdateConsultantModal.js"></script>
+    }

@@ -8,10 +8,12 @@ using System.Collections.ObjectModel;
 using OceansApp.Models.Models;
 using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
+using Microsoft.AspNetCore.Cors;
 
 namespace OceansApp.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
+    [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
     [Authorize(Policy = "AccessToUserAdministration")]
     public class ApplicationUserController : Controller
