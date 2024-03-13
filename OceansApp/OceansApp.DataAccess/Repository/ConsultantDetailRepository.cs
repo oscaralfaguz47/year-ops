@@ -95,6 +95,8 @@ namespace OceansApp.DataAccess.Repository
                     CreationDate = timeZone,
                     IdCountry = consultantData.IdCountry,
                     Phone2 = consultantData.Phone2,
+                    CompanyId = consultantData.CompanyId,
+                    PaymentMethodId = consultantData.PaymentMethodId,
                     Address = consultantData.Address,
                     PersonalEmail = consultantData.PersonalEmail,
                     Location = consultantData.Location,
@@ -188,6 +190,8 @@ namespace OceansApp.DataAccess.Repository
                 }
                 existingConsultant.IdCountry = consultantData.IdCountry;
                 existingConsultant.Phone2 = consultantData.Phone2;
+                existingConsultant.CompanyId = consultantData.CompanyId;
+                existingConsultant.PaymentMethodId = consultantData.PaymentMethodId;
                 existingConsultant.Address = consultantData.Address;
                 existingConsultant.PersonalEmail = consultantData.PersonalEmail;
                 existingConsultant.Location = consultantData.Location;
@@ -228,6 +232,9 @@ namespace OceansApp.DataAccess.Repository
                         IdCountry = consultant.IdCountry,
                         CountryName = consultant.CountryName,
                         Phone2 = consultant.Phone2,
+                        CompanyId = consultant.CompanyId,
+                        PaymentMethodId = consultant.PaymentMethodId,
+                        PaymentMethodName = consultant.PaymentMethodName,
                         Address = consultant.Address,
                         PersonalEmail = consultant.PersonalEmail,
                         Location = consultant.Location,

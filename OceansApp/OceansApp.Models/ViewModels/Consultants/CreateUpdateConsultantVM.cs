@@ -15,6 +15,9 @@ namespace OceansApp.Models.ViewModels.Consultants
         //CONSULTANT
         public int? ConsultantId { get; set; }
         public string? IdCountry { get; set; }
+        public string? CompanyId { get; set; }
+        public int? PaymentMethodId { get; set; }
+        public string? PaymentMethodName { get; set; }
         public string? CountryName { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Phone2 { get; set; }

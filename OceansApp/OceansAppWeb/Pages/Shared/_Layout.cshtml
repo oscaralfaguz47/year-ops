@@ -67,9 +67,9 @@
                                                     {
                                                         <a id="holidays" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index">Holidays</a>
                                                     }
-                                                    @if (User.HasClaim(c => c.Type == ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimType && c.Value == ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimValue))
+                                                    @if (User.HasClaim(c => c.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType && c.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue))
                                                     {
-                                                        <a id="consultants-benefits" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantsBenefits" asp-action="Index">Consultants Benefits</a>
+                                                        <a id="consultant-reimbursed-benefits" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantReimbursedBenefits" asp-action="Index">Benefit reimbursements</a>
                                                     }
                                                 </div>
                                             </li>

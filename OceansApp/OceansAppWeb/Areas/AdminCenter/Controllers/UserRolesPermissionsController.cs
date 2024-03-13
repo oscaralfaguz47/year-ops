@@ -25,6 +25,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             _roleManager = roleManager;
             _userManager = userManager;
         }
+        [Authorize(Policy = "AccessToUserRolesAndPermissions")]
         public IActionResult Index()
         {
             return View();

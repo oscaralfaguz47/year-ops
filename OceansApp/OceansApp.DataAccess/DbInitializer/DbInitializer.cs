@@ -108,6 +108,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 List<ConsultantBenefit> consultantBenefitList = new List<ConsultantBenefit>();
                 consultantBenefitList.Add(new ConsultantBenefit() { Name = "Balance Program", Amount = 750, BenefitPeriod = "Annual" });
                 consultantBenefitList.Add(new ConsultantBenefit() { Name = "Bonusly", Amount = 0, BenefitPeriod = "Undefined" });
+                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Oceans Challenge", Amount = 250, BenefitPeriod = "Annual" });
 
                 foreach (var benefit in consultantBenefitList)
                 {
@@ -167,6 +168,81 @@ namespace OceansApp.DataAccess.DbInitializer
                             BenefitId = category.BenefitId
                         };
                         _db.CONSULTANT_BENEFIT_CATEGORIES.Add(conBenefitCategory);
+                    }
+                }
+                _db.SaveChanges();
+
+                //-----------------  CONSULTANT BENEFITS COMPANIES  --------------------------------
+
+                List<ConsultantBenefitCompany> consultantBenefitCompaniesList = new List<ConsultantBenefitCompany>();
+                var peopleAndCultureCostCenterOCE = _db.COST_CENTER.FirstOrDefault(x => x.CostCenterCode == "10-02-04" && x.CompanyId == "OCE");
+                var peopleAndCultureCostCenterLLC = _db.COST_CENTER.FirstOrDefault(x => x.CostCenterCode == "10-02-04" && x.CompanyId == "LLC");
+                var accountingAccountReservaBalanceProgramOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "3-02-01-000-000" && x.CompanyId == "OCE");
+                var accountingAccountReservaBonuslyOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "3-02-02-000-000" && x.CompanyId == "OCE");
+                var accountingAccountOceansChallengeOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "6-01-03-005-000" && x.CompanyId == "OCE");
+                var accountingAccountAdminExpensesLLC = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "6-01-04-013-0000" && x.CompanyId == "LLC");
+
+                var oceansChallengeBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Oceans Challenge");
+
+                //OCE
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                {
+                    CompanyId = "OCE",
+                    CostCenterId = peopleAndCultureCostCenterOCE.CostCenterId,
+                    AccountingAccountId = accountingAccountReservaBalanceProgramOCE.AccountingAccountId,
+                    BenefitId = balanceProgramBenefit.BenefitId
+                });
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                {
+                    CompanyId = "OCE",
+                    CostCenterId = peopleAndCultureCostCenterOCE.CostCenterId,
+                    AccountingAccountId = accountingAccountReservaBonuslyOCE.AccountingAccountId,
+                    BenefitId = bonuslyBenefit.BenefitId
+                });
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                {
+                    CompanyId = "OCE",
+                    CostCenterId = peopleAndCultureCostCenterOCE.CostCenterId,
+                    AccountingAccountId = accountingAccountOceansChallengeOCE.AccountingAccountId,
+                    BenefitId = oceansChallengeBenefit.BenefitId
+                });
+                //LLC
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                {
+                    CompanyId = "LLC",
+                    CostCenterId = peopleAndCultureCostCenterLLC.CostCenterId,
+                    AccountingAccountId = accountingAccountAdminExpensesLLC.AccountingAccountId,
+                    BenefitId = balanceProgramBenefit.BenefitId
+                });
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                {
+                    CompanyId = "LLC",
+                    CostCenterId = peopleAndCultureCostCenterLLC.CostCenterId,
+                    AccountingAccountId = accountingAccountAdminExpensesLLC.AccountingAccountId,
+                    BenefitId = bonuslyBenefit.BenefitId
+                });
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                {
+                    CompanyId = "LLC",
+                    CostCenterId = peopleAndCultureCostCenterLLC.CostCenterId,
+                    AccountingAccountId = accountingAccountAdminExpensesLLC.AccountingAccountId,
+                    BenefitId = oceansChallengeBenefit.BenefitId
+                });
+
+                foreach (var benefitCompany in consultantBenefitCompaniesList)
+                {
+                    var existingBenefitCompany = _db.CONSULTANT_BENEFIT_COMPANIES.FirstOrDefault(x => x.CompanyId == benefitCompany.CompanyId && 
+                    x.CostCenterId == benefitCompany.CostCenterId && x.AccountingAccountId == benefitCompany.AccountingAccountId);
+                    if (existingBenefitCompany == null)
+                    {
+                        ConsultantBenefitCompany conBenefitCompany = new()
+                        {
+                            CompanyId  = benefitCompany.CompanyId,
+                            CostCenterId = benefitCompany.CostCenterId,
+                            AccountingAccountId = benefitCompany.AccountingAccountId,
+                            BenefitId = benefitCompany.BenefitId
+                        };
+                        _db.CONSULTANT_BENEFIT_COMPANIES.Add(conBenefitCompany);
                     }
                 }
                 _db.SaveChanges();
@@ -359,7 +435,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants Benefits" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
@@ -514,13 +590,13 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = holidaysSubAreaId.SystemSubAreaId
                 });
 
-                //GENERAL - CONSULTANTS BENEFITS
-                var consultantsBenefitsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultants Benefits");
+                //GENERAL - CONSULTANT REIMBURSED BENEFITS
+                var consultantsBenefitsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Reimbursed Benefits");
                 systemClaimsList.Add(new ApplicationSystemClaim()
                 {
-                    ClaimType = ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimType,
-                    ClaimValue = ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimValue,
-                    Description = "Access to manage the consultants benefits to pay.",
+                    ClaimType = ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType,
+                    ClaimValue = ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue,
+                    Description = "Access to manage the consultant reimbursed benefits to pay.",
                     SystemSubAreaId = consultantsBenefitsSubAreaId.SystemSubAreaId
                 });
 

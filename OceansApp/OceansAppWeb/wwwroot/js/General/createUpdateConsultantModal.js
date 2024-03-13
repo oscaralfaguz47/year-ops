@@ -8,6 +8,12 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
     var projectsContainer = $("#projects-container");
     projectsContainer.empty();
     createUpdateForm.find('[name="consultantId"]').val("");
+    var companySelect = createUpdateForm.find('[name="CompanyId"]');
+    companySelect.html(`<option value>-Select the company-</option>
+                        <option value="OCE">Oceans Consulting</option>
+                        <option value="LLC">OCE LLC</option>`);
+    companySelect.val();
+    var paymentMethodSelect = createUpdateForm.find('[name="idPaymentMethod"]');
     document.getElementById("saved-consultant-message").style.display = "none";
     var projectsAssignedSection = document.getElementById("projects-assigned-section");
     projectsAssignedSection.style.display = "none";
@@ -40,6 +46,10 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="personalEmail"]').val(data.consultantData.personalEmail);
                 createUpdateForm.find('[name="phoneNumber"]').val(data.consultantData.phoneNumber);
                 createUpdateForm.find('[name="phone2"]').val(data.consultantData.phone2);
+                data.consultantData.companyId !== null ? paymentMethodSelect.prop('disabled', false) : paymentMethodSelect.prop('disabled', true);
+                companySelect.val(data.consultantData.companyId);
+                selectCompany('CompanySelect', data.consultantData.companyId, true, data.consultantData.paymentMethodId);
+                paymentMethodSelect.val(data.consultantData.paymentMethodId);
                 selectCategory(data.consultantData.userCategoryName, data.consultantData.positions, true, data.consultantData.userRole);
                 createUpdateForm.find('[name="userCategoryName"]').val(data.consultantData.userCategoryName);
                 var countrySelect = createUpdateForm.find('[name="idCountry"]');
@@ -55,6 +65,9 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
     } else {
         selectCategory('Consultant', undefined, false);
         createUpdateForm.find('[name="userName"]').prop('disabled', false);
+        paymentMethodSelect.prop('disabled', true);
+        paymentMethodSelect.html('');
+        paymentMethodSelect.html('<option value>-First select a Company-</option>');
         showModal(modalId);
     }
 }
@@ -71,6 +84,8 @@ async function createUpdateConsultant(modalId) {
     var idCountryData = createUpdateForm.find('[name="idCountry"]').val();
     var phoneNumberData = createUpdateForm.find('[name="phoneNumber"]').val() || null;
     var phone2Data = createUpdateForm.find('[name="phone2"]').val() || null;
+    var companyIdData = createUpdateForm.find('[name="CompanyId"]').val();
+    var paymentMethodIdData = createUpdateForm.find('[name="idPaymentMethod"]').val() || null;
     var addressData = createUpdateForm.find('[name="address"]').val() || null;
     var personalEmailData = createUpdateForm.find('[name="personalEmail"]').val() || null;
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
@@ -95,6 +110,8 @@ async function createUpdateConsultant(modalId) {
         IdCountry: idCountryData,
         PhoneNumber: phoneNumberData,
         Phone2: phone2Data,
+        CompanyId: companyIdData,
+        PaymentMethodId: paymentMethodIdData,
         Address: addressData,
         PersonalEmail: personalEmailData,
         Location: locationData,
@@ -228,20 +245,33 @@ function fillRolesForSelect(isAdministrative, isEditingConsultant, userRole) {
 }
 
 //SELECT COMPANY
-function selectCompany(selectedValue) {
-    fillPaymentMethodsForSelect(selectedValue);
+function selectCompany(selectElementId, selectedValue, isEditing, selectedValuePaymentMethod) {
+    if (selectedValue !== null) {
+        var selectElement = document.getElementById(selectElementId);
+        for (var i = 0; i < selectElement.options.length; i++) {
+            if (selectElement.options[i].value === "" || selectElement.options[i].value === null) {
+                selectElement.remove(i);
+                break;
+            }
+        }
+        fillPaymentMethodsForSelect(selectedValue, isEditing, selectedValuePaymentMethod);
+    }
 }
-function fillPaymentMethodsForSelect(selectedValue) {
+function fillPaymentMethodsForSelect(selectedValue, isEditing, selectedValuePaymentMethod) {
     var selectElement = document.getElementById("PaymentMethodSelect");
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     displaySpinner();
     getPaymentMethodsWhereCompanyList(selectedValue)
         .then(data => {
             selectElement.innerHTML = '';
-            selectElement.innerHTML = '<option value="null">-Select a Payment Method-</option>';
+            selectElement.innerHTML = '<option value>-Select a Payment Method-</option>';
+            selectElement.disabled = false;
             data.paymentMethods.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
             });
+            if (isEditing) {
+                selectElement.value = selectedValuePaymentMethod;
+            }
             hideSpinner();
         })
         .catch(error => {

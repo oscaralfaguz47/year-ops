@@ -10,6 +10,8 @@ namespace OceansApp.Models.Models
         [Key]
         public int ConsultantaBenefitCompanyId { get; set; }
         [Required]
+        public int BenefitId { get; set; }
+        [Required]
         [MaxLength(8)]
         public string CompanyId { get; set; }
         [Required]
@@ -21,5 +23,7 @@ namespace OceansApp.Models.Models
         public CostCenter CostCenter { get; set; }
         [ValidateNever]
         public AccountingAccount AccountingAccount { get; set; }
+        [ValidateNever]
+        public ConsultantBenefit ConsultantBenefit { get; set; }
     }
 }

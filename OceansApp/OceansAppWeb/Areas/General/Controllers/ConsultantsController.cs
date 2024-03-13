@@ -153,6 +153,8 @@ namespace OceansAppWeb.Areas.General.Controllers
                 }
                 validateInputs.ValidateNotEmptyArray("Positions", "Position", consultantData.Positions, ModelState);
                 validateInputs.ValidateRequiredFieldStringValue("IdCountry", "Country", consultantData.IdCountry, ModelState);
+                validateInputs.ValidateRequiredFieldStringValue("CompanyId", "Company", consultantData.CompanyId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("PaymentMethodId", "PaymentMethod", consultantData.PaymentMethodId, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", consultantData.PhoneNumber, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Phone2", "Phone 2", consultantData.Phone2, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Address", "Address", consultantData.Address, 400, ModelState);

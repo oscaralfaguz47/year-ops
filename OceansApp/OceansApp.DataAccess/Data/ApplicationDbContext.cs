@@ -179,6 +179,11 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ConsultantBenefitCompany>()
                 .HasKey(c => new { c.ConsultantaBenefitCompanyId });
             modelBuilder.Entity<ConsultantBenefitCompany>()
+                .HasOne(cc => cc.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.BenefitId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantBenefitCompany>()
                 .HasOne(cc => cc.CostCenter)
                 .WithMany()
                 .HasForeignKey(cc => cc.CostCenterId)

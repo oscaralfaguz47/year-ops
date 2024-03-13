@@ -21,7 +21,6 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
-            console.log(data);
             var tbody = $(".global-table-container table tbody");
             var tableRows = $(".global-table-container table");
             var noResultsMessage = $(".no-results");
@@ -125,7 +124,6 @@ function recolectDataFromForm(filters) {
             IsTwoFactorEnabled: isTwoFactorEnabledValue,
             EmailConfirmed: confirmedEmailValue
         };
-        console.log(filtersData);
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
         var orderByData = {

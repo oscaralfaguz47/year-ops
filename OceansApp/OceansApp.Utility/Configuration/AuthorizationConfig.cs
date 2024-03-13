@@ -93,12 +93,12 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToHolidaysPage", policy =>
                     policy.RequireClaim(HolidaysClaimsCD.Holidays_Page_ClaimType, HolidaysClaimsCD.Holidays_Page_ClaimValue));
             });
-            //GENERAL - CONSULTANTS BENEFITS
+            //GENERAL - CONSULTANT REIMBURSED BENEFITS
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("AccessToManageConsultantsBenefitsPage", policy =>
-                    policy.RequireClaim(ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimType,
-                    ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimValue));
+                options.AddPolicy("AccessToManageConsultantReimbursedBenefits", policy =>
+                    policy.RequireClaim(ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType,
+                    ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue));
             });
             //HOURS TRACKING TOOL
             services.AddAuthorization(options =>

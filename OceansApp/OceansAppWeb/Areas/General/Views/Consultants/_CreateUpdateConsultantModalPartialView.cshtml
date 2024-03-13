@@ -116,15 +116,12 @@
                             <label for="CountrySelect">Company <span class="required-asterisk">*</span></label>
                             <div class="custom-select">
                                 <span class="arrow-down"></span>
-                                <select onchange="selectCompany(this.value)" class="form-select" id="CompanySelect" name="CompanyId">
-                                    <option>-Select the company-</option>
-                                    <option value="OCE">Oceans Consulting</option>
-                                    <option value="LLC"> OCE LLC</option>
+                                <select onchange="selectCompany('CompanySelect', this.value, false)" class="form-select" id="CompanySelect" name="CompanyId">
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="CountrySelect">Payment Method <span class="required-asterisk">*</span></label>
+                            <label for="PaymentMethodSelect">Payment Method <span class="required-asterisk">*</span></label>
                             <div class="custom-select">
                                 <span class="arrow-down"></span>
                                 <select class="form-select" id="PaymentMethodSelect" name="idPaymentMethod">

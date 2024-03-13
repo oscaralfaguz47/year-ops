@@ -66,7 +66,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 modelState.AddModelError(field, $"The {fieldName} value should be a boolean.");
             }
         }
-        public void ValidateRequiredFieldIntType(string field, string fieldName, object valueToValidate, ModelStateDictionary modelState)
+        public void ValidateRequiredFieldIntType(string field, string fieldName, object? valueToValidate, ModelStateDictionary modelState)
         {
             if (valueToValidate == null)
             {
@@ -130,13 +130,16 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
         }
 
-        public void ValidateDateValidFormat(string field, string fieldName, object dateValue, ModelStateDictionary modelState)
+        public void ValidateDateValidFormat(string field, string fieldName, object? dateValue, ModelStateDictionary modelState)
         {
-            var validationResult = ValidateDateFormat(dateValue, fieldName);
-
-            if (!validationResult.Result)
+            if (dateValue != null)
             {
-                modelState.AddModelError(field, validationResult.ResultFalseMessage);
+                var validationResult = ValidateDateFormat(dateValue.ToString(), fieldName);
+
+                if (!validationResult.Result)
+                {
+                    modelState.AddModelError(field, validationResult.ResultFalseMessage);
+                }
             }
         }
 

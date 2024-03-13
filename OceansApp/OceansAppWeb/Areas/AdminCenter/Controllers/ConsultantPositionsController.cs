@@ -16,10 +16,6 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         {
             _unitOfWork = unitOrWork;
         }
-        public IActionResult Index()
-        {
-            return View();
-        }
 
         [Authorize(Policy = "AccessToAllConsultantPositionsList")]
         [HttpGet]

@@ -46,8 +46,8 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                             ValidateInputs validateInputs = new();
                             //Validate Filter inputs
                             validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
-                            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"].ToString(), ModelState);
-                            validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"].ToString(), ModelState);
+                            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"], ModelState);
+                            validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"], ModelState);
                             if (!ModelState.IsValid)
                             {
                                 var errors = ModelState.Values.SelectMany(v => v.Errors)

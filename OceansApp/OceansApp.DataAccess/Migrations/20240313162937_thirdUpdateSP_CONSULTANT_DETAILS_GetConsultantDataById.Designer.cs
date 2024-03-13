@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240313162937_thirdUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById")]
+    partial class thirdUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -626,9 +628,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("AccountingAccountId")
                         .HasColumnType("int");
 
-                    b.Property<int>("BenefitId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CompanyId")
                         .IsRequired()
                         .HasMaxLength(8)
@@ -640,8 +639,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("ConsultantaBenefitCompanyId");
 
                     b.HasIndex("AccountingAccountId");
-
-                    b.HasIndex("BenefitId");
 
                     b.HasIndex("CostCenterId");
 
@@ -1901,12 +1898,6 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OceansApp.Models.Models.ConsultantBenefit", "ConsultantBenefit")
-                        .WithMany()
-                        .HasForeignKey("BenefitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OceansApp.Models.Models.CostCenter", "CostCenter")
                         .WithMany()
                         .HasForeignKey("CostCenterId")
@@ -1914,8 +1905,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("AccountingAccount");
-
-                    b.Navigation("ConsultantBenefit");
 
                     b.Navigation("CostCenter");
                 });
