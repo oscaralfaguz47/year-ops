@@ -362,6 +362,7 @@ nav {
 .dropdown-menu {
     background-color: var(--clr-grayDark);
     color: #fff !important;
+    width: max-content;
 }
 
     .dropdown-menu .nav-link {

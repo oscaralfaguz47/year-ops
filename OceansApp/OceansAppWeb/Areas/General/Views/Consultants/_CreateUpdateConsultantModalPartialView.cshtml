@@ -112,6 +112,27 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-md-6">
+                            <label for="CountrySelect">Company <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onchange="selectCompany(this.value)" class="form-select" id="CompanySelect" name="CompanyId">
+                                    <option>-Select the company-</option>
+                                    <option value="OCE">Oceans Consulting</option>
+                                    <option value="LLC"> OCE LLC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="CountrySelect">Payment Method <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="PaymentMethodSelect" name="idPaymentMethod">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <label for="Contact">Address</label>
                         <div class="input-container">
                             <input type="text" class="form-control" name="address">

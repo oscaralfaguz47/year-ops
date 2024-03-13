@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240312212922_addCostCenterAndAccountingAccountToConsultantReimbursedBenefit")]
+    partial class addCostCenterAndAccountingAccountToConsultantReimbursedBenefit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -565,6 +567,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BenefitId"), 1L, 1);
 
+                    b.Property<int>("AccountingAccountId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
@@ -572,6 +577,9 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("CostCenterId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Details")
                         .HasColumnType("nvarchar(max)");
@@ -588,6 +596,10 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("BenefitId");
+
+                    b.HasIndex("AccountingAccountId");
+
+                    b.HasIndex("CostCenterId");
 
                     b.ToTable("CONSULTANT_BENEFITS");
                 });
@@ -615,34 +627,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("CONSULTANT_BENEFIT_CATEGORIES");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitCompany", b =>
-                {
-                    b.Property<int>("ConsultantaBenefitCompanyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantaBenefitCompanyId"), 1L, 1);
-
-                    b.Property<int>("AccountingAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
-                    b.Property<int>("CostCenterId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ConsultantaBenefitCompanyId");
-
-                    b.HasIndex("AccountingAccountId");
-
-                    b.HasIndex("CostCenterId");
-
-                    b.ToTable("CONSULTANT_BENEFIT_COMPANIES");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
                 {
                     b.Property<int>("ConsultantId")
@@ -653,10 +637,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyId")
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
@@ -671,9 +651,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PaymentMethodId")
-                        .HasColumnType("int");
 
                     b.Property<string>("PersonalEmail")
                         .HasMaxLength(249)
@@ -702,8 +679,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("ConsultantId");
 
                     b.HasIndex("IdCountry");
-
-                    b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("UserCreatedBy");
 
@@ -837,6 +812,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReimbursedBenefitId"), 1L, 1);
 
+                    b.Property<int>("AccountingAccountId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("AmountReimbursed")
                         .HasColumnType("decimal(18,2)");
 
@@ -855,6 +833,9 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int?>("ConsultantIdLastUpdatedBy")
                         .HasColumnType("int");
 
+                    b.Property<int>("CostCenterId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
@@ -870,6 +851,8 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ReimbursedBenefitId");
 
+                    b.HasIndex("AccountingAccountId");
+
                     b.HasIndex("BenefitId");
 
                     b.HasIndex("ConsultantId");
@@ -877,6 +860,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantIdCreatedBy");
 
                     b.HasIndex("ConsultantIdLastUpdatedBy");
+
+                    b.HasIndex("CostCenterId");
 
                     b.ToTable("CONSULTANT_REIMBURSED_BENEFITS");
                 });
@@ -1306,29 +1291,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("NotificationTypeId");
 
                     b.ToTable("NOTIFICATION_TYPES");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.PaymentMethod", b =>
-                {
-                    b.Property<int>("PaymentMethodId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentMethodId"), 1L, 1);
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(70)
-                        .HasColumnType("nvarchar(70)");
-
-                    b.HasKey("PaymentMethodId");
-
-                    b.ToTable("PAYMENT_METHODS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Project", b =>
@@ -1877,18 +1839,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitCategory", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ConsultantBenefit", "ConsultantBenefit")
-                        .WithMany()
-                        .HasForeignKey("BenefitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ConsultantBenefit");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitCompany", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefit", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
                         .WithMany()
@@ -1907,6 +1858,17 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("CostCenter");
                 });
 
+            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitCategory", b =>
+                {
+                    b.HasOne("OceansApp.Models.Models.ConsultantBenefit", "ConsultantBenefit")
+                        .WithMany()
+                        .HasForeignKey("BenefitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ConsultantBenefit");
+                });
+
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.Country", "Country")
@@ -1914,10 +1876,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasForeignKey("IdCountry")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.PaymentMethod", "PaymentMethod")
-                        .WithMany()
-                        .HasForeignKey("PaymentMethodId");
 
                     b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreated")
                         .WithMany()
@@ -1940,8 +1898,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ApplicationUserUpdated");
 
                     b.Navigation("Country");
-
-                    b.Navigation("PaymentMethod");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantHoliday", b =>
@@ -1983,6 +1939,12 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantReimbursedBenefit", b =>
                 {
+                    b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
+                        .WithMany()
+                        .HasForeignKey("AccountingAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("OceansApp.Models.Models.ConsultantBenefit", "ConsultantBenefit")
                         .WithMany()
                         .HasForeignKey("BenefitId")
@@ -2006,6 +1968,14 @@ namespace OceansApp.DataAccess.Migrations
                         .HasForeignKey("ConsultantIdLastUpdatedBy")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("OceansApp.Models.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AccountingAccount");
+
                     b.Navigation("ConsultantBenefit");
 
                     b.Navigation("ConsultantDetailBenefit");
@@ -2013,6 +1983,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantDetailCreatedBy");
 
                     b.Navigation("ConsultantDetailUpdatedBy");
+
+                    b.Navigation("CostCenter");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantRolesQualityLevels", b =>

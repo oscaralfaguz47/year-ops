@@ -29,6 +29,9 @@ namespace OceansApp.Models.Models
         public string? Location { get; set; }
         [MaxLength(20)]
         public string? ShirtSize { get; set; }
+        [MaxLength(8)]
+        public string? CompanyId { get; set; }
+        public int? PaymentMethodId { get; set; }
 
 
         [ValidateNever]
@@ -41,6 +44,8 @@ namespace OceansApp.Models.Models
         public ApplicationUser? ApplicationUserCreated { get; set; }
         [ValidateNever]
         public ApplicationUser? ApplicationUserUpdated { get; set; }
+        [ValidateNever]
+        public PaymentMethod? PaymentMethod { get; set; }
 
     }
 }

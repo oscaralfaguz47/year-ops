@@ -226,6 +226,30 @@ function fillRolesForSelect(isAdministrative, isEditingConsultant, userRole) {
             });
     }
 }
+
+//SELECT COMPANY
+function selectCompany(selectedValue) {
+    fillPaymentMethodsForSelect(selectedValue);
+}
+function fillPaymentMethodsForSelect(selectedValue) {
+    var selectElement = document.getElementById("PaymentMethodSelect");
+    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
+    displaySpinner();
+    getPaymentMethodsWhereCompanyList(selectedValue)
+        .then(data => {
+            selectElement.innerHTML = '';
+            selectElement.innerHTML = '<option value="null">-Select a Payment Method-</option>';
+            data.paymentMethods.forEach(obj => {
+                selectElement.add(new Option(obj.text, obj.value));
+            });
+            hideSpinner();
+        })
+        .catch(error => {
+            hideSpinner();
+            console.error('Error fetching roles:', error);
+        });
+}
+
 // Dropdown with checkboxes
 document.addEventListener('DOMContentLoaded', function () {
     const optionsContainer = document.getElementById('optionsContainer');

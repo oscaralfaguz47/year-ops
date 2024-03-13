@@ -53,14 +53,24 @@ namespace OceansApp.DataAccess.DbInitializer
 
             if (createDefaultDataToDatabase)
             {
-                //Create Default roles
+                //-----------------  ROLES  --------------------------------
+
                 List<IdentityRole> rolesList = new List<IdentityRole>();
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Master });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Admin });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Simple });
                 rolesList.Add(new IdentityRole() { Name = SD.Role_User_Computer_Consultant });
 
-                //Create Default User Categories
+                foreach (var role in rolesList)
+                {
+                    if (_roleManager.FindByNameAsync(role.Name).Result == null)
+                    {
+                        _roleManager.CreateAsync(new IdentityRole(role.Name)).GetAwaiter().GetResult();
+                    }
+                }
+
+                //-----------------  USER CATEGORIES  --------------------------------
+
                 List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>();
                 userCategoriesList.Add(new ApplicationUserCategory() { Name = "Administrative" });
                 userCategoriesList.Add(new ApplicationUserCategory() { Name = "Consultant" });
@@ -74,14 +84,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     _db.SaveChanges();
                 }
 
-                foreach (var role in rolesList)
-                {
-                    if (_roleManager.FindByNameAsync(role.Name).Result == null)
-                    {
-                        _roleManager.CreateAsync(new IdentityRole(role.Name)).GetAwaiter().GetResult();
-                    }
-                }
-                //Create user manager if it is not created
+                //-----------------  CREATE DEFAULT USER  --------------------------------
+
                 if (!_roleManager.RoleExistsAsync(SD.Role_User_Master).GetAwaiter().GetResult())
                 {
                     //If Roles are not created, then we will create Master user as well
@@ -99,36 +103,84 @@ namespace OceansApp.DataAccess.DbInitializer
                     _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
                 }
 
-                //Create Default Provider Events
+                //-----------------  CONSULTANT BENEFITS  --------------------------------
 
-                if (_db.PROVIDER_EVENTS.ToList().Count == 0)
+                List<ConsultantBenefit> consultantBenefitList = new List<ConsultantBenefit>();
+                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Balance Program", Amount = 750, BenefitPeriod = "Annual" });
+                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Bonusly", Amount = 0, BenefitPeriod = "Undefined" });
+
+                foreach (var benefit in consultantBenefitList)
                 {
-                    List<ProviderEvent> providerEventsList = new List<ProviderEvent>();
-                    providerEventsList.Add(new ProviderEvent() { Name = "Entrada" });
-                    providerEventsList.Add(new ProviderEvent() { Name = "Salida" });
-                    providerEventsList.Add(new ProviderEvent() { Name = "Contrato Firmado por 1era vez" });
-                    providerEventsList.Add(new ProviderEvent() { Name = "Contrato actualizado" });
-
-                    foreach (var pEvent in providerEventsList)
+                    var existingBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == benefit.Name);
+                    if (existingBenefit == null)
                     {
-                        ProviderEvent providerEvent = new()
+                        ConsultantBenefit conBenefit = new()
                         {
-                            Name = pEvent.Name
+                            Name = benefit.Name,
+                            Amount = benefit.Amount,
+                            BenefitPeriod = benefit.BenefitPeriod
                         };
-                        _db.PROVIDER_EVENTS.Add(providerEvent);
+                        _db.CONSULTANT_BENEFITS.Add(conBenefit);
                     }
-                    _db.SaveChanges();
                 }
+                _db.SaveChanges();
 
-                //Create Default Notifications stuff
+                //-----------------  CONSULTANT BENEFITS CATEGORIES  --------------------------------
 
-                if (_db.NOTIFICATION_MEDIA.ToList().Count == 0)
+                List<ConsultantBenefitCategory> consultantBenefitCategoriesList = new List<ConsultantBenefitCategory>();
+                var balanceProgramBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Balance Program");
+                var bonuslyBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Bonusly");
+
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Expert Boost ($250) (2500 Bonus.ly XP)", BenefitId = balanceProgramBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Wellness Coverage ($750)", BenefitId = balanceProgramBenefit.BenefitId });
+
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = " Curiosity Stream 1 year ($25)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "A new gaming console ($500)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Adventure tickets ($100)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Buy a book! ($25)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Ergonomics ($150)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Gamers ($200)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Hotel or plane tickets ($240/$480/$750)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Just Cash Out ($50/$100/$200)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Lodgings ($100) ", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Movie Night ($30)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Music Lovers! ($60)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "N. Fitness Freaks ($120)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Nintendo Switch ONLINE 1 year ($40)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Out for dinner ($80)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Personal Care ($35/$70/$140)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "PlayStation Plus ($60)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Streaming Subscriptions ($20)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets I ($30)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets II ($140)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets III ($300)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "UberEats voucher ($25)", BenefitId = bonuslyBenefit.BenefitId });
+
+                foreach (var category in consultantBenefitCategoriesList)
                 {
-                    List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
-                    notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
-                    notificatinMediaList.Add(new NotificationMedia() { Name = "Slack" });
+                    var existingCategory = _db.CONSULTANT_BENEFIT_CATEGORIES.FirstOrDefault(x => x.Name == category.Name);
+                    if (existingCategory == null)
+                    {
+                        ConsultantBenefitCategory conBenefitCategory = new()
+                        {
+                            Name = category.Name,
+                            BenefitId = category.BenefitId
+                        };
+                        _db.CONSULTANT_BENEFIT_CATEGORIES.Add(conBenefitCategory);
+                    }
+                }
+                _db.SaveChanges();
 
-                    foreach (var notMedia in notificatinMediaList)
+                //-----------------  NOTIFICATIONS MEDIA  --------------------------------
+
+                List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
+                notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
+                notificatinMediaList.Add(new NotificationMedia() { Name = "Slack" });
+
+                foreach (var notMedia in notificatinMediaList)
+                {
+                    var existingMedia = _db.NOTIFICATION_MEDIA.FirstOrDefault(x => x.Name == notMedia.Name);
+                    if (existingMedia == null)
                     {
                         NotificationMedia notificationMedia = new()
                         {
@@ -136,8 +188,10 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.NOTIFICATION_MEDIA.Add(notificationMedia);
                     }
-                    _db.SaveChanges();
                 }
+                _db.SaveChanges();
+
+                //-----------------  NOTIFICATION STATUS  --------------------------------
 
                 List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
                 notificatinStatusList.Add(new NotificationStatus() { Name = "Enviando" });
@@ -158,6 +212,8 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
+                //-----------------  NOTIFICATION TYPES  --------------------------------
+
                 List<NotificationType> notificationTypeList = new List<NotificationType>();
                 notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
                 notificationTypeList.Add(new NotificationType() { Name = "Create new Consultant" });
@@ -174,39 +230,40 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
+                //-----------------  CONSULTANT POSITIONS  --------------------------------
 
-                if (_db.CONSULTANT_POSITIONS.ToList().Count == 0)
+                List<ConsultantPosition> positionsList = new List<ConsultantPosition>();
+                positionsList.Add(new ConsultantPosition() { Name = "Success Manager", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "CEO", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "CFO", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Recruiting Manager", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Strategy Director", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Recruiter", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Marketing Manager", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "People and Culture", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Gifts Coordinator", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Sales Executive", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Payment Assistant", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Financial Assistant", IsAdministrative = true });
+                positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer IT Support", IsAdministrative = true });
+
+                positionsList.Add(new ConsultantPosition() { Name = "Senior Developer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Data Engineer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Senior QA Engineer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Mid Developer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Project Manager", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Team Lead", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "AWS Engineer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "DevOps Engineer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "SRE Developer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "Mobile Developer", IsAdministrative = false });
+                positionsList.Add(new ConsultantPosition() { Name = "QA Lead", IsAdministrative = false });
+
+                foreach (var conPosition in positionsList)
                 {
-                    List<ConsultantPosition> positionsList = new List<ConsultantPosition>();
-                    positionsList.Add(new ConsultantPosition() { Name = "Success Manager", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "CEO", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "CFO", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Recruiting Manager", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Strategy Director", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Recruiter", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Marketing Manager", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "People and Culture", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Gifts Coordinator", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Sales Executive", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Payment Assistant", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Financial Assistant", IsAdministrative = true });
-                    positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer IT Support", IsAdministrative = true });
-
-                    positionsList.Add(new ConsultantPosition() { Name = "Senior Developer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Data Engineer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Senior QA Engineer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Mid Developer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Project Manager", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Team Lead", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "AWS Engineer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "DevOps Engineer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "SRE Developer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "Mobile Developer", IsAdministrative = false });
-                    positionsList.Add(new ConsultantPosition() { Name = "QA Lead", IsAdministrative = false });
-
-                    foreach (var conPosition in positionsList)
+                    if (_db.CONSULTANT_POSITIONS.FirstOrDefault(x => x.Name == conPosition.Name) == null)
                     {
                         ConsultantPosition consultantPosition = new()
                         {
@@ -215,9 +272,10 @@ namespace OceansApp.DataAccess.DbInitializer
                         };
                         _db.CONSULTANT_POSITIONS.Add(consultantPosition);
                     }
-                    _db.SaveChanges();
                 }
-                //Create Default Client for Administrative Consultants
+                _db.SaveChanges();
+
+                //-----------------  DEFAULT CLIENT FOR ADMINISTRATIVE CONSULTANTS  --------------------------------
 
                 if (_db.CLIENT.FirstOrDefault(x => x.Name == "Oceans Code Experts") == null)
                 {
@@ -239,7 +297,9 @@ namespace OceansApp.DataAccess.DbInitializer
                     _db.CLIENT.Add(client);
                     _db.SaveChanges();
                 }
-                //CREATE PROJECT HISTORY ACTIONS
+
+                //-----------------  PROJECT CONSULTANTS ASSIGNED HISTORY ACTIONS  --------------------------------
+
                 if (_db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.ToList().Count == 0)
                 {
                     List<ProjectConsultantAssignedHistoryAction> actionsList = new();
@@ -266,7 +326,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     _db.SaveChanges();
                 }
 
-                //Create System Areas
+                //-----------------  SYSTEM AREAS  --------------------------------
+
                 List<SystemArea> systemAreasList = new List<SystemArea>();
                 systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
                 systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
@@ -289,7 +350,8 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
-                //Create System Sub Areas
+                //-----------------  SYSTEM SUB AREAS  --------------------------------
+
                 List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>();
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
@@ -297,6 +359,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants Benefits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
@@ -318,9 +381,32 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
+                //-----------------  PAYMENT METHODS  --------------------------------
 
-                //Create Claims
+                List<PaymentMethod> paymentMethodsList = new List<PaymentMethod>();
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Bac Credomatic different from Panamá (Ameritransfer)", CompanyId = "OCE" });
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Other banks (International Transfer)", CompanyId = "OCE" });
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Payoneer", CompanyId = "OCE" });
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Banco General (Panamá)", CompanyId = "OCE" });
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Bac Credomatic (Panamá)", CompanyId = "OCE" });
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Mercury", CompanyId = "LLC" });
+                paymentMethodsList.Add(new PaymentMethod() { Name = "Wise", CompanyId = "LLC" });
 
+                foreach (var paymentMethod in paymentMethodsList)
+                {
+                    if (_db.PAYMENT_METHODS.FirstOrDefault(x => x.Name == paymentMethod.Name) == null)
+                    {
+                        PaymentMethod pm = new()
+                        {
+                            Name = paymentMethod.Name,
+                            CompanyId = paymentMethod.CompanyId
+                        };
+                        _db.PAYMENT_METHODS.Add(pm);
+                    }
+                }
+                _db.SaveChanges();
+
+                //-----------------  CLAIMS  --------------------------------
 
                 List<ApplicationSystemClaim> systemClaimsList = new List<ApplicationSystemClaim>();
 
@@ -427,6 +513,17 @@ namespace OceansApp.DataAccess.DbInitializer
                     Description = "Acceso básico para ver todos los holidays",
                     SystemSubAreaId = holidaysSubAreaId.SystemSubAreaId
                 });
+
+                //GENERAL - CONSULTANTS BENEFITS
+                var consultantsBenefitsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultants Benefits");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimType,
+                    ClaimValue = ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimValue,
+                    Description = "Access to manage the consultants benefits to pay.",
+                    SystemSubAreaId = consultantsBenefitsSubAreaId.SystemSubAreaId
+                });
+
 
                 //HOURS TRACKING TOOL
                 var hoursTrackingToolSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Herramienta de seguimiento de horas");

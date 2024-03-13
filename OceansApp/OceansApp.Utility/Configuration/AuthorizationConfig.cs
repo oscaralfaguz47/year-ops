@@ -93,7 +93,13 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToHolidaysPage", policy =>
                     policy.RequireClaim(HolidaysClaimsCD.Holidays_Page_ClaimType, HolidaysClaimsCD.Holidays_Page_ClaimValue));
             });
-
+            //GENERAL - CONSULTANTS BENEFITS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageConsultantsBenefitsPage", policy =>
+                    policy.RequireClaim(ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimType,
+                    ConsultantsBenefitsClaimsCD.Consultants_Benefits_Page_ClaimValue));
+            });
             //HOURS TRACKING TOOL
             services.AddAuthorization(options =>
             {
@@ -185,6 +191,16 @@ namespace OceansApp.Utility.Configuration
             {
                 options.AddPolicy("AccessToAllRolesList", policy =>
                     policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToPaymentMethodsList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
                         ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
             });

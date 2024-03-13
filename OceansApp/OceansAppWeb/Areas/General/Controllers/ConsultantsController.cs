@@ -424,7 +424,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     return BadRequest(new { MessageType = "Not Found", error = $"The User was not found in the database. " });
                 }
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", code = user.Id + ":" + code }, protocol: HttpContext.Request.Scheme);
                 var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);

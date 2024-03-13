@@ -25,6 +25,7 @@
         IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IConsultantSeniorityRepository ConsultantSeniority { get; }
+        IPaymentMethodRepository PaymentMethod { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantAssignedHistoryActionRepository ProjectConsultantAssignedHistoryAction { get; }

@@ -72,6 +72,10 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(CC => CC.IdCountry)
                 .IsRequired();
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasOne(p => p.PaymentMethod)
+                .WithMany()
+                .HasForeignKey(p => p.PaymentMethodId);
 
             modelBuilder.Entity<ConsultantHoliday>()
                 .HasOne(cc => cc.ApplicationUser)
@@ -167,6 +171,57 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(a => a.ActionId)
                 .IsRequired();
 
+            // CONSULTANTS BENEFITS
+            modelBuilder.Entity<ConsultantBenefit>()
+                .HasKey(c => new { c.BenefitId });
+
+            // CONSULTANTS BENEFITS COMPANIES
+            modelBuilder.Entity<ConsultantBenefitCompany>()
+                .HasKey(c => new { c.ConsultantaBenefitCompanyId });
+            modelBuilder.Entity<ConsultantBenefitCompany>()
+                .HasOne(cc => cc.CostCenter)
+                .WithMany()
+                .HasForeignKey(cc => cc.CostCenterId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantBenefitCompany>()
+                .HasOne(cc => cc.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(cc => cc.AccountingAccountId)
+                .IsRequired();
+
+            // CONSULTANTS BENEFITS CATEGORIES
+            modelBuilder.Entity<ConsultantBenefitCategory>()
+                .HasKey(c => new { c.BenefitCategoryId });
+            modelBuilder.Entity<ConsultantBenefitCategory>()
+                .HasOne(cb => cb.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cb => cb.BenefitId)
+                .IsRequired();
+
+            // CONSULTANTS REIMBURSED BENEFITS
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasKey(c => new { c.ReimbursedBenefitId });
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cb => cb.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cb => cb.BenefitId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cb => cb.ConsultantDetailBenefit)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cb => cb.ConsultantDetailCreatedBy)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantIdCreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict); ;
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cb => cb.ConsultantDetailUpdatedBy)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantIdLastUpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
@@ -194,6 +249,11 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantHoliday> CONSULTANT_HOLIDAYS { get; set; }
         public DbSet<ConsultantHolidayDate> CONSULTANT_HOLIDAY_DATES { get; set; }
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
+        public DbSet<ConsultantBenefit> CONSULTANT_BENEFITS { get; set; }
+        public DbSet<ConsultantBenefitCompany> CONSULTANT_BENEFIT_COMPANIES { get; set; }
+        public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }
+        public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
+        public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
