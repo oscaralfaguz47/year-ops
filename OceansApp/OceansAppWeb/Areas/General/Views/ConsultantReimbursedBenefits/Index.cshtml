@@ -1,6 +1,6 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<link rel="stylesheet" href="~/css/General/consultants.css" />
+<link rel="stylesheet" href="~/css/General/consultantReimbursedBenefits.css" />
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
 
@@ -9,13 +9,13 @@
         <div class="row">
             <div class="search-header-container">
                 <div>
-                    <h2>BENEFIT REIMBURSEMETNS</h2>
+                    <h2>BENEFIT REIMBURSEMENTS</h2>
                     <div class="input-container">
                         <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
                         <i class="bi bi-search placeholder-image"></i>
                     </div>
                     <div class="action-buttons">
-                        <a onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant',null)">Add New Reimbursed</a>
+                        <a onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant',null)">Add New Reimbursement</a>
                     </div>
                 </div>
                 <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
@@ -49,7 +49,6 @@
                         Reimbursed Amount
                         <span class="sort-arrow" id="sortArrowAmountReimbursed"></span>
                     </th>
-                    <th>Details</th>
                     <th onclick="orderByTableList('DateToBeReimbursed', 'DateToBeReimbursedTableHeader', 'sortArrowDateToBeReimbursed')" data-sort="ANY" name="DateToBeReimbursedTableHeader" class="sortable-col">
                         Reimbursement Date
                         <span class="sort-arrow" id="sortArrowDateToBeReimbursed"></span>
@@ -58,6 +57,7 @@
                         Status
                         <span class="sort-arrow" id="sortArrowBenefitPaid"></span>
                     </th>
+                    <th>Details</th>
                     <th onclick="orderByTableList('UserCreatedBy', 'UserCreatedByTableHeader', 'sortArrowUserCreatedBy')" data-sort="ANY" name="UserCreatedByTableHeader" class="sortable-col">
                         Created By
                         <span class="sort-arrow" id="sortArrowUserCreatedBy"></span>
@@ -70,9 +70,9 @@
                         Last Updated By
                         <span class="sort-arrow" id="sortArrowUserLastUpdatedBy"></span>
                     </th>
-                     <th onclick="orderByTableList('LastUpdateDate', 'LastUpdateDateTableHeader', 'sortArrowLastUpdateDate')" data-sort="ANY" name="LastUpdateDateTableHeader" class="sortable-col">
+                    <th onclick="orderByTableList('LastUpdatedDate', 'LastUpdatedDateTableHeader', 'sortArrowLastUpdatedDate')" data-sort="ANY" name="LastUpdatedDateTableHeader" class="sortable-col">
                         Last Updated Date
-                        <span class="sort-arrow" id="sortArrowLastUpdateDate"></span>
+                        <span class="sort-arrow" id="sortArrowLastUpdatedDate"></span>
                     </th>
                 </tr>
             </thead>
@@ -86,4 +86,5 @@
 @section Scripts{
 <script src="~/js/General/consultantReimbursedBenefits.js"></script>
 <script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/Shared/sharedComponents.js"></script>
     }

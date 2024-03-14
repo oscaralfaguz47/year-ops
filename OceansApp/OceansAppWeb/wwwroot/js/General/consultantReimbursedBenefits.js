@@ -29,26 +29,50 @@ async function getListOfResults(firstTime, filters) {
             tableRows.css("display", "block");
             tbody.empty();
             data.reimbursedBenefitsList.forEach(function (obj) {
+                var reimbursedDate = new Date(obj.dateToBeReimbursed);
+                var reimbursedformattedDate = ('0' + (reimbursedDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + reimbursedDate.getDate()).slice(-2) + '/' +
+                    reimbursedDate.getFullYear();
+
+                var creationDate = new Date(obj.creationDate);
+                var creationformattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + creationDate.getDate()).slice(-2) + '/' +
+                    creationDate.getFullYear();
+
+                var updateDate = new Date(obj.lastUpdateDate);
+                var updateformattedDate = ('0' + (updateDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + updateDate.getDate()).slice(-2) + '/' +
+                    updateDate.getFullYear();
+
+                var deleteBtn = ``;
+                var editBtn = ``;
+                var menuBtn = `<i title="You are not able to edit or delete, it is already paid" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
+                if (!obj.benefitPaid) {
+                    deleteBtn = `<li onclick="deleteReimbursement(${obj.reimbursedBenefitId})""><i class="bi bi-trash3 red-label"></i> Delete</li>`;
+                    editBtn = `<li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit Reimbursement</li>`;
+                    menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.reimbursedBenefitId}', 'menuIcon-${obj.reimbursedBenefitId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.reimbursedBenefitId}"></i>
+                              <div class="menu-options" id="menuOptions-${obj.reimbursedBenefitId}">
+                               <ul>
+                                 ${editBtn}
+                                 ${deleteBtn}
+                               </ul>
+                              </div>`;
+                }
 
                 var row = `<tr>
                   <td>
-                        <i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.reimbursedBenefitId}', 'menuIcon-${obj.reimbursedBenefitId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.reimbursedBenefitId}"></i>
-                          <div class="menu-options" id="menuOptions-${obj.reimbursedBenefitId}">
-                           <ul>
-                             <li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit Reimbursement</li>
-                           </ul>
-                         </div>
+                      ${menuBtn}
                       ${obj.consultantName}
                   </td>
                   <td>${obj.benefitName}</td>
-                  <td>${obj.amountReimbursed}</td>
+                  <td>$${obj.amountReimbursed}</td>
+                  <td>${reimbursedformattedDate}</td>
+                  <td>${obj.benefitPaid ? '<div><span class="green-label cel-status"><i class="bi bi-emoji-smile"></i> Paid</span>' : '<span class="red-label cel-status"><i class="bi bi-emoji-frown"></i> Unpaid</span>'}</div></td>
                   <td>${obj.detail === null ? "" : obj.detail}</td>
-                  <td>${obj.dateToBeReimbursed}</td>
-                  <td class="shared-table-td">${obj.benefitPaid ? '<span class="green-label">Paid</span>' : '<span class="red-label">Unpaid</span>'}</td>
                   <td>${obj.userCreatedBy}</td>
-                  <td>${obj.creationDate}</td>
-                  <td>${obj.userLastUpdatedBy === null ? "Unedited" : obj.userLastUpdatedBy}</td>
-                  <td>${obj.lastUpdateDate === null ? "Unedited" : obj.lastUpdateDate}</td>
+                  <td>${creationformattedDate}</td>
+                  <td>${obj.userLastUpdatedBy === null ? "Not updated" : obj.userLastUpdatedBy}</td>
+                  <td>${obj.lastUpdateDate === null ? "Not updated" : updateformattedDate}</td>
               </tr>`;
                 tbody.append(row);
             });
