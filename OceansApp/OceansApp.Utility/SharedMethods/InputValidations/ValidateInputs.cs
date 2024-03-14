@@ -15,7 +15,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
         }
 
-        public void ValidateNotRequiredAndStringLength(string field, string fieldName, string stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
+        public void ValidateNotRequiredAndStringLength(string field, string fieldName, string? stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
         {
             if (stringToValidate != null)
             {

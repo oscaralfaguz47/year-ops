@@ -46,7 +46,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             try
             {
                 ValidateInputs validateInputs = new();
-                validateInputs.ValidateNotRequiredAndStringLength("SearchConsultant", "Search Consultant", searchText, 100, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("SearchConsultant", "Search Consultant", searchText != null ? searchText.Trim() : searchText, 100, ModelState);
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors)
@@ -60,7 +60,34 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     userCategoryName = null;
                 }
-                var consultants = await _unitOfWork.ConsultantDetail.GetConsultantsBySearchText(searchText, userCategoryName);
+                var consultants = await _unitOfWork.ConsultantDetail.GetConsultantsBySearchText(searchText != null ? searchText.Trim() : searchText, userCategoryName);
+                return Ok(new
+                {
+                    Consultants = consultants
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "AccessToSearchAllActiveConsultantsBySearchText")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllActiveConsultantsBySearchText(string? searchText, string? userCategoryName)
+        {
+            try
+            {
+                ValidateInputs validateInputs = new();
+                validateInputs.ValidateNotRequiredAndStringLength("SearchConsultant", "Search Consultant", searchText != null ? searchText.Trim() : searchText, 100, ModelState);
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors, detail = "Parameters for filters are not correct." });
+                }
+                var consultants = await _unitOfWork.ConsultantDetail.GetConsultantsBySearchText(searchText != null ? searchText.Trim() : searchText, userCategoryName);
                 return Ok(new
                 {
                     Consultants = consultants

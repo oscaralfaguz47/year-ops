@@ -18,6 +18,7 @@
         IProviderCategoryRepository ProviderCategory { get; }
         IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
+        IConsultantBenefitRepository ConsultantBenefit { get; }
         IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; }
         IConsultantDetailRepository ConsultantDetail { get; }
         IConsultantHolidayRepository ConsultantHoliday { get; }

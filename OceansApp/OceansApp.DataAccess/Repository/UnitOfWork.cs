@@ -34,6 +34,7 @@ namespace OceansApp.DataAccess.Repository
             Country = new CountryRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _config, _userManager);
             ConsultantPosition = new ConsultantPositionRepository(_db);
+            ConsultantBenefit = new ConsultantBenefitRepository(_db);
             ConsultantReimbursedBenefit = new ConsultantReimbursedBenefitRepository(_db);
             ConsultantHoliday = new ConsultantHolidayRepository(_db);
             ConsultantRole = new ConsultantRoleRepository(_db);
@@ -76,6 +77,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantHolidayRepository ConsultantHoliday { get; set; }
         public IConsultantDetailRepository ConsultantDetail { get; set; }
         public IConsultantPositionRepository ConsultantPosition { get; set; }
+        public IConsultantBenefitRepository ConsultantBenefit { get; set; }
         public IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; set; }
         public IConsultantRoleRepository ConsultantRole { get; set; }
         public IConsultantQualityLevelRepository ConsultantQualityLevel { get; set; }

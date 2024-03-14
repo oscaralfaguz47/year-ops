@@ -73,7 +73,7 @@ namespace OceansApp.DataAccess.Repository
             return result;
         }
 
-        public async Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string searchText, string? userCategoryName)
+        public async Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string? searchText, string? userCategoryName)
         {
             var connection = _db.Database.GetDbConnection();
             var parameters = new DynamicParameters();
