@@ -29,6 +29,8 @@ namespace OceansApp.Models.Models
         public int ConsultantIdCreatedBy { get; set; }
         public DateTime? LastUpdateDate { get; set; }
         public int? ConsultantIdLastUpdatedBy { get; set; }
+        [Required]
+        public int BenefitCategoryId { get; set; }
 
 
         [ValidateNever]
@@ -39,5 +41,7 @@ namespace OceansApp.Models.Models
         public ConsultantDetail ConsultantDetailCreatedBy { get; set; }
         [ValidateNever]
         public ConsultantDetail? ConsultantDetailUpdatedBy { get; set; }
+        [ValidateNever]
+        public ConsultantBenefitCategory ConsultantBenefitCategory { get; set; }
     }
 }

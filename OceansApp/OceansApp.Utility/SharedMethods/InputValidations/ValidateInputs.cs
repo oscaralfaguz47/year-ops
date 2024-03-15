@@ -77,6 +77,16 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 modelState.AddModelError(field, $"The {fieldName} value should be an int.");
             }
         }
+        public void ValidateNonRequiredFieldIntType(string field, string fieldName, object? valueToValidate, ModelStateDictionary modelState)
+        {
+            if (valueToValidate != null)
+            {
+                if (!(valueToValidate is int))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} value should be an int.");
+                }
+            }
+        }
 
         public void ValidateRequiredFieldNumberValue(string field, string fieldName, object numToValidate, ModelStateDictionary modelState)
         {
@@ -143,11 +153,17 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
         }
 
-        public void ValidateNoNegativeNumber(string field, string fieldName, decimal numToValidate, ModelStateDictionary modelState)
+        public void ValidateNoNegativeNumber(string field, string fieldName, object? numToValidate, ModelStateDictionary modelState)
         {
-            if (numToValidate < 0)
+            if (numToValidate != null)
             {
-                modelState.AddModelError(field, $"The {fieldName} can not be a negative number.");
+                if ((numToValidate is int || numToValidate is decimal || numToValidate is float))
+                {
+                    if ((decimal)numToValidate < 0)
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} can not be a negative number.");
+                    }
+                }
             }
         }
         public void ValidateMinAndMaxLenthNumber(string field, string fieldName, decimal? numToValidate, decimal minNum, decimal maxNum, ModelStateDictionary modelState)
@@ -157,6 +173,16 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 if (numToValidate < minNum || numToValidate > maxNum)
                 {
                     modelState.AddModelError(field, $"The {fieldName} must be between {minNum} and {maxNum}.");
+                }
+            }
+        }
+        public void ValidateNumberLessOrEqualThanZero(string field, string fieldName, decimal? numToValidate, ModelStateDictionary modelState)
+        {
+            if (numToValidate != null)
+            {
+                if (numToValidate <= 0)
+                {
+                    modelState.AddModelError(field, $"The {fieldName} must be greater than zero.");
                 }
             }
         }

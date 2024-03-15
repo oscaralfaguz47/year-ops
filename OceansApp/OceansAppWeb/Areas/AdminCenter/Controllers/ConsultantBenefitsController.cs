@@ -39,5 +39,27 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+        [Authorize(Policy = "AccessToAllConsultantBenefitsListForSelect")]
+        [HttpGet]
+        public IActionResult GetAllBenefitCategoriesListForSelect(int benefitId)
+        {
+            try
+            {
+                List<GetDataForSelectVM> benefitCategoriesList = new();
+                var categories = _unitOfWork.ConsultantBenefitCategory.GetAll().Where(x => x.BenefitId == benefitId);
+                foreach (var category in categories)
+                {
+                    benefitCategoriesList.Add(new GetDataForSelectVM { Value = category.BenefitCategoryId, Text = category.Name });
+                }
+                return Ok(new
+                {
+                    BenefitCategories = benefitCategoriesList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

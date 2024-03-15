@@ -201,7 +201,7 @@ async function createUpdateProject(modalId) {
     var projectNameData = createUpdateForm.find('[name="projectName"]').val();
     var projectDetailData = createUpdateForm.find('[name="description"]').val();
     var clientIdData = createUpdateForm.find('[name="client"]').val();
-    var startDateData = createUpdateForm.find('[name="startDate"]').val();
+    var startDateData = createUpdateForm.find('[name="startDate"]').val() || null;
     var successManagerData = createUpdateForm.find('[name="successManager"]').val();
     var isActiveData = createUpdateForm.find('[name="isActive"]').prop('checked');
     var isBillableData = createUpdateForm.find('[name="isBillable"]').prop('checked');

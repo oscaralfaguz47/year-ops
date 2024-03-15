@@ -44,15 +44,15 @@
                             <label for="BenefitSelect">Benefit <span class="required-asterisk">*</span></label>
                             <div class="custom-select">
                                 <span class="arrow-down"></span>
-                                <select onfocus="fillBenefitsSelect(this, 'Select a benefit')" class="form-select" id="BenefitSelect" name="idBenefit">
+                                <select onfocus="fillBenefitsSelect(this, 'Select a benefit')" onchange="selectBenefit('BenefitSelect', this.value, false)" class="form-select" id="BenefitSelect" name="idBenefit">
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="CountrySelect">Benefit Category <span class="required-asterisk">*</span></label>
+                            <label for="BenefitCategorySelect">Benefit Category <span class="required-asterisk">*</span></label>
                             <div class="custom-select">
                                 <span class="arrow-down"></span>
-                                <select onfocus="fillBenefitsSelect(this, 'Select a benefit')" class="form-select" id="BenefitSelect" name="idBenefit">
+                                <select class="form-select" id="BenefitCategorySelect" name="benefitCategoryId">
                                 </select>
                             </div>
                         </div>
@@ -69,7 +69,7 @@
                                 <i class="bi bi-question-circle tooltip-target"></i>
                                 <div class="tooltip-content">
                                     <div class="tooltip-arrow"></div>
-                                    date belonging to the fortnight in which the benefit will be reimbursed.
+                                    Date corresponding to the fortnight during which the benefit will be reimbursed.
                                 </div>
                             </div>
                             <div class="">
@@ -82,7 +82,7 @@
                         <div class="col-md-12">
                             <label>Detail</label>
                             <div class="input-container">
-                                <input type="text" class="form-control" name="detail">
+                                <textarea type="text" class="form-control" name="detail" id="Detail"></textarea>
                             </div>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
                     <a id="btn-cancel" onclick="hideModal('modal-update-create-reimbursement')" class="cancel-btn">Cancel</a>&nbsp;
-                    <button id="btn-saving" onclick="createUpdateConsultant('modal-update-create-reimbursement')" class="btn-primary-submit">
+                    <button id="btn-saving" onclick="createUpdateBenefitReimbursement('modal-update-create-reimbursement')" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
                             </div><span></span>
@@ -106,3 +106,4 @@
 <script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
 <script src="~/js/General/createUpdateConsultantReimbursedBenefitModal.js"></script>
 <script src="~/js/AdminCenter/ConsultantBenefits/consultantBenefitsFillDropdowns.js"></script>
+<script src="~/js/Shared/inputValidations.js"></script>

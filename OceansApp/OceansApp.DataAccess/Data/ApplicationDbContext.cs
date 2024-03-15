@@ -221,11 +221,17 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(cb => cb.ConsultantIdCreatedBy)
                 .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict); ;
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ConsultantReimbursedBenefit>()
                 .HasOne(cb => cb.ConsultantDetailUpdatedBy)
                 .WithMany()
                 .HasForeignKey(cb => cb.ConsultantIdLastUpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cc => cc.ConsultantBenefitCategory)
+                .WithMany()
+                .HasForeignKey(cc => cc.BenefitCategoryId)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }

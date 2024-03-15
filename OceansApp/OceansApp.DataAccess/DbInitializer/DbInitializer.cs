@@ -131,6 +131,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 List<ConsultantBenefitCategory> consultantBenefitCategoriesList = new List<ConsultantBenefitCategory>();
                 var balanceProgramBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Balance Program");
                 var bonuslyBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Bonusly");
+                var oceansChallengeBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Oceans Challenge");
 
                 consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Expert Boost ($250) (2500 Bonus.ly XP)", BenefitId = balanceProgramBenefit.BenefitId });
                 consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Wellness Coverage ($750)", BenefitId = balanceProgramBenefit.BenefitId });
@@ -157,6 +158,11 @@ namespace OceansApp.DataAccess.DbInitializer
                 consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets III ($300)", BenefitId = bonuslyBenefit.BenefitId });
                 consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "UberEats voucher ($25)", BenefitId = bonuslyBenefit.BenefitId });
 
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Courses (in person/online)", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Licenses for learning tools and work support", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Universities Enrollment", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Certificates", BenefitId = oceansChallengeBenefit.BenefitId });
+
                 foreach (var category in consultantBenefitCategoriesList)
                 {
                     var existingCategory = _db.CONSULTANT_BENEFIT_CATEGORIES.FirstOrDefault(x => x.Name == category.Name);
@@ -181,8 +187,6 @@ namespace OceansApp.DataAccess.DbInitializer
                 var accountingAccountReservaBonuslyOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "3-02-02-000-000" && x.CompanyId == "OCE");
                 var accountingAccountOceansChallengeOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "6-01-03-005-000" && x.CompanyId == "OCE");
                 var accountingAccountAdminExpensesLLC = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "6-01-04-013-0000" && x.CompanyId == "LLC");
-
-                var oceansChallengeBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Oceans Challenge");
 
                 //OCE
                 consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()

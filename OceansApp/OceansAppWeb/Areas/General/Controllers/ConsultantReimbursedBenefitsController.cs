@@ -5,6 +5,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
@@ -15,9 +16,11 @@ namespace OceansAppWeb.Areas.General.Controllers
     public class ConsultantReimbursedBenefitsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ConsultantReimbursedBenefitsController(IUnitOfWork unitOrWork)
+        private readonly IConfiguration _config;
+        public ConsultantReimbursedBenefitsController(IUnitOfWork unitOrWork, IConfiguration config)
         {
             _unitOfWork = unitOrWork;
+            _config = config;
         }
         public IActionResult Index()
         {
@@ -90,6 +93,84 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { errors = new[] { $"There was an error fetching the list of reimbursed benefits." }, success = false, result = "errorGet", detail = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdateBenefitReimbursement([FromBody] CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
+        {
+            try
+            {
+                if (benefitReimbursementData == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateNonRequiredFieldIntType("ReimbursedBenefitId", "Reimbursed Benefit Id", benefitReimbursementData.ReimbursedBenefitId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("BenefitId", "Benefit", benefitReimbursementData.BenefitId, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("Detail", "Detail", benefitReimbursementData.Detail, 150, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", benefitReimbursementData.ConsultantId, ModelState);
+                validateInputs.ValidateRequiredFieldNumberValue("AmountReimbursed", "Amount to Reimburse", benefitReimbursementData.AmountReimbursed, ModelState);
+                validateInputs.ValidateNoNegativeNumber("AmountReimbursed", "Amount to Reimburse", benefitReimbursementData.AmountReimbursed, ModelState);
+                validateInputs.ValidateNumberLessOrEqualThanZero("AmountReimbursed", "Amount to Reimburse", benefitReimbursementData.AmountReimbursed, ModelState);
+                validateInputs.ValidateDateValidFormat("DateToBeReimbursed", "Reimbursement Date", benefitReimbursementData.DateToBeReimbursed, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("DateToBeReimbursed", "Reimbursement Date", benefitReimbursementData.DateToBeReimbursed, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("BenefitCategoryId", "Benefit Category", benefitReimbursementData.BenefitCategoryId, ModelState);
+
+                if (ModelState.IsValid)
+                {
+                    var claimsIdentity = (ClaimsIdentity)User.Identity;
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
+                    var resultMessage = "";
+                    var userActionedBy = claim.Value;
+ 
+                    //IF IS NOT BENEFIT REIMBURSEMENT ID THEN CREATE IT
+                    if (benefitReimbursementData.ReimbursedBenefitId == null)
+                    {
+                        var res = await _unitOfWork.ConsultantReimbursedBenefit.CreateBenefitReimbursement(userActionedBy, timeZone, benefitReimbursementData);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            return BadRequest(new { MessageType = res.MessageType, error = res.Message, result = "ErrorSaving", detail = "The Benefit Reimbursement could be saved." });
+                        }
+                    }
+                    else
+                    {
+                        //IF IS CONSULTANT ID THEN UPDATE THE CONSULTANT
+                        //var res = await _unitOfWork.ConsultantDetail.UpdateUserConsultant(userActionedBy, benefitReimbursementData, isAuthForManageAdminUsers);
+                        //if (res.Success)
+                        //{
+                        //    resultMessage = res.Message;
+                        //}
+                        //else
+                        //{
+                        //    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Consultant could be updated." });
+                        //}
+                    }
+                    return Ok(new
+                    {
+                        success = true,
+                        message = resultMessage
+                    });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
             }
         }
 

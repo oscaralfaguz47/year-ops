@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
 using System.Data;
 
@@ -39,9 +40,45 @@ namespace OceansApp.DataAccess.Repository
 
             return (reimbursedBenefits, totalCount);
         }
-        public void Update(ConsultantReimbursedBenefit obj)
+
+        public async Task<MethodResponse> CreateBenefitReimbursement(string userIdCreatedBy, DateTime timeZone, 
+            CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
-            _db.CONSULTANT_REIMBURSED_BENEFITS.Update(obj);
+            try
+            {
+                var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                ConsultantReimbursedBenefit benefitReimbursementToCreate = new()
+                {
+                    BenefitId = (int)benefitReimbursementData.BenefitId,
+                    Detail = benefitReimbursementData.Detail,
+                    ConsultantId = (int)benefitReimbursementData.ConsultantId,
+                    AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed,
+                    DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed,
+                    BenefitPaid = false,
+                    CreationDate = timeZone,
+                    ConsultantIdCreatedBy = currentUser.ConsultantId,
+                    BenefitCategoryId = (int)benefitReimbursementData.BenefitCategoryId
+                };
+                var createdBenefitReimbursement = await _db.CONSULTANT_REIMBURSED_BENEFITS.AddAsync(benefitReimbursementToCreate);
+                await _db.SaveChangesAsync();
+
+                if (createdBenefitReimbursement.Entity.ConsultantId > 0)
+                {
+                    return new MethodResponse
+                    {
+                        Success = true,
+                        Message = $"The Benefit Reimbursement was created successfully."
+                    };
+                }
+                else
+                {
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the benefit reimburesement, please try again." };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
         }
 
     }

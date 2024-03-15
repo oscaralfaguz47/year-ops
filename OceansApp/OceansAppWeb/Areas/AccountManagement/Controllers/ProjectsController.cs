@@ -165,6 +165,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateRequiredAndStringLength("Name", "Project Name", projectData.Name, 150, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Description", "Project Description", projectData.Description, 300, ModelState);
                 validateInputs.ValidateDateValidFormat("StartDate", "Start Date", projectData.StartDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", projectData.StartDate, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsActive", "Is Active", projectData.IsActive, ModelState);
                 if (projectData.ProjectType == "E")
                 {
