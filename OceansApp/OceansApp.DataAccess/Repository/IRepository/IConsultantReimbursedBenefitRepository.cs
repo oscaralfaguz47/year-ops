@@ -12,5 +12,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, DateTime timeZone,
             CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData);
         Task<CreateUpdateConsultantBenefitReimbursementVM> GetBenefitReimbursementDataById(int benefitReimbursementId);
+        Task<MethodResponse> DeleteBenefitReimbursement(int benetifReimbursementId);
+        Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(int consultantId, int benefitId, int year,
+            decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore);
     }
 }

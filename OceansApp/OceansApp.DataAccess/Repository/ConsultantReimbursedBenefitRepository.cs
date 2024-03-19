@@ -94,6 +94,7 @@ namespace OceansApp.DataAccess.Repository
                 var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
 
                 existingBenefitReimbursement.BenefitId = (int)benefitReimbursementData.BenefitId;
+                existingBenefitReimbursement.BenefitCategoryId = (int)benefitReimbursementData.BenefitCategoryId;
                 existingBenefitReimbursement.Detail = benefitReimbursementData.Detail;
                 existingBenefitReimbursement.ConsultantId = (int)benefitReimbursementData.ConsultantId;
                 existingBenefitReimbursement.AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed;
@@ -126,6 +127,54 @@ namespace OceansApp.DataAccess.Repository
                 else
                 {
                     return null;
+                }
+
+            }
+        }
+
+        public async Task<MethodResponse> DeleteBenefitReimbursement(int benetifReimbursementId)
+        {
+            try
+            {
+                var benefitReimbursementToDelete = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benetifReimbursementId);
+                if (benefitReimbursementToDelete == null)
+                {
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The Benefit Reimbursement is no longer in the database, it was removed before your request." };
+                }
+                if (benefitReimbursementToDelete.BenefitPaid)
+                {
+                    return new MethodResponse { Success = false, Message = $"You can not delete a benefit reimbursement that has already been paid." };
+                }
+                _db.CONSULTANT_REIMBURSED_BENEFITS.Remove(benefitReimbursementToDelete);
+                await _db.SaveChangesAsync();
+                return new MethodResponse { Success = true, Message = $"The Benefit Reimbursement was deleted successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
+        }
+        public async Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(int consultantId, int benefitId, int year, 
+            decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId);
+            parameters.Add("@BenefitId", benefitId);
+            parameters.Add("@Year", year);
+            parameters.Add("@AmountToBeReimbursed", amountToBeReimbursed);
+            parameters.Add("@ReimbursedBenefitIdToIgnore", reimbursedBenefitIdToIgnore);
+
+            using (var multiResultSet = await connection.QueryMultipleAsync("SP_CONSULTANT_REIMBURSED_BENEFITS_GetConsumedAmountByConsultant", parameters, commandType: CommandType.StoredProcedure))
+            {
+                var consumedAmount = await multiResultSet.ReadFirstOrDefaultAsync<GetConsumedAmountVM>();
+                if (consumedAmount != null)
+                {
+                    return consumedAmount;
+                }
+                else
+                {
+                    return new GetConsumedAmountVM { ConsumedAmount = 0, Applicable = true };
                 }
 
             }

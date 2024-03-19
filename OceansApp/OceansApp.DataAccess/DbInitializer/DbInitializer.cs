@@ -107,7 +107,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 List<ConsultantBenefit> consultantBenefitList = new List<ConsultantBenefit>();
                 consultantBenefitList.Add(new ConsultantBenefit() { Name = "Balance Program", Amount = 750, BenefitPeriod = "Annual" });
-                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Bonusly", Amount = 0, BenefitPeriod = "Undefined" });
+                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Bonusly", Amount = 5000, BenefitPeriod = "Undefined" });
                 consultantBenefitList.Add(new ConsultantBenefit() { Name = "Oceans Challenge", Amount = 250, BenefitPeriod = "Annual" });
 
                 foreach (var benefit in consultantBenefitList)

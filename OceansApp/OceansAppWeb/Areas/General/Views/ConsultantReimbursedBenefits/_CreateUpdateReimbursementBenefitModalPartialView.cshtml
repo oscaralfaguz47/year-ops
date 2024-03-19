@@ -14,7 +14,6 @@
                 <h2 id="create-reimbursement-modal-title"></h2>
                 <form id="form-create-update">
                     <input type="hidden" name="reimburseBenefitId">
-                    <input type="hidden" name="consultantId">
                     <div>
                         <div id="consultants-search-cont">
                             <div id="search-input-cont" class="input-container">
@@ -59,13 +58,13 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6" id="hourlyClientRateEl">
-                            <label for="AmountReimbursed">Amount to Reimburse</label>
+                            <label for="AmountReimbursed">Amount to Reimburse <span class="required-asterisk">*</span></label>
                             <div class="input-container">
                                 <input placeholder="$" type="number" class="form-control" step="0.01" name="amountReimbursed" id="AmountReimbursed">
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="DateToBeReimbursed">Reimbursement Date</label> <div class="tooltip-container ">
+                            <label for="DateToBeReimbursed">Reimbursement Date <span class="required-asterisk">*</span> </label> <div class="tooltip-container ">
                                 <i class="bi bi-question-circle tooltip-target"></i>
                                 <div class="tooltip-content">
                                     <div class="tooltip-arrow"></div>

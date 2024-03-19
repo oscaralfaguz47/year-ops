@@ -9,6 +9,7 @@ namespace OceansApp.Models.ViewModels.ConsultantReimbursedBenefits
         public string? Detail { get; set; }
         public int? ConsultantId { get; set; }
         public string? ConsultantName { get; set; }
+        public string? ConsultantEmail { get; set; }
         public decimal? AmountReimbursed { get; set; }
         public DateTime? DateToBeReimbursed { get; set; }
         public int? BenefitCategoryId { get; set; }

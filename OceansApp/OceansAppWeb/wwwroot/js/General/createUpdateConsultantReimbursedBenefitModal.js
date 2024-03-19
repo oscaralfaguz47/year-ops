@@ -43,15 +43,17 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
             })
             .then(data => {
                 console.log(data);
-                createUpdateForm.find('[name="consultantId"]').val(data.benefitReimbursementData.consultantId);
+                createUpdateForm.find('[name="reimburseBenefitId"]').val(data.benefitReimbursementData.reimbursedBenefitId);
+                createUpdateForm.find('[name="consultantIdFromSearch"]').val(data.benefitReimbursementData.consultantId);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.benefitReimbursementData.consultantName);
                 createUpdateForm.find('[name="consultantEmailInput"]').val(data.benefitReimbursementData.consultantEmail);
                 createUpdateForm.find('[name="amountReimbursed"]').val(data.benefitReimbursementData.amountReimbursed);
-                createUpdateForm.find('[name="dateToBeReimbursed"]').val(data.benefitReimbursementData.dateToBeReimbursed);
+                let dateToBeReimbursedDateFormat = new Date(data.benefitReimbursementData.dateToBeReimbursed);
+                createUpdateForm.find('[name="dateToBeReimbursed"]').val(dateToBeReimbursedDateFormat.toISOString().split('T')[0]);
                 createUpdateForm.find('[name="detail"]').val(data.benefitReimbursementData.detail);
-                var benefitCategorySelect = createUpdateForm.find('[name="benefitCategoryId"]');
                 var benefitSelect = createUpdateForm.find('[name="idBenefit"]');
-                benefitSelect.innerHTML = '<option value="' + data.benefitReimbursementData.benefitId + '">' + data.benefitReimbursementData.benefitName + '</option>';
+                var benefitCategorySelect = createUpdateForm.find('[name="benefitCategoryId"]');
+                benefitSelect.html('<option value="' + data.benefitReimbursementData.benefitId + '">' + data.benefitReimbursementData.benefitName + '</option>');
                 benefitSelect.val(data.benefitReimbursementData.benefitId);
 
                 selectBenefit('BenefitSelect', data.benefitReimbursementData.benefitId, true, data.benefitReimbursementData.benefitCategoryId);
@@ -143,6 +145,7 @@ async function createUpdateBenefitReimbursement(modalId) {
             } else {
                 return response.json().then(errorData => {
                     if (errorData.messageType === "Validation Error") {
+                        console.log(errorData.errors);
                         displayToasterWarningArray(errorData.errors);
                         inicializeModalButtons(modalId);
                         throw new Error('Validation errors!');

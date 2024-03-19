@@ -127,6 +127,34 @@ namespace OceansAppWeb.Areas.General.Controllers
                     var resultMessage = "";
                     var userActionedBy = claim.Value;
 
+                    var dateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed;
+                    using var transac = await _unitOfWork.BeginTran();
+                    
+                    GetConsumedAmountVM currentConsumedAmount = await _unitOfWork.ConsultantReimbursedBenefit.GetConsumedAmountPerYearByConsultant((int)benefitReimbursementData.ConsultantId,
+                        (int)benefitReimbursementData.BenefitId, dateToBeReimbursed.Year, (decimal)benefitReimbursementData.AmountReimbursed, benefitReimbursementData.ReimbursedBenefitId);
+
+                    if (!currentConsumedAmount.Applicable && currentConsumedAmount.ConsumedAmount == 0)
+                    {
+                        return BadRequest(new
+                        {
+                            MessageType = "Validation Error",
+                            errors = new[] { $"You cannot apply an amount greater than ${currentConsumedAmount.ConfiguredBenefitAmount} for the selected benefit." }
+                        });
+                    }
+                    if (!currentConsumedAmount.Applicable && currentConsumedAmount.ConsumedAmount > 0)
+                    {
+                        var secondMessage = "";
+                        if (currentConsumedAmount.ConsumedAmount != currentConsumedAmount.ConfiguredBenefitAmount)
+                        {
+                            secondMessage = $"Try with an amount of ${(currentConsumedAmount.ConfiguredBenefitAmount - currentConsumedAmount.ConsumedAmount)} or less.";
+                        }
+                        return BadRequest(new
+                        {
+                            MessageType = "Validation Error",
+                            errors = new[] { $"The consultant consumed amount is: ${currentConsumedAmount.ConsumedAmount}. The maximun amount allowed is ${currentConsumedAmount.ConfiguredBenefitAmount} for the selected benefit. {secondMessage}" }
+                        });
+                    }
+
                     //IF IS NOT BENEFIT REIMBURSEMENT ID THEN CREATE IT
                     if (benefitReimbursementData.ReimbursedBenefitId == null)
                     {
@@ -193,6 +221,28 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteBenefitReimbursement(int benefitReimbursementId)
+        {
+            try
+            {
+                var res = await _unitOfWork.ConsultantReimbursedBenefit.DeleteBenefitReimbursement(benefitReimbursementId);
+                if (res.Success)
+                {
+                    return Ok(new { success = true, message = res.Message });
+                }
+                else
+                {
+                    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Benefit Reimbursement could not be deleted." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the benefit reimbursement could not be deleted.", result = "ErrorDeleting", detail = ex.Message });
             }
         }
 
