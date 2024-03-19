@@ -81,5 +81,55 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, DateTime timeZone, CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
+        {
+            try
+            {
+                var existingBenefitReimbursement = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benefitReimbursementData.ReimbursedBenefitId);
+                if (existingBenefitReimbursement == null)
+                {
+                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "The Benefit Reimbursement was not found." };
+                }
+
+                var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+
+                existingBenefitReimbursement.BenefitId = (int)benefitReimbursementData.BenefitId;
+                existingBenefitReimbursement.Detail = benefitReimbursementData.Detail;
+                existingBenefitReimbursement.ConsultantId = (int)benefitReimbursementData.ConsultantId;
+                existingBenefitReimbursement.AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed;
+                existingBenefitReimbursement.DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed;
+                existingBenefitReimbursement.LastUpdateDate = timeZone;
+                existingBenefitReimbursement.ConsultantIdLastUpdatedBy = currentUser.ConsultantId;
+
+                await _db.SaveChangesAsync();
+                return new MethodResponse { Success = true, Message = $"The Consultant reimbursement was updated successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+            }
+        }
+
+        public async Task<CreateUpdateConsultantBenefitReimbursementVM> GetBenefitReimbursementDataById(int benefitReimbursementId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ReimbursedBenefitId", benefitReimbursementId);
+
+            using (var multiResultSet = await connection.QueryMultipleAsync("SP_CONSULTANT_REIMBURSED_BENEFITS_GetReimbursementDataById", parameters, commandType: CommandType.StoredProcedure))
+            {
+                var benefitReimbursement = await multiResultSet.ReadFirstOrDefaultAsync<CreateUpdateConsultantBenefitReimbursementVM>();
+                if (benefitReimbursement != null)
+                {
+                    return benefitReimbursement;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+        }
+
     }
 }

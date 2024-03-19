@@ -126,7 +126,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                     var resultMessage = "";
                     var userActionedBy = claim.Value;
- 
+
                     //IF IS NOT BENEFIT REIMBURSEMENT ID THEN CREATE IT
                     if (benefitReimbursementData.ReimbursedBenefitId == null)
                     {
@@ -143,16 +143,16 @@ namespace OceansAppWeb.Areas.General.Controllers
                     }
                     else
                     {
-                        //IF IS CONSULTANT ID THEN UPDATE THE CONSULTANT
-                        //var res = await _unitOfWork.ConsultantDetail.UpdateUserConsultant(userActionedBy, benefitReimbursementData, isAuthForManageAdminUsers);
-                        //if (res.Success)
-                        //{
-                        //    resultMessage = res.Message;
-                        //}
-                        //else
-                        //{
-                        //    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Consultant could be updated." });
-                        //}
+                        //IF IS ID THEN UPDATE THE BENEFIT REIMBURSEMENT
+                        var res = await _unitOfWork.ConsultantReimbursedBenefit.UpdateBenefitReimbursement(userActionedBy, timeZone, benefitReimbursementData);
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Benefit Reimbursement could be updated." });
+                        }
                     }
                     return Ok(new
                     {
@@ -171,6 +171,28 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBenefitReimbursementDataById(int benefitReimbursementId)
+        {
+            try
+            {
+                var benefitReimbursementData = await _unitOfWork.ConsultantReimbursedBenefit.GetBenefitReimbursementDataById(benefitReimbursementId);
+                if (benefitReimbursementData == null)
+                {
+                    return BadRequest(new { error = "The Benefit Reimbursement is not longer in the database." });
+                }
+
+                return Ok(new
+                {
+                    benefitReimbursementData = benefitReimbursementData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
 

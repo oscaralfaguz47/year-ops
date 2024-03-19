@@ -19,13 +19,14 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
     inicializeModalButtons(modalId);
     resetForm('form-create-update')
     createUpdateForm.find('[name="reimburseBenefitId"]').val("");
+    createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     const benefitSelect = createUpdateForm.find('[name="idBenefit"]')[0];
     const benefitCategorySelect = createUpdateForm.find('[name="benefitCategoryId"]')[0];
     benefitSelect.innerHTML = '<option value="">-Select a benefit-</option>';
 
     if (id !== null) {
         modalTitle.textContent = "UPDATE REIMBURSEMENT";
-        var url = "/General/Consultants/GetConsultantDataById?consultantId=" + encodeURIComponent(id);
+        var url = "/General/ConsultantReimbursedBenefits/GetBenefitReimbursementDataById?benefitReimbursementId=" + encodeURIComponent(id);
         displaySpinner();
         fetch(url)
             .then(response => {
@@ -42,27 +43,19 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
             })
             .then(data => {
                 console.log(data);
-                createUpdateForm.find('[name="consultantId"]').val(data.consultantData.consultantId);
-                createUpdateForm.find('[name="name"]').val(data.consultantData.name);
-                createUpdateForm.find('[name="lastName"]').val(data.consultantData.lastName);
-                createUpdateForm.find('[name="userName"]').val(data.consultantData.email);
-                createUpdateForm.find('[name="userName"]').prop('disabled', true);
-                createUpdateForm.find('[name="personalEmail"]').val(data.consultantData.personalEmail);
-                createUpdateForm.find('[name="phoneNumber"]').val(data.consultantData.phoneNumber);
-                createUpdateForm.find('[name="phone2"]').val(data.consultantData.phone2);
+                createUpdateForm.find('[name="consultantId"]').val(data.benefitReimbursementData.consultantId);
+                createUpdateForm.find('[name="consultantNameInput"]').val(data.benefitReimbursementData.consultantName);
+                createUpdateForm.find('[name="consultantEmailInput"]').val(data.benefitReimbursementData.consultantEmail);
+                createUpdateForm.find('[name="amountReimbursed"]').val(data.benefitReimbursementData.amountReimbursed);
+                createUpdateForm.find('[name="dateToBeReimbursed"]').val(data.benefitReimbursementData.dateToBeReimbursed);
+                createUpdateForm.find('[name="detail"]').val(data.benefitReimbursementData.detail);
+                var benefitCategorySelect = createUpdateForm.find('[name="benefitCategoryId"]');
+                var benefitSelect = createUpdateForm.find('[name="idBenefit"]');
+                benefitSelect.innerHTML = '<option value="' + data.benefitReimbursementData.benefitId + '">' + data.benefitReimbursementData.benefitName + '</option>';
+                benefitSelect.val(data.benefitReimbursementData.benefitId);
 
-                data.consultantData.companyId !== null ? benefitCategorySelect.prop('disabled', false) : benefitCategorySelect.prop('disabled', true);
-
-                companySelect.val(data.consultantData.companyId);
-                selectCompany('CompanySelect', data.consultantData.companyId, true, data.consultantData.paymentMethodId);
-                paymentMethodSelect.val(data.consultantData.paymentMethodId);
-                selectCategory(data.consultantData.userCategoryName, data.consultantData.positions, true, data.consultantData.userRole);
-                createUpdateForm.find('[name="userCategoryName"]').val(data.consultantData.userCategoryName);
-                var countrySelect = createUpdateForm.find('[name="idCountry"]');
-                countrySelect.html('<option value="' + data.consultantData.idCountry + '">' + data.consultantData.countryName + '</option>');
-                createUpdateForm.find('[name="idCountry"]').val(data.consultantData.idCountry);
-                createUpdateForm.find('[name="address"]').val(data.consultantData.address);
-                createUpdateForm.find('[name="location"]').val(data.consultantData.location);
+                selectBenefit('BenefitSelect', data.benefitReimbursementData.benefitId, true, data.benefitReimbursementData.benefitCategoryId);
+                benefitCategorySelect.val(data.benefitReimbursementData.benefitCategoryId);
                 showModal(modalId);
             })
             .finally(() => {

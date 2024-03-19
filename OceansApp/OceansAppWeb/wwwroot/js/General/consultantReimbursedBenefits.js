@@ -49,7 +49,7 @@ async function getListOfResults(firstTime, filters) {
                 var menuBtn = `<i title="You are not able to edit or delete, it is already paid" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
                 if (!obj.benefitPaid) {
                     deleteBtn = `<li onclick="deleteReimbursement(${obj.reimbursedBenefitId})""><i class="bi bi-trash3 red-label"></i> Delete</li>`;
-                    editBtn = `<li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit Reimbursement</li>`;
+                    editBtn = `<li onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit Reimbursement</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.reimbursedBenefitId}', 'menuIcon-${obj.reimbursedBenefitId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.reimbursedBenefitId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.reimbursedBenefitId}">
                                <ul>
