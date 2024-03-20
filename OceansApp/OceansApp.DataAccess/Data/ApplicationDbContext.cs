@@ -271,6 +271,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssignedHistoryAction> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
+        public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
         public DbSet<NotificationType> NOTIFICATION_TYPES { get; set; }
         public DbSet<Notification> NOTIFICATIONS { get; set; }

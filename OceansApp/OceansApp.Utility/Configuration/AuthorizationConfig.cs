@@ -9,6 +9,7 @@ using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.Finances;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -43,6 +44,12 @@ namespace OceansApp.Utility.Configuration
             });
 
             //FINANCES
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesFinancesRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInFinances", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesFinancesRequirement()));
+            });
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToAccountsReceivable", policy =>
@@ -68,7 +75,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToEditVacationsAndRemoveExpensesAndCostsFromFinancialCalculator", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType, FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue));
             });
-
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageConsultantPaymentsDebitsAndCredits", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+            });
             //GENERAL
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
             services.AddAuthorization(options =>

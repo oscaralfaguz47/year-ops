@@ -437,6 +437,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" });
@@ -482,6 +483,26 @@ namespace OceansApp.DataAccess.DbInitializer
                             CompanyId = paymentMethod.CompanyId
                         };
                         _db.PAYMENT_METHODS.Add(pm);
+                    }
+                }
+                _db.SaveChanges();
+
+                //-----------------  TRANSACTION TYPES  --------------------------------
+
+                List<TransactionType> transactionTypesList = new List<TransactionType>();
+                transactionTypesList.Add(new TransactionType() { Name = "Debit" });
+                transactionTypesList.Add(new TransactionType() { Name = "Credit" });
+
+                foreach (var type in transactionTypesList)
+                {
+                    var existingType = _db.TRANSACTION_TYPES.FirstOrDefault(x => x.Name == type.Name);
+                    if (existingType == null)
+                    {
+                        TransactionType transactionType = new()
+                        {
+                            Name = type.Name
+                        };
+                        _db.TRANSACTION_TYPES.Add(transactionType);
                     }
                 }
                 _db.SaveChanges();
@@ -565,6 +586,15 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue,
                     Description = "Acceso a editar la opcion de vacaciones y remover gastos y costos para no ser tomados en cuenta en el calculo de la calculadora financiera.",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
+                });
+
+                var paymentDebitsAndCreditsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Payment Debits & Credits");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue,
+                    Description = "Have access to manage payment debits and credits of payments to consultants.",
+                    SystemSubAreaId = paymentDebitsAndCreditsSubAreaId.SystemSubAreaId
                 });
 
                 //GENERAL - CONSULTANTS

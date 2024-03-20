@@ -95,12 +95,16 @@
                                         {
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finances</a>
-                                                @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
-                                                {
-                                                    <div class="dropdown-menu">
+                                                <div class="dropdown-menu">
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
+                                                    {
                                                         <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Receivables</a>
-                                                    </div>
-                                                }
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue))
+                                                    {
+                                                        <a id="payment-debits-credits" class="nav-link text-dark" asp-area="Finances" asp-controller="ConsultantPaymentsDebitsCredits" asp-action="Index">Consultant Payments, Debits & Credits</a>
+                                                    }
+                                                </div>
                                             </li>
                                         }
                                         @if (User.IsAuthorizedForAdminCenter())
@@ -150,7 +154,7 @@
     {
         <footer>
             <div>
-                Warning: This platform constitutes proprietary software of Oceans Code Experts and its unauthorized use, copying, or distribution 
+                Warning: This platform constitutes proprietary software of Oceans Code Experts and its unauthorized use, copying, or distribution
                 for uses outside the operation of Oceans Code Experts is strictly prohibited. All rights reserved. Oceans Code Experts <span id="copyright-year"></span>.
             </div>
         </footer>

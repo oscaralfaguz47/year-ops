@@ -30,7 +30,8 @@ namespace OceansApp.Utility.ConstantData.Claims
         }
         public static bool IsAuthorizedForFinances(this ClaimsPrincipal user)
         {
-            return user.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue);
+            return user.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue) ||
+                user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue);
         }
 
         public static bool IsAuthorizedForAccountManagement(this ClaimsPrincipal user)
