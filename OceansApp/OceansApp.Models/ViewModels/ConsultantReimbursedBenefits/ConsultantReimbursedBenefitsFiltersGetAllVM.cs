@@ -4,6 +4,7 @@
     {
         public string? SearchText { get; set; }
         public int? BenefitId { get; set; }
+        public int? BenefitCategoryId { get; set; }
         public bool? BenefitPaid { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

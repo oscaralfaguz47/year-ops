@@ -1,6 +1,7 @@
 ﻿using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
+using System.Data;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
@@ -14,6 +15,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<CreateUpdateConsultantBenefitReimbursementVM> GetBenefitReimbursementDataById(int benefitReimbursementId);
         Task<MethodResponse> DeleteBenefitReimbursement(int benetifReimbursementId);
         Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(int consultantId, int benefitId, int year,
-            decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore);
+            decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore, IDbTransaction transaction = null);
     }
 }

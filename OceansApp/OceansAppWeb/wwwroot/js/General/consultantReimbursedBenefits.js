@@ -65,10 +65,11 @@ async function getListOfResults(firstTime, filters) {
                       ${obj.consultantName}
                   </td>
                   <td>${obj.benefitName}</td>
+                  <td>${obj.benefitCategoryName}</td>
+                  <td>${obj.detail === null ? "" : obj.detail}</td>
                   <td>$${obj.amountReimbursed}</td>
                   <td>${reimbursedformattedDate}</td>
                   <td>${obj.benefitPaid ? '<div><span class="green-label cel-status"><i class="bi bi-emoji-smile"></i> Paid</span>' : '<span class="red-label cel-status"><i class="bi bi-emoji-frown"></i> Unpaid</span>'}</div></td>
-                  <td>${obj.detail === null ? "" : obj.detail}</td>
                   <td>${obj.userCreatedBy}</td>
                   <td>${creationformattedDate}</td>
                   <td>${obj.userLastUpdatedBy === null ? "Not updated" : obj.userLastUpdatedBy}</td>
