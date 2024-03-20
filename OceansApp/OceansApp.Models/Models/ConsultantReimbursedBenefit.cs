@@ -21,7 +21,8 @@ namespace OceansApp.Models.Models
         [Required]
         public DateTime DateToBeReimbursed { get; set; }
         [Required]
-        public bool BenefitPaid { get; set; }
+        public int TransactionStatusId { get; set; }
+
 
         [Required]
         public DateTime CreationDate { get; set; }
@@ -31,6 +32,8 @@ namespace OceansApp.Models.Models
         public int? ConsultantIdLastUpdatedBy { get; set; }
         [Required]
         public int BenefitCategoryId { get; set; }
+        [ValidateNever]
+        public TransactionStatus TransactionStatus { get; set; }
 
 
         [ValidateNever]

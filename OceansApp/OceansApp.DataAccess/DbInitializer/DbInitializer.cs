@@ -507,6 +507,31 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
+                //-----------------  TRANSACTION STATUSES  --------------------------------
+
+                List<TransactionStatus> transactionStatusesList = new List<TransactionStatus>();
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Waiting to be approved" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Approved" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Rejected" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Approved and sent" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Paid" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Accounted - Accounts Payable" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Done" });
+
+                foreach (var status in transactionStatusesList)
+                {
+                    var existingStatus = _db.TRANSACTION_STATUSES.FirstOrDefault(x => x.Name == status.Name);
+                    if (existingStatus == null)
+                    {
+                        TransactionStatus transactionStatus = new()
+                        {
+                            Name = status.Name
+                        };
+                        _db.TRANSACTION_STATUSES.Add(transactionStatus);
+                    }
+                }
+                _db.SaveChanges();
+
                 //-----------------  CLAIMS  --------------------------------
 
                 List<ApplicationSystemClaim> systemClaimsList = new List<ApplicationSystemClaim>();

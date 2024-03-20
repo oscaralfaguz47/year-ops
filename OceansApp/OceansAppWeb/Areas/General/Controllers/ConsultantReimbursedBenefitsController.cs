@@ -222,23 +222,26 @@ namespace OceansAppWeb.Areas.General.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteBenefitReimbursement(int benefitReimbursementId)
+        public async Task<IActionResult> RejectBenefitReimbursement(int benefitReimbursementId)
         {
             try
             {
-                var res = await _unitOfWork.ConsultantReimbursedBenefit.DeleteBenefitReimbursement(benefitReimbursementId);
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
+                var res = await _unitOfWork.ConsultantReimbursedBenefit.RejectBenefitReimbursement(claim.Value, timeZone, benefitReimbursementId);
                 if (res.Success)
                 {
                     return Ok(new { success = true, message = res.Message });
                 }
                 else
                 {
-                    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Benefit Reimbursement could not be deleted." });
+                    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Benefit Reimbursement could not be rejected." });
                 }
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = $"There was an error in the server, the benefit reimbursement could not be deleted.", result = "ErrorDeleting", detail = ex.Message });
+                return BadRequest(new { error = $"There was an error in the server, the benefit reimbursement could not be rejected.", result = "ErrorDeleting", detail = ex.Message });
             }
         }
 

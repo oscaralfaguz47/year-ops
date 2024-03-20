@@ -53,7 +53,7 @@ namespace OceansApp.DataAccess.Data
 
             //CONSULTANT_DETAIL TABLE
             modelBuilder.Entity<ConsultantDetail>()
-                .HasKey(rq => new { rq.ConsultantId});
+                .HasKey(rq => new { rq.ConsultantId });
             modelBuilder.Entity<ConsultantDetail>()
                 .HasOne(cc => cc.ApplicationUser)
                 .WithMany()
@@ -233,6 +233,51 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(cc => cc.BenefitCategoryId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cc => cc.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(cc => cc.TransactionStatusId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CONSULTANT PAYMENTS DEBITS AND CREDITS
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasKey(c => new { c.ConsultantPaymentDebitsCreditsId });
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(cp => cp.AccountingAccountId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.CostCenter)
+                .WithMany()
+                .HasForeignKey(cp => cp.CostCenterId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(cp => cp.TransactionStatusId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.TransactionType)
+                .WithMany()
+                .HasForeignKey(cp => cp.TransactionTypeId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.ConsultantDetailCreatedBy)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantIdCreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .HasOne(cp => cp.ConsultantDetailUpdatedBy)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
@@ -263,6 +308,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantBenefit> CONSULTANT_BENEFITS { get; set; }
         public DbSet<ConsultantBenefitCompany> CONSULTANT_BENEFIT_COMPANIES { get; set; }
         public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }
+        public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
         public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
@@ -272,6 +318,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
+        public DbSet<TransactionStatus> TRANSACTION_STATUSES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
         public DbSet<NotificationType> NOTIFICATION_TYPES { get; set; }
         public DbSet<Notification> NOTIFICATIONS { get; set; }

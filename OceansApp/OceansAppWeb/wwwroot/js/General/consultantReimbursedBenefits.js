@@ -44,12 +44,23 @@ async function getListOfResults(firstTime, filters) {
                     ('0' + updateDate.getDate()).slice(-2) + '/' +
                     updateDate.getFullYear();
 
+                var statusLabel = ``;
+                if (obj.transactionStatusName === 'Rejected') {
+                    statusLabel = `<span class="cel-status red-label"><i class="bi bi-x"></i>${obj.transactionStatusName}</span>`;
+                } else if (obj.transactionStatusName === 'Approved') {
+                    statusLabel = `<span class="cel-status gray-lable"><i class="bi bi-check"></i>${obj.transactionStatusName}</span>`;
+                } else if (obj.transactionStatusName === 'Approved and sent') {
+                    statusLabel = `<span class="cel-status blueLight-lable"><i class="bi bi-check-all"></i>${obj.transactionStatusName}</span>`;
+                } else if (obj.transactionStatusName === 'Paid') {
+                    statusLabel = `<span class="cel-status green-label"><i class="bi bi-credit-card-2-back"></i>${obj.transactionStatusName}</span>`;
+                }
+
                 var deleteBtn = ``;
                 var editBtn = ``;
                 var menuBtn = `<i title="You are not able to edit or delete, it is already paid" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
-                if (!obj.benefitPaid) {
-                    deleteBtn = `<li onclick="deleteBenefitReimbursement(${obj.reimbursedBenefitId}, '${obj.consultantName}')""><i class="bi bi-trash3 red-label"></i> Delete</li>`;
-                    editBtn = `<li onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit Reimbursement</li>`;
+                if (obj.transactionStatusName !== "Rejected" && obj.transactionStatusName === "Approved") {
+                    deleteBtn = `<li onclick="rejectBenefitReimbursement(${obj.reimbursedBenefitId}, '${obj.consultantName}')""><i class="bi bi-trash3 red-label"></i> Reject</li>`;
+                    editBtn = `<li onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.reimbursedBenefitId}', 'menuIcon-${obj.reimbursedBenefitId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.reimbursedBenefitId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.reimbursedBenefitId}">
                                <ul>
@@ -69,7 +80,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.detail === null ? "" : obj.detail}</td>
                   <td>$${obj.amountReimbursed}</td>
                   <td>${reimbursedformattedDate}</td>
-                  <td>${obj.benefitPaid ? '<div><span class="green-label cel-status"><i class="bi bi-emoji-smile"></i> Paid</span>' : '<span class="red-label cel-status"><i class="bi bi-emoji-frown"></i> Unpaid</span>'}</div></td>
+                  <td>${statusLabel}</td>
                   <td>${obj.userCreatedBy}</td>
                   <td>${creationformattedDate}</td>
                   <td>${obj.userLastUpdatedBy === null ? "Not updated" : obj.userLastUpdatedBy}</td>
@@ -89,10 +100,10 @@ async function getListOfResults(firstTime, filters) {
 }
 
 // DELETE BENEFIT REIMBURSEMENT
-async function deleteBenefitReimbursement(benefitReimbursementId, consultantName) {
+async function rejectBenefitReimbursement(benefitReimbursementId, consultantName) {
     Swal.fire({
-        title: "Delete Reimbursement",
-        text: 'Are you sure you want to delete de Reimbursement for ' + consultantName + '?',
+        title: "Reject Reimbursement",
+        text: 'Are you sure you want to reject de Reimbursement for ' + consultantName + '?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -105,7 +116,7 @@ async function deleteBenefitReimbursement(benefitReimbursementId, consultantName
             var token = $('[name="__RequestVerificationToken"]').val();
             var formData = new FormData();
             formData.append('benefitReimbursementId', benefitReimbursementId);
-            fetch("/General/ConsultantReimbursedBenefits/DeleteBenefitReimbursement"
+            fetch("/General/ConsultantReimbursedBenefits/RejectBenefitReimbursement"
                 , {
                     method: 'POST',
                     headers: {

@@ -24,7 +24,7 @@ namespace OceansApp.DataAccess.Repository
 
             var parameters = new DynamicParameters();
             parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
-            parameters.Add("@BenefitPaid", filtersAndPagination.Filters.BenefitPaid, DbType.Boolean);
+            parameters.Add("@TransactionStatusId", filtersAndPagination.Filters.TransactionStatusId, DbType.Int32);
             parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
             parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
             parameters.Add("@BenefitId", filtersAndPagination.Filters.BenefitId, DbType.Int32);
@@ -60,6 +60,11 @@ namespace OceansApp.DataAccess.Repository
                         return lastVerificationBalance;
                     }
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Approved");
+                    if (transactionStatus == null)
+                    {
+                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction status 'Approved' was not found." };
+                    }
                     ConsultantReimbursedBenefit benefitReimbursementToCreate = new()
                     {
                         BenefitId = (int)benefitReimbursementData.BenefitId,
@@ -67,7 +72,7 @@ namespace OceansApp.DataAccess.Repository
                         ConsultantId = (int)benefitReimbursementData.ConsultantId,
                         AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed,
                         DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed,
-                        BenefitPaid = false,
+                        TransactionStatusId = transactionStatus.TransactionStatusId,
                         CreationDate = timeZone,
                         ConsultantIdCreatedBy = currentUser.ConsultantId,
                         BenefitCategoryId = (int)benefitReimbursementData.BenefitCategoryId
@@ -163,22 +168,27 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> DeleteBenefitReimbursement(int benetifReimbursementId)
+        public async Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, DateTime timeZone, int benetifReimbursementId)
         {
             try
             {
-                var benefitReimbursementToDelete = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benetifReimbursementId);
-                if (benefitReimbursementToDelete == null)
+                var benefitReimbursementToReject = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benetifReimbursementId);
+                if (benefitReimbursementToReject == null)
                 {
                     return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The Benefit Reimbursement is no longer in the database, it was removed before your request." };
                 }
-                if (benefitReimbursementToDelete.BenefitPaid)
+                var transactionRejectedStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                if (transactionRejectedStatus == null)
                 {
-                    return new MethodResponse { Success = false, Message = $"You can not delete a benefit reimbursement that has already been paid." };
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction 'Rejected' was not found in the database." };
                 }
-                _db.CONSULTANT_REIMBURSED_BENEFITS.Remove(benefitReimbursementToDelete);
+                var consultantUserActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                benefitReimbursementToReject.TransactionStatusId = transactionRejectedStatus.TransactionStatusId;
+                benefitReimbursementToReject.ConsultantIdLastUpdatedBy = consultantUserActionedBy.ConsultantId;
+                benefitReimbursementToReject.LastUpdateDate = timeZone;
+
                 await _db.SaveChangesAsync();
-                return new MethodResponse { Success = true, Message = $"The Benefit Reimbursement was deleted successfully." };
+                return new MethodResponse { Success = true, Message = $"The Benefit Reimbursement was rejected successfully." };
             }
             catch (Exception ex)
             {

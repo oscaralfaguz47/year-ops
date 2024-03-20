@@ -647,7 +647,7 @@ table {
 
 
 .global-table-container th, .global-table-container td {
-    padding: 2px 3px 2px 5px;
+    padding: 2px 5px 2px 5px;
     border: 1px solid #ccc;
     text-align: left;
     font-size: 13px;

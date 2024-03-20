@@ -13,7 +13,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, DateTime timeZone,
             CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData);
         Task<CreateUpdateConsultantBenefitReimbursementVM> GetBenefitReimbursementDataById(int benefitReimbursementId);
-        Task<MethodResponse> DeleteBenefitReimbursement(int benetifReimbursementId);
+        Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, DateTime timeZone, int benetifReimbursementId);
         Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(int consultantId, int benefitId, int year,
             decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore, IDbTransaction transaction = null);
     }

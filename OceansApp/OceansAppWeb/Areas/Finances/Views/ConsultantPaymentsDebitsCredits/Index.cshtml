@@ -1,1 +1,98 @@
-﻿<h1>DEBITS AND CREDITS</h1>
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+            <div class="search-header-container">
+                <div>
+                    <h2>CONSULTANT PAYMENTS - DEBITS & CREDITS</h2>
+                    <div class="input-container">
+                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                        <i class="bi bi-search placeholder-image"></i>
+                    </div>
+                    <div class="action-buttons">
+                        <a onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement',null)">Add New Debit or Credit</a>
+                    </div>
+                </div>
+                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
+            </div>
+            <div class="more-filters-cont">
+                <div id="more-filters">
+                    <div class="row">
+                    </div>
+                    <div class="principal-buttons">
+                        <a asp-area="Finances" asp-controller="ConsultantPaymentsDebitsCredits" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
+                    </div>
+                </div>
+            </div>
+            <partial name="_Pagination" />
+        </div>
+    </div>
+    <div class="global-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="orderByTableList('ConsultantName', 'ConsultantNameTableHeader', 'sortArrowConsultantName')" data-sort="ANY" name="ConsultantNameTableHeader" class="sortable-col">
+                        Consultant Name
+                        <span class="sort-arrow" id="sortArrowConsultantName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('BenefitName', 'BenefitNameTableHeader', 'sortArrowBenefitName')" data-sort="ANY" name="BenefitNameTableHeader" class="sortable-col">
+                        Benefit Name
+                        <span class="sort-arrow" id="sortArrowBenefitName"></span>
+                    </th>
+                    <th onclick="orderByTableList('BenefitCategoryName', 'BenefitCategoryNameTableHeader', 'sortArrowBenefitCategoryName')" data-sort="ANY" name="BenefitCategoryNameTableHeader" class="sortable-col">
+                        Category Name
+                        <span class="sort-arrow" id="sortArrowBenefitCategoryName"></span>
+                    </th>
+                    <th>Details</th>
+                    <th onclick="orderByTableList('AmountReimbursed', 'AmountReimbursedTableHeader', 'sortArrowAmountReimbursed')" data-sort="ANY" name="AmountReimbursedTableHeader" class="sortable-col">
+                        Reimbursed Amount
+                        <span class="sort-arrow" id="sortArrowAmountReimbursed"></span>
+                    </th>
+                    <th onclick="orderByTableList('DateToBeReimbursed', 'DateToBeReimbursedTableHeader', 'sortArrowDateToBeReimbursed')" data-sort="ANY" name="DateToBeReimbursedTableHeader" class="sortable-col">
+                        Reimbursement Date
+                        <span class="sort-arrow" id="sortArrowDateToBeReimbursed"></span>
+                    </th>
+                    <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
+                        Status
+                        <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
+                    </th>
+                    <th onclick="orderByTableList('UserCreatedBy', 'UserCreatedByTableHeader', 'sortArrowUserCreatedBy')" data-sort="ANY" name="UserCreatedByTableHeader" class="sortable-col">
+                        Created By
+                        <span class="sort-arrow" id="sortArrowUserCreatedBy"></span>
+                    </th>
+                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">
+                        Creation Date
+                        <span class="sort-arrow" id="sortArrowCreationDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('UserLastUpdatedBy', 'UserLastUpdatedByTableHeader', 'sortArrowUserLastUpdatedBy')" data-sort="ANY" name="UserLastUpdatedByTableHeader" class="sortable-col">
+                        Last Updated By
+                        <span class="sort-arrow" id="sortArrowUserLastUpdatedBy"></span>
+                    </th>
+                    <th onclick="orderByTableList('LastUpdatedDate', 'LastUpdatedDateTableHeader', 'sortArrowLastUpdatedDate')" data-sort="ANY" name="LastUpdatedDateTableHeader" class="sortable-col">
+                        Last Updated Date
+                        <span class="sort-arrow" id="sortArrowLastUpdatedDate"></span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="no-results"></div>
+    </div>
+</div>
+
+<!--CREATE UPDATE DEBIT OR CREDIT-->
+<div>
+    <partial name="_CreateUpdateDebitOrCreditModalPartialView" />
+</div>
+
+@section Scripts{
+<script src="~/js/Finances/consultantPaymentsDebitsCredits.js"></script>
+<script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/Shared/sharedComponents.js"></script>
+    }
