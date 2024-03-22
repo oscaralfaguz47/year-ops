@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/Finances/consultantPaymentsDebitsCredits.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -14,7 +15,7 @@
                         <i class="bi bi-search placeholder-image"></i>
                     </div>
                     <div class="action-buttons">
-                        <a onclick="displayUpdateDebitCreditModal('modal-update-create-debit-credit',null)">Add New Debit/Credit</a>
+                        <a onclick="displayUpdateCreateDebitCreditModal('modal-update-create-debit-credit',null)">Add New Debit/Credit</a>
                     </div>
                 </div>
                 <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
@@ -53,7 +54,7 @@
                         Quantity
                     </th>
                     <th onclick="orderByTableList('Amount', 'AmountTableHeader', 'sortArrowAmount')" data-sort="ANY" name="AmountTableHeader" class="sortable-col">
-                        Amount
+                        Unit Amount
                         <span class="sort-arrow" id="sortArrowAmount"></span>
                     </th>
                      <th>

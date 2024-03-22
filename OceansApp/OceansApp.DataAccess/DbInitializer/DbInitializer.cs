@@ -513,7 +513,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Waiting to be approved" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Approved" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Rejected" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Approved and sent" });
+                transactionStatusesList.Add(new TransactionStatus() { Name = "Sent to be paid" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Paid" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Accounted - Accounts Payable" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Done" });

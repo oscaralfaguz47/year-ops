@@ -1,4 +1,5 @@
-﻿async function getConsultantsBySearchText(searchText) {
+﻿
+async function getConsultantsBySearchText(searchText) {
     var url = "/General/ConsultantDetails/GetConsultantsBySearchText?searchText=" + encodeURIComponent(searchText);
     try {
         let response = await fetch(url);
@@ -18,7 +19,6 @@
         return null;
     }
 }
-
 async function getAllActiveConsultantsBySearchText(searchText, userCategoryName) {
     var url = "/General/ConsultantDetails/GetAllActiveConsultantsBySearchText?searchText=" + encodeURIComponent(searchText);
     if (userCategoryName !== null) {

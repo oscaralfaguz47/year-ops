@@ -1,0 +1,9 @@
+﻿.cel-status {
+    display: flex;
+    align-items: center;
+}
+
+    .cel-status i {
+        font-size: 20px;
+        margin-right: 3px;
+    }

@@ -14,53 +14,6 @@
 
 var createUpdateForm = $('#form-add-update-consultant');
 
-function hideConsultantResults() {
-    let resultsContainer = document.getElementById('consultant-search-results');
-    resultsContainer.style.display = 'none';
-}
-
-async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, consultantNameInput, consultantEmailInput) {
-    if (searchTextInput.value.length > 100) {
-        searchTextInput.value = searchTextInput.value.slice(0, 100);
-    } else {
-        let resultsContainer = document.getElementById('consultant-search-results');
-        resultsContainer.innerHTML = '';
-        resultsContainer.innerHTML = `<div class="text-center"><div class="spinner-border" role="status">
-        <span class="sr-only" ></span>
-                </div></div>`;
-        let data = await getConsultantsBySearchText(searchTextInput.value);
-        resultsContainer.innerHTML = '';
-        resultsContainer.style.display = 'block';
-        if (data.consultants.length > 0) {
-            let resultList = document.createElement('ul');
-            for (let item of data.consultants) {
-                let listItem = document.createElement('li');
-                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span class="green-label">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
-                listItem.onclick = function () {
-                    document.getElementById(hiddenInputForId).value = item.consultantId;
-                    document.getElementById(consultantNameInput).value = item.consultantName;
-                    document.getElementById(consultantEmailInput).value = item.email;
-                    hideConsultantResults();
-                };
-                resultList.appendChild(listItem);
-            }
-            resultsContainer.appendChild(resultList);
-        } else {
-            resultsContainer.innerHTML = '<div class="red-label text-center">No results found</div>';
-        }
-        document.addEventListener('click', function (event) {
-            let isClickInside = resultsContainer.contains(event.target);
-            if (!isClickInside) {
-                hideConsultantResults();
-            }
-        });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === "Escape") {
-                hideConsultantResults();
-            }
-        });
-    }
-}
 function validateRatesInputs() {
     var clientRateMethod = document.querySelector('input[name="client-rate-model"]:checked').value;
     var consultantRateMethod = document.querySelector('input[name="consultant-rate-model"]:checked').value;
@@ -464,3 +417,101 @@ async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
     }
 }
 
+
+
+let selectedIndexA = -1;
+
+async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, consultantNameInput, consultantEmailInput, userCategoryName) {
+    if (searchTextInput.value.length > 100) {
+        searchTextInput.value = searchTextInput.value.slice(0, 100);
+    } else {
+        let resultsContainer = document.getElementById('consultant-search-results');
+        resultsContainer.innerHTML = '';
+        resultsContainer.innerHTML = `<div class="text-center"><div class="spinner-border" role="status">
+        <span class="sr-only"></span>
+        </div></div>`;
+        let data = await getConsultantsBySearchText(searchTextInput.value);
+        resultsContainer.innerHTML = '';
+        resultsContainer.style.display = 'block';
+        if (data.consultants.length > 0) {
+            let resultList = document.createElement('ul');
+            resultList.id = 'search-result-list'; // Assign an ID to the results list container
+            for (let item of data.consultants) {
+                let listItem = document.createElement('li');
+                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span class="green-label">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
+                listItem.onclick = function () {
+                    document.getElementById(hiddenInputForId).value = item.consultantId;
+                    document.getElementById(consultantNameInput).value = item.consultantName;
+                    document.getElementById(consultantEmailInput).value = item.email;
+                    hideConsultantResultsD();
+                };
+                resultList.appendChild(listItem);
+            }
+            resultsContainer.appendChild(resultList);
+        } else {
+            resultsContainer.innerHTML = '<div class="red-label text-center">No results found</div>';
+        }
+    }
+    document.addEventListener('keydown', keyboardNavigationC);
+}
+
+// Function to update the active item in the results list
+function updateActiveItemA() {
+    const listItems = document.querySelectorAll('#search-result-list li');
+    // Removes the active class from all elements.
+    listItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    // Adds the active class to the selected element.
+    if (selectedIndexA >= 0 && selectedIndexA < listItems.length) {
+        listItems[selectedIndexA].classList.add('active');
+        listItems[selectedIndexA].scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+}
+
+function keyboardNavigationC(event) {
+    const resultsContainer = document.getElementById('consultant-search-results');
+    const listItems = document.querySelectorAll('#search-result-list li');
+    if (resultsContainer.style.display !== 'none') {
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                if (selectedIndexA < listItems.length - 1) {
+                    selectedIndexA++;
+                    updateActiveItemA();
+                }
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                if (selectedIndexA > 0) {
+                    selectedIndexA--;
+                    updateActiveItemA();
+                }
+                break;
+            case 'Enter':
+                event.preventDefault();
+                if (selectedIndexA >= 0 && selectedIndexA < listItems.length) {
+                    listItems[selectedIndexA].click();
+                }
+                break;
+        }
+    }
+    if (event.key === 'Escape') {
+        hideConsultantResultsD();
+    }
+}
+
+function hideConsultantResultsD() {
+    let resultsContainer = document.getElementById('consultant-search-results');
+    resultsContainer.style.display = 'none';
+    selectedIndexA = -1; // Reset the selected index
+    document.getElementById('search-consultant-input').value = null;
+}
+
+// Add a listener for clicks outside the results container to close the results when clicked outside.
+document.addEventListener('click', function (event) {
+    const searchContainer = document.getElementById('consultants-search-cont');
+    if (!searchContainer.contains(event.target)) {
+        hideConsultantResultsD();
+    }
+});

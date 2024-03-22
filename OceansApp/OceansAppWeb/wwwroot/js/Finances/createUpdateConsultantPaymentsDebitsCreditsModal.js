@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 //CREATE / UPDATE DEBIR OR CREDIT
-async function displayUpdateDebitCreditModal(modalId, id) {
+async function displayUpdateCreateDebitCreditModal(modalId, id) {
     var modalTitle = document.getElementById('create-debit-credit-modal-title');
     modalTitle.textContent = "ADD NEW DEBIT/CREDIT";
     var createUpdateForm = $('#form-create-update');
@@ -31,7 +31,7 @@ async function displayUpdateDebitCreditModal(modalId, id) {
 
     if (id !== null) {
         modalTitle.textContent = "UPDATE DEBIT/CREDIT";
-        var url = "/Finances/ConsultantPaymentsDebitsCredits/GetDebitCreditDataById?benefitReimbursementId=" + encodeURIComponent(id);
+        var url = "/Finances/ConsultantPaymentsDebitsCredits/GetDebitCreditDataById?consultantPaymentDebitsCreditsId=" + encodeURIComponent(id);
         displaySpinner();
         fetch(url)
             .then(response => {
@@ -47,15 +47,21 @@ async function displayUpdateDebitCreditModal(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 createUpdateForm.find('[name="consultantPaymentDebitsCreditsId"]').val(data.debitCreditData.consultantPaymentDebitsCreditsId);
                 createUpdateForm.find('[name="consultantIdFromSearch"]').val(data.debitCreditData.consultantId);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.debitCreditData.consultantName);
                 createUpdateForm.find('[name="consultantEmailInput"]').val(data.debitCreditData.consultantEmail);
+                selectedCompany = data.debitCreditData.consultantCompanyId;
+                selectConsultant(data.debitCreditData.consultantCompanyId, true, data.debitCreditData.costCenterId, data.debitCreditData.accountingAccountId);
+                createUpdateForm.find('[name="quantity"]').val(data.debitCreditData.quantity);
                 createUpdateForm.find('[name="amount"]').val(data.debitCreditData.amount);
+                updateTotalAmount();
                 let actionDateFormat = new Date(data.debitCreditData.actionDateWithinFortnight);
                 createUpdateForm.find('[name="actionDateWithinFortnight"]').val(actionDateFormat.toISOString().split('T')[0]);
                 createUpdateForm.find('[name="detail"]').val(data.debitCreditData.detail);
+
+                var radioButton = document.querySelector(`input[name="transaction-type"][value="${data.debitCreditData.transactionTypeName}"]`);
+                if (radioButton) radioButton.checked = true;
 
                 showModal(modalId);
             })
@@ -72,10 +78,10 @@ async function displayUpdateDebitCreditModal(modalId, id) {
 }
 
 //SELECT CONSULTANT AND FILL COSTS CENTERS LIST
-function selectConsultant(selectedValue, isEditing, selectedValueCostCenter) {
-    fillCostsCentersForSelect(selectedValue, isEditing, selectedValueCostCenter);
+function selectConsultant(selectedValue, isEditing, selectedValueCostCenter, selectedValueAccountingAccount) {
+    fillCostsCentersForSelect(selectedValue, isEditing, selectedValueCostCenter, selectedValueAccountingAccount);
 }
-function fillCostsCentersForSelect(selectedValue, isEditing, selectedValueCostCenter) {
+function fillCostsCentersForSelect(selectedValue, isEditing, selectedValueCostCenter, selectedValueAccountingAccount) {
     var selectElement = costCenterSelect;
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     displaySpinner();
@@ -87,9 +93,9 @@ function fillCostsCentersForSelect(selectedValue, isEditing, selectedValueCostCe
             data.costsCenters.forEach(obj => {
                 var costCenterCode = '';
                 var selectValue = null;
-                obj.acceptData === 'S' ? costCenterCode = obj.costCenterCode : costCenterCode = '';
+                obj.acceptData === 'S' ? costCenterCode = '(' + obj.costCenterCode + ')' : costCenterCode = '';
                 obj.acceptData === 'S' ? selectValue = obj.costCenterId : selectValue = null;
-                var option = new Option(costCenterCode + '  ' + obj.description, selectValue);
+                var option = new Option(obj.description + ' ' + costCenterCode, selectValue);
                 if (obj.acceptData === 'N') {
                     option.className = 'option-no-accept-data';
                     option.disabled = true;
@@ -98,6 +104,7 @@ function fillCostsCentersForSelect(selectedValue, isEditing, selectedValueCostCe
             });
             if (isEditing) {
                 selectElement.value = selectedValueCostCenter;
+                selectCostCenter('CostCenterSelect', selectedValueCostCenter, true, selectedValueAccountingAccount)
             }
             hideSpinner();
         })
@@ -132,9 +139,9 @@ function fillAccountingAccountsForSelect(selectedValue, isEditing, selectedValue
             data.accountingAccounts.forEach(obj => {
                 var accountCode = '';
                 var selectValue = null;
-                obj.acceptData === 'S' ? accountCode = obj.accountingAccountCode : accountCode = '';
+                obj.acceptData === 'S' ? accountCode = '(' + obj.accountingAccountCode + ')' : accountCode = '';
                 obj.acceptData === 'S' ? selectValue = obj.accountingAccountId : selectValue = null;
-                var option = new Option(accountCode + '  ' + obj.description, selectValue);
+                var option = new Option(obj.description + ' ' + accountCode, selectValue);
                 if (obj.acceptData === 'N') {
                     option.className = 'option-no-accept-data';
                     option.disabled = true;
@@ -158,20 +165,26 @@ async function createUpdateDebitCredit(modalId) {
     var createUpdateForm = $('#form-create-update');
     var consultantPaymentDebitsCreditsIdData = createUpdateForm.find('[name="consultantPaymentDebitsCreditsId"]').val() || null;
     var consultantIdData = createUpdateForm.find('[name="consultantIdFromSearch"]').val() || null;
-
-
+    var costCenterIdData = createUpdateForm.find('[name="costCenterId"]').val() || null;
+    var accountingAccountIdData = createUpdateForm.find('[name="AccountingAccountId"]').val() || null;
+    var quantityData = createUpdateForm.find('[name="quantity"]').val() || null;
     var amountData = createUpdateForm.find('[name="amount"]').val() || null;
-    var actionData = createUpdateForm.find('[name="actionDateWithinFortnight"]').val() || null;
+    var actionDateData = createUpdateForm.find('[name="actionDateWithinFortnight"]').val() || null;
     var detailData = createUpdateForm.find('[name="detail"]').val() || null;
+    var transactionTypeData = document.querySelector('.transaction-type-rg input[type="radio"]:checked')?.value || null;
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
     var data = {
         ConsultantPaymentDebitsCreditsId: consultantPaymentDebitsCreditsIdData,
         Detail: detailData,
+        CostCenterId: costCenterIdData,
         ConsultantId: consultantIdData,
+        AccountingAccountId: accountingAccountIdData,
+        Quantity: quantityData,
         Amount: amountData,
-        DateToBeReimbursed: actionData
+        ActionDateWithinFortnight: actionDateData,
+        TransactionTypeName: transactionTypeData
     };
     console.log(data);
     fetch('/Finances/ConsultantPaymentsDebitsCredits/CreateUpdateDebitCredit', {

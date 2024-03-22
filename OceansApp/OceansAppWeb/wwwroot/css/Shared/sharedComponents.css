@@ -223,5 +223,11 @@
     color: #2aa7ff;
 }
 .gray-lable {
-    color: ##9ba8b8;
+    color: #9ba8b8;
+}
+.paid-label {
+    color: #076862;
+}
+.orange-label {
+    color: #F19209;
 }
