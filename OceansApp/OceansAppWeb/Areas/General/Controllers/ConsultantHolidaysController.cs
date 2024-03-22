@@ -9,6 +9,7 @@ namespace OceansAppWeb.Areas.General.Controllers
 {
     [Area("General")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToHolidaysPage")]
     public class ConsultantHolidaysController : Controller
     {

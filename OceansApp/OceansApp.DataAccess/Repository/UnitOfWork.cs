@@ -33,6 +33,7 @@ namespace OceansApp.DataAccess.Repository
             Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _config, _userManager);
+            ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db);
             ConsultantPosition = new ConsultantPositionRepository(_db);
             ConsultantBenefit = new ConsultantBenefitRepository(_db);
             ConsultantBenefitCategory = new ConsultantBenefitCategoryRepository(_db);
@@ -42,6 +43,7 @@ namespace OceansApp.DataAccess.Repository
             ConsultantQualityLevel = new ConsultantQualityLevelRepository(_db);
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
+            CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
@@ -77,6 +79,7 @@ namespace OceansApp.DataAccess.Repository
         public ICountryRepository Country { get; set; }
         public IConsultantHolidayRepository ConsultantHoliday { get; set; }
         public IConsultantDetailRepository ConsultantDetail { get; set; }
+        public IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; set; }
         public IConsultantPositionRepository ConsultantPosition { get; set; }
         public IConsultantBenefitRepository ConsultantBenefit { get; set; }
         public IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; set; }
@@ -85,6 +88,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantQualityLevelRepository ConsultantQualityLevel { get; set; }
         public IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; set; }
         public IConsultantSeniorityRepository ConsultantSeniority { get; set; }
+        public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
         public IPaymentMethodRepository PaymentMethod { get; set; }
         public IProjectRepository Project { get; set; }
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }

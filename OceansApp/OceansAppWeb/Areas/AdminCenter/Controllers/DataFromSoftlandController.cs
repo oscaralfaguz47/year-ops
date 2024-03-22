@@ -13,6 +13,7 @@ namespace OceansApp.Areas.Admin.Controllers
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToUpdateDataFromSoftlandSection")]
     public class DataFromSoftlandController : Controller
     {
@@ -60,7 +61,8 @@ namespace OceansApp.Areas.Admin.Controllers
                             && validateCorrectJsonStructureProviderCategory(obj.DataToSave)
                             && validateCorrectJsonStructureCountry(obj.DataToSave)
                             && validateCorrectJsonStructureProvider(obj.DataToSave)
-                            && validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
+                            && validateCorrectJsonStructureDocumentsCC(obj.DataToSave)
+                            && validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
                         {
                             var updatedSections = "";
 
@@ -427,6 +429,47 @@ namespace OceansApp.Areas.Admin.Controllers
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
 
+                            //INSERT COST CENTER ACCOUNTING ACCOUNT
+                            if (jsonFromInput.costsCenterAccounts != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.costsCenterAccounts)
+                                {
+                                    var costCenterCode = "";
+                                    var accountingAccountCode = "";
+                                    var companyId = "";
+                                    if (jsonMaster.CENTRO_COSTO != null)
+                                    {
+                                        costCenterCode = jsonMaster.CENTRO_COSTO;
+                                        accountingAccountCode = jsonMaster.CUENTA_CONTABLE;
+                                        companyId = jsonMaster.CompanyId;
+                                    }
+                                    var costCenter = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenterCode
+                                    && x.CompanyId == companyId);
+                                    var accountingAccount = _unitOfWork.AccountingAccounts.GetFirstOrDefault(x => x.AccountingAccountCode == accountingAccountCode
+                                    && x.CompanyId == companyId);
+
+                                    CostCenterAccountingAccount costCenterAccount = new()
+                                    {
+                                        CostCenterId = costCenter.CostCenterId,
+                                        AccountingAccountId = accountingAccount.AccountingAccountId,
+                                        Status = jsonMaster.ESTADO,
+                                        CreateDate = jsonMaster.CreateDate,
+                                        CompanyId = companyId
+                                    };
+                                    if (_unitOfWork.CostCenterAccountingAccount.AddCostCenterAccountingAccount(costCenterAccount))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                        _unitOfWork.Save();
+                                    }
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Costs Centes Accounting Accounts /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
                             if (updatedSections != "")
                             {
                                 //INSERT DATE
@@ -476,6 +519,10 @@ namespace OceansApp.Areas.Admin.Controllers
                             if (!validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
                             {
                                 ModelState.AddModelError("dataToSave", "The JSON structure is not correct for CC Documents");
+                            }
+                            if (!validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Costs Centers Accounting Accounts");
                             }
 
                             return View("Index");
@@ -844,6 +891,40 @@ namespace OceansApp.Areas.Admin.Controllers
                         if (document.DocumentNumber == null || document.DocumentType == null || document.DocumentDate.ToString() == null
                             || document.DocumentAmount == null || document.BalanceAmount == null
                             || document.Canceled == null || document.CreationDate.ToString() == null || document.CompanyId == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public bool validateCorrectJsonStructureCostCenterAccount(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.costsCenterAccounts != null)
+                {
+                    foreach (var result in json.costsCenterAccounts)
+                    {
+                        CostCenterAccountingAccount costCenterAccount = new()
+                        {
+                            Status = result.ESTADO,
+                            CreateDate = result.CreateDate,
+                            CompanyId = result.CompanyId
+                        };
+                        if (costCenterAccount.Status == null
+                            || costCenterAccount.CompanyId == null)
                         {
                             return false;
                         }

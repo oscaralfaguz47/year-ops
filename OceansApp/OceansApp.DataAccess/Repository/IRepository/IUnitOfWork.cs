@@ -23,11 +23,13 @@
         IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; }
         IConsultantDetailRepository ConsultantDetail { get; }
         IConsultantHolidayRepository ConsultantHoliday { get; }
+        IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; }
         IConsultantPositionRepository ConsultantPosition { get; }
         IConsultantRoleRepository ConsultantRole { get; }
         IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IConsultantSeniorityRepository ConsultantSeniority { get; }
+        ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; } 
         IPaymentMethodRepository PaymentMethod { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }

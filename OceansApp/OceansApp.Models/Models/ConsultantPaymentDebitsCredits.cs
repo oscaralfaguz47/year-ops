@@ -17,6 +17,8 @@ namespace OceansApp.Models.Models
         [MaxLength(150)]
         public string? Detail { get; set; }
         [Required]
+        public decimal Quantity { get; set; }
+        [Required]
         public decimal Amount { get; set; }
         [Required]
         public DateTime ActionDateWithinFortnight { get; set; }

@@ -11,6 +11,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToFinancialCalculatorConfig")]
     public class CalculatorGlobalConfigurationController : Controller
     {

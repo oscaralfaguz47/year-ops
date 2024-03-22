@@ -51,6 +51,20 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(rq => rq.ConsultantSeniorityId)
                 .IsRequired();
 
+            //COST CENTER ACCOUNTING ACCOUNT
+            modelBuilder.Entity<CostCenterAccountingAccount>()
+                .HasKey(ca => new { ca.CostCenterAccountingAccountId });
+            modelBuilder.Entity<CostCenterAccountingAccount>()
+                .HasOne(cc => cc.CostCenter)
+                .WithMany()
+                .HasForeignKey(cc => cc.CostCenterId)
+                .IsRequired();
+            modelBuilder.Entity<CostCenterAccountingAccount>()
+                .HasOne(cc => cc.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(cc => cc.AccountingAccountId)
+                .IsRequired();
+
             //CONSULTANT_DETAIL TABLE
             modelBuilder.Entity<ConsultantDetail>()
                 .HasKey(rq => new { rq.ConsultantId });
@@ -280,7 +294,6 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
-        public DbSet<CostCenter> COST_CENTER { get; set; }
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
         public DbSet<DataUpdateDate> DATA_UPDATE_DATES { get; set; }
         public DbSet<ApplicationUser> AspNetUsers { get; set; }
@@ -295,6 +308,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<Client> CLIENT { get; set; }
         public DbSet<ProviderCategory> PROVIDER_CATEGORY { get; set; }
         public DbSet<Provider> PROVIDER { get; set; }
+        public DbSet<CostCenter> COST_CENTER { get; set; }
+        public DbSet<CostCenterAccountingAccount> COSTS_CENTERS_ACCOUNTING_ACCOUNTS { get; set; }
         public DbSet<Country> COUNTRY { get; set; }
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }

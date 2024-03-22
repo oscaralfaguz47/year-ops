@@ -7,5 +7,6 @@ namespace OceansApp.Models.ViewModels.Consultants
         public string ConsultantName { get; set; }
         public string Email { get; set; }
         public string UserCategoryName { get; set; }
+        public string CompanyId { get; set; }
     }
 }

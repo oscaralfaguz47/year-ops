@@ -9,6 +9,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     public class PaymentMethodsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

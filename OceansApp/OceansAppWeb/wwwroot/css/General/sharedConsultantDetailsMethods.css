@@ -28,3 +28,8 @@
 #search-consultant-input{
     padding-left: 30px !important;
 }
+.active {
+    background-color: var(--clr-blueLight) !important;
+    color: #fff;
+}
+

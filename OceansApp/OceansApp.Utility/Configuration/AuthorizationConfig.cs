@@ -80,6 +80,16 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToManageConsultantPaymentsDebitsAndCredits", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToCostsCentersList", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAccountingAccountsList", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+            });
             //GENERAL
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
             services.AddAuthorization(options =>

@@ -13,6 +13,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
     [Area("AccountManagement")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     public class ClientsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

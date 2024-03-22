@@ -15,6 +15,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToUserAdministration")]
     public class ApplicationUserController : Controller
     {

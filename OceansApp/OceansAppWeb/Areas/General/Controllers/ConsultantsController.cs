@@ -17,6 +17,7 @@ namespace OceansAppWeb.Areas.General.Controllers
 {
     [Area("General")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToViewNoSensitiveInfoForAllConsultants")]
     public class ConsultantsController : Controller
     {

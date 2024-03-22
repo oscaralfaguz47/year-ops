@@ -9,6 +9,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     public class ConsultantBenefitsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

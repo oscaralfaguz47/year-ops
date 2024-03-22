@@ -13,6 +13,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToAccountsReceivable")]
     public class DocumentsCCController : Controller
     {

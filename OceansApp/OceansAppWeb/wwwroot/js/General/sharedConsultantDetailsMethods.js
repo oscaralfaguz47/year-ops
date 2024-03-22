@@ -43,6 +43,9 @@ async function getAllActiveConsultantsBySearchText(searchText, userCategoryName)
     }
 }
 
+
+let selectedIndex = -1;
+
 async function searchAllActiveConsultantsBySearchText(searchTextInput, hiddenInputForId, consultantNameInput, consultantEmailInput, userCategoryName) {
     if (searchTextInput.value.length > 100) {
         searchTextInput.value = searchTextInput.value.slice(0, 100);
@@ -50,13 +53,14 @@ async function searchAllActiveConsultantsBySearchText(searchTextInput, hiddenInp
         let resultsContainer = document.getElementById('consultant-search-results');
         resultsContainer.innerHTML = '';
         resultsContainer.innerHTML = `<div class="text-center"><div class="spinner-border" role="status">
-        <span class="sr-only" ></span>
-                </div></div>`;
+        <span class="sr-only"></span>
+        </div></div>`;
         let data = await getAllActiveConsultantsBySearchText(searchTextInput.value, userCategoryName);
         resultsContainer.innerHTML = '';
         resultsContainer.style.display = 'block';
         if (data.consultants.length > 0) {
             let resultList = document.createElement('ul');
+            resultList.id = 'search-result-list'; // Assign an ID to the results list container
             for (let item of data.consultants) {
                 let listItem = document.createElement('li');
                 listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span class="green-label">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
@@ -72,21 +76,67 @@ async function searchAllActiveConsultantsBySearchText(searchTextInput, hiddenInp
         } else {
             resultsContainer.innerHTML = '<div class="red-label text-center">No results found</div>';
         }
-        document.addEventListener('click', function (event) {
-            let isClickInside = resultsContainer.contains(event.target);
-            if (!isClickInside) {
-                hideConsultantResults();
-            }
-        });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === "Escape") {
-                hideConsultantResults();
-            }
-        });
+    }
+    document.addEventListener('keydown', keyboardNavigation);
+}
+
+// Function to update the active item in the results list
+function updateActiveItem() {
+    const listItems = document.querySelectorAll('#search-result-list li');
+    // Removes the active class from all elements.
+    listItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    // Adds the active class to the selected element.
+    if (selectedIndex >= 0 && selectedIndex < listItems.length) {
+        listItems[selectedIndex].classList.add('active');
+        listItems[selectedIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 }
+
+function keyboardNavigation(event) {
+    const resultsContainer = document.getElementById('consultant-search-results');
+    const listItems = document.querySelectorAll('#search-result-list li');
+    if (resultsContainer.style.display !== 'none') {
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                if (selectedIndex < listItems.length - 1) {
+                    selectedIndex++;
+                    updateActiveItem();
+                }
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                if (selectedIndex > 0) {
+                    selectedIndex--;
+                    updateActiveItem();
+                }
+                break;
+            case 'Enter':
+                event.preventDefault();
+                if (selectedIndex >= 0 && selectedIndex < listItems.length) {
+                    listItems[selectedIndex].click();
+                }
+                break;
+        }
+    }
+    if (event.key === 'Escape') {
+        hideConsultantResults();
+    }
+}
+
 function hideConsultantResults() {
     let resultsContainer = document.getElementById('consultant-search-results');
     resultsContainer.style.display = 'none';
+    selectedIndex = -1; // Reset the selected index
+    document.getElementById('search-consultant-input').value = null;
 }
 
+// Add a listener for clicks outside the results container to close the results when clicked outside.
+document.addEventListener('click', function (event) {
+    const searchContainer = document.getElementById('consultants-search-cont');
+    if (!searchContainer.contains(event.target)) {
+        hideConsultantResults();
+    }
+});

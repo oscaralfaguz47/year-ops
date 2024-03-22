@@ -12,6 +12,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
     [Area("AccountManagement")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToProjectsPage")]
     public class ProjectsController : Controller
     {

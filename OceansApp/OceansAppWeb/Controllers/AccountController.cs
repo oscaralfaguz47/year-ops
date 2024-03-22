@@ -69,6 +69,7 @@ namespace OceansAppWeb.Account.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(ProfileVM model)
         {
@@ -233,6 +234,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EnableAuthenticator(TwoFactorAuthenticationVM model)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -293,6 +295,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticatorVM model)
         {
             model.ReturnUrl = model.ReturnUrl ?? Url.Content("~/");
