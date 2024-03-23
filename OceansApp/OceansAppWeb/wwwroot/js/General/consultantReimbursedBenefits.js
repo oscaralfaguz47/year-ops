@@ -61,17 +61,17 @@ async function getListOfResults(firstTime, filters) {
                     statusLabel = `<span class="cel-status green-label"><i class="bi bi-check-circle-fill"></i>${obj.transactionStatusName}</span>`;
                 }
 
-                var deleteBtn = ``;
+                var rejectBtn = ``;
                 var editBtn = ``;
-                var menuBtn = `<i title="You are not able to edit or delete, it is already paid" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
+                var menuBtn = `<i title="You are not able to edit it, it is status ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
                 if (obj.transactionStatusName !== "Rejected" && obj.transactionStatusName === "Approved") {
-                    deleteBtn = `<li onclick="rejectBenefitReimbursement(${obj.reimbursedBenefitId}, '${obj.consultantName}')""><i class="bi bi-trash3 red-label"></i> Reject</li>`;
+                    rejectBtn = `<li onclick="rejectBenefitReimbursement(${obj.reimbursedBenefitId}, '${obj.consultantName}')""><i class="red-label bi bi-x-lg"></i> Reject</li>`;
                     editBtn = `<li onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.reimbursedBenefitId}', 'menuIcon-${obj.reimbursedBenefitId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.reimbursedBenefitId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.reimbursedBenefitId}">
                                <ul>
                                  ${editBtn}
-                                 ${deleteBtn}
+                                 ${rejectBtn}
                                </ul>
                               </div>`;
                 }
