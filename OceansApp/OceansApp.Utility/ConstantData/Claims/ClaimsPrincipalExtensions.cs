@@ -4,6 +4,7 @@ using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using System.Security.Claims;
+using OceansApp.Utility.ConstantData.Claims.Recruiting;
 
 namespace OceansApp.Utility.ConstantData.Claims
 {
@@ -32,6 +33,10 @@ namespace OceansApp.Utility.ConstantData.Claims
         {
             return user.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue) ||
                 user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue);
+        }
+        public static bool IsAuthorizedForRecruiting(this ClaimsPrincipal user)
+        {
+            return user.HasClaim(c => c.Type == InterviewsClaimsCD.Manage_Interviews_Page_ClaimType && c.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue);
         }
 
         public static bool IsAuthorizedForAccountManagement(this ClaimsPrincipal user)

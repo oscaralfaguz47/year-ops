@@ -9,6 +9,7 @@ using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
+using OceansApp.Utility.ConstantData.Claims.Recruiting;
 
 namespace OceansApp.DataAccess.DbInitializer
 {
@@ -416,6 +417,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
                 systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
                 systemAreasList.Add(new SystemArea() { Name = "Account Management" });
+                systemAreasList.Add(new SystemArea() { Name = "Recruiting" });
 
                 foreach (var area in systemAreasList)
                 {
@@ -447,6 +449,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Clients" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Projects" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 8, Name = "Interviews" });
 
                 foreach (var subArea in systemSubAreasList)
                 {
@@ -687,6 +690,16 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = ProjectsClaimsCD.Projects_Page_ClaimValue,
                     Description = "Acces to view the Projects list",
                     SystemSubAreaId = projectsSubAreaId.SystemSubAreaId
+                });
+
+                //PROJECT MANAGEMENT - PROJECTS
+                var interviewsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Interviews");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = InterviewsClaimsCD.Manage_Interviews_Page_ClaimType,
+                    ClaimValue = InterviewsClaimsCD.Manage_Interviews_ClaimValue,
+                    Description = "Acces to manage Interviews",
+                    SystemSubAreaId = interviewsSubAreaId.SystemSubAreaId
                 });
 
                 foreach (var claim in systemClaimsList)

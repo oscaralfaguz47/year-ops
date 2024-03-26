@@ -7,7 +7,7 @@ async function getListOfResults(firstTime, filters) {
     displaySpinner();
     var formData = firstTime ? {} : recolectDataFromForm(filters);
     var queryString = JSON.stringify(formData);
-    var url = "/General/ConsultantReimbursedBenefits/GetConsultantReimbursedBenefitsList?model=" + encodeURIComponent(queryString);
+    var url = "/Recruiting/Interviews/GetInterviewsList?model=" + encodeURIComponent(queryString);
 
     fetch(url)
         .then(response => {
@@ -21,18 +21,17 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
-            console.log(data);
             var tbody = $(".global-table-container table tbody");
             var tableRows = $(".global-table-container table");
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tableRows.css("display", "block");
             tbody.empty();
-            data.reimbursedBenefitsList.forEach(function (obj) {
-                var reimbursedDate = new Date(obj.dateToBeReimbursed);
-                var reimbursedformattedDate = ('0' + (reimbursedDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + reimbursedDate.getDate()).slice(-2) + '/' +
-                    reimbursedDate.getFullYear();
+            data.interviewsList.forEach(function (obj) {
+                var actionDate = new Date(obj.date);
+                var actionformattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + actionDate.getDate()).slice(-2) + '/' +
+                    actionDate.getFullYear();
 
                 var creationDate = new Date(obj.creationDate);
                 var creationformattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
@@ -63,12 +62,12 @@ async function getListOfResults(firstTime, filters) {
 
                 var rejectBtn = ``;
                 var editBtn = ``;
-                var menuBtn = `<i title="You are not able to edit it, it is status ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
-                if (obj.transactionStatusName !== "Rejected" && obj.transactionStatusName === "Approved") {
-                    rejectBtn = `<li onclick="rejectBenefitReimbursement(${obj.reimbursedBenefitId}, '${obj.consultantName}')""><i class="red-label bi bi-x-lg"></i> Reject</li>`;
-                    editBtn = `<li onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
-                    menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.reimbursedBenefitId}', 'menuIcon-${obj.reimbursedBenefitId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.reimbursedBenefitId}"></i>
-                              <div class="menu-options" id="menuOptions-${obj.reimbursedBenefitId}">
+                var menuBtn = `<i title="You are not able to edit, it already has status: ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
+                if (obj.transactionStatusName !== "Rejected" && (obj.transactionStatusName === "Approved" || obj.transactionStatusName === "Waiting to be approved")) {
+                    rejectBtn = `<li onclick="rejectDebitCredit(${obj.consultantPaymentDebitsCreditsId}, '${obj.consultantName}', '${obj.transactionTypeName}')""><i class="red-label bi bi-x-lg"></i> Reject</li>`;
+                    editBtn = `<li onclick="displayUpdateCreateInterviewModal('modal-update-create-interview', ${obj.interviewId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
+                    menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.interviewId}', 'menuIcon-${obj.interviewId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.interviewId}"></i>
+                              <div class="menu-options" id="menuOptions-${obj.interviewId}">
                                <ul>
                                  ${editBtn}
                                  ${rejectBtn}
@@ -81,21 +80,19 @@ async function getListOfResults(firstTime, filters) {
                       ${menuBtn}
                       ${obj.consultantName}
                   </td>
-                  <td>${obj.benefitName}</td>
-                  <td>${obj.benefitCategoryName}</td>
-                  <td>${obj.detail === null ? "" : obj.detail}</td>
-                  <td>$${obj.amountReimbursed}</td>
-                  <td>${reimbursedformattedDate}</td>
+                  <td>${obj.durationMinutes}</td>
+                  <td>$${((1 / 160) * obj.durationMinutes)}</td>
+                  <td>${actionformattedDate}</td>
                   <td>${statusLabel}</td>
-                  <td>${obj.userCreatedBy}</td>
+                  <td>${obj.createdBy}</td>
                   <td>${creationformattedDate}</td>
-                  <td>${obj.userLastUpdatedBy === null ? "Not updated" : obj.userLastUpdatedBy}</td>
+                  <td>${obj.lastUpdatedBy === null ? "Not updated" : obj.lastUpdatedBy}</td>
                   <td>${obj.lastUpdateDate === null ? "Not updated" : updateformattedDate}</td>
               </tr>`;
                 tbody.append(row);
             });
 
-            if (data.reimbursedBenefitsList.length === 0) {
+            if (data.interviewsList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
             };
@@ -105,24 +102,24 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 
-// DELETE BENEFIT REIMBURSEMENT
-async function rejectBenefitReimbursement(benefitReimbursementId, consultantName) {
+// REJECT DEBIT CREDIT
+async function rejectInterview(interviewId, consultantName) {
     Swal.fire({
-        title: "Reject Reimbursement",
-        text: 'Are you sure you want to reject the Reimbursement for ' + consultantName + '?',
+        title: "Reject Interview",
+        text: 'Are you sure you want to reject the interview for ' + consultantName + '?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, Delete!',
+        confirmButtonText: 'Yes, Reject!',
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
             displaySpinner();
             var token = $('[name="__RequestVerificationToken"]').val();
             var formData = new FormData();
-            formData.append('benefitReimbursementId', benefitReimbursementId);
-            fetch("/General/ConsultantReimbursedBenefits/RejectBenefitReimbursement"
+            formData.append('interviewId', interviewId);
+            fetch("/Recruiting/Interviews/RejectInterview"
                 , {
                     method: 'POST',
                     headers: {
@@ -158,7 +155,6 @@ function recolectDataFromForm(filters) {
         var filtersData = {
             SearchText: searchText
         };
-        console.log(filtersData);
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
         var orderByData = {

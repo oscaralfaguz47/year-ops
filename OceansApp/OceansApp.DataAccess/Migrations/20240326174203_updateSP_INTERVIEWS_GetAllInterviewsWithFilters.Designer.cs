@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,10 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240326174203_updateSP_INTERVIEWS_GetAllInterviewsWithFilters")]
+    partial class updateSP_INTERVIEWS_GetAllInterviewsWithFilters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1262,9 +1264,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime?>("LastUpdateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TransactionStatusId")
-                        .HasColumnType("int");
-
                     b.HasKey("InterviewId");
 
                     b.HasIndex("ConsultantId");
@@ -1272,8 +1271,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantIdCreatedBy");
 
                     b.HasIndex("ConsultantIdLastUpdatedBy");
-
-                    b.HasIndex("TransactionStatusId");
 
                     b.ToTable("INTERVIEWS");
                 });
@@ -2403,19 +2400,11 @@ namespace OceansApp.DataAccess.Migrations
                         .WithMany()
                         .HasForeignKey("ConsultantIdLastUpdatedBy");
 
-                    b.HasOne("OceansApp.Models.Models.TransactionStatus", "TransactionStatus")
-                        .WithMany()
-                        .HasForeignKey("TransactionStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("ConsultantDetail");
 
                     b.Navigation("ConsultantDetailCreatedBy");
 
                     b.Navigation("ConsultantDetailUpdatedBy");
-
-                    b.Navigation("TransactionStatus");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>

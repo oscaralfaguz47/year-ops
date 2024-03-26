@@ -5,6 +5,7 @@
 @using OceansApp.Utility.ConstantData.Claims.Finances
 @using OceansApp.Utility.ConstantData.Claims.General
 @using OceansApp.Utility.ConstantData.Claims.AccountManagement
+@using OceansApp.Utility.ConstantData.Claims.Recruiting
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -103,6 +104,18 @@
                                                     @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue))
                                                     {
                                                         <a id="payment-debits-credits" class="nav-link text-dark" asp-area="Finances" asp-controller="ConsultantPaymentsDebitsCredits" asp-action="Index">Consultant Payments, Debits & Credits</a>
+                                                    }
+                                                </div>
+                                            </li>
+                                        }
+                                        @if (User.IsAuthorizedForRecruiting())
+                                        {
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-person-hearts"></i> Recruiting</a>
+                                                <div class="dropdown-menu">
+                                                    @if (User.HasClaim(c => c.Type == InterviewsClaimsCD.Manage_Interviews_Page_ClaimType && c.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue))
+                                                    {
+                                                        <a id="interviews" class="nav-link text-dark" asp-area="Recruiting" asp-controller="Interviews" asp-action="Index">Interviews</a>
                                                     }
                                                 </div>
                                             </li>

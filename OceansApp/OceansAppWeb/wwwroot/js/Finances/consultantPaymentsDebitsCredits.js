@@ -111,7 +111,7 @@ async function getListOfResults(firstTime, filters) {
 async function rejectDebitCredit(paymentDebitCreditId, consultantName, transactionType) {
     Swal.fire({
         title: "Reject " + transactionType,
-        text: 'Are you sure you want to reject de ' + transactionType + ' for ' + consultantName + '?',
+        text: 'Are you sure you want to reject the ' + transactionType + ' for ' + consultantName + '?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',

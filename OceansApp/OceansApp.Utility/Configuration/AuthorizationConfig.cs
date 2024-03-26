@@ -10,6 +10,8 @@ using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.Finances;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.Recruiting;
+using OceansApp.Utility.ConstantData.Claims.Recruiting;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -149,6 +151,19 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(ProjectsClaimsCD.Projects_Page_ClaimType, ProjectsClaimsCD.Projects_Page_ClaimValue));
             });
 
+            //RECRUITING
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesRecruitingRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInRecruiting", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesRecruitingRequirement()));
+            });
+            //INTERVIEWS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageInterviews", policy =>
+                    policy.RequireClaim(InterviewsClaimsCD.Manage_Interviews_Page_ClaimType, InterviewsClaimsCD.Manage_Interviews_ClaimValue));
+            });
 
             //COMBINED POLICIES
             services.AddAuthorization(options =>

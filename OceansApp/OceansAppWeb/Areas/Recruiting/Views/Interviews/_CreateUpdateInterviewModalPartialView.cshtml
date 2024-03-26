@@ -1,0 +1,88 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/General/sharedConsultantDetailsMethods.css" />
+<link rel="stylesheet" href="~/css/Recruiting/Interviews/createUpdateInterviewsModal.css" />
+
+
+<!--MODAL UPDATE CREATE REIMBURSEMENT-->
+<div id="modal-update-create-interview" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-interview-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="interviewId">
+                    <div>
+                        <div id="consultants-search-cont">
+                            <div id="search-input-cont" class="input-container">
+                                <input id="search-consultant-input" autocomplete="off" oninput="searchAllActiveConsultantsBySearchText(this, 'consultantIdFromSearch', 'consultantNameInput', 'consultantEmailInput', null)" type="text" placeholder="Search consultant" class="form-control">
+                                <i class="bi bi-search placeholder-image"></i>
+                                <div id="consultant-search-results" class="search-results"></div>
+                            </div>
+                            <input type="hidden" name="consultantIdFromSearch" id="consultantIdFromSearch">
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label>Consultant Name <span class="required-asterisk">*</span></label>
+                                <div class="input-container">
+                                    <input disabled type="text" class="form-control" name="consultantNameInput" id="consultantNameInput">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label>Consultant Email <span class="required-asterisk">*</span></label>
+                                <div class="input-container">
+                                    <input disabled type="text" class="form-control" id="consultantEmailInput" name="consultantEmailInput">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="DurationMinutesInput">Duration in Minutes <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input placeholder="0.00" oninput="updateHours()" type="number" class="form-control" step="0.01" name="durationMinutes" id="DurationMinutesInput">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="DurationHours">Duration in Hours <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input placeholder="0.00" oninput="updateMinutes()" type="number" class="form-control" step="0.01" name="durationHours" id="DurationHoursInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="ActionDate">Action Date <span class="required-asterisk">*</span> </label> <div class="tooltip-container ">
+                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <div class="tooltip-content">
+                                    <div class="tooltip-arrow"></div>
+                                    Date corresponding to the fortnight during which the interview will be paid.
+                                </div>
+                            </div>
+                            <div class="">
+                                <input type="date" class="form-control" name="date" id="ActionDate">
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-interview')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateInterview('modal-update-create-interview')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
+<script src="~/js/Recruiting/Interviews/createUpdateInterviewsModal.js"></script>
+<script src="~/js/Shared/inputValidations.js"></script>

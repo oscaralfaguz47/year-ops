@@ -29,7 +29,8 @@
         IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IConsultantSeniorityRepository ConsultantSeniority { get; }
-        ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; } 
+        ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; }
+        IInterviewRepository Interview { get; }
         IPaymentMethodRepository PaymentMethod { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }

@@ -127,6 +127,31 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ConsultantAndPosition>()
                 .HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
 
+            // INTERVIEWS
+            modelBuilder.Entity<Interview>()
+                .HasKey(c => new { c.InterviewId });
+            modelBuilder.Entity<Interview>()
+                .HasOne(cp => cp.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantId)
+                .IsRequired();
+            modelBuilder.Entity<Interview>()
+                .HasOne(cp => cp.ConsultantDetailCreatedBy)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantIdCreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Interview>()
+                .HasOne(cp => cp.ConsultantDetailUpdatedBy)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
+            modelBuilder.Entity<Interview>()
+                .HasOne(cc => cc.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(cc => cc.TransactionStatusId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
             //PROJECTS
             modelBuilder.Entity<Project>()
                 .HasKey(p => new { p.ProjectId });
@@ -325,6 +350,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
+        public DbSet<Interview> INTERVIEWS { get; set; }
         public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }

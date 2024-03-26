@@ -44,6 +44,7 @@ namespace OceansApp.DataAccess.Repository
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
+            Interview = new InterviewRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
@@ -89,6 +90,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; set; }
         public IConsultantSeniorityRepository ConsultantSeniority { get; set; }
         public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
+        public IInterviewRepository Interview { get; set; }
         public IPaymentMethodRepository PaymentMethod { get; set; }
         public IProjectRepository Project { get; set; }
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
