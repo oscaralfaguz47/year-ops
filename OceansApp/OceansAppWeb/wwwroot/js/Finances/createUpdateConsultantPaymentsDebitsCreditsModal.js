@@ -186,7 +186,6 @@ async function createUpdateDebitCredit(modalId) {
         ActionDateWithinFortnight: actionDateData,
         TransactionTypeName: transactionTypeData
     };
-    console.log(data);
     fetch('/Finances/ConsultantPaymentsDebitsCredits/CreateUpdateDebitCredit', {
         method: 'POST',
         headers: {
@@ -201,7 +200,6 @@ async function createUpdateDebitCredit(modalId) {
             } else {
                 return response.json().then(errorData => {
                     if (errorData.messageType === "Validation Error") {
-                        console.log(errorData.errors);
                         displayToasterWarningArray(errorData.errors);
                         inicializeModalButtons(modalId);
                         throw new Error('Validation errors!');

@@ -40,7 +40,6 @@ async function displayUpdateCreateInterviewModal(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data.interviewData);
                 createUpdateForm.find('[name="interviewId"]').val(data.interviewData.interviewId);
                 createUpdateForm.find('[name="consultantIdFromSearch"]').val(data.interviewData.consultantId);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.interviewData.consultantName);
@@ -77,7 +76,6 @@ async function createUpdateInterview(modalId) {
         DurationMinutes: durationMinutesData,
         Date: actionDateData
     };
-    console.log(data);
     fetch('/Recruiting/Interviews/CreateUpdateInterview', {
         method: 'POST',
         headers: {
@@ -92,7 +90,6 @@ async function createUpdateInterview(modalId) {
             } else {
                 return response.json().then(errorData => {
                     if (errorData.messageType === "Validation Error") {
-                        console.log(errorData.errors);
                         displayToasterWarningArray(errorData.errors);
                         inicializeModalButtons(modalId);
                         throw new Error('Validation errors!');

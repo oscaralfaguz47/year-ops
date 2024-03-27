@@ -37,7 +37,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 createUpdateForm.find('[name="consultantId"]').val(data.consultantData.consultantId);
                 createUpdateForm.find('[name="name"]').val(data.consultantData.name);
                 createUpdateForm.find('[name="lastName"]').val(data.consultantData.lastName);
@@ -118,7 +117,6 @@ async function createUpdateConsultant(modalId) {
         UserRole: userRoleData,
         Positions: positionsData
     };
-    console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {
         method: 'POST',
         headers: {
@@ -148,7 +146,6 @@ async function createUpdateConsultant(modalId) {
             document.getElementById("projects-assigned-section").style.display = "block";
             inicializeModalButtons(modalId);
             displayToasterSuccess(data.message);
-            console.log(data.consultantId);
             if (data.consultantId > 0) {
                 document.getElementById("saved-consultant-message").style.display = "block";
                 createUpdateForm.find('[name="consultantId"]').val(data.consultantId);
@@ -199,8 +196,6 @@ function selectCategory(selectedValue, selectedOptions, isEditingConsultant, use
                     var checkbox = document.getElementById('positionId-' + item.consultantPositionId);
                     if (checkbox) {
                         checkbox.checked = true;
-                    } else {
-                        console.log("The checkbox element was not found:", item.consultantPositionId);
                     }
                 });
             }

@@ -82,7 +82,6 @@ async function displayAddUpdateConsultant(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.consultantAssignation.consultantName);
                 document.getElementById('consultantEmailInput').value = data.consultantAssignation.email;
                 createUpdateForm.find('[name="positionDetail"]').val(data.consultantAssignation.positionDetail);

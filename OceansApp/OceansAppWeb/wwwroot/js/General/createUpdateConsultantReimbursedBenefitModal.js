@@ -42,7 +42,6 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 createUpdateForm.find('[name="reimburseBenefitId"]').val(data.benefitReimbursementData.reimbursedBenefitId);
                 createUpdateForm.find('[name="consultantIdFromSearch"]').val(data.benefitReimbursementData.consultantId);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.benefitReimbursementData.consultantName);
@@ -130,7 +129,6 @@ async function createUpdateBenefitReimbursement(modalId) {
         DateToBeReimbursed: dateToBeReimbursedData,
         BenefitCategoryId: benefitCategoryIdData
     };
-    console.log(data);
     fetch('/General/ConsultantReimbursedBenefits/CreateUpdateBenefitReimbursement', {
         method: 'POST',
         headers: {
@@ -145,7 +143,6 @@ async function createUpdateBenefitReimbursement(modalId) {
             } else {
                 return response.json().then(errorData => {
                     if (errorData.messageType === "Validation Error") {
-                        console.log(errorData.errors);
                         displayToasterWarningArray(errorData.errors);
                         inicializeModalButtons(modalId);
                         throw new Error('Validation errors!');
