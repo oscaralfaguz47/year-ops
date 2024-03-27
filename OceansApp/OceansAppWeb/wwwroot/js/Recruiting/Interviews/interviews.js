@@ -64,7 +64,7 @@ async function getListOfResults(firstTime, filters) {
                 var editBtn = ``;
                 var menuBtn = `<i title="You are not able to edit, it already has status: ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
                 if (obj.transactionStatusName !== "Rejected" && (obj.transactionStatusName === "Approved" || obj.transactionStatusName === "Waiting to be approved")) {
-                    rejectBtn = `<li onclick="rejectDebitCredit(${obj.consultantPaymentDebitsCreditsId}, '${obj.consultantName}', '${obj.transactionTypeName}')""><i class="red-label bi bi-x-lg"></i> Reject</li>`;
+                    rejectBtn = `<li onclick="rejectInterview(${obj.interviewId}, '${obj.consultantName}', '${obj.transactionTypeName}')""><i class="red-label bi bi-x-lg"></i> Reject</li>`;
                     editBtn = `<li onclick="displayUpdateCreateInterviewModal('modal-update-create-interview', ${obj.interviewId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.interviewId}', 'menuIcon-${obj.interviewId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.interviewId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.interviewId}">
@@ -80,8 +80,8 @@ async function getListOfResults(firstTime, filters) {
                       ${menuBtn}
                       ${obj.consultantName}
                   </td>
-                  <td>${obj.durationMinutes}</td>
-                  <td>$${((1 / 160) * obj.durationMinutes)}</td>
+                  <td>${obj.durationMinutes.toFixed(2)} minutes</td>
+                  <td>${((1 / 60) * obj.durationMinutes).toFixed(2)} hours</td>
                   <td>${actionformattedDate}</td>
                   <td>${statusLabel}</td>
                   <td>${obj.createdBy}</td>

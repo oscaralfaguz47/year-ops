@@ -210,7 +210,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
 
                 return Ok(new
                 {
-                    debitCreditData = interviewData
+                    interviewData = interviewData
                 });
             }
             catch (Exception ex)

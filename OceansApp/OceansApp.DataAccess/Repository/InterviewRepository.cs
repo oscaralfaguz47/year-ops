@@ -48,11 +48,17 @@ namespace OceansApp.DataAccess.Repository
                 try
                 {
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Approved");
+                    if (transactionStatus == null)
+                    {
+                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction status 'Approved' was not found." };
+                    }
                     Interview interviewToCreate = new()
                     {
                         ConsultantId = (int)interviewData.ConsultantId,
                         DurationMinutes = (decimal)interviewData.DurationMinutes,
                         Date = (DateTime)interviewData.Date,
+                        TransactionStatusId = transactionStatus.TransactionStatusId,
                         CreationDate = timeZone,
                         ConsultantIdCreatedBy = currentUser.ConsultantId
                     };

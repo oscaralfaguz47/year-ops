@@ -40,15 +40,15 @@ async function displayUpdateCreateInterviewModal(modalId, id) {
                 }
             })
             .then(data => {
+                console.log(data.interviewData);
                 createUpdateForm.find('[name="interviewId"]').val(data.interviewData.interviewId);
                 createUpdateForm.find('[name="consultantIdFromSearch"]').val(data.interviewData.consultantId);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.interviewData.consultantName);
                 createUpdateForm.find('[name="consultantEmailInput"]').val(data.interviewData.consultantEmail);
                 createUpdateForm.find('[name="durationMinutes"]').val(data.interviewData.durationMinutes);
-                updateTotalAmount();
+                updateHours();
                 let actionDateFormat = new Date(data.interviewData.date);
                 createUpdateForm.find('[name="date"]').val(actionDateFormat.toISOString().split('T')[0]);
-
                 showModal(modalId);
             })
             .finally(() => {
@@ -140,8 +140,6 @@ function updateMinutes() {
 
     durationMinutesInput.value = total.toFixed(2);
 }
-
-
 
 updateHours();
 updateMinutes();
