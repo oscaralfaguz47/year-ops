@@ -7,7 +7,7 @@ using OceansApp.Utility.Configuration.AuthorizationRequirement.AccountManagement
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
-using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
+using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.Finances;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.Recruiting;
@@ -126,8 +126,8 @@ namespace OceansApp.Utility.Configuration
             //HOURS TRACKING TOOL
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("AccessToTrackingTool", policy =>
-                    policy.RequireClaim(HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType, HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue));
+                options.AddPolicy("BasicAccessToTheTrackingTool", policy =>
+                    policy.RequireClaim(TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType, TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue));
             });
 
             //PROJECT MANAGEMENT

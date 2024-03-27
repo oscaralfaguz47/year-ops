@@ -7,7 +7,7 @@ using OceansApp.DataAccess.Data;
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
-using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
+using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
 
@@ -413,7 +413,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
                 systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
                 systemAreasList.Add(new SystemArea() { Name = "General" });
-                systemAreasList.Add(new SystemArea() { Name = "Reporte de Horas" });
+                systemAreasList.Add(new SystemArea() { Name = "Tracking Tool" });
                 systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
                 systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
                 systemAreasList.Add(new SystemArea() { Name = "Account Management" });
@@ -444,7 +444,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Herramienta de seguimiento de horas" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Reporting My Time" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Clients" });
@@ -664,13 +664,13 @@ namespace OceansApp.DataAccess.DbInitializer
 
 
                 //HOURS TRACKING TOOL
-                var hoursTrackingToolSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Herramienta de seguimiento de horas");
+                var reportingMyTimeSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Reporting My Time");
                 systemClaimsList.Add(new ApplicationSystemClaim()
                 {
-                    ClaimType = HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType,
-                    ClaimValue = HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue,
-                    Description = "Acceso a reportar horas en el tracking tool",
-                    SystemSubAreaId = hoursTrackingToolSubAreaId.SystemSubAreaId
+                    ClaimType = TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType,
+                    ClaimValue = TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue,
+                    Description = "Basic access to report their time",
+                    SystemSubAreaId = reportingMyTimeSubAreaId.SystemSubAreaId
                 });
 
                 //PROJECT MANAGEMENT - CLIENTS
