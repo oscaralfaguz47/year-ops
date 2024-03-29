@@ -167,7 +167,7 @@ async function displayUpdateModal(modalId, id) {
                 createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked', data.projectData.clientHasTrackingTool);
                 data.projectData.assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionDetail,
-                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.isActive, null, null, data.allowedManageAdminConsultants, item.userCategoryName);
+                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.statusAction, null, null, data.allowedManageAdminConsultants, item.userCategoryName, data.projectData.projectId);
                 });
                 showModal(modalId);
             })
@@ -182,7 +182,7 @@ function validateProjectType() {
     var clientSelect = document.getElementById("ClientSelect");
     var successManagerSelect = document.getElementById("successManagerIdSelect");
     var billableTrackingToolCont = document.getElementById("billable-tracking-tool-cont");
-    
+
     if (externalProjectType === 'E') {
         clientSelectContainer.style.display = 'block';
         clientSelect.value = null;
@@ -331,7 +331,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
 
     if (consultantProjectAssignedId === "") {
         addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
-            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue, monthlySalaryCalculatedPerHourValue, null, null)
+            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue, monthlySalaryCalculatedPerHourValue, null, null, null)
     } else {
         document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
@@ -342,11 +342,59 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
-    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate, monthlySalaryCalculatedPerHour, allowedMAdminConsultants, userCategoryName) {
+    hourlyConsultantSalary, monthlyConsultantSalary, statusAction, actionDate, monthlySalaryCalculatedPerHour, allowedMAdminConsultants, userCategoryName, projectId) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
+    let spanToInnerToConsultant = consultantName;
+
     if (consProjAssId !== '') {
+        var actionStatusSpan = '';
+        var activeInactiveBtn = '';
+        if (statusAction !== null) {
+            const todayDate = new Date();
+            const localDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+
+            let statusAndDate = statusAction.split("; ");
+            let statusDate = new Date(statusAndDate[0]);
+            let statusText = statusAndDate[1];
+            let ableToActivateOrInactivate = false;
+            let isActive = false;
+            let statusLabel = '';
+            let statusClass = 'red-label';
+
+            if (statusText === 'Consultant Activated') {
+                statusLabel = 'Activated';
+                statusClass = 'green-label';
+            } else {
+                statusLabel = 'Deactivated';
+            }
+            if (statusDate.toISOString().split('T')[0] > localDate.toISOString().split('T')[0]) {
+                actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '">Will be <strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
+                spanToInnerToConsultant = consultantName + ' ' + actionStatusSpan + '';
+            } else if (statusDate.toISOString().split('T')[0] < localDate.toISOString().split('T')[0]) {
+                ableToActivateOrInactivate = true;
+                if (statusText === 'Consultant Activated') {
+                    isActive = true;
+                }
+                actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
+                spanToInnerToConsultant = consultantName + ' ' + actionStatusSpan + '';
+            } else if (statusDate.toISOString().split('T')[0] === localDate.toISOString().split('T')[0]) {
+                if (statusText === 'Consultant Activated') {
+                    isActive = true;
+                    actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
+                } else {
+                    actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
+                }
+                ableToActivateOrInactivate = false;
+                spanToInnerToConsultant = consultantName + ' ' + actionStatusSpan + '';
+            }
+            activeInactiveBtn = ableToActivateOrInactivate ? `<li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive}, ${projectId})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? 'Deactivate from Project' : 'Activate in the Project'}</li>` : '';
+        } else {
+            activeInactiveBtn = `<li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', true, ${projectId})"><i class="bi bi-x-lg red-label"></i>Deactivate from Project</li>`;
+            spanToInnerToConsultant += ' <label style="font-size:13px"><span class="green-label"><strong>(Active)</strong></span></label>';
+        }
+
         var dotsIcon = document.createElement("i");
         var editConsultantParametersBtn = '';
         var viewHistoryBtn = '';
@@ -357,7 +405,7 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
         dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
-                             <li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li>
+                               ${activeInactiveBtn}
                                ${editConsultantParametersBtn}
                                ${viewHistoryBtn}
                            </ul>
@@ -383,12 +431,8 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     row.appendChild(consultantIdInput);
 
     var spanElement = document.createElement("span");
-    if (isActive !== null) {
-        var isActiveSpan = isActive ? '<label id="a-i-label-' + consProjAssId + '"><span class="green-label">(Active)</span></label>' : '<label id="a-i-label-' + consProjAssId + '"><span class="red-label">(Inactive)</span></label>';
-        spanElement.innerHTML = consultantName + ' ' + isActiveSpan + '';
-    } else {
-        spanElement.textContent = consultantName;
-    }
+    spanElement.innerHTML = spanToInnerToConsultant;
+
     row.appendChild(spanElement);
 
     var positionDetailInput = document.createElement("input");
@@ -494,25 +538,11 @@ async function getSuccessManagers(thisElement) {
     }
 }
 // Activate / Deactivate consultant
-async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status) {
+async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status, projectId) {
     try {
         const data = await activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status);
         if (data) {
-            var updatedStatus = status ? false : true;
-            var activateInactivateBtn = document.getElementById('activate-deactivate-li-' + projectConsultantAssignedId);
-            var activateInactivateLabel = document.getElementById('a-i-label-' + projectConsultantAssignedId);
-
-            var iTag = activateInactivateBtn.querySelector('i');
-            if (iTag) {
-                iTag.parentNode.removeChild(iTag);
-            }
-            activateInactivateBtn.innerHTML = updatedStatus ? `
-                             <i class="bi bi-x-lg red-label"></i>${updatedStatus ? ' Deactivate from Project' : ' Activate in the Project'}` :
-                `<i class="bi bi-plus-lg green-label"></i>${updatedStatus ? ' Deactivate from Project' : ' Activate in the Project'}`;
-            activateInactivateBtn.setAttribute('onclick', `activateDeactivateConFromProject(${projectConsultantAssignedId}, '${name}', ${updatedStatus})`);
-            activateInactivateLabel.innerHTML = '';
-            activateInactivateLabel.innerHTML = updatedStatus ? `<span class="green-label">(Active)</span>` :
-                `<span class="red-label"> (Inactive)</span>`;
+            displayUpdateModal('modal-update-create-project', projectId);
         }
     } catch (error) {
         console.error("Error: ", error);

@@ -490,6 +490,27 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
+                //-----------------  REPORTING MY TIME MOVEMENT TYPES --------------------------------
+
+                List<ReportingMyTimeMovementType> movTypesList = new List<ReportingMyTimeMovementType>();
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Normal Hours" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Flate Rate" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Time Worked" });
+
+                foreach (var movementType in movTypesList)
+                {
+                    var existingType = _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefault(x => x.Name == movementType.Name);
+                    if (existingType == null)
+                    {
+                        ReportingMyTimeMovementType movType = new()
+                        {
+                            Name = movementType.Name
+                        };
+                        _db.REPORTING_MY_TIME_MOVEMENT_TYPES.Add(movType);
+                    }
+                }
+                _db.SaveChanges();
+
                 //-----------------  TRANSACTION TYPES  --------------------------------
 
                 List<TransactionType> transactionTypesList = new List<TransactionType>();

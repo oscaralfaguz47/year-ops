@@ -6,6 +6,7 @@
 @using OceansApp.Utility.ConstantData.Claims.General
 @using OceansApp.Utility.ConstantData.Claims.AccountManagement
 @using OceansApp.Utility.ConstantData.Claims.Recruiting
+@using OceansApp.Utility.ConstantData.Claims.TrackingTool
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -49,6 +50,12 @@
                                         <li class="nav-item">
                                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
                                         </li>
+                                         @if (User.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType && c.Value == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue))
+                                        {
+                                            <li class="nav-item">
+                                                <a class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index"><i class="bi bi-stopwatch"></i> Reporting My Time</a>
+                                            </li>
+                                        }
                                         @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_ClaimValue))
                                         {
                                             <li class="nav-item">

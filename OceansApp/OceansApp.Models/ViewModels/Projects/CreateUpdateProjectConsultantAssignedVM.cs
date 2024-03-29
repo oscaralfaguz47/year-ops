@@ -12,7 +12,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public decimal? MonthlySalary { get; set; }
         public string PositionDetail { get; set; }
         public string? ActionDate { get; set; }
-        public bool? IsActive { get; set; }
+        public string? StatusAction { get; set; }
         public bool? isMonthlySalaryCalculatedPerHour { get; set; }
         public string? UserCategoryName { get; set; }
     }

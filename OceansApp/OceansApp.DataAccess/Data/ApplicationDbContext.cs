@@ -210,6 +210,40 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(a => a.ActionId)
                 .IsRequired();
 
+            // REPORTING MY TIME MOVEMENTS
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .HasKey(r => new { r.MovementId });
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .HasOne(c => c.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(c => c.ConsultantId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .HasOne(t => t.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(t => t.TransactionStatusId)
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .HasOne(r => r.ReportingMyTimeMovementType)
+                .WithMany()
+                .HasForeignKey(r => r.MovementTypeId)
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .Property(d => d.ActionDate)
+                .HasColumnType("date")
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .Property(t => t.TimeFrom)
+                .HasColumnType("time");
+            modelBuilder.Entity<ReportingMyTimeMovement>()
+                .Property(t => t.TimeTo)
+                .HasColumnType("time");
+
             // CONSULTANTS BENEFITS
             modelBuilder.Entity<ConsultantBenefit>()
                 .HasKey(c => new { c.BenefitId });
@@ -358,6 +392,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssignedHistoryAction> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
+        public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }
+        public DbSet<ReportingMyTimeMovementType> REPORTING_MY_TIME_MOVEMENT_TYPES { get; set; }
         public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
         public DbSet<TransactionStatus> TRANSACTION_STATUSES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }

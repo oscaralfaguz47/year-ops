@@ -123,12 +123,6 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType,
                     ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue));
             });
-            //HOURS TRACKING TOOL
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("BasicAccessToTheTrackingTool", policy =>
-                    policy.RequireClaim(TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType, TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue));
-            });
 
             //PROJECT MANAGEMENT
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesAccountManagementRequirementHandler>();
@@ -157,6 +151,12 @@ namespace OceansApp.Utility.Configuration
             {
                 options.AddPolicy("AnyOfPoliciesInRecruiting", policy =>
                     policy.Requirements.Add(new AnyOfPoliciesRecruitingRequirement()));
+            });
+            //TRACKING TOOL - REPORTING MY TIME
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("BasicAccessToReportingMyTime", policy =>
+                    policy.RequireClaim(TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType, TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue));
             });
             //INTERVIEWS
             services.AddAuthorization(options =>
