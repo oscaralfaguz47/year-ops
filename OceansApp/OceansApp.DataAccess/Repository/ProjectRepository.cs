@@ -162,6 +162,21 @@ namespace OceansApp.DataAccess.Repository
                             await _db.SaveChangesAsync();
                             if (createdAssignedConsultant.Entity != null && createdAssignedConsultant.Entity.ProjectConsultantAssignedId > 0)
                             {
+                                var consultantToAssign = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId);
+                                if (consultantToAssign == null)
+                                {
+                                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "The consultant was not found." };
+                                }
+                                bool consultantAssignedProjects = await _db.PROJECTS_USERS_SELECTED.AnyAsync(x => x.UserId == consultantToAssign.UserId);
+                                if (!consultantAssignedProjects)
+                                {
+                                    ProjectUserSelected projectSelectedToCreate = new()
+                                    {
+                                        ProjectId = existingProject.ProjectId,
+                                        UserId = consultantToAssign.UserId
+                                    };
+                                    await _db.PROJECTS_USERS_SELECTED.AddAsync(projectSelectedToCreate);
+                                }
                                 var clientRate = consultant.HourlyClientRate > 0 ? consultant.HourlyClientRate : consultant.MonthlyClientRate;
                                 var consultantRate = consultant.HourlySalary > 0 ? consultant.HourlySalary : consultant.MonthlySalary;
                                 var clientRateMethod = consultant.MonthlyClientRate > 0 ? "Monthly" : "Hourly";

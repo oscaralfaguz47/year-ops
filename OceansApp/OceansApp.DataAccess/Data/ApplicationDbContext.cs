@@ -225,6 +225,20 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(a => a.ActionId)
                 .IsRequired();
 
+            // PROJECTS USERS SELECTED
+            modelBuilder.Entity<ProjectUserSelected>()
+                .HasKey(pu => new { pu.ProjectId, pu.UserId });
+            modelBuilder.Entity<ProjectUserSelected>()
+               .HasOne(p => p.ApplicationUser)
+               .WithMany()
+               .HasForeignKey(p => p.UserId)
+               .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ProjectUserSelected>()
+               .HasOne(p => p.Project)
+               .WithMany()
+               .HasForeignKey(p => p.ProjectId)
+               .IsRequired().OnDelete(DeleteBehavior.Restrict);
+
             // REPORTING MY TIME MOVEMENTS
             modelBuilder.Entity<ReportingMyTimeMovement>()
                 .HasKey(r => new { r.MovementId });
@@ -406,6 +420,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
         public DbSet<ProjectConsultantAssignedHistoryAction> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS { get; set; }
+        public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }

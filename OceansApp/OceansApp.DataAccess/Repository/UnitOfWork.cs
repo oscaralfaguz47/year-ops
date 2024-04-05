@@ -50,6 +50,7 @@ namespace OceansApp.DataAccess.Repository
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
             ProjectConsultantAssignedHistoryAction = new ProjectConsultantAssignedHistoryActionRepository(_db);
+            ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ProviderEvent = new ProviderEventRepository(_db);
             ProviderEventDate = new ProviderEventDateRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
@@ -98,6 +99,7 @@ namespace OceansApp.DataAccess.Repository
         public IProjectConsultantAssignedHistoryActionRepository ProjectConsultantAssignedHistoryAction { get; set; }
         public IProviderEventRepository ProviderEvent { get; set; }
         public IProviderEventDateRepository ProviderEventDate { get; set; }
+        public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
         public IDocumentCCRepository DocumentCC { get; set; }
         public IDocumentsCCNotificationRepository DocumentsCCNotification { get; set; }
         public INotificationTypeRepository NotificationType { get; set; }
