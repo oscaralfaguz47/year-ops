@@ -43,5 +43,29 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+        [Authorize(Policy = "BasicAccessToReportingMyTime")]
+        [HttpGet]
+        public async Task<IActionResult> GetConsultantSelectedProjectInfo()
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                if (claim == null)
+                {
+                    return BadRequest(new { error = "User not valid." });
+                }
+                var projectInfoData = await _unitOfWork.ProjectConsultantAssigned.GetConsultantSelectedProjectInfo(claim.Value);
+
+                return Ok(new
+                {
+                    projectInfoData = projectInfoData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }
