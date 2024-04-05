@@ -25,6 +25,7 @@ namespace OceansApp.Models.ViewModels.Consultants
         public string? PersonalEmail { get; set; }
         public string? Location { get; set; }
         public string? UserRole { get; set; }
+        public int? PaymentPeriod { get; set; }
         public List<CreateUpdateConsultantsAndPositionsVM>? Positions { get; set; }
     }
 }

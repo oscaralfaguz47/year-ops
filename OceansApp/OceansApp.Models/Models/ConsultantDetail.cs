@@ -32,6 +32,7 @@ namespace OceansApp.Models.Models
         [MaxLength(8)]
         public string? CompanyId { get; set; }
         public int? PaymentMethodId { get; set; }
+        public int? PaymentPeriod { get; set; }
 
 
         [ValidateNever]

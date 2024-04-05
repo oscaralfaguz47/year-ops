@@ -56,6 +56,7 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="idCountry"]').val(data.consultantData.idCountry);
                 createUpdateForm.find('[name="address"]').val(data.consultantData.address);
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
+                createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
                 showModal(modalId);
             })
             .finally(() => {
@@ -85,6 +86,7 @@ async function createUpdateConsultant(modalId) {
     var phone2Data = createUpdateForm.find('[name="phone2"]').val() || null;
     var companyIdData = createUpdateForm.find('[name="CompanyId"]').val();
     var paymentMethodIdData = createUpdateForm.find('[name="idPaymentMethod"]').val() || null;
+    var paymentPeriodIdData = createUpdateForm.find('[name="idPaymentPeriod"]').val() || null;
     var addressData = createUpdateForm.find('[name="address"]').val() || null;
     var personalEmailData = createUpdateForm.find('[name="personalEmail"]').val() || null;
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
@@ -111,6 +113,7 @@ async function createUpdateConsultant(modalId) {
         Phone2: phone2Data,
         CompanyId: companyIdData,
         PaymentMethodId: paymentMethodIdData,
+        PaymentPeriod: paymentPeriodIdData,
         Address: addressData,
         PersonalEmail: personalEmailData,
         Location: locationData,

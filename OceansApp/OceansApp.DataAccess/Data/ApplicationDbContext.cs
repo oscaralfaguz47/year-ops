@@ -152,6 +152,21 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // PAYMENT SHEETS
+            modelBuilder.Entity<PaymentSheet>()
+                .HasKey(p => new { p.PaymentSheetId });
+            modelBuilder.Entity<PaymentSheet>()
+                .Property(e => e.DateFrom)
+                .HasColumnType("date");
+            modelBuilder.Entity<PaymentSheet>()
+                .Property(e => e.DateTo)
+                .HasColumnType("date");
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .HasOne(cb => cb.ConsultantDetailCreatedBy)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantIdCreatedBy)
+                .IsRequired();
+
             //PROJECTS
             modelBuilder.Entity<Project>()
                 .HasKey(p => new { p.ProjectId });
@@ -386,6 +401,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
         public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
+        public DbSet<PaymentSheet> PAYMENT_SHEETS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
