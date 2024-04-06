@@ -39,10 +39,10 @@
     z-index: 10;
     padding: 0;
     margin: 0;
-    background-color: white;
-    border: 1px solid #ccc;
+    background-color: #ccc;
     display: none;
-    max-height: 200px;
+    max-height: fit-content;
+    color: #000;
 }
 
     #rmt-background #header .dropdown-list li {
@@ -52,7 +52,7 @@
     }
 
         #rmt-background #header .dropdown-list li:hover {
-            background-color: #f2f2f2;
+            background-color: #fff;
         }
 
 #rmt-background #header .spinner-cont {
@@ -125,3 +125,43 @@
         align-items: center; 
         height: 80vh;
     }
+#no-projects-box {
+    display: none;
+    justify-content: center;
+}
+    #no-projects-box i {
+        font-weight: bold;
+        font-size: 30px;
+        color: var(--clr-yellow);
+    }
+    #no-projects-box > div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 80vh;
+    }
+    #no-projects-box .background-cont {
+        background-color: var(--clr-blueDark);
+        padding: 25px;
+        color: #fff;
+        margin-top: -200px;
+        text-align: center;
+        box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.6);
+    }
+    #no-projects-box > div > div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    /* BODE CONTENT */
+#content-box{
+    display:none;
+}
+#content-footer {
+    background-color: var(--clr-grayLight);
+    padding: 4px 12px;
+    border-radius: 25px;
+    text-align: center;
+}

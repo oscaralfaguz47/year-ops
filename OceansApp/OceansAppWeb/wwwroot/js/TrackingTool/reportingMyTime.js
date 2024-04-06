@@ -15,6 +15,7 @@
                 document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${project.name.charAt(0)}</div>`;
                 document.getElementById('project-name').innerHTML = `${project.name}`;
                 document.querySelector('.dropdown-list').style.display = 'none';
+                selectProject(project.projectId);
             });
             dropdownList.appendChild(listItem);
         });
@@ -23,20 +24,32 @@
         dropdownList.innerHTML = '<li>Error loading options</li>';
     }
 }
+const header = document.getElementById('header');
+const loadingBox = document.getElementById('loading-box');
+const errorMessageBox = document.getElementById('error-Message-box');
+const contentBox = document.getElementById('content-box');
+const noProjectsBox = document.getElementById('no-projects-box');
 
 async function getProjectInfo() {
-    const header = document.getElementById('header');
-    const loadingBox = document.getElementById('loading-box');
-    const errorMessageBox = document.getElementById('error-Message-box');
+    loadingBox.style.display = 'flex';
     errorMessageBox.style.display = 'none';
+    contentBox.style.display = 'none';
     try {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
-        console.log(projectInfo);
-        document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
-        document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
-        header.style.display = 'flex';
-        loadingBox.style.display = 'none';
+        if (projectInfo !== null) {
+            document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
+            document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
+            document.getElementById('content-footer').innerHTML = `<span>Questions on reporting? Contact the Success Manager, 
+        <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
+        ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
+            header.style.display = 'flex';
+            loadingBox.style.display = 'none';
+            contentBox.style.display = 'block';
+        } else {
+            noProjectsBox.style.display = 'block';
+            loadingBox.style.display = 'none';
+        }
     } catch (error) {
         console.error("Error filling the projects dropdown:", error.message);
         loadingBox.style.display = 'none';
@@ -67,6 +80,33 @@ document.addEventListener('DOMContentLoaded', function () {
             dropdownList.style.display = 'none';
         }
     });
-
     getProjectInfo();
 });
+
+async function selectProject(projectId) {
+    loadingBox.style.display = 'flex';
+    contentBox.style.display = 'none';
+    var token = $('[name="__RequestVerificationToken"]').val();
+    var formData = new FormData();
+    formData.append('projectId', projectId);
+    fetch("/AccountManagement/ProjectsConsultantsAssigned/SelectConsultantProject"
+        , {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                header.style.display = 'flex';
+                loadingBox.style.display = 'none';
+            } else {
+                displayToasterError(data.error);
+                console.error('There has been a problem with the fetch operation:', data.detail);
+                loadingBox.style.display = 'none';
+            }
+            getProjectInfo();
+        });
+}

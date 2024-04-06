@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
@@ -65,6 +66,39 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "BasicAccessToReportingMyTime")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SelectConsultantProject(int projectId)
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                var projectUserSelectedToDelete = _unitOfWork.ProjectUserSelected.GetFirstOrDefault(x => x.UserId == claim.Value);
+                if (projectUserSelectedToDelete == null)
+                {
+                    return BadRequest(new { error = "The user has not a project selected." });
+                }
+                var transact = await _unitOfWork.BeginTran();
+                _unitOfWork.ProjectUserSelected.Remove(projectUserSelectedToDelete);
+                ProjectUserSelected projectUserSelectedToCreate = new()
+                {
+                    ProjectId = projectId,
+                    UserId = claim.Value
+                };
+                _unitOfWork.ProjectUserSelected.Add(projectUserSelectedToCreate);
+                _unitOfWork.Save();
+                transact.Commit();
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the project could not be selected.", detail = ex.Message });
             }
         }
     }
