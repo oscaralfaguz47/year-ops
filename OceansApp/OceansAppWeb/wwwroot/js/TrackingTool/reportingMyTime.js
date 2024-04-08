@@ -1,4 +1,7 @@
-﻿async function fillProjectsDropdown() {
+﻿let paymentPeriod = 0;
+let currentDate = new Date();
+
+async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
     dropdownList.innerHTML = '<li class="spinner-cont"><div class="spinner"></div></li>';
 
@@ -38,6 +41,10 @@ async function getProjectInfo() {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
         if (projectInfo !== null) {
+            console.log(projectInfo);
+            paymentPeriod = projectInfo.paymentPeriod;
+            let currentDateNoChange = new Date();
+            calculatePeriod(currentDateNoChange, paymentPeriod);
             document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
             document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
             document.getElementById('content-footer').innerHTML = `<span>Questions on reporting? Contact the Success Manager, 
@@ -110,3 +117,62 @@ async function selectProject(projectId) {
             getProjectInfo();
         });
 }
+
+//DATE NAVEGATION BUTTONS ------------------
+
+// Function to calculate the new period based on direction and mode.
+function adjustDate(direction, mode) {
+    // Calculate the number of days to adjust based on the payment method.
+
+    const dayAdjustment = mode === 1 ? 15 : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+
+    if (direction === 'left') {
+        currentDate = new Date(currentDate.setDate(currentDate.getDate() - dayAdjustment));
+    } else if (direction === 'right') {
+        currentDate = new Date(currentDate.setDate(currentDate.getDate() + dayAdjustment));
+    }
+}
+
+const formatDate = (date) => {
+    let month = '' + (date.getMonth() + 1),
+        day = '' + date.getDate(),
+        year = date.getFullYear();
+
+    if (month.length < 2)
+        month = '0' + month;
+    if (day.length < 2)
+        day = '0' + day;
+
+    return [month, day, year].join('/');
+};
+
+// Calculates and displays start and end dates based on the click direction.
+const handleButtonClick = (direction) => {
+    adjustDate(direction, paymentPeriod, null);
+
+    let { startDate, endDate } = calculatePeriod(currentDate, paymentPeriod);
+    console.log(`Fecha desde: ${formatDate(startDate)}, Fecha hasta: ${formatDate(endDate)}`);
+};
+
+const calculatePeriod = (date, mode) => {
+    let startDate, endDate;
+
+    if (mode === 1) { // Biweekly
+        // Adjusts to the nearest fortnight before the current date
+        const dayOfMonth = date.getDate();
+        if (dayOfMonth <= 15) {
+            startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+            endDate = new Date(date.getFullYear(), date.getMonth(), 15);
+        } else {
+            startDate = new Date(date.getFullYear(), date.getMonth(), 16);
+            endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        }
+    } else if (mode === 2) { // Montly
+        startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    }
+    document.getElementById('previous-date').innerHTML = `<span>${formatDate(startDate)}</span>`;
+    document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
+
+    return { startDate, endDate };
+};

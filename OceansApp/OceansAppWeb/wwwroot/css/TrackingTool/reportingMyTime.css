@@ -78,6 +78,28 @@
     align-items: center;
     justify-content: right;
 }
+.navegation-box {
+    text-align: center;
+    font-weight: bold;
+}
+.btn-arrow {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 103px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    color: var(--clr-blueDark);
+    font-size: 16px;
+    border-radius: 25px;
+    font-weight: bold;
+}
+.btn-arrow:hover {
+    text-decoration: underline;
+}
+
 /*SHARED ELEMENTS*/
 #rmt-background .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
