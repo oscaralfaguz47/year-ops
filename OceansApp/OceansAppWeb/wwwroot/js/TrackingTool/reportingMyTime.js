@@ -189,3 +189,53 @@ const calculatePeriod = (date, mode, clientHasTrackingTool) => {
     return { startDate, endDate };
 };
 
+async function submitReportToBePaid() {
+    try {
+        const confirmation = await Swal.fire({
+            title: "",
+            text: `Confirm report submission? No changes are allowed afterward.`,
+            icon: null, 
+            iconHtml: '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12" y2="16"></line></svg>', 
+            customClass: {
+                icon: 'swal2-custom-icon' 
+            },
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            cancelButtonColor: '#9ba8b8',
+            confirmButtonColor: '#eeb30f',
+            confirmButtonText: 'Yes, Submit!'
+        });
+
+        if (!confirmation.isConfirmed) {
+            return; 
+        }
+        displaySpinner();
+
+        const token = $('[name="__RequestVerificationToken"]').val();
+        const formData = new FormData();
+        //formData.append('dateFrom', dateFrom);
+        //formData.append('dateTo', dateTo);
+
+        //const response = await fetch("/Recruiting/Interviews/RejectInterview", {
+        //    method: 'POST',
+        //    headers: {
+        //        'RequestVerificationToken': token
+        //    },
+        //    body: formData
+        //});
+
+        //const data = await response.json();
+
+        //if (data.success) {
+        //    toastr.success(data.message);
+        //} else {
+        //    displayToasterError(data.error);
+        //    console.error('There has been a problem with the fetch operation:', data.detail);
+        //}
+
+    } catch (error) {
+        console.error('An error occurred:', error);
+    } finally {
+        hideSpinner();
+    }
+}
