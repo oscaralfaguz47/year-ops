@@ -1,0 +1,68 @@
+﻿.day-item {
+    margin-bottom: 10px;
+    border-bottom: solid 1px rgb(1, 192, 183, 0.2);
+    margin-bottom: 2px;
+    padding-bottom: 4px
+}
+
+.time-entry {
+    margin-top: 5px;
+    display: flex;
+    height: 30px;
+}
+    .time-entry span {
+        font-weight: bold;
+        padding: 0 4px 0 4px;
+        color: var(--clr-grayDark);
+    }
+
+.time-label {
+    margin-left: 10px;
+}
+.day-label {
+    width: 200px;
+}
+.btn-add-time {
+    border: none;
+    background-color: var(--clr-blueLight);
+    color: #fff;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 1px 7px;
+}
+.time-from{
+    width: 200px;
+    cursor: pointer;
+}
+.time-to {
+    width: 200px;
+    cursor: pointer;
+}
+.time-detail{
+    width:100%;
+}
+.btn-delete-time{
+    border:none;
+    width:auto;
+    background-color: none;
+}
+.input-time {
+    padding: 2px 7px;
+    border: 1px solid #CCCCCC;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    color: #333333;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    font-size: 14px;
+}
+
+    .time-from:focus {
+        border-color: #007BFF; 
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        outline: none;
+    }
+
+
+

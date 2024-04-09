@@ -81,6 +81,7 @@
 .navegation-box {
     text-align: center;
     font-weight: bold;
+    margin-bottom: 10px;
 }
 .btn-arrow {
     display: inline-flex;
@@ -99,6 +100,7 @@
 .btn-arrow:hover {
     text-decoration: underline;
 }
+
 
 /*SHARED ELEMENTS*/
 #rmt-background .spinner {
@@ -181,9 +183,17 @@
 #content-box{
     display:none;
 }
-#content-footer {
-    background-color: var(--clr-grayLight);
-    padding: 4px 12px;
-    border-radius: 25px;
+#questions {
     text-align: center;
+    background-color: var(--clr-grayLight);
+    padding: 10px;
+    border-radius: 10px;
+    width: 100%;
+}
+.track-col {
+    border-radius: 15px;
+    padding: 15px;
+    margin: 0px;
+    background-color: var(--clr-grayLight);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
 }

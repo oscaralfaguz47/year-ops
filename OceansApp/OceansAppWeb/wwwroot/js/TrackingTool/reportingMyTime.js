@@ -1,5 +1,6 @@
 ﻿let paymentPeriod = 0;
 let currentDate = new Date();
+let trackingToolTimeEntrySection = document.getElementById('tracking-tool-time-entry');
 
 async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
@@ -42,12 +43,14 @@ async function getProjectInfo() {
         const projectInfo = response.projectInfoData;
         if (projectInfo !== null) {
             console.log(projectInfo);
+         
+            trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
             paymentPeriod = projectInfo.paymentPeriod;
             let currentDateNoChange = new Date();
-            calculatePeriod(currentDateNoChange, paymentPeriod);
+            calculatePeriod(currentDateNoChange, paymentPeriod, projectInfo.clientHasTrackingTool);
             document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
             document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
-            document.getElementById('content-footer').innerHTML = `<span>Questions on reporting? Contact the Success Manager, 
+            document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
         <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
         ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
             header.style.display = 'flex';
@@ -145,7 +148,12 @@ const formatDate = (date) => {
 
     return [month, day, year].join('/');
 };
-
+function formatDateYyyyMmDd(date) {
+    let day = date.getDate().toString().padStart(2, '0');
+    let month = (date.getMonth() + 1).toString().padStart(2, '0');
+    let year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+}
 // Calculates and displays start and end dates based on the click direction.
 const handleButtonClick = (direction) => {
     adjustDate(direction, paymentPeriod, null);
@@ -154,7 +162,7 @@ const handleButtonClick = (direction) => {
     console.log(`Fecha desde: ${formatDate(startDate)}, Fecha hasta: ${formatDate(endDate)}`);
 };
 
-const calculatePeriod = (date, mode) => {
+const calculatePeriod = (date, mode, clientHasTrackingTool) => {
     let startDate, endDate;
 
     if (mode === 1) { // Biweekly
@@ -171,8 +179,10 @@ const calculatePeriod = (date, mode) => {
         startDate = new Date(date.getFullYear(), date.getMonth(), 1);
         endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }
+    generateDateList(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate));
     document.getElementById('previous-date').innerHTML = `<span>${formatDate(startDate)}</span>`;
     document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
 
     return { startDate, endDate };
 };
+
