@@ -203,6 +203,7 @@
 .submit-report{
     text-align: center;
     font-weight: bold;
+    margin-left: 15px;
 }
     .submit-report button {
         border: none;
