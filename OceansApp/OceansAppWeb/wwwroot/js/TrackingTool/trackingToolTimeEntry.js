@@ -5,6 +5,11 @@
     dateListContainer.innerHTML = '';
     let currentDate = new Date(startDate.getTime());
 
+    const hoursCountDiv = document.createElement('div');
+    hoursCountDiv.id = 'total-hours-label'; // Añadir un ID para identificar fácilmente este div
+    hoursCountDiv.innerHTML = '<span class="total">TOTAL TIME: <span class="hours-minutes">0 hours - 0 minutes</span></span>';
+    dateListContainer.insertBefore(hoursCountDiv, dateListContainer.firstChild);
+
     while (currentDate <= endDate) {
         const dayItem = document.createElement('div');
         dayItem.className = 'day-item';
@@ -15,7 +20,7 @@
         dayItem.innerHTML = `<label class="day-label">${formattedDate}</label> <button class="btn-add-time" onclick="addTimeEntry(this, '${dateValue}')">+ Add Time</button> <label class="count-day-label" data-value="0">0 h - 0 m</label> ${noReportNeededLabel}`;
         dateListContainer.appendChild(dayItem);
         currentDate.setDate(currentDate.getDate() + 1); 
-    }   
+    }
 }
 
 function addTimeEntry(button, date) {
@@ -39,16 +44,22 @@ function addTimeEntry(button, date) {
     const updateTimeDifference = () => {
         const fromTime = timeFromInput.value;
         const toTime = timeToInput.value;
-        if (fromTime && toTime) {
-            const difference = calculateTimeDifference(fromTime, toTime);
+        const validFromTime = fromTime === '' ? '00:00' : fromTime;
+        const validToTime = toTime === '' ? '00:00' : toTime;
+
+        const difference = calculateTimeDifference(validFromTime, validToTime);
+        if (difference.hours >= 0 && difference.minutes >= 0) {
             timeLabel.textContent = `${difference.hours} h - ${difference.minutes} m`;
         } else {
-            timeLabel.textContent = '';
+            timeLabel.textContent = '0 h - 0 m';
         }
+        const dayItem = button.closest('.day-item');
+        updateDayTotal(dayItem);
+        updateTotalHours();
     };
 
-    timeFromInput.addEventListener('change', updateTimeDifference);
-    timeToInput.addEventListener('change', updateTimeDifference);
+    timeFromInput.addEventListener('input', updateTimeDifference);
+    timeToInput.addEventListener('input', updateTimeDifference);
 
     updateTimeDifference();
 }
@@ -68,7 +79,10 @@ function calculateTimeDifference(startTime, endTime) {
 
 
 function deleteTimeEntry(button) {
+    const dayItem = button.closest('.day-item');
     button.parentElement.remove();
+    updateDayTotal(dayItem);
+    updateTotalHours();
 }
 
 function saveTimeEntry(button, date) {
@@ -78,4 +92,45 @@ function saveTimeEntry(button, date) {
     const timeLabel = button.parentElement.querySelector('.time-label');
 
     timeLabel.textContent = `Saved: ${date}, From: ${timeFrom}, To: ${timeTo}, Detail: ${detail}`;
+}
+
+function updateDayTotal(dayElement) {
+    const timeEntries = dayElement.querySelectorAll('.time-entry');
+    let totalMinutes = 0;
+
+    timeEntries.forEach(entry => {
+        const timeFrom = entry.querySelector('.time-from').value || "00:00";
+        const timeTo = entry.querySelector('.time-to').value || "00:00";
+        const difference = calculateTimeDifference(timeFrom, timeTo);
+        totalMinutes += (difference.hours * 60) + difference.minutes;
+    });
+
+    const totalHours = Math.floor(totalMinutes / 60);
+    const totalMinutesLeft = totalMinutes % 60;
+    const countDayLabel = dayElement.querySelector('.count-day-label');
+    countDayLabel.textContent = `${totalHours} h - ${totalMinutesLeft} m`;
+}
+
+
+function updateTotalHours() {
+    const allDayLabels = document.querySelectorAll('.count-day-label');
+    let totalMinutes = 0;
+
+    allDayLabels.forEach(label => {
+        const parts = label.textContent.match(/(\d+)\s*h\s*-\s*(\d+)\s*m/);
+        if (parts && parts.length === 3) {
+            const hours = parseInt(parts[1], 10);
+            const minutes = parseInt(parts[2], 10);
+            if (!isNaN(hours) && !isNaN(minutes)) { 
+                totalMinutes += hours * 60 + minutes;
+            }
+        }
+    });
+
+    const totalHours = Math.floor(totalMinutes / 60);
+    const totalMinutesLeft = totalMinutes % 60;
+    const totalHoursLabel = document.getElementById('total-hours-label');
+    if (totalHoursLabel) {
+        totalHoursLabel.innerHTML = `<span class="total">TOTAL TIME: <span class="hours-minutes">${totalHours} hours - ${totalMinutesLeft} minutes</span></span>`;
+    }
 }

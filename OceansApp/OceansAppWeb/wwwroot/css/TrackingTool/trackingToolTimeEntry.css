@@ -1,4 +1,20 @@
-﻿.day-item {
+﻿#total-hours-label{
+    margin-bottom: 10px;
+    text-align:right;
+    font-weight: bold;
+}
+    #total-hours-label .total {
+        background-color: var(--clr-grayDark);
+        padding: 5px 10px;
+        border-start-end-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+        color: #fff;
+    }
+    #total-hours-label .hours-minutes {
+        font-weight: normal;
+    }
+.day-item {
     margin-bottom: 10px;
     border-bottom: solid 1px rgb(1, 192, 183, 0.2);
     margin-bottom: 2px;
