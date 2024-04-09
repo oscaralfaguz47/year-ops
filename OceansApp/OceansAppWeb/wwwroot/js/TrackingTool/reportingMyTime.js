@@ -1,6 +1,7 @@
 ﻿let paymentPeriod = 0;
 let currentDate = new Date();
 let trackingToolTimeEntrySection = document.getElementById('tracking-tool-time-entry');
+let trackingToolReportEntrySection = document.getElementById('tracking-tool-report-entry');
 
 async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
@@ -45,7 +46,9 @@ async function getProjectInfo() {
             console.log(projectInfo);
          
             trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
+            trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
             paymentPeriod = projectInfo.paymentPeriod;
+            document.getElementById('payment-period-container').innerHTML = `<span>Your payment period is <strong>${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}.</strong></span>`;
             let currentDateNoChange = new Date();
             calculatePeriod(currentDateNoChange, paymentPeriod, projectInfo.clientHasTrackingTool);
             document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;

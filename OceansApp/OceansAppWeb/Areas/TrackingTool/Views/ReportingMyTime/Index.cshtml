@@ -50,6 +50,7 @@
             <!-- Date Navegation buttons -->
             <div class="row">
                 <div class="col-md-8">
+                   <div class="text-center mb-2"> <i class="fa-regular fa-calendar"></i> <strong>SELECT THE PERIOD</strong></div>
                     <div class="navegation-box">
                         <button class="btn-arrow" onclick="handleButtonClick('left')">< Previous</button>
                         <label id="previous-date"></label> - <label id="next-date"></label>
@@ -57,9 +58,33 @@
                     </div>
                 </div>
 
-                <div id="tracking-tool-time-entry" style="display:none">
-                    <partial name="_TrackingToolTimeEntryPartialView" />
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="tracking-tool-time-entry" style="display:none">
+                            <partial name="_TrackingToolTimeEntryPartialView" />
+                        </div>
+                        <div id="tracking-tool-report-entry" style="display:none">
+                            <partial name="_TrackingToolReportEntryPartialView" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="track-col">
+                            <div id="questions">
+                            </div>
+                        </div>
+                        <div class="track-col">
+                            <div id="payment-period-container">
+                            </div>
+                        </div>
+                        <div class="track-col">
+                            <div class="submit-report">
+                                Have you reported all your hours accurately? <button><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>

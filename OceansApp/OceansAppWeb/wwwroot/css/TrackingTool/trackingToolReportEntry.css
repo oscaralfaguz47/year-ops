@@ -1,0 +1,69 @@
+﻿.file-upload-container{
+    display:flex;
+    justify-content: center;
+}
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 300px;
+    padding: 20px;
+    border: 2px dashed #009578;
+    border-radius: 5px;
+    color: #009578;
+    transition: border .3s ease;
+}
+    .file-upload-wrapper.dragover {
+        border-color: #007B55;
+        background-color: #f0f0f0;
+    }
+
+    .file-upload-wrapper:hover {
+        border-color: #007B55;
+    }
+
+.file-upload-label {
+    display: inline-block;
+    padding: 10px 25px;
+    background-color: #009578;
+    color: #FFF;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color .3s;
+}
+
+    .file-upload-label:hover {
+        background-color: #007B55;
+    }
+.file-upload-instructions {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
+}
+
+.file-upload-name {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.fa {
+    margin-right: 8px;
+}
+.save-report-cont{
+    text-align: right;
+}
+    .save-report-cont button {
+        border: none;
+        margin-top: 8px;
+        padding: 7px 12px;
+        background-color: var(--clr-blueDark);
+        border-radius: 15px;
+        color: #fff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+.report-input-cont{
+    margin-bottom: 15px;
+}

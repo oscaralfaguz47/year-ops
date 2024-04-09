@@ -81,7 +81,6 @@
 .navegation-box {
     text-align: center;
     font-weight: bold;
-    margin-bottom: 10px;
 }
 .btn-arrow {
     display: inline-flex;
@@ -182,6 +181,7 @@
     /* BODE CONTENT */
 #content-box{
     display:none;
+    padding-bottom: 30px;
 }
 #questions {
     text-align: center;
@@ -196,4 +196,19 @@
     margin: 0px;
     background-color: var(--clr-grayLight);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin-top: 24px;
 }
+
+/* SUBMIT REPORT */
+.submit-report{
+    text-align: center;
+    font-weight: bold;
+}
+    .submit-report button {
+        border: none;
+        margin-top: 8px;
+        padding: 7px 12px;
+        background-color: var(--clr-yellow);
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }

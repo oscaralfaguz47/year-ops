@@ -21,6 +21,7 @@
 }
 .day-label {
     width: 200px;
+    font-weight: bold;
 }
 .btn-add-time {
     border: none;
@@ -45,7 +46,12 @@
 .btn-delete-time{
     border:none;
     width:auto;
-    background-color: none;
+    background-color: transparent;
+}
+.btn-save-time {
+    border: none;
+    width: auto;
+    background-color: transparent;
 }
 .input-time {
     padding: 2px 7px;
