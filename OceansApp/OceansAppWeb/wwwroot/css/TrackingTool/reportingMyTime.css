@@ -217,9 +217,4 @@
     display: flex;
     flex-direction: row-reverse; 
 }
-.swal2-custom-icon {
-    color: red;
-    font-size: 25px;
-    border: none;
-}
 
