@@ -534,6 +534,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 //-----------------  TRANSACTION STATUSES  --------------------------------
 
                 List<TransactionStatus> transactionStatusesList = new List<TransactionStatus>();
+                transactionStatusesList.Add(new TransactionStatus() { Name = "No actions" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Waiting to be approved" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Approved" });
                 transactionStatusesList.Add(new TransactionStatus() { Name = "Rejected" });

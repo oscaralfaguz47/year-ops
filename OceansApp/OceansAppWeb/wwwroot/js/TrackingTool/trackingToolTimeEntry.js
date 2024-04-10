@@ -6,7 +6,7 @@
     let currentDate = new Date(startDate.getTime());
 
     const hoursCountDiv = document.createElement('div');
-    hoursCountDiv.id = 'total-hours-label'; // Añadir un ID para identificar fácilmente este div
+    hoursCountDiv.id = 'total-hours-label';
     hoursCountDiv.innerHTML = '<span class="total">TOTAL TIME: <span class="hours-minutes">0 hours - 0 minutes</span></span>';
     dateListContainer.insertBefore(hoursCountDiv, dateListContainer.firstChild);
 
