@@ -20,7 +20,7 @@ namespace OceansApp.Models.Models
         [Required]
         public decimal Quantity { get; set; }
         [MaxLength(200)]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
         [Required]
         public DateTime CreationDate { get; set; }
         public DateTime? LastUpdateDate { get; set; }

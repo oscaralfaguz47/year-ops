@@ -53,6 +53,7 @@ namespace OceansApp.DataAccess.Repository
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ProviderEvent = new ProviderEventRepository(_db);
             ProviderEventDate = new ProviderEventDateRepository(_db);
+            ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
             DocumentsCCNotification = new DocumentsCCNotificationRepository(_db);
             NotificationType = new NotificationTypeRepository(_db);
@@ -100,6 +101,7 @@ namespace OceansApp.DataAccess.Repository
         public IProviderEventRepository ProviderEvent { get; set; }
         public IProviderEventDateRepository ProviderEventDate { get; set; }
         public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
+        public IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; set; }
         public IDocumentCCRepository DocumentCC { get; set; }
         public IDocumentsCCNotificationRepository DocumentsCCNotification { get; set; }
         public INotificationTypeRepository NotificationType { get; set; }

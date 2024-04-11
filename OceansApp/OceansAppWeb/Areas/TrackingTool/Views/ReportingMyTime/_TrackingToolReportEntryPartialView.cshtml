@@ -2,10 +2,11 @@
 
 <div class="track-col">
     <div class="row">
+        <input type="hidden" id="movementIdInput" />
         <div class="col-md-12 text-center report-input-cont">
-            <label>Total Worked Hours <span class="red-label">*</span></label>
+            <label for="quantityInput">Total Worked Hours <span class="red-label">*</span></label>
             <div>
-                <input type="number" class="input-time" />
+                <input type="number" class="input-time" id="quantityInput" />
             </div>
         </div>
         <div class="col-md-6">
@@ -23,11 +24,22 @@
             </p>
         </div>
     </div>
+    <div class="text-center mt-2">
+        <label for="quantityInput">Notes (Optional)</label>
+        <div>
+            <textarea id="notesInput" class="input-time"></textarea>
+        </div>
+    </div>
     <div class="save-report-cont">
-        <button><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        <button onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
     </div>
 </div>
-<br /><br /><br /><br /><br /><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
 
 
 <script src="~/js/TrackingTool/trackingToolReportEntry.js"></script>

@@ -2,6 +2,7 @@
 let currentDate = new Date();
 let trackingToolTimeEntrySection = document.getElementById('tracking-tool-time-entry');
 let trackingToolReportEntrySection = document.getElementById('tracking-tool-report-entry');
+let dateFromInput = document.getElementById('dateFromInput');
 
 async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
@@ -44,7 +45,7 @@ async function getProjectInfo() {
         const projectInfo = response.projectInfoData;
         if (projectInfo !== null) {
             console.log(projectInfo);
-         
+            document.getElementById('projectId').value = projectInfo.projectId;
             trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
             trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
             paymentPeriod = projectInfo.paymentPeriod;
@@ -54,8 +55,8 @@ async function getProjectInfo() {
             document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
             document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
             document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
-        <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
-        ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
+            <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
+            ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
             header.style.display = 'flex';
             loadingBox.style.display = 'none';
             contentBox.style.display = 'block';
@@ -185,7 +186,7 @@ const calculatePeriod = (date, mode, clientHasTrackingTool) => {
     generateDateList(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate));
     document.getElementById('previous-date').innerHTML = `<span>${formatDate(startDate)}</span>`;
     document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
-
+    dateFromInput.value = formatDate(endDate);
     return { startDate, endDate };
 };
 

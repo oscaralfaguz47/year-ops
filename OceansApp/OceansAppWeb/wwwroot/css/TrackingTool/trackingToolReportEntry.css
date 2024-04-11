@@ -1,5 +1,8 @@
-﻿.file-upload-container{
-    display:flex;
+﻿#notesInput{
+    width: 300px;
+}
+.file-upload-container {
+    display: flex;
     justify-content: center;
 }
 .file-upload-wrapper {
