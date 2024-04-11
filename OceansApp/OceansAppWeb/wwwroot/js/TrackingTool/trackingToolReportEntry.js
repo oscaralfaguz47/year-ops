@@ -29,7 +29,9 @@ dropArea.addEventListener('drop', (event) => {
 
 function updateFileNames(files) {
     var fileNames = Array.from(files).map(file => file.name).join(', ');
-    document.getElementById('file-upload-name').textContent = fileNames || 'Ningún archivo seleccionado...';
+    document.getElementById('file-upload-name').textContent = fileNames || 'No files selected...';
+    console.log(fileNames);
+    document.getElementById('info-text').textContent = fileNames !== '' ? '' : 'Drag and Drop, Select or Copy and Paste files here..';
 }
 
 document.getElementById('file-upload').addEventListener('change', function () {
@@ -49,7 +51,8 @@ document.addEventListener('paste', (event) => {
 
 function processFiles(files) {
     const fileNames = Array.from(files).map(file => file.name).join(', ');
-    document.getElementById('file-upload-name').textContent = fileNames || 'Ningún archivo seleccionado...';
+    document.getElementById('file-upload-name').textContent = fileNames || 'No files selected...';
+    document.getElementById('info-text').textContent = fileNames !== '' ? '' : 'Drag and Drop, Select or Copy and Paste files here..';
 }
 
 dropArea.addEventListener('drop', (event) => {

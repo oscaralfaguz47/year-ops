@@ -75,7 +75,7 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return MethodResponse.CreateSuccessResponse("Changes successfully saved!",timeMovementToCreate.MovementId);
+                    return MethodResponse.CreateSuccessResponse("Changes saved!",timeMovementToCreate.MovementId);
                 }
                 catch (Exception ex)
                 {
@@ -109,7 +109,7 @@ namespace OceansApp.DataAccess.Repository
 
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    return MethodResponse.CreateSuccessResponse("Changes successfully saved!", existingTimeMovement.MovementId);
+                    return MethodResponse.CreateSuccessResponse("Changes saved!", existingTimeMovement.MovementId);
                 }
                 catch (Exception ex)
                 {

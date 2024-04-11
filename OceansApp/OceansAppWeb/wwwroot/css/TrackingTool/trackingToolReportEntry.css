@@ -1,5 +1,5 @@
 ﻿#notesInput{
-    width: 300px;
+    width: 100%;
 }
 .file-upload-container {
     display: flex;
@@ -49,14 +49,43 @@
 .file-upload-name {
     margin-top: 10px;
     font-size: 0.9em;
+    font-weight: bold;
     color: #666;
 }
+.uploaded-files-section{
+    padding-top: 5px;
+    text-align:center;
+    height: 100px;
+    overflow-y: scroll;
+    width: 100%;
+    justify-content: center;
+    display:flex;
+    align-items: center;
+}
+    .uploaded-files-section::-webkit-scrollbar {
+        width: 5px; /* Ancho de la barra de desplazamiento */
+        border-radius: 15px;
+    }
+
+    .uploaded-files-section::-webkit-scrollbar-track {
+        background: #f1f1f1; /* Color de la pista */
+    }
+
+    .uploaded-files-section::-webkit-scrollbar-thumb {
+        background: #888; /* Color del "pulgar" */
+        border-radius: 15px;
+    }
+
+        .uploaded-files-section::-webkit-scrollbar-thumb:hover {
+            background: #555; /* Color del "pulgar" al pasar el mouse */
+        }
 
 .fa {
     margin-right: 8px;
 }
 .save-report-cont{
-    text-align: right;
+    text-align: center;
+    margin-top: 10px
 }
     .save-report-cont button {
         border: none;
