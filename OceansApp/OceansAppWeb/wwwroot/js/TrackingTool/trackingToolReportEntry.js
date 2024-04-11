@@ -69,7 +69,7 @@ document.getElementById('file-upload').addEventListener('change', function () {
 async function createUpdateTimeEntry() {
     const actionDate = new Date(dateFromInput.value);
     var token = $('[name="__RequestVerificationToken"]').val();
-    let movementIdData = movementIdInput.value || null;
+    let movementIdData = movementIdInput.value || null  ;
 
     var data = {
         MovementId: movementIdData,
