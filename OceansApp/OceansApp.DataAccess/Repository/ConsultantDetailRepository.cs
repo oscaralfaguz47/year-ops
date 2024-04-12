@@ -101,7 +101,8 @@ namespace OceansApp.DataAccess.Repository
                     PersonalEmail = consultantData.PersonalEmail,
                     Location = consultantData.Location,
                     UserCreatedBy = userIdCreatedBy,
-                    PaymentPeriod = consultantData.PaymentPeriod
+                    PaymentPeriod = consultantData.PaymentPeriod,
+                    ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -199,6 +200,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.LastUpdatedDate = timeZone;
                 existingConsultant.UserLastUpdatedBy = userActionedBy;
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
+                existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -246,6 +248,7 @@ namespace OceansApp.DataAccess.Repository
                         UserCategoryName = consultant.UserCategoryName,
                         UserRole = consultant.UserRole,
                         PaymentPeriod = consultant.PaymentPeriod,
+                        ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }

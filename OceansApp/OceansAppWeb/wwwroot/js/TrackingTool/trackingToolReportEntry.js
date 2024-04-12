@@ -5,22 +5,22 @@ const dropArea = document.querySelector('.file-upload-wrapper');
 const fileList = [];
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-// Resaltar zona de drop cuando se arrastran archivos
+// Highlight drop zone when dragging files
 dropArea.addEventListener('dragover', (event) => {
     event.stopPropagation();
     event.preventDefault();
     dropArea.classList.add('dragover');
 });
 
-// Revertir resaltado cuando los archivos ya no se arrastran sobre el área
+// Revert highlighting when files are no longer dragged over the area
 dropArea.addEventListener('dragleave', (event) => {
     dropArea.classList.remove('dragover');
 });
 
-// Manejar evento de drop
+// Handle drop event
 dropArea.addEventListener('drop', handleFiles);
 
-// Función para procesar archivos al hacer drop o seleccionar
+// Function to process files when dropping or selecting
 function handleFiles(event) {
     event.stopPropagation();
     event.preventDefault();
@@ -46,7 +46,7 @@ function isDuplicate(newFile) {
     return fileList.some(file => file.name === newFile.name && file.size === newFile.size);
 }
 
-// Validar el tipo de archivo
+// Validate file type
 function isValidFileType(file) {
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const validExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'];
@@ -57,7 +57,7 @@ function isValidFileType(file) {
     return true;
 }
 
-// Validar el tamaño de archivo
+// Validate file size
 function isValidFileSize(file) {
     if (file.size > maxFileSize) {
         alert(`File size should not exceed 10MB. You tried to upload a file of size ${Math.round(file.size / 1024 / 1024)}MB.`);
@@ -66,7 +66,7 @@ function isValidFileSize(file) {
     return true;
 }
 
-// Actualizar visualización de archivos y mensaje de instrucción
+// Update file display and instruction message
 function updateFileDisplay() {
     const uploadArea = document.getElementById('file-upload-name');
     uploadArea.innerHTML = '';  
@@ -106,7 +106,7 @@ document.addEventListener('paste', (event) => {
     for (const item of items) {
         if (item.kind === 'file') {
             const file = item.getAsFile();
-            if (file && file.type.startsWith('image/')) { // Solo permite pegar si es una imagen
+            if (file && file.type.startsWith('image/')) { // Only allows pasting if it is an image
                 if (!isDuplicate(file)) {
                     addFileToList(file);
                     updateFileDisplay();
@@ -181,3 +181,14 @@ async function createUpdateTimeEntry() {
             }
         });
 }
+
+// INPUT VALIDATIONS
+document.getElementById('notesInput').addEventListener('input', function (e) {
+    if (this.value.length > 200) {
+        this.value = this.value.slice(0, 200);
+    }
+});
+document.addEventListener("DOMContentLoaded", function () {
+    validateInputTypeNumber('onCallTimeWorked');
+    validateInputTypeNumber('quantityInput');
+});

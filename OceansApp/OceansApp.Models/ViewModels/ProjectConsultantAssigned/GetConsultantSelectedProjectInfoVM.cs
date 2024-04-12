@@ -8,5 +8,6 @@
         public bool ClientHasTrackingTool { get; set; }
         public string SucessManagerName { get; set; }
         public string SuccessManagerEmail { get; set; }
+        public bool ParticipatesInOnCalls { get; set; }
     }
 }

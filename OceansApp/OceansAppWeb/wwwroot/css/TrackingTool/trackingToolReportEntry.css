@@ -1,6 +1,9 @@
 ﻿#notesInput{
     width: 100%;
 }
+.tooltip-container{
+    margin-left: 5px;
+}
 .file-upload-container {
     display: flex;
     justify-content: center;
@@ -110,4 +113,31 @@
     }
 .report-input-cont{
     margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
+    .report-input-cont .fields-backg {
+        justify-content: center;
+        align-items: center;
+        background-color: rgb(155, 168, 184, 0.2);
+        padding: 10px;
+        width: 100%;
+        display: flex;
+        border-radius: 5px;
+        margin-bottom: 8px;
+    }
+        .report-input-cont .fields-backg label {
+            color: rgb(7, 8, 8, 0.6);
+        }
+    .report-input-cont .form-select{
+        font-size: 15px;
+    }
+    .report-input-cont .input-time {
+        width: 100%;
+    }
+    .report-input-cont label {
+        color: var(--clr-grayDark);
+        font-weight: bold;
+    }

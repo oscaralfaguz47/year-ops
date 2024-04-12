@@ -7,3 +7,21 @@
         width: 95%;
     }
 }
+.other-config-cont {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 25px;
+}
+    .other-config-cont label {
+        color: #2aa7ff;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight:bold;
+    }
+        .other-config-cont label:hover {
+            color: rgb(42, 167, 255, 0.7);
+        }
+    .other-config-cont span{
+        font-weight: normal;
+    }

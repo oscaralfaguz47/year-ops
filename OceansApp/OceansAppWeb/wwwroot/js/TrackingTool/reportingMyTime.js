@@ -46,6 +46,7 @@ async function getProjectInfo() {
         if (projectInfo !== null) {
             console.log(projectInfo);
             document.getElementById('projectId').value = projectInfo.projectId;
+            document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
             trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
             trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
             paymentPeriod = projectInfo.paymentPeriod;

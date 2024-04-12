@@ -4,7 +4,8 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
     modalTitle.textContent = "ADD NEW CONSULTANT";
     var createUpdateForm = $('#form-create-update');
     inicializeModalButtons(modalId);
-    resetForm('form-create-update')
+    resetForm('form-create-update');
+    resetForm('form-other-config');
     var projectsContainer = $("#projects-container");
     projectsContainer.empty();
     createUpdateForm.find('[name="consultantId"]').val("");
@@ -57,6 +58,8 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="address"]').val(data.consultantData.address);
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
+                $('#form-other-config').find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
+                console.log(data.consultantData);
                 showModal(modalId);
             })
             .finally(() => {
@@ -70,6 +73,9 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
         paymentMethodSelect.html('<option value>-First select a Company-</option>');
         showModal(modalId);
     }
+}
+function displayOtherConfigModal(modalId) {
+    showModal(modalId);
 }
 
 //CreateUpdate Consultant METHOD
@@ -91,6 +97,7 @@ async function createUpdateConsultant(modalId) {
     var personalEmailData = createUpdateForm.find('[name="personalEmail"]').val() || null;
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
+    var participatesOnCallData = $('#form-other-config').find('[name="onCallParticiation"]').prop('checked');
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
@@ -114,6 +121,7 @@ async function createUpdateConsultant(modalId) {
         CompanyId: companyIdData,
         PaymentMethodId: paymentMethodIdData,
         PaymentPeriod: paymentPeriodIdData,
+        ParticipatesInOnCalls: Boolean(participatesOnCallData),
         Address: addressData,
         PersonalEmail: personalEmailData,
         Location: locationData,

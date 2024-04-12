@@ -141,6 +141,9 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-6 other-config-cont">
+                            <label onclick="displayOtherConfigModal('modal-other-config')"><i class="fa-solid fa-gears"></i> Other configurations <span>(Optional)</span></label>
+                        </div>
                     </div>
                     <div class="row">
                         <label for="Contact">Address</label>
@@ -175,6 +178,29 @@
                             </div><span></span>
                         </div>
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--MODAL OTHER CONFIGURATIONS -->
+<div id="modal-other-config" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2>Other Configurations</h2>
+                <form id="form-other-config">
+                    <div class="row">
+                        <div class="p-3 mb-4">
+                            <input type="checkbox" class="form-check-input" id="on-call-participation" name="onCallParticiation">
+                            <label for="on-call-participation"> The consultant participates in On Calls.</label>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-other-config')" class="cancel-btn">Close</a>&nbsp;
                 </div>
             </div>
         </div>
