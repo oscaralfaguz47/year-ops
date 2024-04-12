@@ -31,7 +31,7 @@ function addTimeEntry(button, date) {
         <input type="time" class="time-to input-time" value="16:00"/>
         <label class="count-time"></label>
         <input type="text" placeholder="Detail" class="time-detail input-time"/>
-        <button class="btn-delete-time" onclick="deleteTimeEntry(this)"><i class="bi bi-trash"></i></button>
+        <button class="btn-delete-time" onclick="deleteTimeEntry(this)"><i class="fa-solid fa-trash-can"></i></button>
         <button class="btn-save-time" onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
         <label class="time-label"></label>
     `;

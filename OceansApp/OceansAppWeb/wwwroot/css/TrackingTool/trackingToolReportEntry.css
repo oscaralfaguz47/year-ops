@@ -5,13 +5,25 @@
     display: flex;
     justify-content: center;
 }
+.row-selected-file{
+    display: flex;
+    border-bottom: solid 0.5px rgb(5,5,5,0.2);
+}
+.row-selected-file span{
+    text-align: left;
+}
+.delete-btn {
+    border: none;
+    background-color: transparent;
+    color: red;
+}
 .file-upload-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     width: 300px;
-    padding: 20px;
+    padding: 15px;
     border: 2px dashed #009578;
     border-radius: 5px;
     color: #009578;
@@ -53,14 +65,14 @@
     color: #666;
 }
 .uploaded-files-section{
-    padding-top: 5px;
+    padding:5px;
     text-align:center;
-    height: 100px;
+    height: 120px;
     overflow-y: scroll;
     width: 100%;
     justify-content: center;
-    display:flex;
     align-items: center;
+    margin-top: 5px;
 }
     .uploaded-files-section::-webkit-scrollbar {
         width: 5px; /* Ancho de la barra de desplazamiento */

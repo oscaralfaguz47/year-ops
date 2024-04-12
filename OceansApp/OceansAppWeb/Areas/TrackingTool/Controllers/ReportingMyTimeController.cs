@@ -27,14 +27,22 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromBody] CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
+        public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromForm] List<IFormFile> files, [FromForm] CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
         {
+            foreach (var file in files)
+            {
+                if (file.Length > 0)
+                {
+                  
+                }
+            }
+
             if (reportMovementData == null)
             {
                 return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
             }
             ValidateInputs validateInputs = new();
-
+            validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
             validateInputs.ValidateNonRequiredFieldIntType("MovementId", "MovementId", reportMovementData.MovementId, ModelState);
             validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", reportMovementData.ProjectId, ModelState);
             validateInputs.ValidateRequiredFieldNumberValue("Quantity", "Quantity", reportMovementData.Quantity, ModelState);
@@ -46,9 +54,13 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState.Values.SelectMany(v => v.Errors)
-                                                  .Select(e => e.ErrorMessage)
-                                                  .ToList());
+                var errors = ModelState
+        .Where(e => e.Value.Errors.Count > 0)
+        .ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+        );
+                return BadRequest(new { errors = errors });
             }
 
             try

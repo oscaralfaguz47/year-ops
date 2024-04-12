@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections;
 
@@ -50,7 +51,8 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             if (valueToValidate == null)
             {
                 modelState.AddModelError(field, $"The {fieldName} is required.");
-            }else if (valueToValidate is string && string.IsNullOrWhiteSpace(valueToValidate as string))
+            }
+            else if (valueToValidate is string && string.IsNullOrWhiteSpace(valueToValidate as string))
             {
                 modelState.AddModelError(field, $"The {fieldName} is required.");
             }
@@ -197,6 +199,13 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                         modelState.AddModelError(field, $"The {fieldName} is required.");
                     }
                 }
+            }
+        }
+        public void ValidateRequiredFiles(string field, string fieldName, List<IFormFile> files, ModelStateDictionary modelState)
+        {
+            if (files.Count == 0)
+            {
+                modelState.AddModelError(field, $"You must upload at least one file.");
             }
         }
 
