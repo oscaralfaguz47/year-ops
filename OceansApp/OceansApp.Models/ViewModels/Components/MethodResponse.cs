@@ -7,20 +7,26 @@ namespace OceansApp.Models.ViewModels.Components
         public string? Message { get; set; }
         public string? MessageType { get; set; } //Saving Error, Validation Error, Exception Error, No Exists Error, Not Found, Duplication
         public int? IdCreatedElement { get; set; }
-
+        public List<CreatedElement>? CreatedElementsList { get; set; } 
         public MethodResponse()
         {
         }
-        private MethodResponse(bool success, string message, string messageType, int? idCreatedElement = null)
+        public class CreatedElement
+        {
+            public int? IdElement { get; set; }
+            public string? ElementType { get; set; }
+        }
+        private MethodResponse(bool success, string message, string messageType, int? idCreatedElement = null, List<CreatedElement>? createdElementsList = null)
         {
             Success = success;
             Message = message;
             MessageType = messageType;
             IdCreatedElement = idCreatedElement;
+            CreatedElementsList = createdElementsList;
         }
-        public static MethodResponse CreateSuccessResponse(string? message = null, int? idCreatedElement = null)
+        public static MethodResponse CreateSuccessResponse(string? message = null, int? idCreatedElement = null, List<CreatedElement>? createdElementsList = null)
         {
-            return new MethodResponse(true, message, null, idCreatedElement);
+            return new MethodResponse(true, message, null, idCreatedElement, createdElementsList);
         }
 
         public static MethodResponse CreateFailureExceptionResponse(string? message = null)

@@ -1,6 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Http;
-
 namespace OceansApp.Models.ViewModels.ReportingMyTime
 {
     public class CreateUpdateMovementClientNoTrackingToolVM
@@ -10,5 +8,6 @@ namespace OceansApp.Models.ViewModels.ReportingMyTime
         public DateTime? ActionDate { get; set; }
         public decimal? Quantity { get; set; }
         public string? Notes { get; set; }
+        public string? MovementType { get; set; }
     }
 }

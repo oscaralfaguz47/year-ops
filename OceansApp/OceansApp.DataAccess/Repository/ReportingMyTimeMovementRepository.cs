@@ -48,10 +48,11 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
                     }
-                    var movementTypeNormalHours = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+
+                    var movementTypeNormalHours = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == reportMovementData.MovementType);
                     if (movementTypeNormalHours == null)
                     {
-                        return MethodResponse.CreateFailureNotFoundResponse("Movement type not found.");
+                        return MethodResponse.CreateFailureNotFoundResponse("Movement type not valid.");
                     }
                     var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ActionDate == reportMovementData.ActionDate
                     && x.MovementTypeId == movementTypeNormalHours.MovementTypeId && x.ProjectId == reportMovementData.ProjectId && x.ConsultantId == currentUser.ConsultantId);
@@ -95,7 +96,7 @@ namespace OceansApp.DataAccess.Repository
                     var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == reportMovementData.MovementId);
                     if (existingTimeMovement == null)
                     {
-                        _ = CreateTimeEntryClientNoTrackingTool(userActionedBy, reportMovementData);
+                        return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
                     }
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                     if (existingTimeMovement.ConsultantId != currentUser.ConsultantId && existingTimeMovement.ProjectId != reportMovementData.ProjectId)
@@ -110,6 +111,32 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return MethodResponse.CreateSuccessResponse("Changes saved!", existingTimeMovement.MovementId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        public async Task<MethodResponse> DeleteTimeEntryClientNoTrackingTool(int movementId)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingTimeMovementToDelete = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == movementId);
+                    if (existingTimeMovementToDelete == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
+                    }
+
+                    _db.Remove(existingTimeMovementToDelete);
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return MethodResponse.CreateSuccessResponse("Changes saved!", null);
                 }
                 catch (Exception ex)
                 {

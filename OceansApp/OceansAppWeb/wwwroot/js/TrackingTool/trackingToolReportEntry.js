@@ -1,6 +1,10 @@
 ﻿let quantityInput = document.getElementById('quantityInput');
 let notesInput = document.getElementById('notesInput');
-let movementIdInput = document.getElementById('movementIdInput');
+let movementIdNormalHoursInput = document.getElementById('movementIdNormalHoursInput');
+let movementIdOnCallFlateRateInput = document.getElementById('movementIdOnCallFlateRateInput');
+let movementIdOnCallTimeWorkedInput = document.getElementById('movementIdOnCallTimeWorkedInput');
+let onCallFlateRateSelect = document.getElementById('onCallFlateRateSelect');
+let onCallTimeWorkedInput = document.getElementById('onCallTimeWorkedInput');
 const dropArea = document.querySelector('.file-upload-wrapper');
 const fileList = [];
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
@@ -69,15 +73,15 @@ function isValidFileSize(file) {
 // Update file display and instruction message
 function updateFileDisplay() {
     const uploadArea = document.getElementById('file-upload-name');
-    uploadArea.innerHTML = '';  
+    uploadArea.innerHTML = '';
 
     fileList.forEach((file, index) => {
         const fileElement = document.createElement('div');
-        fileElement.className = 'row-selected-file'; 
+        fileElement.className = 'row-selected-file';
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';  
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
         deleteBtn.onclick = function () {
             fileList.splice(index, 1);
             updateFileDisplay();
@@ -116,30 +120,58 @@ document.addEventListener('paste', (event) => {
     }
 });
 
-
-
 //CREATE, UPDATE TIME ENTRY MOVEMENT
 async function createUpdateTimeEntry() {
-    const actionDate = new Date(dateFromInput.value);
     var token = $('[name="__RequestVerificationToken"]').val();
-    let movementIdData = movementIdInput.value || null  ;
+    let projectIdData = document.getElementById('projectId').value;
+    let actionDateData = new Date(dateFromInput.value).toISOString();
     const formData = new FormData();
     function appendIfValid(key, value) {
         if (value) {
             formData.append(key, value);
         }
     }
-
-
-    // Add each file to formData
     fileList.forEach(file => {
-        formData.append('files', file);
+        appendIfValid('files', file);
     });
-    appendIfValid('reportMovementData.MovementId', movementIdInput.value);
-    appendIfValid('reportMovementData.ProjectId', document.getElementById('projectId').value);
-    appendIfValid('reportMovementData.Quantity', quantityInput.value);
-    appendIfValid('reportMovementData.ActionDate', new Date(dateFromInput.value).toISOString());
-    appendIfValid('reportMovementData.Notes', notesInput.value);
+
+    let dataItems = [];
+
+    let normalHoursData = {
+        MovementId: movementIdNormalHoursInput.value,
+        ProjectId: projectIdData,
+        Quantity: quantityInput.value,
+        ActionDate: actionDateData,
+        Notes: notesInput.value,
+        MovementType: 'Normal Hours'
+    };
+    let onCallFlateRateData = {
+        MovementId: movementIdOnCallFlateRateInput.value,
+        ProjectId: projectIdData,
+        Quantity: onCallFlateRateSelect.value,
+        ActionDate: actionDateData,
+        Notes: null,
+        MovementType: 'On Call Flate Rate'
+    };
+    let onCallTimeWorkedData = {
+        MovementId: movementIdOnCallTimeWorkedInput.value,
+        ProjectId: projectIdData,
+        Quantity: onCallTimeWorkedInput.value,
+        ActionDate: actionDateData,
+        Notes: null,
+        MovementType: 'On Call Time Worked'
+    };
+
+    dataItems.push(normalHoursData);
+    dataItems.push(onCallFlateRateData);
+    dataItems.push(onCallTimeWorkedData);
+
+
+    dataItems.forEach((item, index) => {
+        Object.keys(item).forEach(key => {
+            appendIfValid(`reportMovementListData[${index}].${key}`, item[key]);
+        });
+    });
 
     fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryClientNoTrackingTool', {
         method: 'POST',
@@ -158,7 +190,19 @@ async function createUpdateTimeEntry() {
         })
         .then(data => {
             console.log('Success:', data);
-            movementIdInput.value = data.createdMovement;
+            data.createdMovementList.forEach(function (el, index) {
+                console.log("ELEMENT: " + el.elementType);
+                if (el.elementType === 'Normal Hours') {
+                    console.log("YES!!");
+                    movementIdNormalHoursInput.value = el.idElement;
+                }
+                if (el.elementType === 'On Call Flate Rate') {
+                    movementIdOnCallFlateRateInput.value = el.idElement;
+                }
+                if (el.elementType === 'On Call Time Worked') {
+                    movementIdOnCallTimeWorkedInput.value = el.idElement;
+                }
+            });
             displayToasterSuccess(data.message);
             // Successful response management
         })

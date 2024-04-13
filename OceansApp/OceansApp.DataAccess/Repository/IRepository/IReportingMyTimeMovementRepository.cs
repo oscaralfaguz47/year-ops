@@ -10,5 +10,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> UpdateTimeEntryClientNoTrackingTool(string userActionedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
+        Task<MethodResponse> DeleteTimeEntryClientNoTrackingTool(int movementId);
     }
 }
