@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 
@@ -16,6 +18,46 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
+        public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(string containerId,  List<BlobUploadResult> uploadedBlobs, int movementId)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                var errorMessage = "";
+                try
+                {
+                    foreach (var uploadedFile in uploadedBlobs)
+                    {
+                        if (uploadedFile.Success)
+                        {
+                            var blobToSave = new ReportingMyTimeMovementBlob()
+                            {
+                                MovementId = movementId,
+                                BlobName = uploadedFile.FileName,
+                                ContainerId = containerId,
+                                BlobUrl = uploadedFile.BlobUrl,
+                                Size = uploadedFile.Size,
+                                ContentType = uploadedFile.ContentType,
+                                CreationDate = uploadedFile.UploadDate
+                            };
+                            _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.Add(blobToSave);
+                        }
+                        else
+                        {
+                            errorMessage += uploadedFile.ErrorMessage + "/ ";
+                        }
+                    }
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("Changes saved!", null);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message + "/ " + errorMessage);
+                }
+            }
+        }
         public async Task<MethodResponse> CreateTimeEntryClientNoTrackingTool(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
         {
             if (reportMovementData == null)
@@ -76,7 +118,7 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return MethodResponse.CreateSuccessResponse("Changes saved!",timeMovementToCreate.MovementId);
+                    return MethodResponse.CreateSuccessResponse("Changes saved!", timeMovementToCreate.MovementId);
                 }
                 catch (Exception ex)
                 {

@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
-using NodaTime;
 using static OceansApp.Models.ViewModels.Components.MethodResponse;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Utility.LazyLoading;
+using OceansApp.Models.ViewModels.Blobs;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -18,9 +18,11 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
     public class ReportingMyTimeController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ReportingMyTimeController(IUnitOfWork unitOrWork)
+        private readonly LazyServiceProvider<IAzureBlobRepository> _azureBlobRepository;
+        public ReportingMyTimeController(IUnitOfWork unitOrWork, LazyServiceProvider<IAzureBlobRepository> azureBlobRepository)
         {
             _unitOfWork = unitOrWork;
+            _azureBlobRepository = azureBlobRepository;
         }
         public IActionResult Index()
         {
@@ -31,20 +33,15 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromForm] List<IFormFile> files, [FromForm] List<CreateUpdateMovementClientNoTrackingToolVM> reportMovementListData)
         {
-            foreach (var file in files)
-            {
-                if (file.Length > 0)
-                {
-
-                }
-            }
-
             if (reportMovementListData == null)
             {
                 return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
             }
             ValidateInputs validateInputs = new();
+
             validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
+            validateInputs.ValidateValidFiles("Reports", files, ModelState);
+
             int isNormalHours = 0;
             foreach (var movementTime in reportMovementListData)
             {
@@ -107,13 +104,15 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     if (movementTime.MovementId == null && movementTime.Quantity > 0)
                     {
                         result = await _unitOfWork.ReportingMyTimeMovement.CreateTimeEntryClientNoTrackingTool(userActionedBy, elementToUpdateOrCreate);
-                    }else
+                    }
+                    else
 
                     //Update the element
                     if (movementTime.MovementId != null && movementTime.Quantity > 0)
                     {
                         result = await _unitOfWork.ReportingMyTimeMovement.UpdateTimeEntryClientNoTrackingTool(userActionedBy, elementToUpdateOrCreate);
-                    }else
+                    }
+                    else
                     //Delete the element
                     if (movementTime.MovementId != null && movementTime.Quantity == 0)
                     {
@@ -138,6 +137,16 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                         IdElement = result.IdCreatedElement,
                         ElementType = movementTime.MovementType
                     });
+                }
+                string containerId = "consultant-hour-reports";
+                List<BlobUploadResult> blobResultUpload = await _azureBlobRepository.Value.UploadFilesAsync(containerId, files);
+
+                MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob("consultant-hour-reports",
+                    blobResultUpload, (int)createdElementListToReturn.FirstOrDefault(e => e.ElementType == "Normal Hours").IdElement);
+
+                if (!resultBlob.Success)
+                {
+                    return BadRequest(new { error = resultBlob.Message });
                 }
                 return Ok(new
                 {

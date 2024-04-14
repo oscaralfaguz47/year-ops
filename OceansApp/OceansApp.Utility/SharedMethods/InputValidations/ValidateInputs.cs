@@ -208,6 +208,16 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 modelState.AddModelError(field, $"You must upload at least one file.");
             }
         }
+        public void ValidateValidFiles(string field, List<IFormFile> files, ModelStateDictionary modelState)
+        {
+            foreach (var file in files)
+            {
+                if (file.Length == 0 || file.Length > 10_000_000)
+                {
+                    modelState.AddModelError(field, $"The file {file.Name} must be less than 10 MB and cannot be empty.");
+                }
+            }
+        }
 
         //PRIVATE
         private class ValidateResponse

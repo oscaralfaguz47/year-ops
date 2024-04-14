@@ -32,6 +32,8 @@ builder.Services.AddScoped<ISendEmailRepository, SendEmailRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISendEmailRepository>)); //Lazy Loading
 builder.Services.AddScoped<ISlackRepository, SlackRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISlackRepository>)); //Lazy Loading
+builder.Services.AddScoped<IAzureBlobRepository, AzureBlobRepository>();
+builder.Services.AddScoped(typeof(LazyServiceProvider<IAzureBlobRepository>)); //Lazy Loading
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<BackgroundTaskService>();
 builder.Services.Configure<IdentityOptions>(opt =>

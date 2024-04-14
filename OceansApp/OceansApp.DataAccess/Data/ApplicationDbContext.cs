@@ -273,6 +273,21 @@ namespace OceansApp.DataAccess.Data
                 .Property(t => t.TimeTo)
                 .HasColumnType("time");
 
+            // REPORTING MY TIME MOVEMENT BLOBS
+            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
+                .HasKey(r => new { r.InternalBlobId });
+            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
+                .HasOne(p => p.ReportingMyTimeMovement)
+                .WithMany()
+                .HasForeignKey(p => p.MovementId)
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
+                .Property(c => c.ContainerId)
+                .HasColumnType("VARCHAR(255)");
+            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
+                .Property(c => c.ContentType)
+                .HasColumnType("VARCHAR(255)");
+
             // CONSULTANTS BENEFITS
             modelBuilder.Entity<ConsultantBenefit>()
                 .HasKey(c => new { c.BenefitId });
@@ -424,6 +439,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }
+        public DbSet<ReportingMyTimeMovementBlob> REPORTING_MY_TIME_MOVEMENT_BLOBS { get; set; }
         public DbSet<ReportingMyTimeMovementType> REPORTING_MY_TIME_MOVEMENT_TYPES { get; set; }
         public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
         public DbSet<TransactionStatus> TRANSACTION_STATUSES { get; set; }
