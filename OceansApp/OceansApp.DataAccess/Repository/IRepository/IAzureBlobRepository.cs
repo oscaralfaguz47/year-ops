@@ -6,7 +6,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IAzureBlobRepository
     {
-        Task<List<BlobUploadResult>> UploadFilesAsync(string containerName, List<IFormFile> files);
+        Task<List<BlobUploadResult>> UploadFilesAsync(string containerName, List<IFormFile> files, int elementId);
         Task DownloadFileAsync(string containerName, string fileName, string downloadPath);
         Task ListBlobsAsync(string containerName);
         Task DeleteBlobAsync(string containerName, string fileName);

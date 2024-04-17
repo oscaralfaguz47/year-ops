@@ -24,7 +24,7 @@ namespace OceansApp.DataAccess.Repository
             _accountKey = Environment.GetEnvironmentVariable(_config["AzureBlobStorage:AccountKey"]);
         }
 
-        public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerId, List<IFormFile> files)
+        public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerId, List<IFormFile> files, int elementId)
         {
             var uploadResults = new List<BlobUploadResult>();
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerId);
@@ -33,7 +33,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 CalculateContentHash calculateHash = new CalculateContentHash();
                 string contentHash = await calculateHash.CalculateContentHashAsync(file);
-                string uniqueFilename = $"{contentHash}_{file.FileName}";
+                string uniqueFilename = $"{contentHash}_{elementId}_{file.FileName}";
                 var blobClient = containerClient.GetBlobClient(uniqueFilename);
 
                 var uploadResult = new BlobUploadResult

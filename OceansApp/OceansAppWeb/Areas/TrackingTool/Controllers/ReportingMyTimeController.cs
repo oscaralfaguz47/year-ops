@@ -135,8 +135,57 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files,
-            [FromForm] UploadFilesVM uploadFilesData)
+        public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files, int movementId)
+        {
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldIntType("MovementId", "MovementId", movementId, ModelState);
+            validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
+            validateInputs.ValidateValidFiles("Reports", files, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+        .Where(e => e.Value.Errors.Count > 0)
+        .ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+        );
+                return BadRequest(new { errors = errors });
+            }
+
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                MethodResponse result = new MethodResponse();
+
+                List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files,movementId);
+
+                string containerId = "consultant-hour-reports";
+                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(containerId, filesToUpload, movementId);
+
+                MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob(
+                uploadedBlobs, movementId);
+
+                if (!resultBlob.Success)
+                {
+                    return BadRequest(new { error = resultBlob.Message });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = resultBlob.Message,
+                    fileNamesUploaded = resultBlob.StringsList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"An error occurred: {ex.Message}" });
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateMovementClientNoTrackingTool([FromForm] UploadFilesVM uploadFilesData)
         {
             if (uploadFilesData == null)
             {
@@ -144,8 +193,6 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
             ValidateInputs validateInputs = new();
 
-            validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
-            validateInputs.ValidateValidFiles("Reports", files, ModelState);
             validateInputs.ValidateNonRequiredFieldIntType("MovementId", "MovementId", uploadFilesData.MovementId, ModelState);
             validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", uploadFilesData.ProjectId, ModelState);
             validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", uploadFilesData.ActionDate, ModelState);
@@ -191,30 +238,16 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     result.IdCreatedElement = uploadFilesData.MovementId;
                 }
 
-                List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files,
-                (int)result.IdCreatedElement);
-
                 createdElementListToReturn.Add(new CreatedElement
                 {
                     IdElement = result.IdCreatedElement
                 });
 
-                string containerId = "consultant-hour-reports";
-                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(containerId, filesToUpload);
-
-                MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob(
-                uploadedBlobs, (int)result.IdCreatedElement);
-
-                if (!resultBlob.Success)
-                {
-                    return BadRequest(new { error = resultBlob.Message });
-                }
                 return Ok(new
                 {
                     success = true,
                     createdMovementId = (int)result.IdCreatedElement,
-                    message = resultBlob.Message,
-                    fileNamesUploaded = resultBlob.StringsList
+                    message = result.Message
                 });
             }
             catch (Exception ex)

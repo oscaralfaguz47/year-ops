@@ -23,166 +23,187 @@ dropArea.addEventListener('dragleave', (event) => {
     dropArea.classList.remove('dragover');
 });
 
-// Handle drop event
+// Handle drop event and file selection change
 dropArea.addEventListener('drop', handleFiles);
-
-// Function to process files when dropping or selecting
-function handleFiles(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    dropArea.classList.remove('dragover');
-    const newFiles = event.dataTransfer ? event.dataTransfer.files : event.target.files;
-    processFiles(newFiles);
-}
-
-function processFiles(newFiles) {
-    Array.from(newFiles).forEach(file => {
-        if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
-            addFileToList(file);
-        }
-    });
-    updateFileDisplay();
-}
-
-function addFileToList(file) {
-    fileList.push(file);
-}
-
-function isDuplicate(newFile) {
-    return fileList.some(file => file.name === newFile.name && file.size === newFile.size);
-}
-
-// Validate file type
-function isValidFileType(file) {
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    const validExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'];
-    if (!validExtensions.includes(fileExtension)) {
-        alert(`Only PDF, images, Word, Excel, and TXT files are allowed. You tried to upload a file with extension .${fileExtension}.`);
-        return false;
-    }
-    return true;
-}
-
-// Validate file size
-function isValidFileSize(file) {
-    if (file.size > maxFileSize) {
-        alert(`File size should not exceed 10MB. You tried to upload a file of size ${Math.round(file.size / 1024 / 1024)}MB.`);
-        return false;
-    }
-    return true;
-}
-
-// Update file display and instruction message
-function updateFileDisplay() {
-    const uploadArea = document.getElementById('file-upload-name');
-    uploadArea.innerHTML = '';
-
-    fileList.forEach((file, index) => {
-        const fileElement = document.createElement('div');
-        fileElement.className = 'row-selected-file';
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-        deleteBtn.onclick = function () {
-            fileList.splice(index, 1);
-            updateFileDisplay();
-        };
-
-        const fileName = document.createElement('span');
-        fileName.textContent = file.name;
-
-        fileElement.appendChild(deleteBtn);
-        fileElement.appendChild(fileName);
-        uploadArea.appendChild(fileElement);
-    });
-
-    const infoText = document.getElementById('info-text');
-    infoText.style.display = fileList.length > 0 ? 'none' : 'block';
-}
-
-
+document.getElementById('file-upload').addEventListener('change', handleFiles);
 document.getElementById('file-upload').setAttribute('accept',
     '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
 
-document.getElementById('file-upload').addEventListener('change', handleFiles);
-
+// Handle file paste from clipboard
 document.addEventListener('paste', (event) => {
-    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
-    for (const item of items) {
-        if (item.kind === 'file') {
-            const file = item.getAsFile();
-            if (file && file.type.startsWith('image/')) { // Only allows pasting if it is an image
-                if (!isDuplicate(file)) {
-                    addFileToList(file);
-                    updateFileDisplay();
-                }
-            }
+    const items = event.clipboardData || event.originalEvent.clipboardData;
+    if (items) {
+        let files = [];
+        if (items.files && items.files.length) {
+            files = Array.from(items.files);
+        } else if (items.items) {
+            files = Array.from(items.items)
+                .filter(item => item.kind === 'file')
+                .map(item => item.getAsFile());
+        }
+
+        if (files.length > 0) {
+            processFiles(files);
         }
     }
 });
 
-//UPLOAD FILES
-async function uploadFiles() {
+
+async function handleFiles(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    dropArea.classList.remove('dragover');
+    const newFiles = event.dataTransfer ? event.dataTransfer.files : event.target.files;
+    for (const file of newFiles) {
+        if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
+            fileList.push(file);
+            updateFileDisplay(file);
+        }
+    }
+    updateInfoText();
+}
+
+function processFiles(newFiles) {
+    newFiles.forEach(file => {
+        if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
+            fileList.push(file);
+            updateFileDisplay(file);
+        }
+    });
+    updateInfoText();
+}
+
+function isValidFileType(file) {
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const validExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'];
+    return validExtensions.includes(fileExtension);
+}
+
+function isValidFileSize(file) {
+    return file.size <= maxFileSize;
+}
+
+function isDuplicate(file) {
+    return fileList.some(f => f.name === file.name && f.size === file.size);
+}
+
+function updateInfoText() {
+    const infoText = document.getElementById('info-text');
+    infoText.style.display = fileList.length > 0 ? 'none' : 'block';
+}
+
+let isCreatingMovement = false;
+let movementCreationPromise = null;
+
+function updateFileDisplay(file) {
+    const uploadArea = document.getElementById('file-upload-name');
+    const fileElement = document.createElement('div');
+    fileElement.className = 'row-selected-file';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+    deleteBtn.onclick = function () {
+        fileList.splice(fileList.indexOf(file), 1);
+        fileElement.remove();
+        updateInfoText();
+    };
+
+    const fileName = document.createElement('span');
+    fileName.textContent = file.name;
+
+    const statusLabel = document.createElement('span');
+    statusLabel.textContent = '';
+    statusLabel.className = 'span-status';
+    fileElement.appendChild(deleteBtn);
+    fileElement.appendChild(fileName);
+    fileElement.appendChild(statusLabel);
+    uploadArea.appendChild(fileElement);
+
+    // Ensure movementIdNormalHoursInput is actually null and no creation is currently in progress
+    if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
+        isCreatingMovement = true;
+        movementCreationPromise = createFirstMovementIfDoesNotExist()
+            .then(data => {
+                if (data && data.createdMovementId !== undefined) {
+                    movementIdNormalHoursInput.value = data.createdMovementId;
+                    displayToasterSuccess('Movement created successfully');
+                } else {
+                    throw new Error('Invalid response data');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                statusLabel.textContent = 'Movement creation failed';
+                displayToasterError(error.message);
+            })
+            .finally(() => {
+                isCreatingMovement = false;
+            });
+    }
+
+
+    if (movementCreationPromise) {
+        movementCreationPromise.then(() => {
+            uploadFile(file, statusLabel);
+        });
+    } else {
+        uploadFile(file, statusLabel);
+    }
+}
+
+async function uploadFile(file, statusLabel) {
+    var token = $('[name="__RequestVerificationToken"]').val();
+    const formData = new FormData();
+    formData.append('files', file);
+    formData.append('movementId', movementIdNormalHoursInput.value);
+    statusLabel.innerHTML = '<div class="spinner loading-file-spinner"></div>';
+
+    try {
+        const response = await fetch('/TrackingTool/ReportingMyTime/UploadFilesClientNoTrackingTool', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: formData
+        });
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
+        statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
+        displayToasterSuccess(data.message);
+    } catch (error) {
+        console.error('Error:', error);
+        statusLabel.textContent = 'Upload failed';
+        displayToasterError(error.message);
+    }
+}
+
+async function createFirstMovementIfDoesNotExist() {
     var token = $('[name="__RequestVerificationToken"]').val();
     let actionDateData = new Date(dateFromInput.value).toISOString();
     const formData = new FormData();
-    function appendIfValid(key, value) {
-        if (value) {
-            formData.append(key, value);
-        }
-    }
-    fileList.forEach(file => {
-        appendIfValid('files', file);
-    });
+    formData.append('uploadFilesData.ProjectId', projectIdInput.value);
+    formData.append('uploadFilesData.MovementId', movementIdNormalHoursInput.value);
+    formData.append('uploadFilesData.ActionDate', actionDateData);
 
-    appendIfValid(`uploadFilesData.ProjectId`, projectIdInput.value);
-    appendIfValid(`uploadFilesData.MovementId`, movementIdNormalHoursInput.value);
-    appendIfValid(`uploadFilesData.ActionDate`, actionDateData);
-
-    fetch('/TrackingTool/ReportingMyTime/UploadFilesClientNoTrackingTool', {
+    const response = await fetch('/TrackingTool/ReportingMyTime/CreateMovementClientNoTrackingTool', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
-            RequestVerificationToken: token
+            'RequestVerificationToken': token
         },
         body: formData
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw response;
-            }
-        })
-        .then(data => {
-            movementIdNormalHoursInput.value = data.createdMovementId;
-            data.fileNamesUploaded.forEach(function (el, index) {
-                console.log("ELEMENT: " + el);
-            });
-            displayToasterSuccess(data.message);
-        })
-        .catch(errorResponse => {
-            if (errorResponse.status === 400) {
-                errorResponse.json().then(body => {
-                    if (body.errors) {
-                        for (const field in body.errors) {
-                            console.error(`${field}: ${body.errors[field]}`);
-                            // logic to show errors in specific form fields
-                        }
-                    } else if (body.error) {
-                        // Handle other types of 400 errors
-                        console.error("Error:", body.error);
-                        displayToasterError(body.error);
-                    }
-                });
-            } else {
-                console.error('Something went wrong with the request.');
-            }
-        });
+    });
+    if (!response.ok) {
+        throw new Error('Creation failed');
+    }
+    const data = await response.json();
+    if (!data.success) {
+        throw new Error(data.message || 'Unknown error');
+    }
+    return data;
 }
-
-
 
 
 

@@ -67,7 +67,7 @@ namespace OceansApp.DataAccess.Repository
             CalculateContentHash calculateHash = new CalculateContentHash();
             foreach (var file in files)
             {
-                string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{file.FileName}";
+                string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{movementId}_{file.FileName}";
                 var existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
                 && x.MovementId == movementId);
                 if (existingFile == null)

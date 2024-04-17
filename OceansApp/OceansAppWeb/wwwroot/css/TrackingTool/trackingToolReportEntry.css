@@ -141,3 +141,16 @@
         color: var(--clr-grayDark);
         font-weight: bold;
     }
+.span-status{
+    display: flex;
+    align-items: center;
+}
+.loading-file-spinner {
+    width: 22px !important;
+    height: 22px !important;
+    margin-left: 8px;
+}
+.uploaded-check-icon {
+    margin-left: 8px;
+    font-size: 18px;
+}
