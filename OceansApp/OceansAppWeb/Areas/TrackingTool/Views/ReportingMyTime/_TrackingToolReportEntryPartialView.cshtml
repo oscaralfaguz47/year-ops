@@ -6,6 +6,25 @@
             <input type="hidden" id="movementIdNormalHoursInput" />
             <input type="hidden" id="movementIdOnCallFlateRateInput" />
             <input type="hidden" id="movementIdOnCallTimeWorkedInput" />
+            <div class="col-md-6">
+                <div class="file-upload-container">
+                    <div class="file-upload-wrapper">
+                        <input type="file" name="file-upload" id="file-upload" class="file-upload-input" multiple hidden />
+                        <label for="file-upload" class="file-upload-label">
+                            <i class="fa fa-cloud-upload"></i> Upload your report here
+                        </label>
+                        <div class="uploaded-files-section">
+                            <div>
+                                <span id="file-upload-name" class="file-upload-name"></span>
+                                <p class="file-upload-instructions" id="info-text">
+                                    <strong>No files selected...</strong><br />
+                                    <span>Drag and Drop, Select files or Copy and Paste screenshots here...</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-6 report-input-cont">
                 <div>
                     <div class="fields-backg">
@@ -37,6 +56,8 @@
                                         <option value="2">2 On-Calls</option>
                                         <option value="3">3 On-Calls</option>
                                         <option value="4">4 On-Calls</option>
+                                        <option value="5">5 On-Calls</option>
+                                        <option value="6">6 On-Calls</option>
                                     </select>
                                 </div>
                             </div>
@@ -61,25 +82,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="file-upload-container">
-                    <div class="file-upload-wrapper">
-                        <input type="file" name="file-upload" id="file-upload" class="file-upload-input" multiple hidden />
-                        <label for="file-upload" class="file-upload-label">
-                            <i class="fa fa-cloud-upload"></i> Upload your report here
-                        </label>
-                        <div class="uploaded-files-section">
-                            <div>
-                                <span id="file-upload-name" class="file-upload-name"></span>
-                                <p class="file-upload-instructions" id="info-text">
-                                    <strong>No files selected...</strong><br />
-                                    <span>Drag and Drop, Select files or Copy and Paste screenshots here...</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
         </div>
    </div>
 
