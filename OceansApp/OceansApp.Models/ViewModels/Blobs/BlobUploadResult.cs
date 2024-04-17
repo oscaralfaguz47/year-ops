@@ -10,5 +10,6 @@ namespace OceansApp.Models.ViewModels.Blobs
         public DateTime UploadDate { get; set; }
         public bool Success { get; set; }
         public string? ErrorMessage { get; set; }
+        public string ContainerId { get; set; }
     }
 }

@@ -104,6 +104,16 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 }
             }
         }
+        public void ValidateNotRequiredFieldNumberValue(string field, string fieldName, object? numToValidate, ModelStateDictionary modelState)
+        {
+            if (numToValidate != null)
+            {
+                if (!(numToValidate is int || numToValidate is decimal || numToValidate is float))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} should be a number.");
+                }
+            }
+        }
         public void ValidateEmail(string field, string fieldName, string email, ModelStateDictionary modelState)
         {
             if (email != null)

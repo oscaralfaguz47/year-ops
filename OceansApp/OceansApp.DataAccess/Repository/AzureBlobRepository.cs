@@ -4,72 +4,60 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Utility.SharedMethods.Blobs;
+using Azure;
+using Azure.Storage.Sas;
+using Azure.Storage;
 
 namespace OceansApp.DataAccess.Repository
 {
     public class AzureBlobRepository: IAzureBlobRepository
     {
         private readonly BlobServiceClient _blobServiceClient;
+        private readonly string _accountKey;
         private readonly IConfiguration _config;
 
         public AzureBlobRepository(IConfiguration config)
         {
             _config = config;
             _blobServiceClient = new BlobServiceClient(Environment.GetEnvironmentVariable(_config["AzureBlobStorage:ConnectionString"]));
-        }
-        private async Task<string> CalculateContentHashAsync(IFormFile file)
-        {
-            using (var md5 = System.Security.Cryptography.MD5.Create())
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var hashBytes = await md5.ComputeHashAsync(stream);
-                    return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-                }
-            }
+            _accountKey = Environment.GetEnvironmentVariable(_config["AzureBlobStorage:AccountKey"]);
         }
 
-        public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerName, List<IFormFile> files)
+        public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerId, List<IFormFile> files)
         {
             var uploadResults = new List<BlobUploadResult>();
-            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            var containerClient = _blobServiceClient.GetBlobContainerClient(containerId);
 
             foreach (var file in files)
             {
-                var blobClient = containerClient.GetBlobClient(file.FileName);
-                var existingBlob = await blobClient.ExistsAsync();
+                CalculateContentHash calculateHash = new CalculateContentHash();
+                string contentHash = await calculateHash.CalculateContentHashAsync(file);
+                string uniqueFilename = $"{contentHash}_{file.FileName}";
+                var blobClient = containerClient.GetBlobClient(uniqueFilename);
 
                 var uploadResult = new BlobUploadResult
                 {
-                    FileName = file.FileName,
+                    FileName = uniqueFilename,
                     Size = file.Length,
                     ContentType = file.ContentType ?? "application/octet-stream", // Ensure a default ContentType
+                    ContainerId = containerId,
                     UploadDate = DateTime.UtcNow,
-                    Success = true  // Assume success, change based on blob existence
+                    Success = true  // Assume success initially
                 };
 
-                if (existingBlob)
-                {
-                    uploadResult.Success = false;
-                    uploadResult.ErrorMessage = "File already exists and has not been modified.";
-                    uploadResults.Add(uploadResult); // Add the result for existing files here
-                    continue; // Skip the upload process for this file
-                }
-
-                // Process for new or changed files
+                // Upload process
                 try
                 {
-                    string contentHash = await CalculateContentHashAsync(file);
-                    string uniqueFilename = $"{contentHash}_{file.FileName}";
-                    blobClient = containerClient.GetBlobClient(uniqueFilename); // Reassign to the unique path
-
                     using (var stream = file.OpenReadStream())
                     {
                         var blobHttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType };
-                        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders });
-                        uploadResult.FileName = uniqueFilename;
-                        uploadResult.BlobUrl = blobClient.Uri.ToString();
-                        uploadResult.Success = true; // Confirm success after successful upload
+                        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders, Conditions = new BlobRequestConditions { IfNoneMatch = new ETag("*") } });
+
+                        // Generate SAS for the blob
+                        string sasUrl = GenerateBlobSasUri(containerClient, uniqueFilename);
+                        uploadResult.BlobUrl = sasUrl;
+                        uploadResult.Success = true; // Confirm success after a successful upload
                     }
                 }
                 catch (Exception ex)
@@ -78,16 +66,40 @@ namespace OceansApp.DataAccess.Repository
                     uploadResult.ErrorMessage = $"Error uploading file: {ex.Message}";
                 }
 
-                uploadResults.Add(uploadResult); // Add result only if file is new or changed and processed
+                uploadResults.Add(uploadResult); // Add the result of the process
             }
-
             return uploadResults;
         }
 
+        public string GenerateBlobSasUri(BlobContainerClient containerClient, string blobName, string storedPolicyName = null)
+        {
+            var blobClient = containerClient.GetBlobClient(blobName);
 
+            BlobSasBuilder sasBuilder = new BlobSasBuilder()
+            {
+                BlobContainerName = containerClient.Name,
+                BlobName = blobClient.Name,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow,
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(12) // Token valid for 12 hour
+            };
 
+            if (storedPolicyName == null)
+            {
+                sasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write);
+            }
+            else
+            {
+                sasBuilder.Identifier = storedPolicyName;
+            }
 
+            BlobUriBuilder blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(_blobServiceClient.AccountName, _accountKey))
+            };
 
+            return blobUriBuilder.ToUri().ToString();
+        }
 
 
         public async Task DownloadFileAsync(string containerName, string fileName, string downloadPath)

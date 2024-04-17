@@ -5,6 +5,8 @@ let movementIdOnCallFlateRateInput = document.getElementById('movementIdOnCallFl
 let movementIdOnCallTimeWorkedInput = document.getElementById('movementIdOnCallTimeWorkedInput');
 let onCallFlateRateSelect = document.getElementById('onCallFlateRateSelect');
 let onCallTimeWorkedInput = document.getElementById('onCallTimeWorkedInput');
+let projectIdInput = document.getElementById('projectId');
+
 const dropArea = document.querySelector('.file-upload-wrapper');
 const fileList = [];
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
@@ -120,10 +122,9 @@ document.addEventListener('paste', (event) => {
     }
 });
 
-//CREATE, UPDATE TIME ENTRY MOVEMENT
-async function createUpdateTimeEntry() {
+//UPLOAD FILES
+async function uploadFiles() {
     var token = $('[name="__RequestVerificationToken"]').val();
-    let projectIdData = document.getElementById('projectId').value;
     let actionDateData = new Date(dateFromInput.value).toISOString();
     const formData = new FormData();
     function appendIfValid(key, value) {
@@ -135,11 +136,75 @@ async function createUpdateTimeEntry() {
         appendIfValid('files', file);
     });
 
+    appendIfValid(`uploadFilesData.ProjectId`, projectIdInput.value);
+    appendIfValid(`uploadFilesData.MovementId`, movementIdNormalHoursInput.value);
+    appendIfValid(`uploadFilesData.ActionDate`, actionDateData);
+
+    fetch('/TrackingTool/ReportingMyTime/UploadFilesClientNoTrackingTool', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            RequestVerificationToken: token
+        },
+        body: formData
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw response;
+            }
+        })
+        .then(data => {
+            movementIdNormalHoursInput.value = data.createdMovementId;
+            data.fileNamesUploaded.forEach(function (el, index) {
+                console.log("ELEMENT: " + el);
+            });
+            displayToasterSuccess(data.message);
+        })
+        .catch(errorResponse => {
+            if (errorResponse.status === 400) {
+                errorResponse.json().then(body => {
+                    if (body.errors) {
+                        for (const field in body.errors) {
+                            console.error(`${field}: ${body.errors[field]}`);
+                            // logic to show errors in specific form fields
+                        }
+                    } else if (body.error) {
+                        // Handle other types of 400 errors
+                        console.error("Error:", body.error);
+                        displayToasterError(body.error);
+                    }
+                });
+            } else {
+                console.error('Something went wrong with the request.');
+            }
+        });
+}
+
+
+
+
+
+
+
+
+//CREATE, UPDATE TIME ENTRY MOVEMENT
+async function createUpdateTimeEntry() {
+    var token = $('[name="__RequestVerificationToken"]').val();
+    let actionDateData = new Date(dateFromInput.value).toISOString();
+    const formData = new FormData();
+    function appendIfValid(key, value) {
+        if (value) {
+            formData.append(key, value);
+        }
+    }
+
     let dataItems = [];
 
     let normalHoursData = {
         MovementId: movementIdNormalHoursInput.value,
-        ProjectId: projectIdData,
+        ProjectId: projectIdInput.value,
         Quantity: quantityInput.value,
         ActionDate: actionDateData,
         Notes: notesInput.value,
@@ -147,7 +212,7 @@ async function createUpdateTimeEntry() {
     };
     let onCallFlateRateData = {
         MovementId: movementIdOnCallFlateRateInput.value,
-        ProjectId: projectIdData,
+        ProjectId: projectIdInput.value,
         Quantity: onCallFlateRateSelect.value,
         ActionDate: actionDateData,
         Notes: null,
@@ -155,7 +220,7 @@ async function createUpdateTimeEntry() {
     };
     let onCallTimeWorkedData = {
         MovementId: movementIdOnCallTimeWorkedInput.value,
-        ProjectId: projectIdData,
+        ProjectId: projectIdInput.value,
         Quantity: onCallTimeWorkedInput.value,
         ActionDate: actionDateData,
         Notes: null,
@@ -226,6 +291,7 @@ async function createUpdateTimeEntry() {
         });
 }
 
+
 // INPUT VALIDATIONS
 document.getElementById('notesInput').addEventListener('input', function (e) {
     if (this.value.length > 200) {
@@ -233,6 +299,6 @@ document.getElementById('notesInput').addEventListener('input', function (e) {
     }
 });
 document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('onCallTimeWorked');
+    validateInputTypeNumber('onCallTimeWorkedInput');
     validateInputTypeNumber('quantityInput');
 });

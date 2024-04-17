@@ -6,6 +6,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
+using OceansApp.Utility.SharedMethods.Blobs;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -18,38 +19,40 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-        public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(string containerId,  List<BlobUploadResult> uploadedBlobs, int movementId)
+        public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId)
         {
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 var errorMessage = "";
                 try
                 {
-                    foreach (var uploadedFile in uploadedBlobs)
+                    List<string> uploadedBlobsNames = new List<string>();
+                    foreach (var uploadedBlob in uploadedBlobs)
                     {
-                        if (uploadedFile.Success)
+                        if (uploadedBlob.Success)
                         {
                             var blobToSave = new ReportingMyTimeMovementBlob()
                             {
                                 MovementId = movementId,
-                                BlobName = uploadedFile.FileName,
-                                ContainerId = containerId,
-                                BlobUrl = uploadedFile.BlobUrl,
-                                Size = uploadedFile.Size,
-                                ContentType = uploadedFile.ContentType,
-                                CreationDate = uploadedFile.UploadDate
+                                BlobName = uploadedBlob.FileName,
+                                ContainerId = uploadedBlob.ContainerId,
+                                BlobUrl = uploadedBlob.BlobUrl,
+                                Size = uploadedBlob.Size,
+                                ContentType = uploadedBlob.ContentType,
+                                CreationDate = uploadedBlob.UploadDate
                             };
                             _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.Add(blobToSave);
+                            uploadedBlobsNames.Add(uploadedBlob.FileName);
                         }
                         else
                         {
-                            errorMessage += uploadedFile.ErrorMessage + "/ ";
+                            errorMessage += uploadedBlob.ErrorMessage + "/ ";
                         }
                     }
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return MethodResponse.CreateSuccessResponse("Changes saved!", null);
+                    return MethodResponse.CreateSuccessResponseStringsList($"{uploadedBlobsNames.Count} files were uploaded!", uploadedBlobsNames);
                 }
                 catch (Exception ex)
                 {
@@ -57,6 +60,22 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message + "/ " + errorMessage);
                 }
             }
+        }
+        public async Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId)
+        {
+            List<IFormFile> filesToUpload = new List<IFormFile>();
+            CalculateContentHash calculateHash = new CalculateContentHash();
+            foreach (var file in files)
+            {
+                string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{file.FileName}";
+                var existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
+                && x.MovementId == movementId);
+                if (existingFile == null)
+                {
+                    filesToUpload.Add((IFormFile)file);
+                }
+            }
+            return filesToUpload;
         }
         public async Task<MethodResponse> CreateTimeEntryClientNoTrackingTool(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
         {
@@ -91,13 +110,13 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
                     }
 
-                    var movementTypeNormalHours = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == reportMovementData.MovementType);
-                    if (movementTypeNormalHours == null)
+                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == reportMovementData.MovementType);
+                    if (movementType == null)
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Movement type not valid.");
                     }
                     var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ActionDate == reportMovementData.ActionDate
-                    && x.MovementTypeId == movementTypeNormalHours.MovementTypeId && x.ProjectId == reportMovementData.ProjectId && x.ConsultantId == currentUser.ConsultantId);
+                    && x.MovementTypeId == movementType.MovementTypeId && x.ProjectId == reportMovementData.ProjectId && x.ConsultantId == currentUser.ConsultantId);
                     if (existingTimeMovement != null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("There is a time movement with the same action date.");
@@ -106,16 +125,19 @@ namespace OceansApp.DataAccess.Repository
                     {
                         ConsultantId = currentUser.ConsultantId,
                         ProjectId = (int)reportMovementData.ProjectId,
-                        Quantity = (decimal)reportMovementData.Quantity,
+                        Quantity = reportMovementData.Quantity == null ? 0 : (decimal)reportMovementData.Quantity,
                         ActionDate = (DateTime)reportMovementData.ActionDate,
                         Notes = reportMovementData.Notes,
                         TransactionStatusId = transactionStatus.TransactionStatusId,
-                        MovementTypeId = movementTypeNormalHours.MovementTypeId,
+                        MovementTypeId = movementType.MovementTypeId,
                         CreationDate = DateTime.UtcNow,
                     };
-
-                    await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
-                    await _db.SaveChangesAsync();
+                    if (reportMovementData.MovementType == "Normal Hours"
+                        || (reportMovementData.MovementType != "Normal Hours" && currentUser.ParticipatesInOnCalls))
+                    {
+                        await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
+                        await _db.SaveChangesAsync();
+                    }
                     await transaction.CommitAsync();
 
                     return MethodResponse.CreateSuccessResponse("Changes saved!", timeMovementToCreate.MovementId);
@@ -127,6 +149,7 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
+
 
         public async Task<MethodResponse> UpdateTimeEntryClientNoTrackingTool(string userActionedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
@@ -146,7 +169,7 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
                     }
 
-                    existingTimeMovement.Quantity = (decimal)reportMovementData.Quantity;
+                    existingTimeMovement.Quantity = reportMovementData.Quantity == null ? 0 : (decimal)reportMovementData.Quantity;
                     existingTimeMovement.Notes = reportMovementData.Notes;
                     existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
 
