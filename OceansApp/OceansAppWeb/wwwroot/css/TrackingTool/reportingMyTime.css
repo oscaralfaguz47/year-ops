@@ -120,28 +120,28 @@
         transform: rotate(360deg);
     }
 }
-#loading-box{
+.loading-box{
     display:flex;
     justify-content:center;
 
 }
-    #loading-box > div {
+    .loading-box > div {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         height: 80vh; 
     }
-#error-Message-box {
+.error-Message-box {
     display: none;
     justify-content: center;
 }
-    #error-Message-box .bi-exclamation-triangle-fill {
+    .error-Message-box .bi-exclamation-triangle-fill {
         color:red;
         font-size: 45px;
     }
 
-    #error-Message-box > div {
+    .error-Message-box > div {
         display: flex;
         flex-direction: column;
         justify-content: center;

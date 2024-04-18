@@ -1,11 +1,10 @@
-﻿<link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css" />
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css" />
 
 <div class="track-col">
-   <div>
+   <div id="no-tracking-tool-sec" style="display: none">
         <div class="row mt-3">
             <input type="hidden" id="movementIdNormalHoursInput" />
-            <input type="hidden" id="movementIdOnCallFlateRateInput" />
-            <input type="hidden" id="movementIdOnCallTimeWorkedInput" />
             <div class="col-md-6">
                 <div class="file-upload-container">
                     <div class="file-upload-wrapper">
@@ -87,12 +86,22 @@
    </div>
 
    @* Loading message *@ 
-   <div id="loading-box" style="display:none">
-        <div>
-            <div class="spinner"></div>
+        <div class="loading-box loading-box-no-tracking-tool" id="loading-box-intern">
             <div>
-                <p><strong>Loading data, wait...</strong></p>
+                <div class="spinner"></div>
+                <div>
+                    <p><strong>Loading data, wait...</strong></p>
+                </div>
             </div>
+        </div>
+    @* Error message *@
+    <div class="error-Message-box error-message-box-no-tracking-tool" id="error-message-intern">
+        <div>
+            <div><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+                <p><strong>Something went wrong!</strong></p>
+            </div>
+            <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
         </div>
     </div>
 </div>

@@ -40,6 +40,7 @@
         IProviderEventDateRepository ProviderEventDate { get; }
         IProjectUserSelectedRepository ProjectUserSelected { get; }
         IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; }
+        IReportingMyTimeMovementTypeRepository ReportingMyTimeMovementType { get; }
         IDocumentCCRepository DocumentCC { get; }
         IDocumentsCCNotificationRepository DocumentsCCNotification { get; }
         INotificationTypeRepository NotificationType { get; }

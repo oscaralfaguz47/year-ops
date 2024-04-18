@@ -8,6 +8,7 @@ using OceansApp.Utility.SharedMethods.Blobs;
 using Azure;
 using Azure.Storage.Sas;
 using Azure.Storage;
+using OceansApp.Models.ViewModels.Components;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -101,7 +102,6 @@ namespace OceansApp.DataAccess.Repository
             return blobUriBuilder.ToUri().ToString();
         }
 
-
         public async Task DownloadFileAsync(string containerName, string fileName, string downloadPath)
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
@@ -124,12 +124,34 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task DeleteBlobAsync(string containerName, string fileName)
+        public async Task<MethodResponse> DeleteBlobAsync(string containerName, string fileName)
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-            var blobClient = containerClient.GetBlobClient(fileName);
-            await blobClient.DeleteIfExistsAsync();
-            Console.WriteLine($"Blob {fileName} deleted.");
+            MethodResponse response = new MethodResponse();
+            try
+            {
+                var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+                var blobClient = containerClient.GetBlobClient(fileName);
+                Response<bool> deleteBlobResponse = await blobClient.DeleteIfExistsAsync();
+
+                if (deleteBlobResponse.Value)
+                {
+                    response.Success = true;
+                    response.Message = $"The file ({RemoveIdToBlobNames.RemoveId(fileName)}) was deleted!";
+                }
+                else
+                {
+                    response.Success = false;
+                    response.Message = $"File does not exist: {fileName}";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Error deleting file: {ex.Message}";
+            }
+
+            return response;
         }
+
     }
 }

@@ -1,7 +1,13 @@
 ﻿#notesInput{
     width: 100%;
 }
-.tooltip-container{
+.loading-box-no-tracking-tool > div{
+    height: 50vh !important;
+}
+.error-message-box-no-tracking-tool > div{
+    height: 50vh !important;
+}
+.tooltip-container {
     margin-left: 5px;
 }
 .file-upload-container {

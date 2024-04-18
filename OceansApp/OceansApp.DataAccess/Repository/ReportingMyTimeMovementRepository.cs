@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Dapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
@@ -7,6 +8,7 @@ using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Utility.SharedMethods.Blobs;
+using System.Data;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -19,11 +21,56 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
+        public async Task<List<GetProjectMovementsVM>> GetProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
+            DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectId", projectId, DbType.Int32);
+            parameters.Add("@ConsultantId", consultId, DbType.Int32);
+            parameters.Add("@StartActionDate", startDate, DbType.Date);
+            parameters.Add("@FinalActionDate", endDate, DbType.Date);
+
+            var results = await connection.QueryAsync<GetProjectMovementsVM>("SP_REPORTING_MY_TIME_GetProjectMovements", 
+                parameters, commandType: CommandType.StoredProcedure);
+            var movements = results.ToList();
+
+            return movements;
+        }
+        public async Task<MethodResponse> GetExistingMovement(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
+        {
+            try
+            {
+                var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                if (currentUser == null)
+                {
+                    return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
+                }
+              
+                int? movementId = null;
+                var existingMovements = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ActionDate >= reportMovementData.StartActionDate
+                && x.ActionDate <= reportMovementData.ActionDate && x.ProjectId == reportMovementData.ProjectId &&
+                x.ConsultantId == currentUser.ConsultantId && x.MovementTypeId == reportMovementData.MovementTypeId);
+
+                if (existingMovements != null)
+                {
+                    movementId = existingMovements.MovementId;
+                }
+                return MethodResponse.CreateSuccessResponse(null, movementId);
+            }
+            catch (Exception ex)
+            {
+                return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+            }
+        }
+
         public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId)
         {
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 var errorMessage = "";
+                string blobName = "";
                 try
                 {
                     List<string> uploadedBlobsNames = new List<string>();
@@ -43,6 +90,7 @@ namespace OceansApp.DataAccess.Repository
                             };
                             _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.Add(blobToSave);
                             uploadedBlobsNames.Add(uploadedBlob.FileName);
+                            blobName = uploadedBlob.FileName;
                         }
                         else
                         {
@@ -52,7 +100,7 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return MethodResponse.CreateSuccessResponseStringsList($"{uploadedBlobsNames.Count} files were uploaded!", uploadedBlobsNames);
+                    return MethodResponse.CreateSuccessResponseStringsList($"The file ({RemoveIdToBlobNames.RemoveId(blobName)}) was uploaded!", uploadedBlobsNames);
                 }
                 catch (Exception ex)
                 {
@@ -150,7 +198,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-
         public async Task<MethodResponse> UpdateTimeEntryClientNoTrackingTool(string userActionedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
         {
@@ -176,6 +223,29 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return MethodResponse.CreateSuccessResponse("Changes saved!", existingTimeMovement.MovementId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+        public async Task<MethodResponse> DeleteBlobReport(string fileName)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileName);
+                    if (existingTimeMovement == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The file does not exist.");
+                    }
+                    _db.Remove(existingTimeMovement);
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return MethodResponse.CreateSuccessResponse("File deleted!");
                 }
                 catch (Exception ex)
                 {

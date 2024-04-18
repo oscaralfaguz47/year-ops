@@ -19,19 +19,58 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly LazyServiceProvider<IAzureBlobRepository> _azureBlobRepository;
+        private string _containerId;
         public ReportingMyTimeController(IUnitOfWork unitOrWork, LazyServiceProvider<IAzureBlobRepository> azureBlobRepository)
         {
             _unitOfWork = unitOrWork;
             _azureBlobRepository = azureBlobRepository;
+            _containerId = "consultant-hour-reports";
         }
         public IActionResult Index()
         {
             return View();
         }
+        [HttpGet]
+        public async Task<IActionResult> GetProjectMovements(int projectId, DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                ValidateInputs validateInputs = new();
+                //Validate Filter inputs
+                validateInputs.ValidateDateValidFormat("StartDate", "Start Date", startDate, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDate", "End Date", endDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", startDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDate", "End Date", endDate, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", projectId, ModelState);
 
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+                    return BadRequest(new { errors = errors });
+                }
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == userActionedBy);
+                if (consultant == null)
+                {
+                    return NotFound(new { error = "Consultant does not exist." });
+                }
+
+                var totalResults = await _unitOfWork.ReportingMyTimeMovement.GetProjectMovementsAsync(projectId,
+                    consultant.ConsultantId, startDate, endDate);
+
+                var data = new { movementsList = totalResults };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error fetching project movements.", success = false, detail = ex.Message });
+            }
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromForm] List<IFormFile> files, [FromForm] List<CreateUpdateMovementClientNoTrackingToolVM> reportMovementListData)
+        public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromForm] List<CreateUpdateMovementClientNoTrackingToolVM> reportMovementListData)
         {
             if (reportMovementListData == null)
             {
@@ -41,13 +80,13 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             foreach (var movementTime in reportMovementListData)
             {
-                validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", movementTime.Notes, 200, ModelState);
-                validateInputs.ValidateNonRequiredFieldIntType("MovementId", "MovementId " + movementTime.MovementType, movementTime.MovementId, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", movementTime.Notes, 400, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project " + movementTime.MovementType, movementTime.ProjectId, ModelState);
                 validateInputs.ValidateNoNegativeNumber("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
                 validateInputs.ValidateNotRequiredFieldNumberValue("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
                 validateInputs.ValidateDateValidFormat("ActionDate", "Action Date " + movementTime.MovementType, movementTime.ActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date " + movementTime.MovementType, movementTime.ActionDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartActionDate", "Start Action Date " + movementTime.MovementType, movementTime.StartActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldAnyValue("MovementType", "MovementType", movementTime.MovementType, ModelState);
             }
 
@@ -64,40 +103,57 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             try
             {
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                List<CreatedElement> createdElementListToReturn = new List<CreatedElement>();
                 MethodResponse result = null;
+                int movementId = 0;
                 foreach (var movementTime in reportMovementListData)
                 {
+                    var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == movementTime.MovementType);
+                    if (movementType == null)
+                    {
+                        return NotFound(new { error = "Movement Type not found" });
+                    }
                     CreateUpdateMovementClientNoTrackingToolVM elementToUpdateOrCreate = new()
                     {
-                        MovementId = movementTime.MovementId,
                         ProjectId = movementTime.ProjectId,
                         Quantity = movementTime.Quantity,
                         MovementType = movementTime.MovementType,
+                        MovementTypeId = movementType.MovementTypeId,
+                        StartActionDate = movementTime.StartActionDate,
                         ActionDate = movementTime.ActionDate,
                         Notes = movementTime.Notes
                     };
 
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    //Look for existing movement
+                    MethodResponse resultExistingMovement = await _unitOfWork.ReportingMyTimeMovement.GetExistingMovement(userActionedBy, elementToUpdateOrCreate);
+                    if (!resultExistingMovement.Success)
+                    {
+                        return BadRequest(new { error = resultExistingMovement.Message });
+                    }
+
                     //Create the element
-                    if (movementTime.MovementId == null && movementTime.MovementType == "Normal Hours"
-                        || (movementTime.MovementId == null && movementTime.MovementType != "Normal Hours" && movementTime.Quantity > 0))
+                    if (resultExistingMovement.IdCreatedElement == null && movementTime.MovementType == "Normal Hours"
+                        || (resultExistingMovement.IdCreatedElement == null && movementTime.MovementType != "Normal Hours" && movementTime.Quantity > 0))
                     {
                         result = await _unitOfWork.ReportingMyTimeMovement.CreateTimeEntryClientNoTrackingTool(userActionedBy, elementToUpdateOrCreate);
+                        if (movementTime.MovementType == "Normal Hours")
+                        {
+                            movementId = (int)result.IdCreatedElement;
+                        }
                     }
                     else
-
                     //Update the element
-                    if (movementTime.MovementId != null && movementTime.MovementType == "Normal Hours"
-                        || (movementTime.MovementId != null && movementTime.MovementType != "Normal Hours" && movementTime.Quantity > 0))
+                    if (resultExistingMovement.IdCreatedElement != null && movementTime.MovementType == "Normal Hours"
+                        || (resultExistingMovement.IdCreatedElement != null && movementTime.MovementType != "Normal Hours" && movementTime.Quantity > 0))
                     {
+                        elementToUpdateOrCreate.MovementId = resultExistingMovement.IdCreatedElement;
                         result = await _unitOfWork.ReportingMyTimeMovement.UpdateTimeEntryClientNoTrackingTool(userActionedBy, elementToUpdateOrCreate);
                     }
                     else
                     //Delete the element
-                    if (movementTime.MovementId != null && (movementTime.Quantity == 0 || movementTime.Quantity == null) && movementTime.MovementType != "Normal Hours")
+                    if (resultExistingMovement.IdCreatedElement != null && (movementTime.Quantity == 0 || movementTime.Quantity == null) && movementTime.MovementType != "Normal Hours")
                     {
-                        result = await _unitOfWork.ReportingMyTimeMovement.DeleteTimeEntryClientNoTrackingTool((int)elementToUpdateOrCreate.MovementId);
+                        result = await _unitOfWork.ReportingMyTimeMovement.DeleteTimeEntryClientNoTrackingTool((int)resultExistingMovement.IdCreatedElement);
                     }
                     else
                     {
@@ -108,23 +164,22 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                             Success = true
                         };
                     }
+                    if (resultExistingMovement.IdCreatedElement != null && movementTime.MovementType == "Normal Hours")
+                    {
+                        movementId = (int)resultExistingMovement.IdCreatedElement;
+                    }
 
                     if (!result.Success)
                     {
                         return BadRequest(new { error = result.Message });
                     }
-                    createdElementListToReturn.Add(new CreatedElement
-                    {
-                        IdElement = result.IdCreatedElement,
-                        ElementType = movementTime.MovementType
-                    });
                 }
 
                 return Ok(new
                 {
                     success = true,
-                    createdMovementList = createdElementListToReturn,
-                    message = result.Message
+                    message = result.Message,
+                    movementIdNormalHours = movementId
                 });
             }
             catch (Exception ex)
@@ -156,13 +211,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             try
             {
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                MethodResponse result = new MethodResponse();
+                List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId);
 
-                List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files,movementId);
-
-                string containerId = "consultant-hour-reports";
-                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(containerId, filesToUpload, movementId);
+                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId);
 
                 MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob(
                 uploadedBlobs, movementId);
@@ -193,10 +244,10 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
             ValidateInputs validateInputs = new();
 
-            validateInputs.ValidateNonRequiredFieldIntType("MovementId", "MovementId", uploadFilesData.MovementId, ModelState);
             validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", uploadFilesData.ProjectId, ModelState);
             validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", uploadFilesData.ActionDate, ModelState);
             validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date", uploadFilesData.ActionDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartActionDate", "Start Action Date", uploadFilesData.StartActionDate, ModelState);
 
             if (!ModelState.IsValid)
             {
@@ -211,21 +262,36 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             try
             {
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == "Normal Hours");
+                if (movementType == null)
+                {
+                    return NotFound(new { error = "Movement Type not found" });
+                }
+
                 List<CreatedElement> createdElementListToReturn = new List<CreatedElement>();
                 MethodResponse result = new MethodResponse();
 
                 CreateUpdateMovementClientNoTrackingToolVM movementToCreateCreate = new()
                 {
-                    MovementId = uploadFilesData.MovementId,
                     ProjectId = uploadFilesData.ProjectId,
                     Quantity = 0,
                     MovementType = "Normal Hours",
-                    ActionDate = uploadFilesData.ActionDate
+                    MovementTypeId = movementType.MovementTypeId,
+                    ActionDate = uploadFilesData.ActionDate,
+                    StartActionDate = uploadFilesData.StartActionDate
                 };
 
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                //Look for existing movement
+                MethodResponse resultExistingMovement = await _unitOfWork.ReportingMyTimeMovement.GetExistingMovement(userActionedBy, movementToCreateCreate);
+                if (!resultExistingMovement.Success)
+                {
+                    return BadRequest(new { error = resultExistingMovement.Message });
+                }
+
                 //Create the element
-                if (uploadFilesData.MovementId == null)
+                if (resultExistingMovement.IdCreatedElement == null)
                 {
                     result = await _unitOfWork.ReportingMyTimeMovement.CreateTimeEntryClientNoTrackingTool(userActionedBy, movementToCreateCreate);
                     if (!result.Success)
@@ -233,26 +299,41 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                         return BadRequest(new { error = result.Message });
                     }
                 }
-                else
-                {
-                    result.IdCreatedElement = uploadFilesData.MovementId;
-                }
-
-                createdElementListToReturn.Add(new CreatedElement
-                {
-                    IdElement = result.IdCreatedElement
-                });
 
                 return Ok(new
                 {
                     success = true,
-                    createdMovementId = (int)result.IdCreatedElement,
-                    message = result.Message
+                    createdMovementId = (int)result.IdCreatedElement
                 });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { error = $"An error occurred: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteBlob(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest("File name must be provided.");
+            }
+            MethodResponse response = await _azureBlobRepository.Value.DeleteBlobAsync(_containerId, fileName);
+
+            if (response.Success)
+            {
+                MethodResponse deleteFileFromDb = await _unitOfWork.ReportingMyTimeMovement.DeleteBlobReport(fileName);
+                if (!deleteFileFromDb.Success)
+                {
+                    return BadRequest(deleteFileFromDb.Message);
+                }
+                return Ok(new { success = true, message = response.Message });
+            }
+            else
+            {
+                return BadRequest(response.Message);
             }
         }
     }

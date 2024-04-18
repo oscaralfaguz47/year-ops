@@ -2,7 +2,11 @@
 let currentDate = new Date();
 let trackingToolTimeEntrySection = document.getElementById('tracking-tool-time-entry');
 let trackingToolReportEntrySection = document.getElementById('tracking-tool-report-entry');
+let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
+let errorMessageIntern = document.getElementById('error-message-intern');
+let loadingBoxIntern = document.getElementById('loading-box-intern');
+let clientHasTrackingToolValue = false;
 
 async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
@@ -31,8 +35,8 @@ async function fillProjectsDropdown() {
     }
 }
 const header = document.getElementById('header');
-const loadingBox = document.getElementById('loading-box');
-const errorMessageBox = document.getElementById('error-Message-box');
+const loadingBox = document.getElementById('loading-box-global');
+const errorMessageBox = document.getElementById('error-message-rep-time');
 const contentBox = document.getElementById('content-box');
 const noProjectsBox = document.getElementById('no-projects-box');
 
@@ -47,6 +51,7 @@ async function getProjectInfo() {
             console.log(projectInfo);
             document.getElementById('projectId').value = projectInfo.projectId;
             document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
+            clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
             trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
             trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
             paymentPeriod = projectInfo.paymentPeriod;
@@ -125,6 +130,15 @@ async function selectProject(projectId) {
             getProjectInfo();
         });
 }
+//Navitate between dates
+function navitateBetweenDates() {
+    if (clientHasTrackingToolValue) {
+        getProjectMovementsClientHasTrackTool();
+    } else {
+
+    }
+}
+
 
 //DATE NAVEGATION BUTTONS ------------------
 
@@ -187,7 +201,9 @@ const calculatePeriod = (date, mode, clientHasTrackingTool) => {
     generateDateList(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate));
     document.getElementById('previous-date').innerHTML = `<span>${formatDate(startDate)}</span>`;
     document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
-    dateFromInput.value = formatDate(endDate);
+    dateToInput.value = formatDate(endDate);
+    dateFromInput.value = formatDate(startDate);
+    navitateBetweenDates();
     return { startDate, endDate };
 };
 

@@ -8,6 +8,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IReportingMyTimeMovementRepository : IRepository<ReportingMyTimeMovement> 
     {
+        Task<List<GetProjectMovementsVM>> GetProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
+            DateTime endDate);
         Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId);
         Task<MethodResponse> CreateTimeEntryClientNoTrackingTool(string userIdCreatedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
@@ -15,5 +17,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> DeleteTimeEntryClientNoTrackingTool(int movementId);
         Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId);
+        Task<MethodResponse> GetExistingMovement(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
+        Task<MethodResponse> DeleteBlobReport(string fileName);
     }
 }

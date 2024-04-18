@@ -19,12 +19,11 @@ namespace OceansApp.Models.Models
         public TimeSpan? TimeTo { get; set; }
         [Required]
         public decimal Quantity { get; set; }
-        [MaxLength(200)]
+        [MaxLength(800)]
         public string? Notes { get; set; }
         [Required]
         public DateTime CreationDate { get; set; }
         public DateTime? LastUpdateDate { get; set; }
-        public string? AttachmentUrl { get; set; }
         [Required]
         public int TransactionStatusId { get; set; }
         [Required]

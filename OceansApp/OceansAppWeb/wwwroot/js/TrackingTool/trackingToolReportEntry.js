@@ -6,9 +6,10 @@ let movementIdOnCallTimeWorkedInput = document.getElementById('movementIdOnCallT
 let onCallFlateRateSelect = document.getElementById('onCallFlateRateSelect');
 let onCallTimeWorkedInput = document.getElementById('onCallTimeWorkedInput');
 let projectIdInput = document.getElementById('projectId');
+const uploadArea = document.getElementById('file-upload-name');
 
 const dropArea = document.querySelector('.file-upload-wrapper');
-const fileList = [];
+let fileList = [];
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
 // Highlight drop zone when dragging files
@@ -57,7 +58,7 @@ async function handleFiles(event) {
     for (const file of newFiles) {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
             fileList.push(file);
-            updateFileDisplay(file);
+            updateFileDisplay(file, true, null);
         }
     }
     updateInfoText();
@@ -67,7 +68,7 @@ function processFiles(newFiles) {
     newFiles.forEach(file => {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
             fileList.push(file);
-            updateFileDisplay(file);
+            updateFileDisplay(file, true, null);
         }
     });
     updateInfoText();
@@ -89,28 +90,40 @@ function isDuplicate(file) {
 
 function updateInfoText() {
     const infoText = document.getElementById('info-text');
-    infoText.style.display = fileList.length > 0 ? 'none' : 'block';
+    infoText.style.display = uploadArea.textContent.trim() === '' && uploadArea.childNodes.length === 0 ? 'block' : 'none';
 }
 
 let isCreatingMovement = false;
 let movementCreationPromise = null;
 
-function updateFileDisplay(file) {
-    const uploadArea = document.getElementById('file-upload-name');
+function updateFileDisplay(file, isUploading, fileNameFromDb) {
     const fileElement = document.createElement('div');
     fileElement.className = 'row-selected-file';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
     deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-    deleteBtn.onclick = function () {
-        fileList.splice(fileList.indexOf(file), 1);
-        fileElement.remove();
-        updateInfoText();
-    };
+    if (isUploading) {
+        deleteBtn.onclick = function () {
+            fileList.splice(fileList.indexOf(file), 1);
+            fileElement.remove();
+            updateInfoText();
+        };
+    } else {
+        deleteBtn.onclick = async function () {
+            await deleteFile(fileNameFromDb);
+            fileElement.remove();
+            updateInfoText();
+        };
+    }
 
     const fileName = document.createElement('span');
-    fileName.textContent = file.name;
+    if (isUploading) {
+        fileName.textContent = file.name;
+    } else {
+        fileName.textContent = cleanFileName(fileNameFromDb);
+    }
+
 
     const statusLabel = document.createElement('span');
     statusLabel.textContent = '';
@@ -121,34 +134,32 @@ function updateFileDisplay(file) {
     uploadArea.appendChild(fileElement);
 
     // Ensure movementIdNormalHoursInput is actually null and no creation is currently in progress
-    if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
-        isCreatingMovement = true;
-        movementCreationPromise = createFirstMovementIfDoesNotExist()
-            .then(data => {
-                if (data && data.createdMovementId !== undefined) {
-                    movementIdNormalHoursInput.value = data.createdMovementId;
-                    displayToasterSuccess('Movement created successfully');
-                } else {
-                    throw new Error('Invalid response data');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                statusLabel.textContent = 'Movement creation failed';
-                displayToasterError(error.message);
-            })
-            .finally(() => {
-                isCreatingMovement = false;
+    if (isUploading) {
+        if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
+            isCreatingMovement = true;
+            movementCreationPromise = createFirstMovementIfDoesNotExist()
+                .then(data => {
+                    if (data && data.createdMovementId !== undefined) {
+                        movementIdNormalHoursInput.value = data.createdMovementId;
+                    } else {
+                        throw new Error('Invalid response data');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    displayToasterError(error.message);
+                })
+                .finally(() => {
+                    isCreatingMovement = false;
+                });
+        }
+        if (movementCreationPromise) {
+            movementCreationPromise.then(() => {
+                uploadFile(file, statusLabel);
             });
-    }
-
-
-    if (movementCreationPromise) {
-        movementCreationPromise.then(() => {
+        } else {
             uploadFile(file, statusLabel);
-        });
-    } else {
-        uploadFile(file, statusLabel);
+        }
     }
 }
 
@@ -181,10 +192,12 @@ async function uploadFile(file, statusLabel) {
 
 async function createFirstMovementIfDoesNotExist() {
     var token = $('[name="__RequestVerificationToken"]').val();
-    let actionDateData = new Date(dateFromInput.value).toISOString();
+    let startActionDateData = new Date(dateFromInput.value).toISOString();
+    let actionDateData = new Date(dateToInput.value).toISOString();
     const formData = new FormData();
     formData.append('uploadFilesData.ProjectId', projectIdInput.value);
     formData.append('uploadFilesData.MovementId', movementIdNormalHoursInput.value);
+    formData.append('uploadFilesData.StartActionDate', startActionDateData);
     formData.append('uploadFilesData.ActionDate', actionDateData);
 
     const response = await fetch('/TrackingTool/ReportingMyTime/CreateMovementClientNoTrackingTool', {
@@ -205,15 +218,11 @@ async function createFirstMovementIfDoesNotExist() {
     return data;
 }
 
-
-
-
-
-
 //CREATE, UPDATE TIME ENTRY MOVEMENT
 async function createUpdateTimeEntry() {
     var token = $('[name="__RequestVerificationToken"]').val();
-    let actionDateData = new Date(dateFromInput.value).toISOString();
+    let actionDateData = new Date(dateToInput.value).toISOString();
+    let startActionDateData = new Date(dateFromInput.value).toISOString();
     const formData = new FormData();
     function appendIfValid(key, value) {
         if (value) {
@@ -224,25 +233,25 @@ async function createUpdateTimeEntry() {
     let dataItems = [];
 
     let normalHoursData = {
-        MovementId: movementIdNormalHoursInput.value,
         ProjectId: projectIdInput.value,
         Quantity: quantityInput.value,
+        StartActionDate: startActionDateData,
         ActionDate: actionDateData,
         Notes: notesInput.value,
         MovementType: 'Normal Hours'
     };
     let onCallFlateRateData = {
-        MovementId: movementIdOnCallFlateRateInput.value,
         ProjectId: projectIdInput.value,
         Quantity: onCallFlateRateSelect.value,
+        StartActionDate: startActionDateData,
         ActionDate: actionDateData,
         Notes: null,
         MovementType: 'On Call Flate Rate'
     };
     let onCallTimeWorkedData = {
-        MovementId: movementIdOnCallTimeWorkedInput.value,
         ProjectId: projectIdInput.value,
         Quantity: onCallTimeWorkedInput.value,
+        StartActionDate: startActionDateData,
         ActionDate: actionDateData,
         Notes: null,
         MovementType: 'On Call Time Worked'
@@ -276,19 +285,7 @@ async function createUpdateTimeEntry() {
         })
         .then(data => {
             console.log('Success:', data);
-            data.createdMovementList.forEach(function (el, index) {
-                console.log("ELEMENT: " + el.elementType);
-                if (el.elementType === 'Normal Hours') {
-                    console.log("YES!!");
-                    movementIdNormalHoursInput.value = el.idElement;
-                }
-                if (el.elementType === 'On Call Flate Rate') {
-                    movementIdOnCallFlateRateInput.value = el.idElement;
-                }
-                if (el.elementType === 'On Call Time Worked') {
-                    movementIdOnCallTimeWorkedInput.value = el.idElement;
-                }
-            });
+            movementIdNormalHoursInput.value = data.movementIdNormalHours;
             displayToasterSuccess(data.message);
             // Successful response management
         })
@@ -312,11 +309,110 @@ async function createUpdateTimeEntry() {
         });
 }
 
+//GET PROJECT MOVEMENTS
+async function getProjectMovementsClientHasTrackTool() {
+    fileList = [];
+    uploadArea.innerHTML = '';
+    loadingBoxIntern.style.display = 'block';
+    errorMessageIntern.style.display = 'none';
+    let noTackingToolSection = document.getElementById('no-tracking-tool-sec');
+    noTackingToolSection.style.display = 'none';
+    var startDateValue = encodeURIComponent(dateFromInput.value);
+    var endDateValue = encodeURIComponent(dateToInput.value);
+    var url = "/TrackingTool/ReportingMyTime/GetProjectMovements?projectId=" + encodeURIComponent(projectIdInput.value) +
+        "&startDate=" + startDateValue + "&endDate=" + endDateValue;
+
+    fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    errorMessageIntern.style.display = 'block';
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                });
+            }
+        })
+        .then(data => {
+            console.log(data);
+            let normalHoursQuantity = 0;
+            let onCallFlateRateQuantity = 0;
+            let onCallTimeWorkedQuantity = 0;
+            let notes = '';
+            let blobNames = [];
+            if (data.movementsList.length > 0) {
+                movementIdNormalHoursInput.value = data.movementsList[0].movementId;
+            } else {
+                movementIdNormalHoursInput.value = null;
+            }
+            data.movementsList.forEach(function (obj) {
+                if (obj.movementTypeName == 'Normal Hours') {
+                    notes += obj.notes === null ? '' : obj.notes;
+                    normalHoursQuantity += obj.quantity;
+                    JSON.parse(obj.blobNames).forEach(function (blobName) {
+                        blobNames.push(blobName);
+                    });
+                } if (obj.movementTypeName == 'On Call Flate Rate') {
+                    onCallFlateRateQuantity += obj.quantity;
+                }
+                if (obj.movementTypeName == 'On Call Time Worked') {
+                    onCallTimeWorkedQuantity += obj.quantity;
+                }
+            });
+            quantityInput.value = normalHoursQuantity;
+            onCallFlateRateSelect.value = onCallFlateRateQuantity;
+            onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
+            notesInput.value = notes;
+            blobNames.forEach(function (objName) {
+                updateFileDisplay(null, false, objName);
+            });
+            updateInfoText();
+            noTackingToolSection.style.display = 'block';
+        }).finally(() => {
+            loadingBoxIntern.style.display = 'none';
+        });
+}
+function cleanFileName(fileName) {
+    const regex = /^[a-f0-9]+_\d+_/i;
+    return fileName.replace(regex, '');
+}
+// DELETE FILE
+async function deleteFile(fileName) {
+    if (!fileName) {
+        console.error('File name must be provided.');
+        return;
+    }
+
+    const token = $('[name="__RequestVerificationToken"]').val();
+    const formData = new FormData();
+    formData.append('fileName', fileName);
+
+    try {
+        const response = await fetch("/TrackingTool/ReportingMyTime/DeleteBlob", {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            toastr.success(data.message);
+        } else {
+            displayToasterError(data.error || 'Failed to delete the file.');
+            console.error('There has been a problem with the fetch operation:', data.detail);
+        }
+    } catch (error) {
+        console.error('Network error:', error);
+        displayToasterError('Network error occurred. Please try again.');
+    }
+}
 
 // INPUT VALIDATIONS
 document.getElementById('notesInput').addEventListener('input', function (e) {
-    if (this.value.length > 200) {
-        this.value = this.value.slice(0, 200);
+    if (this.value.length > 400) {
+        this.value = this.value.slice(0, 400);
     }
 });
 document.addEventListener("DOMContentLoaded", function () {
