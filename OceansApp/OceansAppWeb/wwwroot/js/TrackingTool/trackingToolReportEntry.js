@@ -7,6 +7,7 @@ let onCallFlateRateSelect = document.getElementById('onCallFlateRateSelect');
 let onCallTimeWorkedInput = document.getElementById('onCallTimeWorkedInput');
 let projectIdInput = document.getElementById('projectId');
 const uploadArea = document.getElementById('file-upload-name');
+var fileInput = document.getElementById('file-upload');
 
 const dropArea = document.querySelector('.file-upload-wrapper');
 let fileList = [];
@@ -101,21 +102,12 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
     fileElement.className = 'row-selected-file';
 
     const deleteBtn = document.createElement('button');
+    const spinnerLabel = document.createElement('label');
+    spinnerLabel.className = 'spinner-label';
+    spinnerLabel.innerHTML = '<div class="spinner loading-file-spinner"></div>';
+    spinnerLabel.style.display = 'block';
     deleteBtn.className = 'delete-btn';
     deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-    if (isUploading) {
-        deleteBtn.onclick = function () {
-            fileList.splice(fileList.indexOf(file), 1);
-            fileElement.remove();
-            updateInfoText();
-        };
-    } else {
-        deleteBtn.onclick = async function () {
-            await deleteFile(fileNameFromDb);
-            fileElement.remove();
-            updateInfoText();
-        };
-    }
 
     const fileName = document.createElement('span');
     if (isUploading) {
@@ -124,11 +116,9 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
         fileName.textContent = cleanFileName(fileNameFromDb);
     }
 
-
     const statusLabel = document.createElement('span');
     statusLabel.textContent = '';
     statusLabel.className = 'span-status';
-    fileElement.appendChild(deleteBtn);
     fileElement.appendChild(fileName);
     fileElement.appendChild(statusLabel);
     uploadArea.appendChild(fileElement);
@@ -155,11 +145,47 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
         }
         if (movementCreationPromise) {
             movementCreationPromise.then(() => {
-                uploadFile(file, statusLabel);
+                uploadFile(file, statusLabel).then(data => {
+                    deleteBtn.onclick = function () {
+                        deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel).then(() => {
+                            fileList.splice(fileList.indexOf(file), 1);
+                            fileElement.remove();
+                            updateInfoText();
+                        });
+                    };
+                    fileElement.appendChild(deleteBtn);
+                    fileElement.appendChild(spinnerLabel);
+                    spinnerLabel.style.display = 'none';
+                }).catch(error => {
+                    console.error("Error uploading the file:", error);
+                });
             });
         } else {
-            uploadFile(file, statusLabel);
+            uploadFile(file, statusLabel).then(data => {
+                deleteBtn.onclick = function () {
+                    deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel).then(() => {
+                        fileList.splice(fileList.indexOf(file), 1);
+                        fileElement.remove();
+                        updateInfoText();
+                    });
+                };
+                fileElement.appendChild(deleteBtn);
+                fileElement.appendChild(spinnerLabel);
+                spinnerLabel.style.display = 'none';
+            }).catch(error => {
+                console.error("Error uploading the file:", error);
+            });
         }
+    } else {
+        fileElement.appendChild(deleteBtn);
+        fileElement.appendChild(spinnerLabel);
+        spinnerLabel.style.display = 'none';
+        deleteBtn.onclick = async function () {
+            await deleteFile(fileNameFromDb, statusLabel, deleteBtn, spinnerLabel);
+            fileElement.remove();
+            updateInfoText();
+        };
+        statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
     }
 }
 
@@ -179,16 +205,18 @@ async function uploadFile(file, statusLabel) {
             },
             body: formData
         });
-        if (!response.ok) throw new Error('Upload failed');
+        if (!response.ok) throw new Error('Upload failed with status ' + response.status);
         const data = await response.json();
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
-        displayToasterSuccess(data.message);
+        return data;
     } catch (error) {
         console.error('Error:', error);
         statusLabel.textContent = 'Upload failed';
         displayToasterError(error.message);
+        throw error; 
     }
 }
+
 
 async function createFirstMovementIfDoesNotExist() {
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -309,10 +337,19 @@ async function createUpdateTimeEntry() {
         });
 }
 
+function initializeUploadProcess() {
+    fileList = [];
+
+    if (uploadArea) {
+        uploadArea.innerHTML = ''; 
+    }
+    if (fileInput) {
+        fileInput.value = '';
+    }
+}
 //GET PROJECT MOVEMENTS
 async function getProjectMovementsClientHasTrackTool() {
-    fileList = [];
-    uploadArea.innerHTML = '';
+    initializeUploadProcess();
     loadingBoxIntern.style.display = 'block';
     errorMessageIntern.style.display = 'none';
     let noTackingToolSection = document.getElementById('no-tracking-tool-sec');
@@ -377,12 +414,15 @@ function cleanFileName(fileName) {
     return fileName.replace(regex, '');
 }
 // DELETE FILE
-async function deleteFile(fileName) {
+async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
     if (!fileName) {
         console.error('File name must be provided.');
         return;
     }
-
+    fileInput.value = '';
+    deleteBtn.style.display = 'none';
+    statusLabel.innerHTML = '';
+    spinnerLabel.style.display = 'block';
     const token = $('[name="__RequestVerificationToken"]').val();
     const formData = new FormData();
     formData.append('fileName', fileName);
@@ -398,12 +438,17 @@ async function deleteFile(fileName) {
 
         const data = await response.json();
         if (response.ok) {
-            toastr.success(data.message);
         } else {
+            statusLabel.textContent = 'Delete failed';
+            deleteBtn.style.display = 'block';
+            spinnerLabel.style.display = 'none';
             displayToasterError(data.error || 'Failed to delete the file.');
             console.error('There has been a problem with the fetch operation:', data.detail);
         }
     } catch (error) {
+        statusLabel.textContent = 'Delete failed';
+        deleteBtn.style.display = 'block';
+        spinnerLabel.style.display = 'none';
         console.error('Network error:', error);
         displayToasterError('Network error occurred. Please try again.');
     }

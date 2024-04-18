@@ -14,9 +14,23 @@
     display: flex;
     justify-content: center;
 }
-.row-selected-file{
+.row-selected-file {
     display: flex;
     border-bottom: solid 0.5px rgb(5,5,5,0.2);
+    align-items: center;
+}
+    .row-selected-file > span:first-child {
+        flex-grow: 1; 
+        flex-shrink: 1; 
+        overflow: hidden; 
+        text-overflow: ellipsis;
+        white-space: nowrap; 
+    }
+
+.span-status {
+    order: 2; 
+    flex-grow: 0; 
+    flex-shrink: 0; 
 }
 .row-selected-file span{
     text-align: left;
@@ -25,6 +39,12 @@
     border: none;
     background-color: transparent;
     color: red;
+    order: -1;
+    margin-right: 10px;
+}
+.spinner-label {
+    order: -1;
+    margin-right: 10px;
 }
 .file-upload-wrapper {
     display: flex;
@@ -84,21 +104,21 @@
     margin-top: 5px;
 }
     .uploaded-files-section::-webkit-scrollbar {
-        width: 5px; /* Ancho de la barra de desplazamiento */
+        width: 5px; 
         border-radius: 15px;
     }
 
     .uploaded-files-section::-webkit-scrollbar-track {
-        background: #f1f1f1; /* Color de la pista */
+        background: #f1f1f1;
     }
 
     .uploaded-files-section::-webkit-scrollbar-thumb {
-        background: #888; /* Color del "pulgar" */
+        background: #888;
         border-radius: 15px;
     }
 
         .uploaded-files-section::-webkit-scrollbar-thumb:hover {
-            background: #555; /* Color del "pulgar" al pasar el mouse */
+            background: #555; 
         }
 
 .fa {
