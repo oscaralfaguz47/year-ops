@@ -92,7 +92,7 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes) {
         <input type="hidden" class="movement-id" ${movementId === null ? 'value' : 'value="' + movementId + '"'}"/>
         <input type="time" class="time-to input-time" value="${timeTo === null ? '16:00' : timeTo}"/>
         <label class="count-time"></label>
-        <input type="text" placeholder="Detail" class="time-detail input-time" value="${notes === null ? '' : notes}"/>
+        <input type="text" placeholder="Detail" class="time-detail input-time" maxlength="400" value="${notes === null ? '' : notes}"/>
         <button class="btn-delete-time" onclick="deleteTimeEntry(this, ${movementId})"><i class="fa-solid fa-trash-can"></i></button>
         <i class="fa-solid fa-spinner spinner-time-actions"></i>
         <button class="btn-save-time" ${movementId !== null ? 'style="display:none"' : 'style="display:block"'} onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
