@@ -7,6 +7,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
+using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.Blobs;
 using System.Data;
 
@@ -21,6 +22,7 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
+        // CLIENT HAS TRACKING TOOL - METHODS
         public async Task<List<GetProjectMovementsVM>> GetProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
             DateTime endDate)
         {
@@ -32,7 +34,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@StartActionDate", startDate, DbType.Date);
             parameters.Add("@FinalActionDate", endDate, DbType.Date);
 
-            var results = await connection.QueryAsync<GetProjectMovementsVM>("SP_REPORTING_MY_TIME_GetProjectMovements", 
+            var results = await connection.QueryAsync<GetProjectMovementsVM>("SP_REPORTING_MY_TIME_GetProjectMovements",
                 parameters, commandType: CommandType.StoredProcedure);
             var movements = results.ToList();
 
@@ -47,7 +49,7 @@ namespace OceansApp.DataAccess.Repository
                 {
                     return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
                 }
-              
+
                 int? movementId = null;
                 var existingMovements = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ActionDate >= reportMovementData.StartActionDate
                 && x.ActionDate <= reportMovementData.ActionDate && x.ProjectId == reportMovementData.ProjectId &&
@@ -64,7 +66,6 @@ namespace OceansApp.DataAccess.Repository
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
-
         public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId)
         {
             await using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -197,7 +198,6 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
-
         public async Task<MethodResponse> UpdateTimeEntryClientNoTrackingTool(string userActionedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
         {
@@ -211,7 +211,7 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
                     }
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
-                    if (existingTimeMovement.ConsultantId != currentUser.ConsultantId && existingTimeMovement.ProjectId != reportMovementData.ProjectId)
+                    if (existingTimeMovement.ConsultantId != currentUser.ConsultantId || existingTimeMovement.ProjectId != reportMovementData.ProjectId)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
                     }
@@ -254,7 +254,6 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
-
         public async Task<MethodResponse> DeleteTimeEntryClientNoTrackingTool(int movementId)
         {
             await using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -279,6 +278,132 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
+        }
+
+        // CLIENT DOES NOT HAVE TRACKING TOOL - METHODS
+        public async Task<MethodResponse> CreateTimeEntryTrackingTool(string userIdCreatedBy,
+            CreateUpdateMovementTrackingToolVM timeEntryData)
+        {
+            if (timeEntryData == null)
+            {
+                return MethodResponse.CreateFailureValidationResponse("Report movement data cannot be null.");
+            }
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    if (currentUser == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
+                    }
+
+                    if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == timeEntryData.ProjectId && x.ConsultantId == currentUser.ConsultantId))
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
+                    }
+
+                    var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == timeEntryData.ProjectId);
+                    if (project == null || project.ClientHasTrackingTool)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
+                    }
+
+                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
+                    if (transactionStatus == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
+                    }
+
+                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                    if (movementType == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Movement type not valid.");
+                    }
+
+                    double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
+
+                    var timeMovementToCreate = new ReportingMyTimeMovement
+                    {
+                        ConsultantId = currentUser.ConsultantId,
+                        ProjectId = (int)timeEntryData.ProjectId,
+                        ActionDate = (DateTime)timeEntryData.ActionDate,
+                        Notes = timeEntryData.Notes,
+                        TransactionStatusId = transactionStatus.TransactionStatusId,
+                        MovementTypeId = movementType.MovementTypeId,
+                        CreationDate = DateTime.UtcNow,
+                        TimeFrom = timeEntryData.TimeFrom,
+                        TimeTo = timeEntryData.TimeTo,
+                        Quantity = (decimal)totalQuantity
+                    };
+                    await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("Changes saved!", timeMovementToCreate.MovementId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        public async Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
+           CreateUpdateMovementTrackingToolVM timeEntryData)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == timeEntryData.MovementId);
+                    if (existingTimeMovement == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
+                    }
+                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                    if (existingTimeMovement.ConsultantId != currentUser.ConsultantId || existingTimeMovement.ProjectId != timeEntryData.ProjectId)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
+                    }
+
+                    double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
+
+                    existingTimeMovement.TimeFrom = timeEntryData.TimeFrom;
+                    existingTimeMovement.TimeTo = timeEntryData.TimeTo;
+                    existingTimeMovement.Quantity = (decimal)totalQuantity;
+                    existingTimeMovement.Notes = timeEntryData.Notes;
+                    existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return MethodResponse.CreateSuccessResponse("Changes saved!", existingTimeMovement.MovementId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        public async Task<List<GetTrackingToolProjectMovementsVM>> GetTrackingToolProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
+             DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectId", projectId, DbType.Int32);
+            parameters.Add("@ConsultantId", consultId, DbType.Int32);
+            parameters.Add("@StartDate", startDate, DbType.Date);
+            parameters.Add("@EndDate", endDate, DbType.Date);
+
+            var results = await connection.QueryAsync<GetTrackingToolProjectMovementsVM>("SP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool",
+                parameters, commandType: CommandType.StoredProcedure);
+            var movements = results.ToList();
+
+            return movements;
         }
     }
 }

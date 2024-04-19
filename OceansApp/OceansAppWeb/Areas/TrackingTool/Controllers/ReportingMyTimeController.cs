@@ -30,6 +30,8 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         {
             return View();
         }
+
+        // CLIENT HAS TRACKING TOOL - METHODS
         [HttpGet]
         public async Task<IActionResult> GetProjectMovements(int projectId, DateTime startDate, DateTime endDate)
         {
@@ -68,6 +70,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { error = $"There was an error fetching project movements.", success = false, detail = ex.Message });
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromForm] List<CreateUpdateMovementClientNoTrackingToolVM> reportMovementListData)
@@ -234,6 +237,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { error = $"An error occurred: {ex.Message}" });
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMovementClientNoTrackingTool([FromForm] UploadFilesVM uploadFilesData)
@@ -334,6 +338,106 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             else
             {
                 return BadRequest(response.Message);
+            }
+        }
+
+        // CLIENT HAS DOES NOT HAVE TRACKING TOOL - METHODS
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdateTimeEntryTrackingTool([FromBody] CreateUpdateMovementTrackingToolVM timeEntryData)
+        {
+            if (timeEntryData == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", timeEntryData.Notes, 400, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("TimeFrom", "TimeFrom", timeEntryData.TimeFrom, 5, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("TimeTo", "TimeTo", timeEntryData.TimeTo, 5, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", timeEntryData.ProjectId, ModelState);
+            validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", timeEntryData.ActionDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date", timeEntryData.ActionDate, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors });
+            }
+
+            try
+            {
+                MethodResponse result = null;
+                int movementId = 0;
+
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                //Create the element
+                if (timeEntryData.MovementId == null)
+                {
+                    result = await _unitOfWork.ReportingMyTimeMovement.CreateTimeEntryTrackingTool(userActionedBy, timeEntryData);
+                }
+                else //Update the element
+                {
+                    result = await _unitOfWork.ReportingMyTimeMovement.UpdateTimeEntryTrackingTool(userActionedBy, timeEntryData);
+                }
+
+                if (!result.Success)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = result.Message,
+                    movementId = result.IdCreatedElement
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"An error occurred: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTrackingToolProjectMovements(int projectId, DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                ValidateInputs validateInputs = new();
+                //Validate Filter inputs
+                validateInputs.ValidateDateValidFormat("StartDate", "Start Date", startDate, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDate", "End Date", endDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", startDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDate", "End Date", endDate, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", projectId, ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+                    return BadRequest(new { errors = errors });
+                }
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == userActionedBy);
+                if (consultant == null)
+                {
+                    return NotFound(new { error = "Consultant does not exist." });
+                }
+
+                var totalResults = await _unitOfWork.ReportingMyTimeMovement.GetTrackingToolProjectMovementsAsync(projectId,
+                    consultant.ConsultantId, startDate, endDate);
+
+                var data = new { movementsList = totalResults };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error fetching project movements.", success = false, detail = ex.Message });
             }
         }
     }

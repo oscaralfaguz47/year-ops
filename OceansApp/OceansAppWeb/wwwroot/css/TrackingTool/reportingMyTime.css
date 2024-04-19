@@ -125,6 +125,12 @@
     justify-content:center;
 
 }
+.loading-box-intern > div {
+    height: 50vh !important;
+}
+.error-message-box-intern > div {
+    height: 50vh !important;
+}
     .loading-box > div {
         display: flex;
         flex-direction: column;

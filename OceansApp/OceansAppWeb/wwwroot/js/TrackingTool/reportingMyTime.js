@@ -48,7 +48,6 @@ async function getProjectInfo() {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
         if (projectInfo !== null) {
-            console.log(projectInfo);
             document.getElementById('projectId').value = projectInfo.projectId;
             document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
             clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
@@ -57,7 +56,7 @@ async function getProjectInfo() {
             paymentPeriod = projectInfo.paymentPeriod;
             document.getElementById('payment-period-container').innerHTML = `<span>Your payment period is <strong>${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}.</strong></span>`;
             let currentDateNoChange = new Date();
-            calculatePeriod(currentDateNoChange, paymentPeriod, projectInfo.clientHasTrackingTool);
+            calculatePeriod(currentDateNoChange, paymentPeriod);
             document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
             document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
             document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
@@ -131,11 +130,13 @@ async function selectProject(projectId) {
         });
 }
 //Navitate between dates
-function navitateBetweenDates() {
+function navitateBetweenDates(startDate, endDate) {
     if (clientHasTrackingToolValue) {
         getProjectMovementsClientHasTrackTool();
     } else {
-
+        getTrackingToolProjectMovements().then(movements => {
+            generateDateList(startDate, endDate, movements.movementsList);
+        });
     }
 }
 
@@ -178,10 +179,9 @@ const handleButtonClick = (direction) => {
     adjustDate(direction, paymentPeriod, null);
 
     let { startDate, endDate } = calculatePeriod(currentDate, paymentPeriod);
-    console.log(`Fecha desde: ${formatDate(startDate)}, Fecha hasta: ${formatDate(endDate)}`);
 };
 
-const calculatePeriod = (date, mode, clientHasTrackingTool) => {
+const calculatePeriod = (date, mode) => {
     let startDate, endDate;
 
     if (mode === 1) { // Biweekly
@@ -198,12 +198,12 @@ const calculatePeriod = (date, mode, clientHasTrackingTool) => {
         startDate = new Date(date.getFullYear(), date.getMonth(), 1);
         endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }
-    generateDateList(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate));
+
     document.getElementById('previous-date').innerHTML = `<span>${formatDate(startDate)}</span>`;
     document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
-    navitateBetweenDates();
+    navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate));
     return { startDate, endDate };
 };
 

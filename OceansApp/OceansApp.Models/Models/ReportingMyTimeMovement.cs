@@ -15,8 +15,10 @@ namespace OceansApp.Models.Models
         public int ConsultantId { get; set; }
         [Required]
         public DateTime ActionDate { get; set; }
-        public  TimeSpan? TimeFrom { get; set; }
-        public TimeSpan? TimeTo { get; set; }
+        [MaxLength(5)]
+        public  string? TimeFrom { get; set; }
+        [MaxLength(5)]
+        public string? TimeTo { get; set; }
         [Required]
         public decimal Quantity { get; set; }
         [MaxLength(800)]

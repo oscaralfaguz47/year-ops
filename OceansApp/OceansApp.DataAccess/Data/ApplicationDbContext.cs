@@ -267,11 +267,11 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("date")
                 .IsRequired();
             modelBuilder.Entity<ReportingMyTimeMovement>()
-                .Property(t => t.TimeFrom)
-                .HasColumnType("time");
+                .Property(d => d.TimeFrom)
+                .HasColumnType("varchar");
             modelBuilder.Entity<ReportingMyTimeMovement>()
-                .Property(t => t.TimeTo)
-                .HasColumnType("time");
+                .Property(d => d.TimeTo)
+                .HasColumnType("varchar");
 
             // REPORTING MY TIME MOVEMENT BLOBS
             modelBuilder.Entity<ReportingMyTimeMovementBlob>()

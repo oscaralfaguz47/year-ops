@@ -19,5 +19,12 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId);
         Task<MethodResponse> GetExistingMovement(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> DeleteBlobReport(string fileName);
+
+        Task<MethodResponse> CreateTimeEntryTrackingTool(string userIdCreatedBy,
+            CreateUpdateMovementTrackingToolVM timeEntryData);
+        Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
+           CreateUpdateMovementTrackingToolVM timeEntryData);
+        Task<List<GetTrackingToolProjectMovementsVM>> GetTrackingToolProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
+             DateTime endDate);
     }
 }

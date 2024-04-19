@@ -216,8 +216,6 @@ async function uploadFile(file, statusLabel) {
         throw error; 
     }
 }
-
-
 async function createFirstMovementIfDoesNotExist() {
     var token = $('[name="__RequestVerificationToken"]').val();
     let startActionDateData = new Date(dateFromInput.value).toISOString();
@@ -312,10 +310,8 @@ async function createUpdateTimeEntry() {
             }
         })
         .then(data => {
-            console.log('Success:', data);
             movementIdNormalHoursInput.value = data.movementIdNormalHours;
             displayToasterSuccess(data.message);
-            // Successful response management
         })
         .catch(errorResponse => {
             if (errorResponse.status === 400) {
@@ -323,7 +319,6 @@ async function createUpdateTimeEntry() {
                     if (body.errors) {
                         for (const field in body.errors) {
                             console.error(`${field}: ${body.errors[field]}`);
-                            // Puedes aquí agregar lógica para mostrar errores en campos específicos del formulario
                         }
                     } else if (body.error) {
                         // Handle other types of 400 errors
@@ -371,7 +366,6 @@ async function getProjectMovementsClientHasTrackTool() {
             }
         })
         .then(data => {
-            console.log(data);
             let normalHoursQuantity = 0;
             let onCallFlateRateQuantity = 0;
             let onCallTimeWorkedQuantity = 0;

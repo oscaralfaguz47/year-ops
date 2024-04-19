@@ -65,12 +65,33 @@
 
                 <div class="row">
                     <div class="col-md-8">
-                        <div id="tracking-tool-time-entry" style="display:none">
-                            <partial name="_TrackingToolTimeEntryPartialView" />
-                        </div>
-                        <div id="tracking-tool-report-entry" style="display:none">
-                            <partial name="_TrackingToolReportEntryPartialView" />
-                        </div>
+                        <div class="track-col">
+                            <div id="tracking-tool-time-entry" style="display:none">
+                                <partial name="_TrackingToolTimeEntryPartialView" />
+                            </div>
+                            <div id="tracking-tool-report-entry" style="display:none">
+                                <partial name="_TrackingToolReportEntryPartialView" />
+                            </div>
+                            @* Loading message *@
+                            <div class="loading-box loading-box-intern" id="loading-box-intern">
+                                <div>
+                                    <div class="spinner"></div>
+                                    <div>
+                                        <p><strong>Loading data, wait...</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                            @* Error message *@
+                            <div class="error-Message-box error-message-box-intern" id="error-message-intern">
+                                <div>
+                                    <div><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                    <div>
+                                        <p><strong>Something went wrong!</strong></p>
+                                    </div>
+                                    <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
+                                </div>
+                            </div>
+                       </div>
                     </div>
 
                     <div class="col-md-4">
