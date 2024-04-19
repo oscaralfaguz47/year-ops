@@ -28,7 +28,6 @@ async function getTrackingToolProjectMovements() {
         });
 }
 function generateDateList(startDateString, endDateString, movements) {
-    console.log(movements);
     const startDate = new Date(startDateString + 'T00:00:00');
     const endDate = new Date(endDateString + 'T23:59:59');
     const dateListContainer = document.getElementById('dateList');
@@ -85,20 +84,35 @@ function attachOnClick(button, date) {
     };
 }
 
-
 function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes) {
     const timeEntryDiv = document.createElement('div');
     timeEntryDiv.className = 'time-entry';
     timeEntryDiv.innerHTML = `
         <span>From</span><input type="time" class="time-from input-time" value="${timeFrom === null ? '08:00' : timeFrom}"/><span>To</span>
-        <input type="hidden" class="movement-id" ${movementId === null ? 'value' : 'value="'+movementId+'"'}"/>
+        <input type="hidden" class="movement-id" ${movementId === null ? 'value' : 'value="' + movementId + '"'}"/>
         <input type="time" class="time-to input-time" value="${timeTo === null ? '16:00' : timeTo}"/>
         <label class="count-time"></label>
         <input type="text" placeholder="Detail" class="time-detail input-time" value="${notes === null ? '' : notes}"/>
-        <button class="btn-delete-time" onclick="deleteTimeEntry(this)"><i class="fa-solid fa-trash-can"></i></button>
-        <button class="btn-save-time" onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
+        <button class="btn-delete-time" onclick="deleteTimeEntry(this, ${movementId})"><i class="fa-solid fa-trash-can"></i></button>
+        <i class="fa-solid fa-spinner spinner-time-actions"></i>
+        <button class="btn-save-time" ${movementId !== null ? 'style="display:none"' : 'style="display:block"'} onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
     `;
     button.parentElement.appendChild(timeEntryDiv);
+
+    const btnSaveTime = timeEntryDiv.querySelector('.btn-save-time');
+    const inputs = timeEntryDiv.querySelectorAll('.input-time, .movement-id');
+
+    inputs.forEach(input => {
+        if (input.type === 'text') {
+            input.addEventListener('input', () => {
+                btnSaveTime.style.display = 'block';
+            });
+        } else {
+            input.addEventListener('change', () => {
+                btnSaveTime.style.display = 'block';
+            });
+        }
+    });
 
     const timeFromInput = timeEntryDiv.querySelector('.time-from');
     const timeToInput = timeEntryDiv.querySelector('.time-to');
@@ -126,7 +140,6 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes) {
 
     updateTimeDifference();
 }
-
 function calculateTimeDifference(startTime, endTime) {
     const startTimeDate = new Date(`1970-01-01T${startTime}:00`);
     const endTimeDate = new Date(`1970-01-01T${endTime}:00`);
@@ -139,23 +152,39 @@ function calculateTimeDifference(startTime, endTime) {
     return { hours, minutes };
 }
 
-function deleteTimeEntry(button) {
-    const dayItem = button.closest('.day-item');
-    button.parentElement.remove();
-    updateDayTotal(dayItem);
-    updateTotalHours();
+function deleteTimeEntry(deleteBtn, movementId) {
+    var spinnerLabel = deleteBtn.parentElement.querySelector('.spinner-time-actions');
+    deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel).then(() => {
+        const dayItem = deleteBtn.closest('.day-item');
+        deleteBtn.parentElement.remove();
+        updateDayTotal(dayItem);
+        updateTotalHours();
+    });
 }
 
 function saveTimeEntry(button, date) {
+    var spinnerLabel = button.parentElement.querySelector('.spinner-time-actions');
+    const deleteBtn = button.parentElement.querySelector('.btn-delete-time');
     const timeFrom = button.parentElement.querySelector('.time-from').value;
     const timeTo = button.parentElement.querySelector('.time-to').value;
     const notes = button.parentElement.querySelector('.time-detail').value;
     const movementId = button.parentElement.querySelector('.movement-id').value === '' ? null : button.parentElement.querySelector('.movement-id').value;
 
-    createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'));
+    createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'),
+        spinnerLabel, button).then(data => {
+            deleteBtn.onclick = null;
+            deleteBtn.addEventListener('click', () => {
+                deleteTimeEntry(deleteBtn, data.movementId);
+            });
+        }).catch(error => {
+            console.error("Error in saveTimeEntry:", error);
+        });
 }
+
 //CREATE, UPDATE TIME ENTRY
-async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput) {
+async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput, spinnerLabel, button) {
+    button.style.display = 'none';
+    spinnerLabel.style.display = 'block';
     let actionDateData = new Date(date).toISOString();
 
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -168,8 +197,7 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         TimeFrom: timeFrom,
         TimeTo: timeTo
     };
-    console.log(data);
-    fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
+    return fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -186,6 +214,7 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
                         displayToasterWarningArray(errorData.errors);
                         throw new Error('Validation errors!');
                     } else {
+                        button.style.display = 'block';
                         displayToasterError(errorData.error);
                         throw new Error('The request to the server failed!. More details: ' + errorData.detail);
                     }
@@ -195,9 +224,47 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         .then(data => {
             displayToasterSuccess(data.message);
             movementIdInput.value = data.movementId;
+            return data;
+        }).finally(() => {
+            spinnerLabel.style.display = 'none';
         });
 }
+// DELETE TRACKING TOOL TIME ENTRY
+async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) {
+    if (!movementId) {
+        console.error('MovementId must be provided.');
+        return;
+    }
+    deleteBtn.style.display = 'none';
+    spinnerLabel.style.display = 'block';
+    const token = $('[name="__RequestVerificationToken"]').val();
+    const formData = new FormData();
+    formData.append('movementId', movementId);
 
+    try {
+        const response = await fetch("/TrackingTool/ReportingMyTime/DeleteTrackingToolTimeEntry", {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+        } else {
+            deleteBtn.style.display = 'block';
+            spinnerLabel.style.display = 'none';
+            displayToasterError(data.error || 'Failed to delete the time.');
+            console.error('There has been a problem with the fetch operation:', data.detail);
+        }
+    } catch (error) {
+        deleteBtn.style.display = 'block';
+        spinnerLabel.style.display = 'none';
+        console.error('Network error:', error);
+        displayToasterError('Network error occurred. Please try again.');
+    }
+}
 function updateDayTotal(dayElement) {
     const timeEntries = dayElement.querySelectorAll('.time-entry');
     let totalMinutes = 0;
@@ -215,7 +282,6 @@ function updateDayTotal(dayElement) {
     countDayLabel.textContent = `${totalHours} h - ${totalMinutesLeft} m`;
 }
 
-
 function updateTotalHours() {
     const allDayLabels = document.querySelectorAll('.count-day-label');
     let totalMinutes = 0;
@@ -225,7 +291,7 @@ function updateTotalHours() {
         if (parts && parts.length === 3) {
             const hours = parseInt(parts[1], 10);
             const minutes = parseInt(parts[2], 10);
-            if (!isNaN(hours) && !isNaN(minutes)) { 
+            if (!isNaN(hours) && !isNaN(minutes)) {
                 totalMinutes += hours * 60 + minutes;
             }
         }

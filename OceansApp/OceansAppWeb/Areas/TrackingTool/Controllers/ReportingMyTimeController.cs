@@ -440,5 +440,34 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { error = $"There was an error fetching project movements.", success = false, detail = ex.Message });
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteTrackingToolTimeEntry(int movementId)
+        {
+            if (movementId == null)
+            {
+                return BadRequest("Movement Id is required");
+            }
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest("User does not exist.");
+                }
+
+                MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.DeleteTrackingTooTimeEntry(userActionedBy, movementId);
+                if (!response.Success)
+                {
+                    return BadRequest(response.Message);
+                }
+                return Ok(new { success = true, message = response.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

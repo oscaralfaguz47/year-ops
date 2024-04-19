@@ -25,6 +25,7 @@
     margin-top: 5px;
     display: flex;
     height: 30px;
+    align-items:center;
 }
     .time-entry span {
         font-weight: bold;
@@ -35,7 +36,11 @@
         align-items: center;
         font-size: 15px;
     }
-
+.spinner-time-actions {
+    display: none;
+    animation: spin 1s linear infinite;
+    margin: 5px;
+}
 .time-label {
     margin-left: 10px;
 }

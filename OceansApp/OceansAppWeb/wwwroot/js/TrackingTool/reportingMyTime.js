@@ -145,8 +145,6 @@ function navitateBetweenDates(startDate, endDate) {
 
 // Function to calculate the new period based on direction and mode.
 function adjustDate(direction, mode) {
-    // Calculate the number of days to adjust based on the payment method.
-
     const dayAdjustment = mode === 1 ? 15 : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
     if (direction === 'left') {

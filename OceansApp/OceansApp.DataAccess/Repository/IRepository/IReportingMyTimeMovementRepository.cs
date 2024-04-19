@@ -26,5 +26,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
            CreateUpdateMovementTrackingToolVM timeEntryData);
         Task<List<GetTrackingToolProjectMovementsVM>> GetTrackingToolProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
              DateTime endDate);
+        Task<MethodResponse> DeleteTrackingTooTimeEntry(string userActionedBy, int movementId);
     }
 }

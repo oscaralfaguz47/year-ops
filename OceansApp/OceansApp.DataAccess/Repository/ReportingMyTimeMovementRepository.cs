@@ -387,7 +387,6 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
-
         public async Task<List<GetTrackingToolProjectMovementsVM>> GetTrackingToolProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
              DateTime endDate)
         {
@@ -404,6 +403,36 @@ namespace OceansApp.DataAccess.Repository
             var movements = results.ToList();
 
             return movements;
+        }
+        public async Task<MethodResponse> DeleteTrackingTooTimeEntry(string userActionedBy, int movementId)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingTimeMovementToDelete = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == movementId);
+                    if (existingTimeMovementToDelete == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
+                    }
+                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                    if (existingTimeMovementToDelete.ConsultantId != currentUser.ConsultantId)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
+                    }
+
+                    _db.Remove(existingTimeMovementToDelete);
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return MethodResponse.CreateSuccessResponse("Time Deleted!", null);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
         }
     }
 }
