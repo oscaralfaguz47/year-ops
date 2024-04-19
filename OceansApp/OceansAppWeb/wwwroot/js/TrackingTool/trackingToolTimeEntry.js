@@ -112,6 +112,14 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes) {
                 btnSaveTime.style.display = 'block';
             });
         }
+        if (input.type === 'time') {
+            input.addEventListener('keydown', (event) => {
+                // Previene la eliminación usando Backspace y Delete
+                if (event.key === 'Backspace' || event.key === 'Delete') {
+                    event.preventDefault();
+                }
+            });
+        }
     });
 
     const timeFromInput = timeEntryDiv.querySelector('.time-from');
@@ -153,13 +161,22 @@ function calculateTimeDifference(startTime, endTime) {
 }
 
 function deleteTimeEntry(deleteBtn, movementId) {
-    var spinnerLabel = deleteBtn.parentElement.querySelector('.spinner-time-actions');
-    deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel).then(() => {
+    if (movementId !== null) {
+        var spinnerLabel = deleteBtn.parentElement.querySelector('.spinner-time-actions');
+        deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel).then(success => {
+            if (success) {
+                const dayItem = deleteBtn.closest('.day-item');
+                deleteBtn.parentElement.remove();
+                updateDayTotal(dayItem);
+                updateTotalHours();
+            }
+        });
+    } else {
         const dayItem = deleteBtn.closest('.day-item');
         deleteBtn.parentElement.remove();
         updateDayTotal(dayItem);
         updateTotalHours();
-    });
+    }
 }
 
 function saveTimeEntry(button, date) {
@@ -172,14 +189,17 @@ function saveTimeEntry(button, date) {
 
     createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'),
         spinnerLabel, button).then(data => {
-            deleteBtn.onclick = null;
-            deleteBtn.addEventListener('click', () => {
-                deleteTimeEntry(deleteBtn, data.movementId);
-            });
+            if (!deleteBtn.hasListener) {
+                deleteBtn.addEventListener('click', () => {
+                    deleteTimeEntry(deleteBtn, data.movementId);
+                });
+                deleteBtn.hasListener = true;
+            }
         }).catch(error => {
             console.error("Error in saveTimeEntry:", error);
         });
 }
+
 
 //CREATE, UPDATE TIME ENTRY
 async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput, spinnerLabel, button) {
@@ -222,18 +242,17 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
             }
         })
         .then(data => {
-            displayToasterSuccess(data.message);
             movementIdInput.value = data.movementId;
             return data;
         }).finally(() => {
             spinnerLabel.style.display = 'none';
         });
+
 }
 // DELETE TRACKING TOOL TIME ENTRY
 async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) {
     if (!movementId) {
-        console.error('MovementId must be provided.');
-        return;
+        return false;
     }
     deleteBtn.style.display = 'none';
     spinnerLabel.style.display = 'block';
@@ -245,30 +264,44 @@ async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) 
         const response = await fetch("/TrackingTool/ReportingMyTime/DeleteTrackingToolTimeEntry", {
             method: 'POST',
             headers: {
-                RequestVerificationToken: token
+                'RequestVerificationToken': token
             },
             body: formData
         });
 
-        const data = await response.json();
-        if (response.ok) {
-        } else {
+        if (!response.ok) {
+            // If the response is not successful, we extract the JSON containing the error message
+            const err = await response.json();
+            console.error('There has been a problem with your fetch operation:', err.error);
+            switch (err.messageType) {
+                case 'Validation Error':
+                    displayToasterWarning('Validation Error: ' + err.error);
+                    break;
+                case 'Not Found':
+                    return true;
+                    break;
+                default:
+                    displayToasterError('Error: ' + err.error);
+            }
             deleteBtn.style.display = 'block';
             spinnerLabel.style.display = 'none';
-            displayToasterError(data.error || 'Failed to delete the time.');
-            console.error('There has been a problem with the fetch operation:', data.detail);
+            return false;
         }
-    } catch (error) {
+        //If the answer is successful
+        const data = await response.json();
+        return true;
+    } catch (err) {
+        // Handling network errors or fetch failures
+        displayToasterError('There has been a problem with your fetch operation:', err);
+        console.error('There has been a problem with your fetch operation:', err);
         deleteBtn.style.display = 'block';
         spinnerLabel.style.display = 'none';
-        console.error('Network error:', error);
-        displayToasterError('Network error occurred. Please try again.');
+        return false;
     }
 }
 function updateDayTotal(dayElement) {
     const timeEntries = dayElement.querySelectorAll('.time-entry');
     let totalMinutes = 0;
-
     timeEntries.forEach(entry => {
         const timeFrom = entry.querySelector('.time-from').value || "00:00";
         const timeTo = entry.querySelector('.time-to').value || "00:00";

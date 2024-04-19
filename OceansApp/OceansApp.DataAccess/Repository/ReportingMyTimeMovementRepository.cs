@@ -413,7 +413,7 @@ namespace OceansApp.DataAccess.Repository
                     var existingTimeMovementToDelete = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == movementId);
                     if (existingTimeMovementToDelete == null)
                     {
-                        return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
+                        return MethodResponse.CreateFailureNotFoundResponse("The movement does not exist.");
                     }
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                     if (existingTimeMovementToDelete.ConsultantId != currentUser.ConsultantId)

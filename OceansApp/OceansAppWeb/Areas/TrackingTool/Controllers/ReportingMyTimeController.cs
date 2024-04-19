@@ -8,6 +8,7 @@ using static OceansApp.Models.ViewModels.Components.MethodResponse;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -348,7 +349,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         {
             if (timeEntryData == null)
             {
-                return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
             }
             ValidateInputs validateInputs = new();
 
@@ -364,7 +365,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
                 kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
 
-                return BadRequest(new { errors = errors });
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
             }
 
             try
@@ -386,7 +387,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                 if (!result.Success)
                 {
-                    return BadRequest(new { error = result.Message });
+                    return BadRequest(new { error = result.Message, messageType = result.MessageType });
                 }
 
                 return Ok(new
@@ -398,7 +399,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = $"An error occurred: {ex.Message}" });
+                return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
             }
         }
 
@@ -447,26 +448,27 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         {
             if (movementId == null)
             {
-                return BadRequest("Movement Id is required");
+                return BadRequest(new { error = "MovementId is required", messageType = "Validation Error" });
             }
+
             try
             {
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (userActionedBy == null)
                 {
-                    return BadRequest("User does not exist.");
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
                 }
 
                 MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.DeleteTrackingTooTimeEntry(userActionedBy, movementId);
                 if (!response.Success)
                 {
-                    return BadRequest(response.Message);
+                    return BadRequest(new { error = response.Message, messageType = response.MessageType });
                 }
                 return Ok(new { success = true, message = response.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
             }
         }
     }
