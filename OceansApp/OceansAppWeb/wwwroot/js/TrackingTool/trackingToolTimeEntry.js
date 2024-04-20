@@ -217,38 +217,54 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         TimeFrom: timeFrom,
         TimeTo: timeTo
     };
-    return fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            RequestVerificationToken: token
-        },
-        body: JSON.stringify(data)
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.json().then(errorData => {
-                    if (errorData.messageType === "Validation Error") {
-                        displayToasterWarningArray(errorData.errors);
-                        throw new Error('Validation errors!');
-                    } else {
-                        button.style.display = 'block';
-                        displayToasterError(errorData.error);
-                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
-                    }
-                });
-            }
-        })
-        .then(data => {
-            movementIdInput.value = data.movementId;
-            return data;
-        }).finally(() => {
-            spinnerLabel.style.display = 'none';
+
+    try {
+        const response = await fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
         });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    console.log("fucnjlkgfjkldf");
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current); 
+                    }, []);
+                    console.log(allErrors); 
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    button.style.display = 'block';
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            spinnerLabel.style.display = 'none';
+            button.style.display = 'block';
+            return null; 
+        }
+
+        const dataFromApi = await response.json();
+        movementIdInput.value = dataFromApi.movementId;
+        spinnerLabel.style.display = 'none';
+        return dataFromApi;
+    } catch (err) {
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        spinnerLabel.style.display = 'none';
+        button.style.display = 'block';
+        return null; // Return null to signify an error that prevented a successful fetch
+    }
 }
+
+
 // DELETE TRACKING TOOL TIME ENTRY
 async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) {
     if (!movementId) {

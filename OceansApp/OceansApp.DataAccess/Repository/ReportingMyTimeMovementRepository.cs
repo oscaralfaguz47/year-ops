@@ -286,7 +286,7 @@ namespace OceansApp.DataAccess.Repository
         {
             if (timeEntryData == null)
             {
-                return MethodResponse.CreateFailureValidationResponse("Report movement data cannot be null.");
+                return MethodResponse.CreateFailureExceptionResponse("Report movement data cannot be null.");
             }
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -295,7 +295,7 @@ namespace OceansApp.DataAccess.Repository
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
                     if (currentUser == null)
                     {
-                        return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
+                        return MethodResponse.CreateFailureExceptionResponse("Consultant not found.");
                     }
 
                     if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == timeEntryData.ProjectId && x.ConsultantId == currentUser.ConsultantId))
@@ -312,13 +312,13 @@ namespace OceansApp.DataAccess.Repository
                     var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
                     if (transactionStatus == null)
                     {
-                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
+                        return MethodResponse.CreateFailureExceptionResponse("Transaction status 'No actions' not found.");
                     }
 
                     var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
                     if (movementType == null)
                     {
-                        return MethodResponse.CreateFailureNotFoundResponse("Movement type not valid.");
+                        return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
                     }
 
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
