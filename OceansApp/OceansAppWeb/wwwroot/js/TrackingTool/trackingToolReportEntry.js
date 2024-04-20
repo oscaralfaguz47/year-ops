@@ -50,7 +50,6 @@ document.addEventListener('paste', (event) => {
     }
 });
 
-
 async function handleFiles(event) {
     event.stopPropagation();
     event.preventDefault();
@@ -64,7 +63,10 @@ async function handleFiles(event) {
     }
     updateInfoText();
 }
-
+function reUploadFile(fileElement) {
+    fileElement.remove();
+    updateFileDisplay(fileList[0], true, null);
+}
 function processFiles(newFiles) {
     newFiles.forEach(file => {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
@@ -104,7 +106,7 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
     const deleteBtn = document.createElement('button');
     const spinnerLabel = document.createElement('label');
     spinnerLabel.className = 'spinner-label';
-    spinnerLabel.innerHTML = '<div class="spinner loading-file-spinner"></div>';
+    spinnerLabel.innerHTML = '<i class="fa-solid fa-spinner saving-icon"></i>';
     spinnerLabel.style.display = 'block';
     deleteBtn.className = 'delete-btn';
     deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
@@ -145,7 +147,7 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
         }
         if (movementCreationPromise) {
             movementCreationPromise.then(() => {
-                uploadFile(file, statusLabel).then(data => {
+                uploadFile(file, statusLabel, fileElement).then(data => {
                     deleteBtn.onclick = function () {
                         deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel).then(() => {
                             fileList.splice(fileList.indexOf(file), 1);
@@ -161,7 +163,7 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
                 });
             });
         } else {
-            uploadFile(file, statusLabel).then(data => {
+            uploadFile(file, statusLabel, fileElement).then(data => {
                 deleteBtn.onclick = function () {
                     deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel).then(() => {
                         fileList.splice(fileList.indexOf(file), 1);
@@ -189,12 +191,12 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
     }
 }
 
-async function uploadFile(file, statusLabel) {
+async function uploadFile(file, statusLabel, fileElement) {
     var token = $('[name="__RequestVerificationToken"]').val();
     const formData = new FormData();
     formData.append('files', file);
     formData.append('movementId', movementIdNormalHoursInput.value);
-    statusLabel.innerHTML = '<div class="spinner loading-file-spinner"></div>';
+    statusLabel.innerHTML = '<i class="fa-solid fa-spinner saving-icon"></i>';
 
     try {
         const response = await fetch('/TrackingTool/ReportingMyTime/UploadFilesClientNoTrackingTool', {
@@ -205,16 +207,43 @@ async function uploadFile(file, statusLabel) {
             },
             body: formData
         });
-        if (!response.ok) throw new Error('Upload failed with status ' + response.status);
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    fileElement.remove();
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError(errorData.detail);
+                    createReuploadBtn(fileElement, statusLabel);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+                    createReuploadBtn(fileElement, statusLabel);
+            }
+            return null; 
+        }
         const data = await response.json();
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
         return data;
     } catch (error) {
-        console.error('Error:', error);
-        statusLabel.textContent = 'Upload failed';
+        console.error('Network or fetch error:', error);
+        createReuploadBtn(fileElement, statusLabel);
         displayToasterError(error.message);
-        throw error; 
+        return null;
     }
+}
+function createReuploadBtn(fileElement, statusLabel) {
+    statusLabel.innerHTML = '';
+    const errorSpan = document.createElement('span');
+    errorSpan.innerHTML = 'Upload Failed <i class="fa-solid fa-upload"></i>';
+    errorSpan.className = 'reupload-label';
+    errorSpan.addEventListener('click', () => reUploadFile(fileElement));
+    statusLabel.appendChild(errorSpan);
 }
 async function createFirstMovementIfDoesNotExist() {
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -246,6 +275,11 @@ async function createFirstMovementIfDoesNotExist() {
 
 //CREATE, UPDATE TIME ENTRY MOVEMENT
 async function createUpdateTimeEntry() {
+    var saveBtn = document.getElementById('save-btn');
+    const savingLabel = `<i class="fa-solid fa-spinner saving-icon"></i> Saving Changes...`;
+    const saveLabel = `<i class="fa-solid fa-floppy-disk"></i> Save Changes`;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = savingLabel;
     var token = $('[name="__RequestVerificationToken"]').val();
     let actionDateData = new Date(dateToInput.value).toISOString();
     let startActionDateData = new Date(dateFromInput.value).toISOString();
@@ -293,43 +327,47 @@ async function createUpdateTimeEntry() {
             appendIfValid(`reportMovementListData[${index}].${key}`, item[key]);
         });
     });
-
-    fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryClientNoTrackingTool', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            RequestVerificationToken: token
-        },
-        body: formData
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw response;
-            }
-        })
-        .then(data => {
-            movementIdNormalHoursInput.value = data.movementIdNormalHours;
-            displayToasterSuccess(data.message);
-        })
-        .catch(errorResponse => {
-            if (errorResponse.status === 400) {
-                errorResponse.json().then(body => {
-                    if (body.errors) {
-                        for (const field in body.errors) {
-                            console.error(`${field}: ${body.errors[field]}`);
-                        }
-                    } else if (body.error) {
-                        // Handle other types of 400 errors
-                        console.error("Error:", body.error);
-                        displayToasterError(body.error);
-                    }
-                });
-            } else {
-                console.error('Something went wrong with the request.');
-            }
+    try {
+        const response = await fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryClientNoTrackingTool', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: formData
         });
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError(errorData.error);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = saveLabel;
+            return null;
+        }
+        const dataFromApi = await response.json();
+        movementIdNormalHoursInput.value = dataFromApi.movementIdNormalHours;
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = saveLabel;
+        displayToasterSuccess(dataFromApi.message);
+        return dataFromApi;
+    } catch (err) {
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = saveLabel;
+        return null; 
+    }
 }
 
 function initializeUploadProcess() {
@@ -453,8 +491,4 @@ document.getElementById('notesInput').addEventListener('input', function (e) {
     if (this.value.length > 400) {
         this.value = this.value.slice(0, 400);
     }
-});
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('onCallTimeWorkedInput');
-    validateInputTypeNumber('quantityInput');
 });

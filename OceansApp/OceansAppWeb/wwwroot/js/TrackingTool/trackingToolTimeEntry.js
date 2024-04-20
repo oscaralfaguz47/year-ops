@@ -95,21 +95,25 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes) {
         <input type="text" placeholder="Detail" class="time-detail input-time" maxlength="400" value="${notes === null ? '' : notes}"/>
         <button class="btn-delete-time" onclick="deleteTimeEntry(this, ${movementId})"><i class="fa-solid fa-trash-can"></i></button>
         <i class="fa-solid fa-spinner spinner-time-actions"></i>
+        <i class="fa-solid fa-check uploaded-check-icon green-label check-saved-icon" ${movementId === null ? 'style="display:none"' : 'style="display:block"'}></i>
         <button class="btn-save-time" ${movementId !== null ? 'style="display:none"' : 'style="display:block"'} onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
     `;
     button.parentElement.appendChild(timeEntryDiv);
 
     const btnSaveTime = timeEntryDiv.querySelector('.btn-save-time');
+    const checkSavedIcon = timeEntryDiv.querySelector('.check-saved-icon');
     const inputs = timeEntryDiv.querySelectorAll('.input-time, .movement-id');
 
     inputs.forEach(input => {
         if (input.type === 'text') {
             input.addEventListener('input', () => {
                 btnSaveTime.style.display = 'block';
+                checkSavedIcon.style.display = 'none';
             });
         } else {
             input.addEventListener('change', () => {
                 btnSaveTime.style.display = 'block';
+                checkSavedIcon.style.display = 'none';
             });
         }
         if (input.type === 'time') {
@@ -163,7 +167,8 @@ function calculateTimeDifference(startTime, endTime) {
 function deleteTimeEntry(deleteBtn, movementId) {
     if (movementId !== null) {
         var spinnerLabel = deleteBtn.parentElement.querySelector('.spinner-time-actions');
-        deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel).then(success => {
+        const checkSavedIcon = deleteBtn.parentElement.querySelector('.check-saved-icon');
+        deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel, checkSavedIcon).then(success => {
             if (success) {
                 const dayItem = deleteBtn.closest('.day-item');
                 deleteBtn.parentElement.remove();
@@ -186,9 +191,10 @@ function saveTimeEntry(button, date) {
     const timeTo = button.parentElement.querySelector('.time-to').value;
     const notes = button.parentElement.querySelector('.time-detail').value;
     const movementId = button.parentElement.querySelector('.movement-id').value === '' ? null : button.parentElement.querySelector('.movement-id').value;
+    const checkSavedIcon = button.parentElement.querySelector('.check-saved-icon');
 
     createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'),
-        spinnerLabel, button).then(data => {
+        spinnerLabel, button, checkSavedIcon).then(data => {
             if (!deleteBtn.hasListener) {
                 deleteBtn.addEventListener('click', () => {
                     deleteTimeEntry(deleteBtn, data.movementId);
@@ -202,7 +208,7 @@ function saveTimeEntry(button, date) {
 
 
 //CREATE, UPDATE TIME ENTRY
-async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput, spinnerLabel, button) {
+async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput, spinnerLabel, button, checkSavedIcon) {
     button.style.display = 'none';
     spinnerLabel.style.display = 'block';
     let actionDateData = new Date(date).toISOString();
@@ -247,6 +253,7 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
                     displayToasterError('An unexpected error occurred: ' + errorData.error);
             }
             spinnerLabel.style.display = 'none';
+            checkSavedIcon.style.display = 'none';
             button.style.display = 'block';
             return null; 
         }
@@ -254,11 +261,13 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         const dataFromApi = await response.json();
         movementIdInput.value = dataFromApi.movementId;
         spinnerLabel.style.display = 'none';
+        checkSavedIcon.style.display = 'block';
         return dataFromApi;
     } catch (err) {
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         spinnerLabel.style.display = 'none';
+        checkSavedIcon.style.display = 'none';
         button.style.display = 'block';
         return null; // Return null to signify an error that prevented a successful fetch
     }
@@ -266,7 +275,7 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
 
 
 // DELETE TRACKING TOOL TIME ENTRY
-async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) {
+async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel, checkSavedIcon) {
     if (!movementId) {
         return false;
     }
@@ -300,6 +309,7 @@ async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) 
                     displayToasterError('Error: ' + err.error);
             }
             deleteBtn.style.display = 'block';
+            checkSavedIcon.style.display = 'block';
             spinnerLabel.style.display = 'none';
             return false;
         }
@@ -311,6 +321,7 @@ async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel) 
         displayToasterError('There has been a problem with your fetch operation:', err);
         console.error('There has been a problem with your fetch operation:', err);
         deleteBtn.style.display = 'block';
+        checkSavedIcon.style.display = 'block';
         spinnerLabel.style.display = 'none';
         return false;
     }

@@ -17,6 +17,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> DeleteTimeEntryClientNoTrackingTool(int movementId);
         Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId);
+        Task<int?> VerifyNumUploadedFilesPerMovementAsync(int movementId);
         Task<MethodResponse> GetExistingMovement(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> DeleteBlobReport(string fileName);
 

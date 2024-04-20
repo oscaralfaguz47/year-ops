@@ -78,7 +78,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         {
             if (reportMovementListData == null)
             {
-                return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
             }
             ValidateInputs validateInputs = new();
 
@@ -88,6 +88,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project " + movementTime.MovementType, movementTime.ProjectId, ModelState);
                 validateInputs.ValidateNoNegativeNumber("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
                 validateInputs.ValidateNotRequiredFieldNumberValue("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
+                validateInputs.ValidateLengthTypeNumber("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, 18, 2, ModelState);
                 validateInputs.ValidateDateValidFormat("ActionDate", "Action Date " + movementTime.MovementType, movementTime.ActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date " + movementTime.MovementType, movementTime.ActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldAnyValue("StartActionDate", "Start Action Date " + movementTime.MovementType, movementTime.StartActionDate, ModelState);
@@ -102,7 +103,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             kvp => kvp.Key,
             kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
         );
-                return BadRequest(new { errors = errors });
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
             }
 
             try
@@ -114,7 +115,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == movementTime.MovementType);
                     if (movementType == null)
                     {
-                        return NotFound(new { error = "Movement Type not found" });
+                        return BadRequest(new { error = "Movement Type does not exist.", messageType = "Exception Error" });
                     }
                     CreateUpdateMovementClientNoTrackingToolVM elementToUpdateOrCreate = new()
                     {
@@ -132,7 +133,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     MethodResponse resultExistingMovement = await _unitOfWork.ReportingMyTimeMovement.GetExistingMovement(userActionedBy, elementToUpdateOrCreate);
                     if (!resultExistingMovement.Success)
                     {
-                        return BadRequest(new { error = resultExistingMovement.Message });
+                        return BadRequest(new { error = resultExistingMovement.Message, messageType = resultExistingMovement.MessageType });
                     }
 
                     //Create the element
@@ -165,7 +166,8 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                         {
                             IdCreatedElement = null,
                             Message = "Changes Saved!",
-                            Success = true
+                            Success = true,
+                            MessageType = "Exception Error"
                         };
                     }
                     if (resultExistingMovement.IdCreatedElement != null && movementTime.MovementType == "Normal Hours")
@@ -175,7 +177,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                     if (!result.Success)
                     {
-                        return BadRequest(new { error = result.Message });
+                        return BadRequest(new { error = result.Message, messageType = result.MessageType });
                     }
                 }
 
@@ -188,7 +190,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = $"An error occurred: {ex.Message}" });
+                return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
             }
         }
 
@@ -196,25 +198,37 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files, int movementId)
         {
-            ValidateInputs validateInputs = new();
-
-            validateInputs.ValidateRequiredFieldIntType("MovementId", "MovementId", movementId, ModelState);
-            validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
-            validateInputs.ValidateValidFiles("Reports", files, ModelState);
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-        .Where(e => e.Value.Errors.Count > 0)
-        .ToDictionary(
-            kvp => kvp.Key,
-            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-        );
-                return BadRequest(new { errors = errors });
-            }
-
             try
             {
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFieldIntType("MovementId", "MovementId", movementId, ModelState);
+                validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
+                validateInputs.ValidateValidFiles("Reports", files, ModelState);
+
+                int? numUploadedFilesInMovement = await _unitOfWork.ReportingMyTimeMovement.VerifyNumUploadedFilesPerMovementAsync(movementId);
+
+                if (numUploadedFilesInMovement == null)
+                {
+                    return BadRequest(new { error = "Something went wrong getting the num of uploaded files.", messageType = "Exception Error" });
+                }
+                if (numUploadedFilesInMovement > 7)
+                {
+                    ModelState.AddModelError("Reports", "You can not upload more than 7 files.");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+            .Where(e => e.Value.Errors.Count > 0)
+            .ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+            );
+                    return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                }
+
+
                 List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId);
 
                 List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId);
@@ -224,7 +238,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                 if (!resultBlob.Success)
                 {
-                    return BadRequest(new { error = resultBlob.Message });
+                    return BadRequest(new { error = resultBlob.Message, messageType = "Exception Error" });
                 }
                 return Ok(new
                 {

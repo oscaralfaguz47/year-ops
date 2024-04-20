@@ -37,7 +37,7 @@
                             </div>
                         </div>
                         <div class="col-5">
-                            <input type="number" class="input-time" id="quantityInput" value="0" />
+                        <input type="number" oninput="limitDigitsAndDecimals(this)" class="input-time" id="quantityInput" value="0" />
                         </div>
                     </div>
                     <div id="on-call-section">
@@ -65,7 +65,7 @@
                                 <label>On-Call Time Worked</label>
                             </div>
                             <div class="col-5">
-                                <input type="number" class="input-time" id="onCallTimeWorkedInput" value="0" />
+                            <input type="number" class="input-time" oninput="limitDigitsAndDecimals(this)" id="onCallTimeWorkedInput" value="0" />
                             </div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                         </div>
                     </div>
                     <div class="save-report-cont">
-                        <button onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                        <button id="save-btn" onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
                     </div>
                 </div>
             </div>

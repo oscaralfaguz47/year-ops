@@ -1,7 +1,10 @@
 ﻿#notesInput{
     width: 100%;
 }
-
+.saving-icon {
+    animation: spin 1.5s linear infinite;
+    margin: 5px;
+}
 .tooltip-container {
     margin-left: 5px;
 }
@@ -131,6 +134,10 @@
         border-radius: 15px;
         color: #fff;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        width: 180px;
+    }
+    .save-report-cont #save-btn i {
+        margin:5px;
     }
 .report-input-cont{
     margin-bottom: 15px;
@@ -166,11 +173,17 @@
     display: flex;
     align-items: center;
 }
-.loading-file-spinner {
-    width: 22px !important;
-    height: 22px !important;
-    margin-left: 8px;
+.reupload-label{
+    color: red;
+    cursor: pointer;
 }
+    .reupload-label:hover i {
+        color: gray;
+    }
+    .reupload-label i {
+        color: #2aa7ff;
+        margin:5px;
+    }
 .uploaded-check-icon {
     margin-left: 8px;
     font-size: 18px;

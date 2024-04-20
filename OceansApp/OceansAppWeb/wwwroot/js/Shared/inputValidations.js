@@ -45,3 +45,19 @@ function isValidDate(dateString) {
 
     return dateN.toISOString().startsWith(dateString);
 }
+
+function limitDigitsAndDecimals(inputElement) {
+    let inputValue = inputElement.value;
+
+    // Verificar si el valor cumple con la estructura deseada (hasta 16 dígitos y hasta 2 decimales)
+    let validPattern = /^(\d{0,16})(\.\d{0,2})?$/;
+
+    // Si no cumple con el patrón y el valor no está vacío
+    if (!validPattern.test(inputValue) && inputValue !== '') {
+        // Revertir al último valor válido conocido
+        inputElement.value = inputElement.dataset.lastValid || '';
+    } else {
+        // Actualizar el último valor válido conocido
+        inputElement.dataset.lastValid = inputValue;
+    }
+}

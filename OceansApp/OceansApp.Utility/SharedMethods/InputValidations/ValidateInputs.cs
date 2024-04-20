@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections;
+using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OceansApp.Utility.SharedMethods.InputValidations
 {
@@ -175,6 +177,25 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                     {
                         modelState.AddModelError(field, $"The {fieldName} can not be a negative number.");
                     }
+                }
+            }
+        }
+        public void ValidateLengthTypeNumber(string field, string fieldName, decimal? numToValidate, int entireLong, int decimalLong, ModelStateDictionary modelState)
+        {
+            if (numToValidate != null)
+            {
+                string stringNum = numToValidate.Value.ToString(CultureInfo.InvariantCulture);
+                string[] parts = stringNum.Split('.');
+                int currentEntireLong = parts[0].Length;
+                if (parts[0].StartsWith("-"))
+                {
+                    currentEntireLong--;
+                }
+
+                int currentDecimalLong = parts.Length > 1 ? parts[1].Length : 0;
+                if (!((currentEntireLong <= entireLong - decimalLong) && currentDecimalLong <= decimalLong))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} is not a valid number, it must contain {entireLong - 2} entiger numbers and {decimalLong} decimals.");
                 }
             }
         }

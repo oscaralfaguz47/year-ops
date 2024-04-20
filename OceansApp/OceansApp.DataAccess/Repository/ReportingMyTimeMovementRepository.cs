@@ -95,7 +95,8 @@ namespace OceansApp.DataAccess.Repository
                         }
                         else
                         {
-                            errorMessage += uploadedBlob.ErrorMessage + "/ ";
+                            errorMessage += uploadedBlob.ErrorMessage;
+                            return MethodResponse.CreateFailureExceptionResponse(errorMessage);
                         }
                     }
                     await _db.SaveChangesAsync();
@@ -106,7 +107,7 @@ namespace OceansApp.DataAccess.Repository
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    return MethodResponse.CreateFailureExceptionResponse(ex.Message + "/ " + errorMessage);
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
         }
@@ -125,6 +126,17 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
             return filesToUpload;
+        }
+        public async Task<int?> VerifyNumUploadedFilesPerMovementAsync(int movementId)
+        {
+            try
+            {
+                return await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == movementId);
+            }
+            catch
+            {
+                return null;
+            }
         }
         public async Task<MethodResponse> CreateTimeEntryClientNoTrackingTool(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData)
         {
