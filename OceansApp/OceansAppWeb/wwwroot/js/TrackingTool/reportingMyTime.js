@@ -130,12 +130,15 @@ async function selectProject(projectId) {
         });
 }
 //Navitate between dates
-function navitateBetweenDates(startDate, endDate) {
+function navitateBetweenDates(startDate, endDate, button) {
     if (clientHasTrackingToolValue) {
-        getProjectMovementsClientHasTrackTool();
+        getProjectMovementsClientHasTrackTool().then(() => {
+            if (button) button.disabled = false;
+        });
     } else {
         getTrackingToolProjectMovements().then(movements => {
             generateDateList(startDate, endDate, movements.movementsList);
+            if (button) button.disabled = false;
         });
     }
 }
@@ -173,15 +176,14 @@ function formatDateYyyyMmDd(date) {
     return `${year}-${month}-${day}`;
 }
 // Calculates and displays start and end dates based on the click direction.
-const handleButtonClick = (direction) => {
+const handleButtonClick = (button, direction) => {
+    button.disabled = true;
     adjustDate(direction, paymentPeriod, null);
-
-    let { startDate, endDate } = calculatePeriod(currentDate, paymentPeriod);
+    let { startDate, endDate } = calculatePeriod(currentDate, paymentPeriod, button);
 };
 
-const calculatePeriod = (date, mode) => {
+const calculatePeriod = (date, mode, button) => {
     let startDate, endDate;
-
     if (mode === 1) { // Biweekly
         // Adjusts to the nearest fortnight before the current date
         const dayOfMonth = date.getDate();
@@ -201,7 +203,7 @@ const calculatePeriod = (date, mode) => {
     document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
-    navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate));
+    navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), button);
     return { startDate, endDate };
 };
 

@@ -184,27 +184,30 @@ function deleteTimeEntry(deleteBtn, movementId) {
     }
 }
 
+
 function saveTimeEntry(button, date) {
     var spinnerLabel = button.parentElement.querySelector('.spinner-time-actions');
     const deleteBtn = button.parentElement.querySelector('.btn-delete-time');
     const timeFrom = button.parentElement.querySelector('.time-from').value;
     const timeTo = button.parentElement.querySelector('.time-to').value;
     const notes = button.parentElement.querySelector('.time-detail').value;
-    const movementId = button.parentElement.querySelector('.movement-id').value === '' ? null : button.parentElement.querySelector('.movement-id').value;
+    let movementId = button.parentElement.querySelector('.movement-id').value === '' ? null : button.parentElement.querySelector('.movement-id').value;
     const checkSavedIcon = button.parentElement.querySelector('.check-saved-icon');
 
     createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'),
         spinnerLabel, button, checkSavedIcon).then(data => {
-            if (!deleteBtn.hasListener) {
-                deleteBtn.addEventListener('click', () => {
-                    deleteTimeEntry(deleteBtn, data.movementId);
-                });
-                deleteBtn.hasListener = true;
+            if (data) {
+                movementId = data.movementId; 
+                button.parentElement.querySelector('.movement-id').value = movementId;
+                deleteBtn.setAttribute('onclick', ''); 
+                deleteBtn.setAttribute('onclick', `deleteTimeEntry(this, ${movementId})`); 
             }
         }).catch(error => {
             console.error("Error in saveTimeEntry:", error);
         });
 }
+
+
 
 
 //CREATE, UPDATE TIME ENTRY
@@ -235,6 +238,11 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                //window.location.href = '/login'; 
+                console.log(response.status);
+            }
             const errorData = await response.json();
             switch (errorData.messageType) {
                 case "Validation Error":

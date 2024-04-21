@@ -8,7 +8,6 @@ using static OceansApp.Models.ViewModels.Components.MethodResponse;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
-using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -214,7 +213,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 }
                 if (numUploadedFilesInMovement > 7)
                 {
-                    ModelState.AddModelError("Reports", "You can not upload more than 7 files.");
+                    ModelState.AddModelError("Reports", "You can not upload more than 8 files.");
                 }
 
                 if (!ModelState.IsValid)

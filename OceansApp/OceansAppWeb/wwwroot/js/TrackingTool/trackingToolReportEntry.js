@@ -387,60 +387,66 @@ async function getProjectMovementsClientHasTrackTool() {
     errorMessageIntern.style.display = 'none';
     let noTackingToolSection = document.getElementById('no-tracking-tool-sec');
     noTackingToolSection.style.display = 'none';
+
     var startDateValue = encodeURIComponent(dateFromInput.value);
     var endDateValue = encodeURIComponent(dateToInput.value);
     var url = "/TrackingTool/ReportingMyTime/GetProjectMovements?projectId=" + encodeURIComponent(projectIdInput.value) +
         "&startDate=" + startDateValue + "&endDate=" + endDateValue;
 
-    fetch(url)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.json().then(errorData => {
-                    errorMessageIntern.style.display = 'block';
-                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorData = await response.json();
+            errorMessageIntern.style.display = 'block';
+            throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+        }
+
+        const data = await response.json();
+        let normalHoursQuantity = 0;
+        let onCallFlateRateQuantity = 0;
+        let onCallTimeWorkedQuantity = 0;
+        let notes = '';
+        let blobNames = [];
+
+        if (data.movementsList.length > 0) {
+            movementIdNormalHoursInput.value = data.movementsList[0].movementId;
+        } else {
+            movementIdNormalHoursInput.value = null;
+        }
+
+        data.movementsList.forEach(function (obj) {
+            if (obj.movementTypeName === 'Normal Hours') {
+                notes += obj.notes === null ? '' : obj.notes;
+                normalHoursQuantity += obj.quantity;
+                JSON.parse(obj.blobNames).forEach(function (blobName) {
+                    blobNames.push(blobName);
                 });
             }
-        })
-        .then(data => {
-            let normalHoursQuantity = 0;
-            let onCallFlateRateQuantity = 0;
-            let onCallTimeWorkedQuantity = 0;
-            let notes = '';
-            let blobNames = [];
-            if (data.movementsList.length > 0) {
-                movementIdNormalHoursInput.value = data.movementsList[0].movementId;
-            } else {
-                movementIdNormalHoursInput.value = null;
+            if (obj.movementTypeName === 'On Call Flate Rate') {
+                onCallFlateRateQuantity += obj.quantity;
             }
-            data.movementsList.forEach(function (obj) {
-                if (obj.movementTypeName == 'Normal Hours') {
-                    notes += obj.notes === null ? '' : obj.notes;
-                    normalHoursQuantity += obj.quantity;
-                    JSON.parse(obj.blobNames).forEach(function (blobName) {
-                        blobNames.push(blobName);
-                    });
-                } if (obj.movementTypeName == 'On Call Flate Rate') {
-                    onCallFlateRateQuantity += obj.quantity;
-                }
-                if (obj.movementTypeName == 'On Call Time Worked') {
-                    onCallTimeWorkedQuantity += obj.quantity;
-                }
-            });
-            quantityInput.value = normalHoursQuantity;
-            onCallFlateRateSelect.value = onCallFlateRateQuantity;
-            onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
-            notesInput.value = notes;
-            blobNames.forEach(function (objName) {
-                updateFileDisplay(null, false, objName);
-            });
-            updateInfoText();
-            noTackingToolSection.style.display = 'block';
-        }).finally(() => {
-            loadingBoxIntern.style.display = 'none';
+            if (obj.movementTypeName === 'On Call Time Worked') {
+                onCallTimeWorkedQuantity += obj.quantity;
+            }
         });
+
+        quantityInput.value = normalHoursQuantity;
+        onCallFlateRateSelect.value = onCallFlateRateQuantity;
+        onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
+        notesInput.value = notes;
+        blobNames.forEach(function (objName) {
+            updateFileDisplay(null, false, objName);
+        });
+        updateInfoText();
+        noTackingToolSection.style.display = 'block';
+    } catch (error) {
+        console.error(error);
+        // Handle any errors here
+    } finally {
+        loadingBoxIntern.style.display = 'none';
+    }
 }
+
 function cleanFileName(fileName) {
     const regex = /^[a-f0-9]+_\d+_/i;
     return fileName.replace(regex, '');
