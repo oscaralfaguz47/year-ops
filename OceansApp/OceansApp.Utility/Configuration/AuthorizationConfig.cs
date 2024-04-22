@@ -92,6 +92,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToAccountingAccountsList", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageTheBasicsOfPaymentSheets", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType, FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue));
+            });
             //GENERAL
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
             services.AddAuthorization(options =>

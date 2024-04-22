@@ -22,7 +22,8 @@ namespace OceansApp.Utility.Configuration.AuthorizationRequirement.Finances
                 var policies = new List<string>
             {
                 "AccessToAccountsReceivable",
-                "AccessToManageConsultantPaymentsDebitsAndCredits"
+                "AccessToManageConsultantPaymentsDebitsAndCredits",
+                "AccessToManageTheBasicsOfPaymentSheets"
             };
 
                 foreach (var policy in policies)

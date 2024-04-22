@@ -106,13 +106,17 @@
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finances</a>
                                                 <div class="dropdown-menu">
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue))
+                                                    {
+                                                        <a id="payment-debits-credits" class="nav-link text-dark" asp-area="Finances" asp-controller="ConsultantPaymentsDebitsCredits" asp-action="Index">Consultant Payments, Debits & Credits</a>
+                                                    }
                                                     @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
                                                     {
                                                         <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Receivables</a>
                                                     }
-                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue))
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue))
                                                     {
-                                                        <a id="payment-debits-credits" class="nav-link text-dark" asp-area="Finances" asp-controller="ConsultantPaymentsDebitsCredits" asp-action="Index">Consultant Payments, Debits & Credits</a>
+                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="PaymentSheets" asp-action="Index">Payment Sheets</a>
                                                     }
                                                 </div>
                                             </li>

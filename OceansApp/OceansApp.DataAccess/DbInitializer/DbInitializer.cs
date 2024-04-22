@@ -440,6 +440,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Payment Sheets" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" });
@@ -645,6 +646,15 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue,
                     Description = "Have access to manage payment debits and credits of payments to consultants.",
                     SystemSubAreaId = paymentDebitsAndCreditsSubAreaId.SystemSubAreaId
+                });
+
+                var paymentSheetsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Payment Sheets");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue,
+                    Description = "Have access to manage the basics of Payment Sheets.",
+                    SystemSubAreaId = paymentSheetsSubAreaId.SystemSubAreaId
                 });
 
                 //GENERAL - CONSULTANTS

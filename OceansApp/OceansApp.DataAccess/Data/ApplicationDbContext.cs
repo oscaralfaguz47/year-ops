@@ -288,6 +288,25 @@ namespace OceansApp.DataAccess.Data
                 .Property(c => c.ContentType)
                 .HasColumnType("VARCHAR(255)");
 
+            // REPORTING MY TIME SUBMISSIONS
+            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+                .HasKey(r => new { r.SubmissionId });
+            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+                .HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+                .HasOne(c => c.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(c => c.ConsultantId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+                .HasOne(t => t.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(t => t.TransactionStatusId)
+                .IsRequired();
+
             // CONSULTANTS BENEFITS
             modelBuilder.Entity<ConsultantBenefit>()
                 .HasKey(c => new { c.BenefitId });
@@ -441,6 +460,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }
         public DbSet<ReportingMyTimeMovementBlob> REPORTING_MY_TIME_MOVEMENT_BLOBS { get; set; }
         public DbSet<ReportingMyTimeMovementType> REPORTING_MY_TIME_MOVEMENT_TYPES { get; set; }
+        public DbSet<ReportingMyTimeMovementSubmissions> REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS { get; set; }
         public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
         public DbSet<TransactionStatus> TRANSACTION_STATUSES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }

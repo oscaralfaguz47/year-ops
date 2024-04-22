@@ -23,5 +23,8 @@ namespace OceansApp.Utility.ConstantData.Claims.Finances
 
         public const string Manage_Payment_Debits_Credits_ClaimType = "ManagePaymentDebitsAndCredits";
         public const string Manage_Payment_Debits_Credits_ClaimValue = "Have access to manage payment debits and credits of payments to consultants.";
+
+        public const string Manage_Basic_Payment_Sheets_ClaimType = "BasicPaymentSheets";
+        public const string Manage_Basic_Payment_Sheets_ClaimValue = "Have access to manage the basics of payment sheets";
     }
 }
