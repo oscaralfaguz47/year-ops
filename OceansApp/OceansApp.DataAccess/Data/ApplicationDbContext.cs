@@ -90,6 +90,18 @@ namespace OceansApp.DataAccess.Data
                 .HasOne(p => p.PaymentMethod)
                 .WithMany()
                 .HasForeignKey(p => p.PaymentMethodId);
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasOne(p => p.Partner)
+                .WithMany()
+                .HasForeignKey(p => p.PartnerId);
+            modelBuilder.Entity<ConsultantDetail>()
+                .HasOne(x => x.ConsultantHoliday)
+                .WithMany()
+                .HasForeignKey(x => x.ConsultantHolidayId);
+            modelBuilder.Entity<ConsultantDetail>()
+        .Ignore(c => c.ProjectsConsultantsAssigned)
+        .Ignore(c => c.ReportingMyTimeMovements);
+
 
             modelBuilder.Entity<ConsultantHoliday>()
                 .HasOne(cc => cc.ApplicationUser)
@@ -151,6 +163,15 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(cc => cc.TransactionStatusId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //PARTNERS
+            modelBuilder.Entity<Partner>()
+                .HasKey(x => new { x.PartnerId });
+            modelBuilder.Entity<Partner>()
+                .HasOne(c => c.Country)
+                .WithMany()
+                .HasForeignKey(c => c.IdCountry)
+                .IsRequired();
 
             // PAYMENT SHEETS
             modelBuilder.Entity<PaymentSheet>()
@@ -289,19 +310,19 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("VARCHAR(255)");
 
             // REPORTING MY TIME SUBMISSIONS
-            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
                 .HasKey(r => new { r.SubmissionId });
-            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
                 .HasOne(p => p.Project)
                 .WithMany()
                 .HasForeignKey(p => p.ProjectId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
                 .HasOne(c => c.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(c => c.ConsultantId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReportingMyTimeMovementSubmissions>()
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
                 .HasOne(t => t.TransactionStatus)
                 .WithMany()
                 .HasForeignKey(t => t.TransactionStatusId)
@@ -448,6 +469,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
+        public DbSet<Partner> PARTNERS { get; set; }
         public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
         public DbSet<PaymentSheet> PAYMENT_SHEETS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
@@ -460,7 +482,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }
         public DbSet<ReportingMyTimeMovementBlob> REPORTING_MY_TIME_MOVEMENT_BLOBS { get; set; }
         public DbSet<ReportingMyTimeMovementType> REPORTING_MY_TIME_MOVEMENT_TYPES { get; set; }
-        public DbSet<ReportingMyTimeMovementSubmissions> REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS { get; set; }
+        public DbSet<ReportingMyTimeMovementSubmission> REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS { get; set; }
         public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
         public DbSet<TransactionStatus> TRANSACTION_STATUSES { get; set; }
         public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }

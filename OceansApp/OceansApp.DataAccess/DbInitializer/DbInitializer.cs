@@ -236,13 +236,13 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 foreach (var benefitCompany in consultantBenefitCompaniesList)
                 {
-                    var existingBenefitCompany = _db.CONSULTANT_BENEFIT_COMPANIES.FirstOrDefault(x => x.CompanyId == benefitCompany.CompanyId && 
+                    var existingBenefitCompany = _db.CONSULTANT_BENEFIT_COMPANIES.FirstOrDefault(x => x.CompanyId == benefitCompany.CompanyId &&
                     x.CostCenterId == benefitCompany.CostCenterId && x.AccountingAccountId == benefitCompany.AccountingAccountId);
                     if (existingBenefitCompany == null)
                     {
                         ConsultantBenefitCompany conBenefitCompany = new()
                         {
-                            CompanyId  = benefitCompany.CompanyId,
+                            CompanyId = benefitCompany.CompanyId,
                             CostCenterId = benefitCompany.CostCenterId,
                             AccountingAccountId = benefitCompany.AccountingAccountId,
                             BenefitId = benefitCompany.BenefitId
@@ -465,6 +465,34 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                 }
                 _db.SaveChanges();
+
+                //-----------------  PARTNERS  --------------------------------
+
+                List<Partner> partnersList = new List<Partner>();
+                partnersList.Add(new Partner()
+                {
+                    Name = "Global Business",
+                    Contact = "Yeanett Russo",
+                    ContactOccupation = "Admin and Finances",
+                    ContactEmail = "yeanett.russo@gbitcorp.com",
+                    Phone = "(+507) 310 2673",
+                    AdmissionDate = DateTime.Parse("2022-02-07"),
+                    IsActive = true,
+                    CreationDate = DateTime.UtcNow,
+                    CompanyId = "OCE",
+                    IdCountry = "PAN"
+                }) ;
+
+                foreach (var partner in partnersList)
+                {
+                    var existingNS = _db.PARTNERS.FirstOrDefault(x => x.Name == partner.Name);
+                    if (existingNS == null)
+                    {
+                        Partner partnerToCreate = partner;
+                        _db.PARTNERS.Add(partnerToCreate);
+                        _db.SaveChanges();
+                    }
+                }
 
                 //-----------------  PAYMENT METHODS  --------------------------------
 

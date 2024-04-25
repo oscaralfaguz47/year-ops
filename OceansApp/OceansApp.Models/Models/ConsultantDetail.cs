@@ -35,6 +35,8 @@ namespace OceansApp.Models.Models
         public int? PaymentPeriod { get; set; }
         [Required]
         public bool ParticipatesInOnCalls { get; set; } = false;
+        public int? PartnerId { get; set; }
+        public int? ConsultantHolidayId { get; set; }
 
 
         [ValidateNever]
@@ -49,6 +51,14 @@ namespace OceansApp.Models.Models
         public ApplicationUser? ApplicationUserUpdated { get; set; }
         [ValidateNever]
         public PaymentMethod? PaymentMethod { get; set; }
+        [ValidateNever]
+        public Partner? Partner { get; set; }
+        [ValidateNever]
+        public ConsultantHoliday? ConsultantHoliday { get; set; }
+        [ValidateNever]
+        public virtual ICollection<ProjectConsultantAssigned> ProjectsConsultantsAssigned { get; set; }
+        [ValidateNever]
+        public virtual ICollection<ReportingMyTimeMovement> ReportingMyTimeMovements { get; set; }
 
     }
 }

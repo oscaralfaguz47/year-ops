@@ -238,19 +238,12 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         });
 
         if (!response.ok) {
-            if (response.status === 401) {
-                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                //window.location.href = '/login'; 
-                console.log(response.status);
-            }
             const errorData = await response.json();
             switch (errorData.messageType) {
                 case "Validation Error":
-                    console.log("fucnjlkgfjkldf");
                     const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
                         return acc.concat(current); 
                     }, []);
-                    console.log(allErrors); 
                     displayToasterWarningArray(allErrors);
                     break;
                 case "Not Found":

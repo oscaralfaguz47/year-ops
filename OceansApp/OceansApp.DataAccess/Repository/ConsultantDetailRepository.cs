@@ -102,7 +102,9 @@ namespace OceansApp.DataAccess.Repository
                     Location = consultantData.Location,
                     UserCreatedBy = userIdCreatedBy,
                     PaymentPeriod = consultantData.PaymentPeriod,
-                    ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls
+                    ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls,
+                    ConsultantHolidayId = consultantData.ConsultantHolidayId,
+                    PartnerId = consultantData.PartnerId
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -201,6 +203,8 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.UserLastUpdatedBy = userActionedBy;
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
                 existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;
+                existingConsultant.ConsultantHolidayId = consultantData.ConsultantHolidayId;
+                existingConsultant.PartnerId = consultantData.PartnerId;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -249,6 +253,11 @@ namespace OceansApp.DataAccess.Repository
                         UserRole = consultant.UserRole,
                         PaymentPeriod = consultant.PaymentPeriod,
                         ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
+                        ConsultantHolidayId = consultant.ConsultantHolidayId,
+                        ConsultantHolidayName = consultant.ConsultantHolidayName,
+                        HolidayYear = consultant.HolidayYear,
+                        PartnerId = consultant.PartnerId,
+                        PartnerName = consultant.PartnerName,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }
@@ -259,6 +268,7 @@ namespace OceansApp.DataAccess.Repository
 
             }
         }
+
         public void Update(ConsultantDetail obj)
         {
             _db.CONSULTANT_DETAILS.Update(obj);

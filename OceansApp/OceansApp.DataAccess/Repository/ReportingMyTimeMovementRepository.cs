@@ -154,6 +154,28 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
                     }
 
+                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
+                    if (transactionStatusNoActions == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
+                    }
+
+                    var transactionStatusRejected = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                    if (transactionStatusRejected == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Rejected' not found.");
+                    }
+                    var dates = CalculatePaymentPeriodDates((DateTime)reportMovementData.ActionDate, (int)currentUser.PaymentPeriod);
+
+                    var existSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AnyAsync(x => x.ConsultantId == currentUser.ConsultantId &&
+                    x.ProjectId == reportMovementData.ProjectId && (x.StartPeriodDate >= dates.StartDate && x.EndPeriodDate <= dates.EndDate) &&
+                    x.TransactionStatusId != transactionStatusRejected.TransactionStatusId);
+
+                    if (existSubmission)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("You cannot change data in a period that has already been submitted.");
+                    }
+
                     if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == reportMovementData.ProjectId && x.ConsultantId == currentUser.ConsultantId))
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
@@ -163,12 +185,6 @@ namespace OceansApp.DataAccess.Repository
                     if (project == null || !project.ClientHasTrackingTool)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
-                    }
-
-                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
-                    if (transactionStatus == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
                     }
 
                     var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == reportMovementData.MovementType);
@@ -189,7 +205,7 @@ namespace OceansApp.DataAccess.Repository
                         Quantity = reportMovementData.Quantity == null ? 0 : (decimal)reportMovementData.Quantity,
                         ActionDate = (DateTime)reportMovementData.ActionDate,
                         Notes = reportMovementData.Notes,
-                        TransactionStatusId = transactionStatus.TransactionStatusId,
+                        TransactionStatusId = transactionStatusNoActions.TransactionStatusId,
                         MovementTypeId = movementType.MovementTypeId,
                         CreationDate = DateTime.UtcNow,
                     };
@@ -227,7 +243,21 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
                     }
+                    var transactionStatusRejected = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                    if (transactionStatusRejected == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Rejected' not found.");
+                    }
+                    var dates = CalculatePaymentPeriodDates((DateTime)reportMovementData.ActionDate, (int)currentUser.PaymentPeriod);
 
+                    var existSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AnyAsync(x => x.ConsultantId == currentUser.ConsultantId &&
+                    x.ProjectId == reportMovementData.ProjectId && (x.StartPeriodDate >= dates.StartDate && x.EndPeriodDate <= dates.EndDate) &&
+                    x.TransactionStatusId != transactionStatusRejected.TransactionStatusId);
+
+                    if (existSubmission)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("You cannot change data in a period that has already been submitted.");
+                    }
                     existingTimeMovement.Quantity = reportMovementData.Quantity == null ? 0 : (decimal)reportMovementData.Quantity;
                     existingTimeMovement.Notes = reportMovementData.Notes;
                     existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
@@ -278,6 +308,23 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
                     }
 
+                    var transactionStatusRejected = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                    if (transactionStatusRejected == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No Actions.");
+                    }
+                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No Actions");
+                    if (transactionStatusNoActions == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Rejected' not found.");
+                    }
+
+                    if (existingTimeMovementToDelete.TransactionStatusId != transactionStatusNoActions.TransactionStatusId ||
+                        existingTimeMovementToDelete.TransactionStatusId != transactionStatusRejected.TransactionStatusId)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("You cannot change data in a period that has already been submitted.");
+                    }
+
                     _db.Remove(existingTimeMovementToDelete);
 
                     await _db.SaveChangesAsync();
@@ -319,6 +366,22 @@ namespace OceansApp.DataAccess.Repository
                     if (project == null || project.ClientHasTrackingTool)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
+                    }
+
+                    var transactionStatusRejected = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                    if (transactionStatusRejected == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Rejected' not found.");
+                    }
+                    var dates = CalculatePaymentPeriodDates((DateTime)timeEntryData.ActionDate, (int)currentUser.PaymentPeriod);
+
+                    var existSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AnyAsync(x => x.ConsultantId == currentUser.ConsultantId &&
+                    x.ProjectId == timeEntryData.ProjectId && (x.StartPeriodDate >= dates.StartDate && x.EndPeriodDate <= dates.EndDate) &&
+                    x.TransactionStatusId != transactionStatusRejected.TransactionStatusId);
+
+                    if (existSubmission)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("You cannot change data in a period that has already been submitted.");
                     }
 
                     var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
@@ -380,6 +443,23 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
                     }
 
+                    var transactionStatusRejected = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                    if (transactionStatusRejected == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No Actions.");
+                    }
+                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No Actions");
+                    if (transactionStatusNoActions == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Rejected' not found.");
+                    }
+
+                    if (existingTimeMovement.TransactionStatusId != transactionStatusNoActions.TransactionStatusId && 
+                        existingTimeMovement.TransactionStatusId != transactionStatusRejected.TransactionStatusId)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("You cannot change data in a period that has already been submitted.");
+                    }
+
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
 
                     existingTimeMovement.TimeFrom = timeEntryData.TimeFrom;
@@ -433,6 +513,23 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
                     }
 
+                    var transactionStatusRejected = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+                    if (transactionStatusRejected == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No Actions.");
+                    }
+                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No Actions");
+                    if (transactionStatusNoActions == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Rejected' not found.");
+                    }
+
+                    if (existingTimeMovementToDelete.TransactionStatusId != transactionStatusNoActions.TransactionStatusId &&
+                        existingTimeMovementToDelete.TransactionStatusId != transactionStatusRejected.TransactionStatusId)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("You cannot change data in a period that has already been submitted.");
+                    }
+
                     _db.Remove(existingTimeMovementToDelete);
 
                     await _db.SaveChangesAsync();
@@ -445,6 +542,38 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
+        }
+
+        // SHARED STATIC METHODS
+        static (DateTime StartDate, DateTime EndDate) CalculatePaymentPeriodDates(DateTime actionDate, int paymentPeriod)
+        {
+            DateTime startDate;
+            DateTime endDate;
+
+            if (paymentPeriod == 2)
+            {
+                startDate = new DateTime(actionDate.Year, actionDate.Month, 1);
+                endDate = new DateTime(actionDate.Year, actionDate.Month, DateTime.DaysInMonth(actionDate.Year, actionDate.Month), 23, 59, 0);
+            }
+            else if (paymentPeriod == 1)
+            {
+                if (actionDate.Day <= 15)
+                {
+                    startDate = new DateTime(actionDate.Year, actionDate.Month, 1);
+                    endDate = new DateTime(actionDate.Year, actionDate.Month, 15, 23, 59, 0);
+                }
+                else
+                {
+                    startDate = new DateTime(actionDate.Year, actionDate.Month, 16);
+                    endDate = new DateTime(actionDate.Year, actionDate.Month, DateTime.DaysInMonth(actionDate.Year, actionDate.Month), 23, 59, 0);
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Invalid payment period.");
+            }
+
+            return (startDate, endDate);
         }
     }
 }

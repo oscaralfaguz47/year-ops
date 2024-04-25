@@ -402,6 +402,7 @@ async function getProjectMovementsClientHasTrackTool() {
         }
 
         const data = await response.json();
+        console.log(data);
         let normalHoursQuantity = 0;
         let onCallFlateRateQuantity = 0;
         let onCallTimeWorkedQuantity = 0;

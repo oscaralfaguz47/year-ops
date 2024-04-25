@@ -6,6 +6,7 @@ using Dapper;
 using System.Data;
 using OceansApp.Models.ViewModels.Holidays;
 using OceansApp.Models.ViewModels.Components;
+using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -15,6 +16,15 @@ namespace OceansApp.DataAccess.Repository
         public ConsultantHolidayRepository(ApplicationDbContext db) : base(db)
         {
             _db = db;
+        }
+        public async Task<List<ConsultantHoliday>> GetAllAsync(Expression<Func<ConsultantHoliday, bool>>? predicate = null)
+        {
+            IQueryable<ConsultantHoliday> query = _db.CONSULTANT_HOLIDAYS;
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+            return await query.ToListAsync();
         }
 
         public async Task<List<int>> GetHolidaysYears()

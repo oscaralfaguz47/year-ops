@@ -15,6 +15,7 @@
         ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; }
         ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; }
         IClientRepository Client { get; }
+        IPartnerRepository Partner { get; }
         IProviderCategoryRepository ProviderCategory { get; }
         IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
@@ -40,6 +41,7 @@
         IProviderEventDateRepository ProviderEventDate { get; }
         IProjectUserSelectedRepository ProjectUserSelected { get; }
         IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; }
+        IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; }
         IReportingMyTimeMovementTypeRepository ReportingMyTimeMovementType { get; }
         IDocumentCCRepository DocumentCC { get; }
         IDocumentsCCNotificationRepository DocumentsCCNotification { get; }

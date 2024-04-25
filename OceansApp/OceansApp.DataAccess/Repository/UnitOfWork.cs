@@ -45,6 +45,7 @@ namespace OceansApp.DataAccess.Repository
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
             Interview = new InterviewRepository(_db);
+            Partner = new PartnerRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
@@ -54,6 +55,7 @@ namespace OceansApp.DataAccess.Repository
             ProviderEvent = new ProviderEventRepository(_db);
             ProviderEventDate = new ProviderEventDateRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
+            ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);
             ReportingMyTimeMovementType = new ReportingMyTimeMovementTypeRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
             DocumentsCCNotification = new DocumentsCCNotificationRepository(_db);
@@ -78,6 +80,7 @@ namespace OceansApp.DataAccess.Repository
         public ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; set; }
         public ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; set; }
         public IClientRepository Client { get; set; }
+        public IPartnerRepository Partner { get; set; }
         public IProviderCategoryRepository ProviderCategory { get; set; }
         public IProviderRepository Provider { get; set; }
         public ICountryRepository Country { get; set; }
@@ -103,6 +106,7 @@ namespace OceansApp.DataAccess.Repository
         public IProviderEventDateRepository ProviderEventDate { get; set; }
         public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
         public IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; set; }
+        public IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; set; }
         public IReportingMyTimeMovementTypeRepository ReportingMyTimeMovementType { get; set; }
         public IDocumentCCRepository DocumentCC { get; set; }
         public IDocumentsCCNotificationRepository DocumentsCCNotification { get; set; }

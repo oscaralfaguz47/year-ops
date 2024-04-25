@@ -1,8 +1,31 @@
-﻿//CREATE / UPDATE CONSULTANT MODAL
+﻿function fillYears(select) {
+    if (select.length > 1) {
+        return;
+    }
+    const nullOption = document.createElement('option');
+    nullOption.textContent = '-Select a year-';
+    select.appendChild(nullOption);
+    for (let year = 2024; year <= 2040; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        select.appendChild(option);
+    }
+}
+function selectYear(yearSelect, selectedOption) {
+    var holidaysSelect = document.getElementById('HolidaysSelect');
+    fillHolidaysSelect(holidaysSelect, '-Select a holiday-', yearSelect.value, selectedOption);
+    holidaysSelect.disabled = false;
+}
+
+//CREATE / UPDATE CONSULTANT MODAL
 async function displayUpdateCreateConsultantModal(modalId, id) {
     var modalTitle = document.getElementById('create-consultant-modal-title');
     modalTitle.textContent = "ADD NEW CONSULTANT";
     var createUpdateForm = $('#form-create-update');
+    var otherConfigForm = $('#form-other-config');
+    var holidaySelect = otherConfigForm.find('[name="idConsultantHoliday"]');
+    holidaySelect.prop('disabled', true);
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
     resetForm('form-other-config');
@@ -58,7 +81,17 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="address"]').val(data.consultantData.address);
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
-                $('#form-other-config').find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
+                otherConfigForm.find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
+                var holidayYearSelect = otherConfigForm.find('[name="holidayYear"]');
+                holidayYearSelect.html('<option value="' + (data.consultantData.holidayYear === null ? '' : data.consultantData.holidayYear) + '">'
+                    + (data.consultantData.holidayYear === null ? '-Select a year-' : data.consultantData.holidayYear) + '</option>');
+                holidayYearSelect.value = data.consultantData.holidayYear !== null ? data.consultantData.holidayYear : '';
+                if (data.consultantData.holidayYear !== null) {
+                    selectYear(holidayYearSelect, data.consultantData.consultantHolidayId);
+                }
+                var partnerSelect = otherConfigForm.find('[name="idPartner"]');
+                partnerSelect.html('<option value="' + (data.consultantData.partnerId === null ? '' : data.consultantData.partnerId)
+                    + '">' + (data.consultantData.partnerName === null ? '-Select a partner-' : data.consultantData.partnerName) + '</option>');
                 console.log(data.consultantData);
                 showModal(modalId);
             })
@@ -82,7 +115,8 @@ function displayOtherConfigModal(modalId) {
 async function createUpdateConsultant(modalId) {
     waitingForPostMethod();
     var createUpdateForm = $('#form-create-update');
-    var consultantIdData = createUpdateForm.find('[name="consultantId"]').val() || null;
+    var otherConfigForm = $('#form-other-config');
+    var consultantIdData = Number(createUpdateForm.find('[name="consultantId"]').val()) || null;
     var consultantNameData = createUpdateForm.find('[name="name"]').val();
     var consultantLastNameData = createUpdateForm.find('[name="lastName"]').val();
     var emailData = createUpdateForm.find('[name="userName"]').val();
@@ -91,13 +125,15 @@ async function createUpdateConsultant(modalId) {
     var phoneNumberData = createUpdateForm.find('[name="phoneNumber"]').val() || null;
     var phone2Data = createUpdateForm.find('[name="phone2"]').val() || null;
     var companyIdData = createUpdateForm.find('[name="CompanyId"]').val();
-    var paymentMethodIdData = createUpdateForm.find('[name="idPaymentMethod"]').val() || null;
-    var paymentPeriodIdData = createUpdateForm.find('[name="idPaymentPeriod"]').val() || null;
+    var paymentMethodIdData = Number(createUpdateForm.find('[name="idPaymentMethod"]').val()) || null;
+    var paymentPeriodIdData = Number(createUpdateForm.find('[name="idPaymentPeriod"]').val()) || null;
     var addressData = createUpdateForm.find('[name="address"]').val() || null;
     var personalEmailData = createUpdateForm.find('[name="personalEmail"]').val() || null;
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
-    var participatesOnCallData = $('#form-other-config').find('[name="onCallParticiation"]').prop('checked');
+    var participatesOnCallData = otherConfigForm.find('[name="onCallParticiation"]').prop('checked');
+    var partnerIdData = Number(otherConfigForm.find('[name="idPartner"]').val()) || null;
+    var holidayIdData = Number(otherConfigForm.find('[name="idConsultantHoliday"]').val()) || null;
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
@@ -122,12 +158,15 @@ async function createUpdateConsultant(modalId) {
         PaymentMethodId: paymentMethodIdData,
         PaymentPeriod: paymentPeriodIdData,
         ParticipatesInOnCalls: Boolean(participatesOnCallData),
+        PartnerId: partnerIdData,
+        ConsultantHolidayId: holidayIdData,
         Address: addressData,
         PersonalEmail: personalEmailData,
         Location: locationData,
         UserRole: userRoleData,
         Positions: positionsData
     };
+    console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {
         method: 'POST',
         headers: {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240423194231_addHolidayToConsultantDetailsTable")]
+    partial class addHolidayToConsultantDetailsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,7 +68,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RoleClaims", (string)null);
+                    b.ToTable("RoleClaims");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("IdentityRoleClaim<string>");
 
@@ -157,7 +160,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserClaims", (string)null);
+                    b.ToTable("UserClaims");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("IdentityUserClaim<string>");
 
@@ -180,7 +183,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
-                    b.ToTable("UserLogins", (string)null);
+                    b.ToTable("UserLogins");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -193,7 +196,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("UserId", "RoleId");
 
-                    b.ToTable("UserRoles", (string)null);
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -212,7 +215,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens", (string)null);
+                    b.ToTable("UserTokens");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.AccountingAccount", b =>
@@ -279,7 +282,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("AccountingAccountId");
 
-                    b.ToTable("ACCOUNTING_ACCOUNT", (string)null);
+                    b.ToTable("ACCOUNTING_ACCOUNT");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
@@ -310,7 +313,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("SystemSubAreaId");
 
-                    b.ToTable("APPLICATION_SYSTEM_CLAIMS", (string)null);
+                    b.ToTable("APPLICATION_SYSTEM_CLAIMS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationUserCategory", b =>
@@ -328,7 +331,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("UserCategoryId");
 
-                    b.ToTable("UserCategories", (string)null);
+                    b.ToTable("UserCategories");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>
@@ -341,7 +344,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("AccountingAccountId");
 
-                    b.ToTable("CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE", (string)null);
+                    b.ToTable("CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorCostCenterIncreaseConfiguration", b =>
@@ -374,7 +377,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("IdUserUpdatedBy");
 
-                    b.ToTable("CALCULATOR_COST_CENTER_INCREASE_CONFIGURATIONS", (string)null);
+                    b.ToTable("CALCULATOR_COST_CENTER_INCREASE_CONFIGURATIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorGlobalConfiguration", b =>
@@ -421,7 +424,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CALCULATOR_GLOBAL_CONFIGURATIONS", (string)null);
+                    b.ToTable("CALCULATOR_GLOBAL_CONFIGURATIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorSearchHistory", b =>
@@ -448,7 +451,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("SearchByUserId");
 
-                    b.ToTable("CALCULATOR_SEARCH_HISTORY", (string)null);
+                    b.ToTable("CALCULATOR_SEARCH_HISTORY");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Client", b =>
@@ -550,7 +553,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ClientId");
 
-                    b.ToTable("CLIENT", (string)null);
+                    b.ToTable("CLIENT");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantAndPosition", b =>
@@ -563,7 +566,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ConsultantId", "ConsultantPositionId");
 
-                    b.ToTable("CONSULTANTS_AND_POSITIONS", (string)null);
+                    b.ToTable("CONSULTANTS_AND_POSITIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefit", b =>
@@ -598,7 +601,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("BenefitId");
 
-                    b.ToTable("CONSULTANT_BENEFITS", (string)null);
+                    b.ToTable("CONSULTANT_BENEFITS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitCategory", b =>
@@ -621,7 +624,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("BenefitId");
 
-                    b.ToTable("CONSULTANT_BENEFIT_CATEGORIES", (string)null);
+                    b.ToTable("CONSULTANT_BENEFIT_CATEGORIES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitCompany", b =>
@@ -654,7 +657,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CostCenterId");
 
-                    b.ToTable("CONSULTANT_BENEFIT_COMPANIES", (string)null);
+                    b.ToTable("CONSULTANT_BENEFIT_COMPANIES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
@@ -741,7 +744,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UserLastUpdatedBy");
 
-                    b.ToTable("CONSULTANT_DETAILS", (string)null);
+                    b.ToTable("CONSULTANT_DETAILS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantHoliday", b =>
@@ -772,7 +775,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("CONSULTANT_HOLIDAYS", (string)null);
+                    b.ToTable("CONSULTANT_HOLIDAYS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantHolidayDate", b =>
@@ -817,7 +820,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UpdatedBy");
 
-                    b.ToTable("CONSULTANT_HOLIDAY_DATES", (string)null);
+                    b.ToTable("CONSULTANT_HOLIDAY_DATES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantPaymentDebitsCredits", b =>
@@ -884,7 +887,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionTypeId");
 
-                    b.ToTable("CONSULTANT_PAYMENTS_DEBITS_CREDITS", (string)null);
+                    b.ToTable("CONSULTANT_PAYMENTS_DEBITS_CREDITS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantPosition", b =>
@@ -905,7 +908,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ConsultantPositionId");
 
-                    b.ToTable("CONSULTANT_POSITIONS", (string)null);
+                    b.ToTable("CONSULTANT_POSITIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantQualityLevel", b =>
@@ -923,7 +926,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ConsultantQualityLevelId");
 
-                    b.ToTable("CONSULTANT_QUALITY_LEVELS", (string)null);
+                    b.ToTable("CONSULTANT_QUALITY_LEVELS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantReimbursedBenefit", b =>
@@ -982,7 +985,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionStatusId");
 
-                    b.ToTable("CONSULTANT_REIMBURSED_BENEFITS", (string)null);
+                    b.ToTable("CONSULTANT_REIMBURSED_BENEFITS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantRole", b =>
@@ -1000,7 +1003,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ConsultantRoleId");
 
-                    b.ToTable("CONSULTANT_ROLES", (string)null);
+                    b.ToTable("CONSULTANT_ROLES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantRolesQualityLevels", b =>
@@ -1038,7 +1041,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UpdatedBy");
 
-                    b.ToTable("CONSULTANT_ROLES_QUALITY_LEVELS", (string)null);
+                    b.ToTable("CONSULTANT_ROLES_QUALITY_LEVELS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantSeniority", b =>
@@ -1056,7 +1059,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ConsultantSeniorityId");
 
-                    b.ToTable("CONSULTANT_SENIORITIS", (string)null);
+                    b.ToTable("CONSULTANT_SENIORITIS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CostCenter", b =>
@@ -1095,7 +1098,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("CostCenterId");
 
-                    b.ToTable("COST_CENTER", (string)null);
+                    b.ToTable("COST_CENTER");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CostCenterAccountingAccount", b =>
@@ -1131,7 +1134,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CostCenterId");
 
-                    b.ToTable("COSTS_CENTERS_ACCOUNTING_ACCOUNTS", (string)null);
+                    b.ToTable("COSTS_CENTERS_ACCOUNTING_ACCOUNTS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Country", b =>
@@ -1150,7 +1153,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("IdCountry");
 
-                    b.ToTable("COUNTRY", (string)null);
+                    b.ToTable("COUNTRY");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.DataUpdateDate", b =>
@@ -1178,7 +1181,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("DATA_UPDATE_DATES", (string)null);
+                    b.ToTable("DATA_UPDATE_DATES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.DocumentCC", b =>
@@ -1240,7 +1243,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("DOCUMENTS_CC", (string)null);
+                    b.ToTable("DOCUMENTS_CC");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.DocumentsCCNotification", b =>
@@ -1255,7 +1258,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("NotificationId");
 
-                    b.ToTable("DOCUMENTS_CC_NOTIFICATIONS", (string)null);
+                    b.ToTable("DOCUMENTS_CC_NOTIFICATIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Interview", b =>
@@ -1300,7 +1303,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionStatusId");
 
-                    b.ToTable("INTERVIEWS", (string)null);
+                    b.ToTable("INTERVIEWS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>
@@ -1355,7 +1358,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CostCenterId");
 
-                    b.ToTable("LEDGER_MOVEMENT", (string)null);
+                    b.ToTable("LEDGER_MOVEMENT");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Notification", b =>
@@ -1397,7 +1400,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("SentByUser");
 
-                    b.ToTable("NOTIFICATIONS", (string)null);
+                    b.ToTable("NOTIFICATIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.NotificationMedia", b =>
@@ -1415,7 +1418,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("NotificationMediaId");
 
-                    b.ToTable("NOTIFICATION_MEDIA", (string)null);
+                    b.ToTable("NOTIFICATION_MEDIA");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.NotificationRecipient", b =>
@@ -1454,7 +1457,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("RecipientUserId");
 
-                    b.ToTable("NOTIFICATION_RECIPIENTS", (string)null);
+                    b.ToTable("NOTIFICATION_RECIPIENTS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.NotificationStatus", b =>
@@ -1472,7 +1475,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("NotificationStatusId");
 
-                    b.ToTable("NOTIFICATION_STATUS", (string)null);
+                    b.ToTable("NOTIFICATION_STATUS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.NotificationType", b =>
@@ -1490,7 +1493,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("NotificationTypeId");
 
-                    b.ToTable("NOTIFICATION_TYPES", (string)null);
+                    b.ToTable("NOTIFICATION_TYPES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Partner", b =>
@@ -1556,7 +1559,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("IdCountry");
 
-                    b.ToTable("PARTNERS", (string)null);
+                    b.ToTable("PARTNERS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.PaymentMethod", b =>
@@ -1579,7 +1582,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("PaymentMethodId");
 
-                    b.ToTable("PAYMENT_METHODS", (string)null);
+                    b.ToTable("PAYMENT_METHODS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.PaymentSheet", b =>
@@ -1612,7 +1615,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ConsultantDetailCreatedByConsultantId");
 
-                    b.ToTable("PAYMENT_SHEETS", (string)null);
+                    b.ToTable("PAYMENT_SHEETS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Project", b =>
@@ -1673,7 +1676,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UpdatedBy");
 
-                    b.ToTable("PROJECTS", (string)null);
+                    b.ToTable("PROJECTS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantAssigned", b =>
@@ -1722,7 +1725,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED", (string)null);
+                    b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantAssignedHistory", b =>
@@ -1770,7 +1773,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UserActionedBy");
 
-                    b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY", (string)null);
+                    b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantAssignedHistoryAction", b =>
@@ -1788,7 +1791,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ActionId");
 
-                    b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS", (string)null);
+                    b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProjectUserSelected", b =>
@@ -1804,7 +1807,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PROJECTS_USERS_SELECTED", (string)null);
+                    b.ToTable("PROJECTS_USERS_SELECTED");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.Provider", b =>
@@ -1921,7 +1924,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("IdCountry");
 
-                    b.ToTable("PROVIDER", (string)null);
+                    b.ToTable("PROVIDER");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProviderCategory", b =>
@@ -1952,7 +1955,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PROVIDER_CATEGORY", (string)null);
+                    b.ToTable("PROVIDER_CATEGORY");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProviderEvent", b =>
@@ -1970,7 +1973,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ProviderEventId");
 
-                    b.ToTable("PROVIDER_EVENTS", (string)null);
+                    b.ToTable("PROVIDER_EVENTS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProviderEventDate", b =>
@@ -2002,7 +2005,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ProviderId");
 
-                    b.ToTable("PROVIDER_EVENT_DATES", (string)null);
+                    b.ToTable("PROVIDER_EVENT_DATES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovement", b =>
@@ -2059,7 +2062,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionStatusId");
 
-                    b.ToTable("REPORTING_MY_TIME_MOVEMENTS", (string)null);
+                    b.ToTable("REPORTING_MY_TIME_MOVEMENTS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovementBlob", b =>
@@ -2103,7 +2106,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("MovementId");
 
-                    b.ToTable("REPORTING_MY_TIME_MOVEMENT_BLOBS", (string)null);
+                    b.ToTable("REPORTING_MY_TIME_MOVEMENT_BLOBS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovementSubmissions", b =>
@@ -2143,7 +2146,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionStatusId");
 
-                    b.ToTable("REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS", (string)null);
+                    b.ToTable("REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovementType", b =>
@@ -2161,7 +2164,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("MovementTypeId");
 
-                    b.ToTable("REPORTING_MY_TIME_MOVEMENT_TYPES", (string)null);
+                    b.ToTable("REPORTING_MY_TIME_MOVEMENT_TYPES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.SystemArea", b =>
@@ -2179,7 +2182,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("SystemAreaId");
 
-                    b.ToTable("SYSTEM_AREAS", (string)null);
+                    b.ToTable("SYSTEM_AREAS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.SystemSubArea", b =>
@@ -2202,7 +2205,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("SystemAreaId");
 
-                    b.ToTable("SYSTEM_SUB_AREAS", (string)null);
+                    b.ToTable("SYSTEM_SUB_AREAS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.TransactionStatus", b =>
@@ -2220,7 +2223,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("TransactionStatusId");
 
-                    b.ToTable("TRANSACTION_STATUSES", (string)null);
+                    b.ToTable("TRANSACTION_STATUSES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.TransactionType", b =>
@@ -2238,7 +2241,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("TransactionTypeId");
 
-                    b.ToTable("TRANSACTION_TYPES", (string)null);
+                    b.ToTable("TRANSACTION_TYPES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationRoleClaim", b =>

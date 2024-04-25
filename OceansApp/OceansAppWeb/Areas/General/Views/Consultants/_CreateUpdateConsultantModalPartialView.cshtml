@@ -129,7 +129,7 @@
                             </div>
                         </div>
                     </div>
-                     <div class="row">
+                    <div class="row">
                         <div class="col-md-6">
                             <label for="PaymentPeriodSelect">Payment Period <span class="required-asterisk">*</span></label>
                             <div class="custom-select">
@@ -192,9 +192,46 @@
                 <h2>Other Configurations</h2>
                 <form id="form-other-config">
                     <div class="row">
-                        <div class="p-3 mb-4">
+                        <div class="col-md-12">
                             <input type="checkbox" class="form-check-input" id="on-call-participation" name="onCallParticiation">
                             <label for="on-call-participation"> The consultant participates in On Calls.</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="PartnerSelect">Is the consultant hired by a partner? If so, select the partner</label>
+                        <div class="col-md-6">
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onfocus="fillPartnersSelectForFilters(this, 'Select a partner')" class="form-select" id="PartnerSelect" name="idPartner">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <strong><label>Select the holidays for this consultant.</label></strong>
+                        <div class="col-md-8" style="display:flex">
+                            <div style="margin-right: 8px">
+                                <label>Year</label>
+                                <div>
+                                    <div class="custom-select" style="width: auto">
+                                        <span class="arrow-down"></span>
+                                        <select style="width:auto" onchange="selectYear(this, null)" onfocus="fillYears(this)" class="form-select" id="holidayYear" name="holidayYear">
+                                            <option>-Select a year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                           </div>
+                            <div>
+                                <label>Holidays</label>
+                                <div>
+                                    <div class="custom-select" style="width: auto">
+                                        <span class="arrow-down"></span>
+                                        <select class="form-select" id="HolidaysSelect" name="idConsultantHoliday">
+                                            <option>-First select a year-</option>
+                                        </select>
+                                    </div>
+                                </div>
+                           </div>
                         </div>
                     </div>
                 </form>
@@ -207,6 +244,7 @@
     </div>
 </div>
 
-@section Scripts{
 <script src="~/js/General/createUpdateConsultantModal.js"></script>
-    }
+<script src="~/js/AccountManagement/Partners/partnersFillDropdown.js"></script>
+<script src="~/js/General/ConsultantHolidays/holidaysFillDropdown.js"></script>
+

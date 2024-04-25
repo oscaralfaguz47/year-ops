@@ -47,6 +47,7 @@ async function getProjectInfo() {
     try {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
+        console.log(projectInfo);
         if (projectInfo !== null) {
             document.getElementById('projectId').value = projectInfo.projectId;
             document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
@@ -208,48 +209,72 @@ const calculatePeriod = (date, mode, button) => {
 };
 
 async function submitReportToBePaid() {
-    try {
-        const confirmation = await Swal.fire({
-            title: "",
-            text: `Confirm report submission? No changes are allowed afterward.`,
-            icon: 'warning',
-            showCancelButton: true,
-            cancelButtonText: 'Cancel',
-            cancelButtonColor: '#9ba8b8',
-            confirmButtonColor: '#eeb30f',
-            confirmButtonText: 'Yes, Submit!'
-        });
+    const confirmation = await Swal.fire({
+        title: "",
+        text: `Confirm report submission? No changes are allowed afterward.`,
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#9ba8b8',
+        confirmButtonColor: '#eeb30f',
+        confirmButtonText: 'Yes, Submit!'
+    });
 
-        if (!confirmation.isConfirmed) {
-            return; 
-        }
+    if (!confirmation.isConfirmed) {
+        return;
+    }
+
+    try {
         displaySpinner();
 
-        const token = $('[name="__RequestVerificationToken"]').val();
-        const formData = new FormData();
-        //formData.append('dateFrom', dateFrom);
-        //formData.append('dateTo', dateTo);
+        let startDateData = new Date(dateFromInput.value).toISOString();
+        let endDateData = new Date(dateToInput.value).toISOString();
 
-        //const response = await fetch("/Recruiting/Interviews/RejectInterview", {
-        //    method: 'POST',
-        //    headers: {
-        //        'RequestVerificationToken': token
-        //    },
-        //    body: formData
-        //});
+        var token = $('[name="__RequestVerificationToken"]').val();
 
-        //const data = await response.json();
+        var data = {
+            ProjectId: Number(projectIdInput.value),
+            StartPeriodDate: startDateData,
+            EndPeriodDate: endDateData
+        };
 
-        //if (data.success) {
-        //    toastr.success(data.message);
-        //} else {
-        //    displayToasterError(data.error);
-        //    console.error('There has been a problem with the fetch operation:', data.detail);
-        //}
+        const response = await fetch('/TrackingTool/ReportingMyTime/SubmitReport', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
 
-    } catch (error) {
-        console.error('An error occurred:', error);
-    } finally {
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    console.log(errorData.errors);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError(errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
         hideSpinner();
+        return dataFromApi;
+    } catch (err) {
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        hideSpinner();
+        return null;
     }
+
 }

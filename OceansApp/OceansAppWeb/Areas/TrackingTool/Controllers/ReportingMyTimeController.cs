@@ -8,6 +8,7 @@ using static OceansApp.Models.ViewModels.Components.MethodResponse;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
+using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -109,6 +110,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             {
                 MethodResponse result = null;
                 int movementId = 0;
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 foreach (var movementTime in reportMovementListData)
                 {
                     var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == movementTime.MovementType);
@@ -127,7 +129,6 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                         Notes = movementTime.Notes
                     };
 
-                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                     //Look for existing movement
                     MethodResponse resultExistingMovement = await _unitOfWork.ReportingMyTimeMovement.GetExistingMovement(userActionedBy, elementToUpdateOrCreate);
                     if (!resultExistingMovement.Success)
@@ -280,6 +281,8 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             try
             {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
                 var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == "Normal Hours");
                 if (movementType == null)
                 {
@@ -298,8 +301,6 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     ActionDate = uploadFilesData.ActionDate,
                     StartActionDate = uploadFilesData.StartActionDate
                 };
-
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 //Look for existing movement
                 MethodResponse resultExistingMovement = await _unitOfWork.ReportingMyTimeMovement.GetExistingMovement(userActionedBy, movementToCreateCreate);
@@ -367,8 +368,8 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             ValidateInputs validateInputs = new();
 
             validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", timeEntryData.Notes, 400, ModelState);
-            validateInputs.ValidateRequiredAndStringLength("TimeFrom", "TimeFrom", timeEntryData.TimeFrom, 5, ModelState);
-            validateInputs.ValidateRequiredAndStringLength("TimeTo", "TimeTo", timeEntryData.TimeTo, 5, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("TimeFrom", "Time From", timeEntryData.TimeFrom, 5, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("TimeTo", "Time To", timeEntryData.TimeTo, 5, ModelState);
             validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", timeEntryData.ProjectId, ModelState);
             validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", timeEntryData.ActionDate, ModelState);
             validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date", timeEntryData.ActionDate, ModelState);
@@ -482,6 +483,66 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
+        // SUBMIT REPORT
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitReport([FromBody] CreateSubmissionVM submissionData)
+        {
+            if (submissionData == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateDateValidFormat("StartPeriodDate", "Start Period Date", submissionData.StartPeriodDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", submissionData.EndPeriodDate, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+        .Where(e => e.Value.Errors.Count > 0)
+        .ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+        );
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                MethodResponse result = null;
+                int movementId = 0;
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                //Create the element
+                result = await _unitOfWork.ReportingMyTimeMovementSubmission.CreateSubmission(userActionedBy, submissionData);
+
+                if (!result.Success)
+                {
+                    if (result.MessageType == "Validation Error")
+                    {
+                        var errors = new Dictionary<string, List<string>>
+        {
+            { result.FieldName, new List<string> { result.Message } }
+        };
+                        return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                    }
+
+                    return BadRequest(new { error = result.Message, messageType = result.MessageType });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = result.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
             }
         }
     }

@@ -7,6 +7,7 @@ namespace OceansApp.Models.ViewModels.Components
         public string? Message { get; set; }
         public string? MessageType { get; set; } //Saving Error, Validation Error, Exception Error, No Exists Error, Not Found, Duplication
         public int? IdCreatedElement { get; set; }
+        public string? FieldName { get; set; }
         public List<CreatedElement>? CreatedElementsList { get; set; }
         public List<string> StringsList { get; set; }
         public MethodResponse()
@@ -19,7 +20,7 @@ namespace OceansApp.Models.ViewModels.Components
         }
 
         private MethodResponse(bool success, string message, string messageType, int? idCreatedElement = null, 
-            List<CreatedElement>? createdElementsList = null, List<string>? stringsList = null)
+            List<CreatedElement>? createdElementsList = null, List<string>? stringsList = null, string ? fieldName = null)
         {
             Success = success;
             Message = message;
@@ -27,6 +28,7 @@ namespace OceansApp.Models.ViewModels.Components
             IdCreatedElement = idCreatedElement;
             CreatedElementsList = createdElementsList;
             StringsList = stringsList;
+            FieldName = fieldName;
         }
         public static MethodResponse CreateSuccessResponse(string? message = null, int? idCreatedElement = null, List<CreatedElement>? createdElementsList = null)
         {
@@ -41,9 +43,9 @@ namespace OceansApp.Models.ViewModels.Components
         {
             return new MethodResponse(false, message, "Exception Error");
         }
-        public static MethodResponse CreateFailureValidationResponse(string message)
+        public static MethodResponse CreateFailureValidationResponse(string message, string? fieldName = null)
         {
-            return new MethodResponse(false, message, "Validation Error");
+            return new MethodResponse(false, message, "Validation Error", null, null, null, fieldName);
         }
         public static MethodResponse CreateFailureNotFoundResponse(string message)
         {

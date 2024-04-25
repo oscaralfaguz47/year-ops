@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OceansApp.Models.Models
 {
-    public class ReportingMyTimeMovementSubmissions
+    public class ReportingMyTimeMovementSubmission
     {
         [Key]
         [Required]
