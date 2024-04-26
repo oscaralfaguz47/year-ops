@@ -4,7 +4,6 @@ $(document).ready(function () {
     let currentDateNoChange = new Date();
     paymentPeriod = 1;
     calculatePeriod(currentDateNoChange, paymentPeriod);
-    getListOfResults(true, false);
 });
 
 // -Get list
