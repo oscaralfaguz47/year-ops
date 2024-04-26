@@ -1,1 +1,80 @@
-﻿<h1>PAYMENT SHEETS</h1>
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/Finances/PaymentSheets/paymentSheets.css" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+            <div class="search-header-container">
+                <div>
+                    <h2>PAYMENT SHEETS</h2>
+                    <div class="input-container">
+                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                        <i class="bi bi-search placeholder-image"></i>
+                    </div>
+                </div>
+                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
+            </div>
+            <div class="more-filters-cont">
+                <div id="more-filters">
+                    <div class="row">
+                    </div>
+                    <div class="principal-buttons">
+                        <a asp-area="Recruiting" asp-controller="Interviews" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
+                    </div>
+                </div>
+            </div>
+            <partial name="_Pagination" />
+        </div>
+    </div>
+    <div class="global-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="orderByTableList('ConsultantName', 'ConsultantNameTableHeader', 'sortArrowConsultantName')" data-sort="ANY" name="ConsultantNameTableHeader" class="sortable-col">
+                        Consultant Name
+                        <span class="sort-arrow" id="sortArrowConsultantName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('DurationMinutes', 'DurationMinutesTableHeader', 'sortArrowDurationMinutes')" data-sort="ANY" name="DurationMinutesTableHeader" class="sortable-col">
+                        Duration in Minutes
+                        <span class="sort-arrow" id="sortArrowDurationMinutes"></span>
+                    </th>
+                    <th>
+                        Duration in Hours
+                    </th>
+                    <th onclick="orderByTableList('Date', 'DateTableHeader', 'sortArrowDate')" data-sort="ANY" name="DateTableHeader" class="sortable-col">
+                        Action Date
+                        <span class="sort-arrow" id="sortArrowDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
+                        Status
+                        <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
+                    </th>
+                    <th onclick="orderByTableList('UserCreatedBy', 'UserCreatedByTableHeader', 'sortArrowUserCreatedBy')" data-sort="ANY" name="UserCreatedByTableHeader" class="sortable-col">
+                        Created By
+                        <span class="sort-arrow" id="sortArrowUserCreatedBy"></span>
+                    </th>
+                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">
+                        Creation Date
+                        <span class="sort-arrow" id="sortArrowCreationDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('LastUpdatedBy', 'LastUpdatedByTableHeader', 'sortArrowLastUpdatedBy')" data-sort="ANY" name="LastUpdatedByTableHeader" class="sortable-col">
+                        Last Updated By
+                        <span class="sort-arrow" id="sortArrowLastUpdatedBy"></span>
+                    </th>
+                    <th onclick="orderByTableList('LastUpdateDate', 'LastUpdateDateTableHeader', 'sortArrowLastUpdateDate')" data-sort="ANY" name="LastUpdateDateTableHeader" class="sortable-col">
+                        Last Updated Date
+                        <span class="sort-arrow" id="sortArrowLastUpdateDate"></span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="no-results"></div>
+    </div>
+</div>
+
+<script src="~/js/Finances/PaymentSheets/paymentSheets.js"></script> 
+<script src="~/js/Shared/pagination.js"></script>

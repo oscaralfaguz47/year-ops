@@ -1,6 +1,7 @@
 ﻿using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Models.ViewModels.PaymentSheets;
 using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -15,5 +16,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData, bool isAuthForManageAdminUsers);
         Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId);
         void Update(ConsultantDetail obj);
+
+        Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
+            PaymentSheetsPaginationFiltersVM filtersAndPagination);
     }
 }

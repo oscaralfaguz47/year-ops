@@ -8,6 +8,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AdminCenter.ConsultantPositions;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Models.ViewModels.PaymentSheets;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository
@@ -72,7 +73,6 @@ namespace OceansApp.DataAccess.Repository
             var result = await connection.ExecuteScalarAsync<int>("GetNumOfUsersByCategoryConsultantIdAndPosition", parameters, commandType: CommandType.StoredProcedure);
             return result;
         }
-
         public async Task<List<GetConsultantsBySearchTextVM>> GetConsultantsBySearchText(string? searchText, string? userCategoryName)
         {
             var connection = _db.Database.GetDbConnection();
@@ -83,7 +83,6 @@ namespace OceansApp.DataAccess.Repository
             var result = await connection.QueryAsync<GetConsultantsBySearchTextVM>("SP_CONSULTANT_DETAILS_SearchConsultantsBySearchText", parameters, commandType: CommandType.StoredProcedure);
             return result.ToList();
         }
-
         public async Task<MethodResponse> CreateConsultant(string createdUserId, string userIdCreatedBy, CreateUpdateConsultantVM consultantData)
         {
             try
@@ -219,7 +218,6 @@ namespace OceansApp.DataAccess.Repository
                 return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
             }
         }
-
         public async Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId)
         {
             var connection = _db.Database.GetDbConnection();
@@ -274,5 +272,31 @@ namespace OceansApp.DataAccess.Repository
             _db.CONSULTANT_DETAILS.Update(obj);
         }
 
+        //PAYMENT SHEETS
+        public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
+            PaymentSheetsPaginationFiltersVM filtersAndPagination)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
+            parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
+            parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
+            parameters.Add("@TransactionStatusId", filtersAndPagination.Filters.TransactionStatusId, DbType.Int32);
+            parameters.Add("@ProjectId", filtersAndPagination.Filters.ProjectId, DbType.Int32);
+            parameters.Add("@PaymentPeriod", filtersAndPagination.Filters.PaymentPeriod, DbType.Int32);
+
+            parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
+            parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
+            parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            var results = await connection.QueryAsync<PaymentSheetsGetAllWithFiltersVM>("SP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var totalCount = parameters.Get<int>("@TotalCount");
+            var consultantsToPay = results.ToList();
+
+            return (consultantsToPay, totalCount);
+        }
     }
 }

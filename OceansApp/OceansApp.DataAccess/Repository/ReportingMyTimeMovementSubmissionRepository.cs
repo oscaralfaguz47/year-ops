@@ -46,6 +46,7 @@ namespace OceansApp.DataAccess.Repository
                     var movement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
                     x.ConsultantId == currentUser.ConsultantId && x.Quantity > 0 && (x.ActionDate >= submissionData.StartPeriodDate &&
                     x.ActionDate <= submissionData.EndPeriodDate));
+
                     if (movement == null)
                     {
                         return MethodResponse.CreateFailureValidationResponse("Enter and save your worked hours to submit the report.", "Hours");
@@ -71,45 +72,60 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Waiting to be approved' not found.");
                     }
-                    var transactionStatusApproved = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Approved");
-                    if (transactionStatusApproved == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Approved' not found.");
-                    }
-                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
-                    if (transactionStatusNoActions == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
-                    }
-                    var consultantBenefits = await _db.CONSULTANT_REIMBURSED_BENEFITS.Where(x=>x.ConsultantId == currentUser.ConsultantId &&
-                     (x.DateToBeReimbursed >= submissionData.StartPeriodDate && x.DateToBeReimbursed <= submissionData.EndPeriodDate) && 
-                     x.TransactionStatusId == transactionStatusApproved.TransactionStatusId).ToListAsync();
 
                     var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == project.ProjectId &&
                     x.ConsultantId == currentUser.ConsultantId && (x.ActionDate >= submissionData.StartPeriodDate &&
-                    x.ActionDate <= submissionData.EndPeriodDate) && x.TransactionStatusId == transactionStatusNoActions.TransactionStatusId).ToListAsync();
+                    x.ActionDate <= submissionData.EndPeriodDate) && (x.TransactionStatus.Name == "No actions" 
+                    || x.TransactionStatus.Name == "Rejected"))
+                        .Include(x => x.TransactionStatus).ToListAsync();
 
-                    foreach (var repMovement in movements)
+                    var existingSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.Include(x => x.TransactionStatus).FirstOrDefaultAsync(x => 
+                    x.ConsultantId == currentUser.ConsultantId && x.ProjectId == submissionData.ProjectId && x.StartPeriodDate == submissionData.StartPeriodDate 
+                    && x.EndPeriodDate == submissionData.EndPeriodDate);
+
+                    if (existingSubmission == null)
                     {
-                        repMovement.TransactionStatusId = transactionStatusWaitingToBeApproved.TransactionStatusId;
+                        foreach (var repMovement in movements)
+                        {
+                            repMovement.TransactionStatusId = transactionStatusWaitingToBeApproved.TransactionStatusId;
+                        }
+
+                        var submissionToCreate = new ReportingMyTimeMovementSubmission
+                        {
+                            ConsultantId = currentUser.ConsultantId,
+                            ProjectId = (int)submissionData.ProjectId,
+                            TransactionStatusId = transactionStatusWaitingToBeApproved.TransactionStatusId,
+                            SubmissionDate = DateTime.UtcNow,
+                            StartPeriodDate = submissionData.StartPeriodDate,
+                            EndPeriodDate = submissionData.EndPeriodDate
+                        };
+
+                        await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AddAsync(submissionToCreate);
+                        await _db.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                        return MethodResponse.CreateSuccessResponse("You have submitted your report!");
                     }
-
-                    var submissionToCreate = new ReportingMyTimeMovementSubmission
+                    else
                     {
-                        ConsultantId = currentUser.ConsultantId,
-                        ProjectId = (int)submissionData.ProjectId,
-                        TransactionStatusId = transactionStatusWaitingToBeApproved.TransactionStatusId,
-                        SubmissionDate = DateTime.UtcNow,
-                        StartPeriodDate = submissionData.StartPeriodDate,
-                        EndPeriodDate = submissionData.EndPeriodDate
-                    };
+                        if (existingSubmission.TransactionStatus.Name == "Rejected")
+                        {
+                            foreach (var repMovement in movements)
+                            {
+                                repMovement.TransactionStatusId = transactionStatusWaitingToBeApproved.TransactionStatusId;
+                            }
 
-                    await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AddAsync(submissionToCreate);
-                    await _db.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
-
-                    return MethodResponse.CreateSuccessResponse("You have submitted your report!");
+                            existingSubmission.LastSubmissionDate = DateTime.UtcNow;
+                            existingSubmission.TransactionStatusId = transactionStatusWaitingToBeApproved.TransactionStatusId;
+                            await _db.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                            return MethodResponse.CreateSuccessResponse("You have re-submitted your report!");
+                        }
+                        else
+                        {
+                            await transaction.RollbackAsync();
+                            return MethodResponse.CreateFailureExceptionResponse("No actions applied. Your report is already submitted!");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {

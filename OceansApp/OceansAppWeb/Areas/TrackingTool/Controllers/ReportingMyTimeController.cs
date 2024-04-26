@@ -9,6 +9,7 @@ using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
+using Microsoft.CodeAnalysis;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -228,6 +229,19 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     return BadRequest(new { errors = errors, messageType = "Validation Error" });
                 }
 
+                var movement = await _unitOfWork.ReportingMyTimeMovement.GetFirstOrDefaultAsync(x => x.MovementId == movementId, x => x.TransactionStatus);
+                if (movement == null)
+                {
+                    return BadRequest(new { error = "Movement does not exist.", messageType = "Exception Error" });
+                }
+
+                MethodResponse responseValidateSubmission = await _unitOfWork.ReportingMyTimeMovement.ValidateSubmission(movement, null,
+                    null, null);
+
+                if (!responseValidateSubmission.Success)
+                {
+                    return BadRequest(new { error = responseValidateSubmission.Message, messageType = responseValidateSubmission.MessageType });
+                }
 
                 List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId);
 
@@ -356,7 +370,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        // CLIENT HAS DOES NOT HAVE TRACKING TOOL - METHODS
+        // CLIENT DOES NOT HAVE TRACKING TOOL - METHODS
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateTimeEntryTrackingTool([FromBody] CreateUpdateMovementTrackingToolVM timeEntryData)
