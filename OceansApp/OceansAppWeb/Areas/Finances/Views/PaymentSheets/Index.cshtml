@@ -1,34 +1,35 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 <link rel="stylesheet" href="~/css/Finances/PaymentSheets/paymentSheets.css" />
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
         <div class="row">
-            <div class="search-header-container">
-                <div>
-                    <h2>PAYMENT SHEETS</h2>
-                    <div class="input-container">
-                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                        <i class="bi bi-search placeholder-image"></i>
-                    </div>
-                </div>
-                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
-            </div>
-            <div class="more-filters-cont">
-                <div id="more-filters">
-                    <div class="row">
-                    </div>
-                    <div class="principal-buttons">
-                        <a asp-area="Recruiting" asp-controller="Interviews" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
-                    </div>
-                </div>
+            <div class="header-page">
+                <h2>PAYMENT SHEETS</h2>
             </div>
             <partial name="_Pagination" />
         </div>
     </div>
     <div class="global-table-container">
-        <table>
+       <div class="table-header-actions">
+            <input type="hidden" id="dateToInput" />
+            <input type="hidden" id="dateFromInput" />
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
+            <div class="navigation-container">
+                <div class="navegation-box">
+                    <button class="btn-arrow" onclick="handleButtonClick(this, 'left')">< Previous</button>
+                    <label id="previous-date"></label> - <label id="next-date"></label>
+                    <button class="btn-arrow" onclick="handleButtonClick(this, 'right')">Next ></button>
+                </div>
+            </div>
+       </div>
+        <table style="display:none">
             <thead>
                 <tr>
                     <th onclick="orderByTableList('ConsultantName', 'ConsultantNameTableHeader', 'sortArrowConsultantName')" data-sort="ANY" name="ConsultantNameTableHeader" class="sortable-col">
@@ -78,3 +79,4 @@
 
 <script src="~/js/Finances/PaymentSheets/paymentSheets.js"></script> 
 <script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/Shared/navigateBetweenPeriods.js"></script>

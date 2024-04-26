@@ -1,11 +1,17 @@
-﻿$(document).ready(function () {
+﻿let dateToInput = document.getElementById('dateToInput');
+let dateFromInput = document.getElementById('dateFromInput');
+$(document).ready(function () {
+    let currentDateNoChange = new Date();
+    paymentPeriod = 1;
+    calculatePeriod(currentDateNoChange, paymentPeriod);
     getListOfResults(true, false);
 });
 
 // -Get list
 async function getListOfResults(firstTime, filters) {
     displaySpinner();
-    var formData = firstTime ? {} : recolectDataFromForm(filters);
+    var formData = recolectDataFromForm(filters, firstTime);
+    console.log(formData);
     var queryString = JSON.stringify(formData);
     var url = "/Finances/PaymentSheets/GetConsultantsToPayList?model=" + encodeURIComponent(queryString);
 
@@ -25,7 +31,6 @@ async function getListOfResults(firstTime, filters) {
             var tableRows = $(".global-table-container table");
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
-            tableRows.css("display", "block");
             tbody.empty();
             console.log(data);
             data.consultantsToPayList.forEach(function (obj) {
@@ -76,6 +81,8 @@ async function getListOfResults(firstTime, filters) {
             if (data.consultantsToPayList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
+            } else {
+                tableRows.css("display", "block");
             };
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
         }).finally(() => {
@@ -83,17 +90,28 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 
+//Navitate between dates
+function navitateBetweenDates(startDate, endDate, button) {
+    console.log(startDate + " " + endDate + " " + button);
+    getListOfResults(false, true).then(() => {
+        if (button) button.disabled = false;
+    });
+}
 
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {
     getListOfResults(firstTime, filters);
 }
-function recolectDataFromForm(filters) {
+function recolectDataFromForm(filters, firstTime) {
     {
         var searchText = $('#search-input').val();
+        let startDateData = new Date(dateFromInput.value).toISOString();
+        let endDateData = new Date(dateToInput.value).toISOString();
 
         var filtersData = {
-            SearchText: searchText
+            SearchText: searchText,
+            StartDate: startDateData,
+            EndDate: endDateData
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
@@ -102,6 +120,9 @@ function recolectDataFromForm(filters) {
             DirectionOrder: inputDirectionOrder.value
         }
         var paginationData = returnCurrentPaginationValues();
+        if (firstTime) {
+            paginationData.PageSize = 50;
+        }
         var paginationWithoutFilters = {
             Pagination: paginationData,
             RequestFromFilters: filters,

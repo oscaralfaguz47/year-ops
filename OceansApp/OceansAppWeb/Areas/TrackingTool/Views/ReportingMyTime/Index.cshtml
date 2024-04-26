@@ -1,6 +1,7 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <link rel="stylesheet" href="~/css/TrackingTool/reportingMyTime.css" />
+<link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
 
 <div id="rmt-background">
     <div id="header">
@@ -91,7 +92,7 @@
                                     <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
                                 </div>
                             </div>
-                       </div>
+                        </div>
                     </div>
 
                     <div class="col-md-4">
@@ -114,8 +115,8 @@
             </div>
         </div>
     </div>
+</div>
 
-
-
+    <script src="~/js/Shared/navigateBetweenPeriods.js"></script>
     <script src="~/js/TrackingTool/reportingMyTime.js"></script>
     <script src="~/js/AccountManagement/Projects/projectsConsultantAssigned.js"></script>
