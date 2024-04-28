@@ -1,5 +1,7 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
 <link rel="stylesheet" href="~/css/Finances/PaymentSheets/paymentSheets.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 <link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
 <link rel="stylesheet" href="~/css/Shared/contentPages.css" />
@@ -37,36 +39,21 @@
                         <span class="sort-arrow" id="sortArrowConsultantName">
                         </span>
                     </th>
-                    <th onclick="orderByTableList('DurationMinutes', 'DurationMinutesTableHeader', 'sortArrowDurationMinutes')" data-sort="ANY" name="DurationMinutesTableHeader" class="sortable-col">
-                        Duration in Minutes
-                        <span class="sort-arrow" id="sortArrowDurationMinutes"></span>
+                    <th onclick="orderByTableList('ProjectName', 'ProjectNameTableHeader', 'sortArrowProjectName')" data-sort="ANY" name="ProjectNameTableHeader" class="sortable-col">
+                        Project Name
+                        <span class="sort-arrow" id="sortArrowProjectName"></span>
                     </th>
-                    <th>
-                        Duration in Hours
+                    <th onclick="orderByTableList('LastSubmissionDate', 'LastSubmissionDateTableHeader', 'sortArrowLastSubmissionDate')" data-sort="ANY" name="LastSubmissionDateTableHeader" class="sortable-col">
+                        Last Submitted Date
+                        <span class="sort-arrow" id="sortArrowLastSubmissionDate"></span>
                     </th>
-                    <th onclick="orderByTableList('Date', 'DateTableHeader', 'sortArrowDate')" data-sort="ANY" name="DateTableHeader" class="sortable-col">
-                        Action Date
-                        <span class="sort-arrow" id="sortArrowDate"></span>
+                    <th onclick="orderByTableList('SubmissionDate', 'SubmissionDateTableHeader', 'sortArrowSubmissionDate')" data-sort="ANY" name="SubmissionDateTableHeader" class="sortable-col">
+                        Submission Date
+                        <span class="sort-arrow" id="sortArrowSubmissionDate"></span>
                     </th>
                     <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
                         Status
                         <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
-                    </th>
-                    <th onclick="orderByTableList('UserCreatedBy', 'UserCreatedByTableHeader', 'sortArrowUserCreatedBy')" data-sort="ANY" name="UserCreatedByTableHeader" class="sortable-col">
-                        Created By
-                        <span class="sort-arrow" id="sortArrowUserCreatedBy"></span>
-                    </th>
-                    <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">
-                        Creation Date
-                        <span class="sort-arrow" id="sortArrowCreationDate"></span>
-                    </th>
-                    <th onclick="orderByTableList('LastUpdatedBy', 'LastUpdatedByTableHeader', 'sortArrowLastUpdatedBy')" data-sort="ANY" name="LastUpdatedByTableHeader" class="sortable-col">
-                        Last Updated By
-                        <span class="sort-arrow" id="sortArrowLastUpdatedBy"></span>
-                    </th>
-                    <th onclick="orderByTableList('LastUpdateDate', 'LastUpdateDateTableHeader', 'sortArrowLastUpdateDate')" data-sort="ANY" name="LastUpdateDateTableHeader" class="sortable-col">
-                        Last Updated Date
-                        <span class="sort-arrow" id="sortArrowLastUpdateDate"></span>
                     </th>
                 </tr>
             </thead>

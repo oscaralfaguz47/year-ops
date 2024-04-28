@@ -60,21 +60,16 @@ async function getListOfResults(firstTime, filters) {
                     statusLabel = `<span class="cel-status green-label"><i class="bi bi-check-circle-fill"></i>${obj.transactionStatusName}</span>`;
                 }
 
-              //  var row = `<tr>
-              //    <td>
-              //        ${menuBtn}
-              //        ${obj.consultantName}
-              //    </td>
-              //    <td>${obj.durationMinutes.toFixed(2)} minutes</td>
-              //    <td>${((1 / 60) * obj.durationMinutes).toFixed(2)} hours</td>
-              //    <td>${actionformattedDate}</td>
-              //    <td>${statusLabel}</td>
-              //    <td>${obj.createdBy}</td>
-              //    <td>${creationformattedDate}</td>
-              //    <td>${obj.lastUpdatedBy === null ? "Not updated" : obj.lastUpdatedBy}</td>
-              //    <td>${obj.lastUpdateDate === null ? "Not updated" : updateformattedDate}</td>
-              //</tr>`;
-              //  tbody.append(row);
+                var row = `<tr>
+                  <td>
+                      ${obj.consultantName}
+                  </td>
+                  <td>${obj.projectName}</td>
+                  <td>${obj.lastSubmittedDate === null ? "No re-submitted" : lastSubmissionformattedDate}</td>
+                  <td>${obj.submissionDate === null ? "Not submitted yet" : submissionformattedDate}</td>
+                  <td>${statusLabel}</td>
+              </tr>`;
+                tbody.append(row);
             });
 
             if (data.consultantsToPayList.length === 0) {
