@@ -1,10 +1,17 @@
 ﻿let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
+let paymentPeriodSelect = document.getElementById('paymentPeriod');
 $(document).ready(function () {
     let currentDateNoChange = new Date();
     paymentPeriod = 1;
     calculatePeriod(currentDateNoChange, paymentPeriod);
 });
+
+function changePaymentPeriod() {
+    let selectedDate = new Date(dateToInput.value);
+    paymentPeriod = Number(paymentPeriodSelect.value);
+    calculatePeriod(selectedDate, paymentPeriod);
+}
 
 // -Get list
 async function getListOfResults(firstTime, filters) {
@@ -65,9 +72,10 @@ async function getListOfResults(firstTime, filters) {
                       ${obj.consultantName}
                   </td>
                   <td>${obj.projectName}</td>
-                  <td>${obj.lastSubmittedDate === null ? "No re-submitted" : lastSubmissionformattedDate}</td>
+                  <td>${obj.lastSubmissionDate === null ? "No re-submitted" : lastSubmissionformattedDate}</td>
                   <td>${obj.submissionDate === null ? "Not submitted yet" : submissionformattedDate}</td>
                   <td>${statusLabel}</td>
+                  <td></td>
               </tr>`;
                 tbody.append(row);
             });
@@ -105,7 +113,8 @@ function recolectDataFromForm(filters, firstTime) {
         var filtersData = {
             SearchText: searchText,
             StartDate: startDateData,
-            EndDate: endDateData
+            EndDate: endDateData,
+            PaymentPeriod: Number(paymentPeriodSelect.value)
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];

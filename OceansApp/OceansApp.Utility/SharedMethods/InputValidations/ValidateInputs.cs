@@ -81,7 +81,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 modelState.AddModelError(field, $"The {fieldName} value should be an int.");
             }
         }
-        public void ValidateNonRequiredFieldIntType(string field, string fieldName, object? valueToValidate, ModelStateDictionary modelState)
+        public void ValidateNonRequiredFieldIntType(string field, string fieldName, int? valueToValidate, ModelStateDictionary modelState)
         {
             if (valueToValidate != null)
             {

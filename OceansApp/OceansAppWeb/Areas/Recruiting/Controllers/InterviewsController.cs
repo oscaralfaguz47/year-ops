@@ -48,7 +48,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
                             validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
                             validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"], ModelState);
                             validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"], ModelState);
-                            validateInputs.ValidateNonRequiredFieldIntType("TransactionStatusId", "Transaction Status", jsonToValidate["Filters"]["TransactionStatusId"], ModelState);
+                            validateInputs.ValidateNonRequiredFieldIntType("TransactionStatusId", "Transaction Status", (int?)jsonToValidate["Filters"]["TransactionStatusId"], ModelState);
 
                             if (!ModelState.IsValid)
                             {
