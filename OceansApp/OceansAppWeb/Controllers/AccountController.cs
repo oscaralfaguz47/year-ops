@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
-using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
-using OceansApp.Utility.SharedMethods;
 using OceansAppWeb.Controllers;
 using System.Text.Encodings.Web;
 
