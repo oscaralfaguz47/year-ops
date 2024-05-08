@@ -5,6 +5,7 @@ let dateFromInput = document.getElementById('dateFromInput');
 let errorMessageIntern = document.getElementById('error-message-intern');
 let loadingBoxIntern = document.getElementById('loading-box-intern');
 let clientHasTrackingToolValue = false;
+let submissionInfo = document.getElementById('submission-info');
 
 async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
@@ -45,7 +46,6 @@ async function getProjectInfo() {
     try {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
-        console.log(projectInfo);
         if (projectInfo !== null) {
             document.getElementById('projectId').value = projectInfo.projectId;
             document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
@@ -102,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 async function selectProject(projectId) {
+    currentDate = new Date();
     loadingBox.style.display = 'flex';
     contentBox.style.display = 'none';
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -130,6 +131,7 @@ async function selectProject(projectId) {
 }
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, button) {
+    submissionInfo.innerHTML = `<div class="spinner"></div>`;
     if (clientHasTrackingToolValue) {
         getProjectMovementsClientHasTrackTool().then(() => {
             if (button) button.disabled = false;
@@ -202,6 +204,15 @@ async function submitReportToBePaid() {
         }
         const dataFromApi = await response.json();
         displayToasterSuccess(dataFromApi.message);
+        if (clientHasTrackingToolValue) {
+            getProjectMovementsClientHasTrackTool().then(() => { });
+        } else {
+            getTrackingToolProjectMovements().then(movements => {
+                let dateFrom = new Date(dateFromInput.value);
+                let dateTo = new Date(dateToInput.value);
+                generateDateList(formatDateYyyyMmDd(dateFrom), formatDateYyyyMmDd(dateTo), movements.movementsList);
+            });
+        }
         hideSpinner();
         return dataFromApi;
     } catch (err) {
@@ -210,5 +221,4 @@ async function submitReportToBePaid() {
         hideSpinner();
         return null;
     }
-
 }

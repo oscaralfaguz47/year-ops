@@ -14,7 +14,6 @@ function adjustDate(direction, mode) {
 }
 
 const formatDate = (date) => {
-    console.log(date);
     let month = '' + (date.getMonth() + 1),
         day = '' + date.getDate(),
         year = date.getFullYear();

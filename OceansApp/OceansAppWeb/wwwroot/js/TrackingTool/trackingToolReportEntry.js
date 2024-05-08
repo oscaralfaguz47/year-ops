@@ -8,6 +8,9 @@ let onCallTimeWorkedInput = document.getElementById('onCallTimeWorkedInput');
 let projectIdInput = document.getElementById('projectId');
 const uploadArea = document.getElementById('file-upload-name');
 var fileInput = document.getElementById('file-upload');
+let saveReportBtn = document.getElementById('save-btn');
+let transactionStatus = 'No actions';
+let uploadBtn = document.getElementById('upload-btn');
 
 const dropArea = document.querySelector('.file-upload-wrapper');
 let fileList = [];
@@ -15,9 +18,11 @@ const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
 // Highlight drop zone when dragging files
 dropArea.addEventListener('dragover', (event) => {
-    event.stopPropagation();
-    event.preventDefault();
-    dropArea.classList.add('dragover');
+    if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
+        event.stopPropagation();
+        event.preventDefault();
+        dropArea.classList.add('dragover');
+    }
 });
 
 // Revert highlighting when files are no longer dragged over the area
@@ -33,22 +38,25 @@ document.getElementById('file-upload').setAttribute('accept',
 
 // Handle file paste from clipboard
 document.addEventListener('paste', (event) => {
-    const items = event.clipboardData || event.originalEvent.clipboardData;
-    if (items) {
-        let files = [];
-        if (items.files && items.files.length) {
-            files = Array.from(items.files);
-        } else if (items.items) {
-            files = Array.from(items.items)
-                .filter(item => item.kind === 'file')
-                .map(item => item.getAsFile());
-        }
+    if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
+        const items = event.clipboardData || event.originalEvent.clipboardData;
+        if (items) {
+            let files = [];
+            if (items.files && items.files.length) {
+                files = Array.from(items.files);
+            } else if (items.items) {
+                files = Array.from(items.items)
+                    .filter(item => item.kind === 'file')
+                    .map(item => item.getAsFile());
+            }
 
-        if (files.length > 0) {
-            processFiles(files);
+            if (files.length > 0) {
+                processFiles(files);
+            }
         }
     }
 });
+
 
 async function handleFiles(event) {
     event.stopPropagation();
@@ -58,20 +66,20 @@ async function handleFiles(event) {
     for (const file of newFiles) {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
             fileList.push(file);
-            updateFileDisplay(file, true, null);
+            updateFileDisplay(file, true, null, 'No actions');
         }
     }
     updateInfoText();
 }
 function reUploadFile(fileElement) {
     fileElement.remove();
-    updateFileDisplay(fileList[0], true, null);
+    updateFileDisplay(fileList[0], true, null, 'No actions');
 }
 function processFiles(newFiles) {
     newFiles.forEach(file => {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
             fileList.push(file);
-            updateFileDisplay(file, true, null);
+            updateFileDisplay(file, true, null, 'No actions');
         }
     });
     updateInfoText();
@@ -99,7 +107,7 @@ function updateInfoText() {
 let isCreatingMovement = false;
 let movementCreationPromise = null;
 
-function updateFileDisplay(file, isUploading, fileNameFromDb) {
+function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus) {
     const fileElement = document.createElement('div');
     fileElement.className = 'row-selected-file';
 
@@ -179,7 +187,9 @@ function updateFileDisplay(file, isUploading, fileNameFromDb) {
             });
         }
     } else {
-        fileElement.appendChild(deleteBtn);
+        if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
+            fileElement.appendChild(deleteBtn);
+        }
         fileElement.appendChild(spinnerLabel);
         spinnerLabel.style.display = 'none';
         deleteBtn.onclick = async function () {
@@ -225,7 +235,7 @@ async function uploadFile(file, statusLabel, fileElement) {
                     displayToasterError('An unexpected error occurred: ' + errorData.error);
                     createReuploadBtn(fileElement, statusLabel);
             }
-            return null; 
+            return null;
         }
         const data = await response.json();
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
@@ -366,7 +376,7 @@ async function createUpdateTimeEntry() {
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         saveBtn.disabled = false;
         saveBtn.innerHTML = saveLabel;
-        return null; 
+        return null;
     }
 }
 
@@ -374,11 +384,21 @@ function initializeUploadProcess() {
     fileList = [];
 
     if (uploadArea) {
-        uploadArea.innerHTML = ''; 
+        uploadArea.innerHTML = '';
     }
     if (fileInput) {
         fileInput.value = '';
     }
+}
+function updateStatusReportSubmittedClientHasTrackingTool() {
+    submissionInfo.innerHTML = `<div style="margin-bottom:10px">You have already submitted your report, and the current status is:</div> <span class="status-span">${getStatusLabel(transactionStatus)}</span>`;
+    quantityInput.disabled = true;
+    notesInput.disabled = true;
+    onCallFlateRateSelect.disabled = true;
+    onCallTimeWorkedInput.disabled = true;
+    fileInput.disabled = true;
+    saveReportBtn.style.display = 'none';
+    uploadBtn.style.display = 'none';
 }
 //GET PROJECT MOVEMENTS
 async function getProjectMovementsClientHasTrackTool() {
@@ -414,8 +434,21 @@ async function getProjectMovementsClientHasTrackTool() {
         } else {
             movementIdNormalHoursInput.value = null;
         }
+        submissionInfo.innerHTML = `<strong>Have you reported all your hours accurately?</strong> <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>`;
+        quantityInput.disabled = false;
+        notesInput.disabled = false;
+        onCallFlateRateSelect.disabled = false;
+        onCallTimeWorkedInput.disabled = false;
+        fileInput.disabled = false;
+        saveReportBtn.style.display = 'inline';
+        transactionStatus = 'No actions';
+        uploadBtn.style.display = 'block';
 
         data.movementsList.forEach(function (obj) {
+            transactionStatus = obj.transactionStatus;
+            if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
+                updateStatusReportSubmittedClientHasTrackingTool();
+            }
             if (obj.movementTypeName === 'Normal Hours') {
                 notes += obj.notes === null ? '' : obj.notes;
                 normalHoursQuantity += obj.quantity;
@@ -436,7 +469,7 @@ async function getProjectMovementsClientHasTrackTool() {
         onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
         notesInput.value = notes;
         blobNames.forEach(function (objName) {
-            updateFileDisplay(null, false, objName);
+            updateFileDisplay(null, false, objName, transactionStatus);
         });
         updateInfoText();
         noTackingToolSection.style.display = 'block';

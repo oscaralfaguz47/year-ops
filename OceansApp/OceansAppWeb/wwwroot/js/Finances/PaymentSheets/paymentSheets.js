@@ -17,7 +17,6 @@ function changePaymentPeriod() {
 async function getListOfResults(firstTime, filters) {
     displaySpinner();
     var formData = recolectDataFromForm(filters, firstTime);
-    console.log(formData);
     var queryString = JSON.stringify(formData);
     var url = "/Finances/PaymentSheets/GetConsultantsToPayList?model=" + encodeURIComponent(queryString);
 
@@ -38,7 +37,6 @@ async function getListOfResults(firstTime, filters) {
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tbody.empty();
-            console.log(data);
             data.consultantsToPayList.forEach(function (obj) {
                 var submissionDate = new Date(obj.submissionDate);
                 var submissionformattedDate = ('0' + (submissionDate.getMonth() + 1)).slice(-2) + '/' +
@@ -50,23 +48,6 @@ async function getListOfResults(firstTime, filters) {
                     ('0' + lastSubmissionDate.getDate()).slice(-2) + '/' +
                     lastSubmissionDate.getFullYear();
 
-                var statusLabel = ``;
-                if (obj.transactionStatusName === 'Rejected') {
-                    statusLabel = `<span class="cel-status red-label"><i class="bi bi-x"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Approved') {
-                    statusLabel = `<span class="cel-status"><i class="bi bi-check"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Sent to be paid') {
-                    statusLabel = `<span class="cel-status blueLight-lable"><i class="bi bi-send-check"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Paid') {
-                    statusLabel = `<span class="cel-status paid-label"><i class="bi bi-credit-card-2-back"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Waiting to be approved') {
-                    statusLabel = `<span class="cel-status gray-lable"><i class="bi bi-hourglass-split"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Accounted - Accounts Payable') {
-                    statusLabel = `<span class="cel-status orange-label"><i class="bi bi-journal-bookmark-fill"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Done') {
-                    statusLabel = `<span class="cel-status green-label"><i class="bi bi-check-circle-fill"></i>${obj.transactionStatusName}</span>`;
-                }
-
                 var row = `<tr>
                   <td>
                       ${obj.consultantName}
@@ -74,7 +55,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.projectName}</td>
                   <td>${obj.lastSubmissionDate === null ? "No re-submitted" : lastSubmissionformattedDate}</td>
                   <td>${obj.submissionDate === null ? "Not submitted yet" : submissionformattedDate}</td>
-                  <td>${statusLabel}</td>
+                  <td>${getStatusLabel(obj.transactionStatusName)}</td>
                   <td></td>
               </tr>`;
                 tbody.append(row);
@@ -94,7 +75,6 @@ async function getListOfResults(firstTime, filters) {
 
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, button) {
-    console.log(startDate + " " + endDate + " " + button);
     getListOfResults(false, true).then(() => {
         if (button) button.disabled = false;
     });

@@ -43,23 +43,6 @@ async function getListOfResults(firstTime, filters) {
                     ('0' + updateDate.getDate()).slice(-2) + '/' +
                     updateDate.getFullYear();
 
-                var statusLabel = ``;
-                if (obj.transactionStatusName === 'Rejected') {
-                    statusLabel = `<span class="cel-status red-label"><i class="bi bi-x"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Approved') {
-                    statusLabel = `<span class="cel-status"><i class="bi bi-check"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Sent to be paid') {
-                    statusLabel = `<span class="cel-status blueLight-lable"><i class="bi bi-send-check"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Paid') {
-                    statusLabel = `<span class="cel-status paid-label"><i class="bi bi-credit-card-2-back"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Waiting to be approved') {
-                    statusLabel = `<span class="cel-status gray-lable"><i class="bi bi-hourglass-split"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Accounted - Accounts Payable') {
-                    statusLabel = `<span class="cel-status orange-label"><i class="bi bi-journal-bookmark-fill"></i>${obj.transactionStatusName}</span>`;
-                } else if (obj.transactionStatusName === 'Done') {
-                    statusLabel = `<span class="cel-status green-label"><i class="bi bi-check-circle-fill"></i>${obj.transactionStatusName}</span>`;
-                }
-
                 var rejectBtn = ``;
                 var editBtn = ``;
                 var menuBtn = `<i title="You are not able to edit, it already has status: ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
@@ -88,7 +71,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>$${(obj.quantity * obj.amount)}</td>
                   <td>${actionformattedDate}</td>
                   <td><span class="cel-status">${obj.transactionTypeName === 'Credit' ? '<i class="bi bi-plus green-label"></i>' : '<i class="bi bi-dash red-label"></i>'} ${obj.transactionTypeName}</span></td>
-                  <td>${statusLabel}</td>
+                  <td>${getStatusLabel(obj.transactionStatusName)}</td>
                   <td>${obj.userCreatedBy}</td>
                   <td>${creationformattedDate}</td>
                   <td>${obj.lastUpdatedBy === null ? "Not updated" : obj.lastUpdatedBy}</td>

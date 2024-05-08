@@ -38,7 +38,6 @@ function generateDateList(startDateString, endDateString, movements) {
     hoursCountDiv.id = 'total-hours-label';
     hoursCountDiv.innerHTML = '<span class="total">TOTAL TIME: <span class="hours-minutes">0 hours - 0 minutes</span></span>';
     dateListContainer.insertBefore(hoursCountDiv, dateListContainer.firstChild);
-
     while (currentDate <= endDate) {
         const dayItem = document.createElement('div');
         dayItem.className = 'day-item';
@@ -51,7 +50,11 @@ function generateDateList(startDateString, endDateString, movements) {
         const addButton = document.createElement('button');
         addButton.className = 'btn-add-time';
         addButton.textContent = '+ Add Time';
-        attachOnClick(addButton, currentDate.toISOString().split('T')[0]); // Utiliza la función auxiliar
+        attachOnClick(addButton, currentDate.toISOString().split('T')[0]); 
+
+        const arrowSpan = document.createElement('span');
+        arrowSpan.textContent = '→';
+        arrowSpan.style.display = 'none';
 
         const countLabel = document.createElement('label');
         countLabel.className = 'count-day-label';
@@ -65,14 +68,21 @@ function generateDateList(startDateString, endDateString, movements) {
 
         dayItem.appendChild(dateLabel);
         dayItem.appendChild(addButton);
+        dayItem.appendChild(arrowSpan);
         dayItem.appendChild(countLabel);
         dayItem.appendChild(nonReportNeededLabel);
         dateListContainer.appendChild(dayItem);
+        submissionInfo.innerHTML = `<strong>Have you reported all your hours accurately?</strong> <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>`;
         movements.forEach(function (movement) {
             const movementDate = new Date(movement.actionDate);
+            if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
+                submissionInfo.innerHTML = `<div style="margin-bottom:10px"> You have already submitted your report, and the current status is:</div > <span class="status-span">${getStatusLabel(movement.transactionStatusName)}</span>`;
+                addButton.style.display = 'none';
+                arrowSpan.style.display = 'unset';
+            }
             if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
                 addTimeEntry(addButton, currentDate.toISOString().split('T')[0], movement.movementId, movement.timeFrom, movement.timeTo,
-                    movement.notes);
+                    movement.notes, movement.transactionStatusName);
             }
         });
         currentDate.setDate(currentDate.getDate() + 1);
@@ -80,20 +90,20 @@ function generateDateList(startDateString, endDateString, movements) {
 }
 function attachOnClick(button, date) {
     button.onclick = function () {
-        addTimeEntry(this, date, null, null, null, null);
+        addTimeEntry(this, date, null, null, null, null, 'No actions');
     };
 }
 
-function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes) {
+function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transactionStatus) {
     const timeEntryDiv = document.createElement('div');
     timeEntryDiv.className = 'time-entry';
     timeEntryDiv.innerHTML = `
-        <span>From</span><input type="time" class="time-from input-time" value="${timeFrom === null ? '08:00' : timeFrom}"/><span>To</span>
+        <span>From</span><input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="time" class="time-from input-time" value="${timeFrom === null ? '08:00' : timeFrom}"/><span>To</span>
         <input type="hidden" class="movement-id" ${movementId === null ? 'value' : 'value="' + movementId + '"'}"/>
-        <input type="time" class="time-to input-time" value="${timeTo === null ? '16:00' : timeTo}"/>
+        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="time" class="time-to input-time" value="${timeTo === null ? '16:00' : timeTo}"/>
         <label class="count-time"></label>
-        <input type="text" placeholder="Detail" class="time-detail input-time" maxlength="400" value="${notes === null ? '' : notes}"/>
-        <button class="btn-delete-time" onclick="deleteTimeEntry(this, ${movementId})"><i class="fa-solid fa-trash-can"></i></button>
+        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="text" placeholder="Detail" class="time-detail input-time" maxlength="400" value="${notes === null ? '' : notes}"/>
+        <button class="btn-delete-time ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'hidden' : ''}" onclick="deleteTimeEntry(this, ${movementId})"><i class="fa-solid fa-trash-can"></i></button>
         <i class="fa-solid fa-spinner spinner-time-actions"></i>
         <i class="fa-solid fa-check uploaded-check-icon green-label check-saved-icon" ${movementId === null ? 'style="display:none"' : 'style="display:block"'}></i>
         <button class="btn-save-time" ${movementId !== null ? 'style="display:none"' : 'style="display:block"'} onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>

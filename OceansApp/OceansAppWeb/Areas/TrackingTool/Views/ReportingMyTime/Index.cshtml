@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" href="~/css/TrackingTool/reportingMyTime.css" />
 <link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
+<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css" />
 
 <div id="rmt-background">
     <div id="header">
@@ -105,8 +106,7 @@
                             </div>
                         </div>
                         <div class="track-col">
-                            <div class="submit-report">
-                                Have you reported all your hours accurately? <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>
+                            <div id="submission-info" class="submit-report">
                             </div>
                         </div>
                     </div>
@@ -118,5 +118,6 @@
 </div>
 
     <script src="~/js/Shared/navigateBetweenPeriods.js"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js"></script>
     <script src="~/js/TrackingTool/reportingMyTime.js"></script>
     <script src="~/js/AccountManagement/Projects/projectsConsultantAssigned.js"></script>
