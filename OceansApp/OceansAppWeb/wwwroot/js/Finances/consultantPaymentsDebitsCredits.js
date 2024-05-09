@@ -58,7 +58,7 @@ async function getListOfResults(firstTime, filters) {
                               </div>`;
                 }
 
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                   <td>
                       ${menuBtn}
                       ${obj.consultantName}

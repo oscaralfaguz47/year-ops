@@ -111,7 +111,7 @@ table {
     /*position: sticky;*/
     left: 0;
     z-index: 3;
-    font-weight: bold;
+    
 }
 
 
@@ -121,17 +121,20 @@ table {
     z-index: 3;
 }
 
-.global-table-container td:first-child:hover ~ .global-table-container td {
-    background-color: rgb(155, 168, 184, 0.2);
+
+.first-cel{
+    font-weight: bold;
 }
 
-.global-table-container tr:hover {
-    background-color: rgb(155, 168, 184, 0.2);
+#payment-sheets-table tr:hover {
+    background-color: none; /* Esto es solo para fines de prueba */
 }
 
-    .global-table-container tr:hover td:first-child {
-        color: var(--clr-yellow);
-    }
+#payment-sheets-table tr:not([class^="hover-group"]) td:not([rowspan]),
+tr[class^="hover-group"]:hover td {
+    background-color: rgba(155, 168, 184, 0.2) !important;
+}
+
 
 .edit-table-icon {
     color: blue;

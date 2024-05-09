@@ -222,6 +222,7 @@ function saveTimeEntry(button, date) {
 
 //CREATE, UPDATE TIME ENTRY
 async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput, spinnerLabel, button, checkSavedIcon) {
+    submissionError.innerHTML = '';
     button.style.display = 'none';
     spinnerLabel.style.display = 'block';
     let actionDateData = new Date(date).toISOString();

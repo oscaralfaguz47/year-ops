@@ -31,7 +31,7 @@ async function getListOfResults(firstTime, filters) {
                 var formattedDate = ('0' + (startDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + startDate.getDate()).slice(-2) + '/' +
                     startDate.getFullYear();
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                   <td>
                   <i onclick="displayUpdateModal('modal-update-create-project', ${obj.projectId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.name}

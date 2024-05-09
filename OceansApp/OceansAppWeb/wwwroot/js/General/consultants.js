@@ -45,7 +45,7 @@ async function getListOfResults(firstTime, filters) {
                 if (!obj.emailConfirmed) {
                     resendInviteBtn = `<li onclick="resendInviteToConsultant(${obj.consultantId}, '${obj.consultantName}')""><i class="bi bi-send"></i> Resend Invite</li>`;
                 }
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                   <td>
                         <i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
                           <div class="menu-options" id="menuOptions-${obj.consultantId}">

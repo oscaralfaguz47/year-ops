@@ -6,6 +6,7 @@ let errorMessageIntern = document.getElementById('error-message-intern');
 let loadingBoxIntern = document.getElementById('loading-box-intern');
 let clientHasTrackingToolValue = false;
 let submissionInfo = document.getElementById('submission-info');
+let submissionError = document.getElementById('submission-errors');
 
 async function fillProjectsDropdown() {
     const dropdownList = document.querySelector('.dropdown-list');
@@ -131,6 +132,7 @@ async function selectProject(projectId) {
 }
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, button) {
+    submissionError.innerHTML = '';
     submissionInfo.innerHTML = `<div class="spinner"></div>`;
     if (clientHasTrackingToolValue) {
         getProjectMovementsClientHasTrackTool().then(() => {
@@ -190,8 +192,14 @@ async function submitReportToBePaid() {
                     const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
                         return acc.concat(current);
                     }, []);
-                    console.log(errorData.errors);
-                    displayToasterWarningArray(allErrors);
+                    if (errorData.errors.Report !== undefined || errorData.errors.Hours !== undefined) {
+                        submissionError.style.display = 'block';
+                        submissionError.innerHTML = `<span>${errorData.errors.Report}</span>`;
+                    }
+                    if (errorData.errors.Hours !== undefined) {
+                        submissionError.style.display = 'block';
+                        submissionError.innerHTML = `<span>${errorData.errors.Hours}</span>`;
+                    }
                     break;
                 case "Not Found":
                     displayToasterError(errorData.detail);
@@ -213,6 +221,7 @@ async function submitReportToBePaid() {
                 generateDateList(formatDateYyyyMmDd(dateFrom), formatDateYyyyMmDd(dateTo), movements.movementsList);
             });
         }
+        submissionError.innerHTML = '';
         hideSpinner();
         return dataFromApi;
     } catch (err) {

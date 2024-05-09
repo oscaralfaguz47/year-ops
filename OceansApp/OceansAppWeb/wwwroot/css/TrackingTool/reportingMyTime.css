@@ -78,7 +78,13 @@
     align-items: center;
     justify-content: right;
 }
-
+#submission-errors {
+    display: none;
+    color:red;
+    text-align: center;
+    font-size: 15px;
+    margin-top: 10px;
+}
 
 /*SHARED ELEMENTS*/
 

@@ -7,6 +7,7 @@ $(document).ready(function () {
     calculatePeriod(currentDateNoChange, paymentPeriod);
 });
 
+
 function changePaymentPeriod() {
     let selectedDate = new Date(dateToInput.value);
     paymentPeriod = Number(paymentPeriodSelect.value);
@@ -37,29 +38,75 @@ async function getListOfResults(firstTime, filters) {
             var noResultsMessage = $(".no-results");
             noResultsMessage.empty();
             tbody.empty();
-            data.consultantsToPayList.forEach(function (obj) {
-                var submissionDate = new Date(obj.submissionDate);
-                var submissionformattedDate = ('0' + (submissionDate.getMonth() + 1)).slice(-2) + '/' +
+
+            let previousName = null;
+            let nameCount = 0;
+            let rows = [];
+            let startIndex = 0;
+            let groupName = 0; // Identificador único para cada grupo de nombres
+
+            data.consultantsToPayList.forEach(function (obj, index) {
+                var submissionDate = obj.submissionDate ? new Date(obj.submissionDate) : null;
+                var submissionformattedDate = submissionDate ? ('0' + (submissionDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + submissionDate.getDate()).slice(-2) + '/' +
-                    submissionDate.getFullYear();
+                    submissionDate.getFullYear() : "Not submitted yet";
 
-                var lastSubmissionDate = new Date(obj.lastSubmissionDate);
-                var lastSubmissionformattedDate = ('0' + (lastSubmissionDate.getMonth() + 1)).slice(-2) + '/' +
+                var lastSubmissionDate = obj.lastSubmissionDate ? new Date(obj.lastSubmissionDate) : null;
+                var lastSubmissionformattedDate = lastSubmissionDate ? ('0' + (lastSubmissionDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + lastSubmissionDate.getDate()).slice(-2) + '/' +
-                    lastSubmissionDate.getFullYear();
+                    lastSubmissionDate.getFullYear() : "No re-submitted";
 
-                var row = `<tr>
-                  <td>
-                      ${obj.consultantName}
-                  </td>
-                  <td>${obj.projectName}</td>
-                  <td>${obj.lastSubmissionDate === null ? "No re-submitted" : lastSubmissionformattedDate}</td>
-                  <td>${obj.submissionDate === null ? "Not submitted yet" : submissionformattedDate}</td>
-                  <td>${getStatusLabel(obj.transactionStatusName)}</td>
-                  <td></td>
-              </tr>`;
+                if (obj.consultantName !== previousName) {
+                    if (previousName !== null) {
+                        rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
+                    }
+                    startIndex = rows.length;
+                    nameCount = 1;
+                    groupName++;
+                    rows.push(`<tr class="hover-group-${groupName}">
+                <td class="first-cell" rowspan="1">${obj.consultantName}</td>
+                <td>${obj.projectName}</td>
+                <td>${lastSubmissionformattedDate}</td>
+                <td>${submissionformattedDate}</td>
+                <td>${getStatusLabel(obj.transactionStatusName)}</td>
+                <td></td>
+            </tr>`);
+                } else {
+                    nameCount++;
+                    rows.push(`<tr class="hover-group-${groupName}">
+                <td>${obj.projectName}</td>
+                <td>${lastSubmissionformattedDate}</td>
+                <td>${submissionformattedDate}</td>
+                <td>${getStatusLabel(obj.transactionStatusName)}</td>
+                <td></td>
+            </tr>`);
+                }
+                previousName = obj.consultantName;
+
+                if (index === data.consultantsToPayList.length - 1) {
+                    rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
+                }
+            });
+
+            // Suponiendo que tienes un <tbody> en tu HTML con id="tbody"
+            tbody.html('');
+            rows.forEach(row => {
                 tbody.append(row);
             });
+
+            // Manejar el hover para cambiar el color de fondo de la celda combinada
+            $('[class^="hover-group"]').hover(
+                function () { // Función al entrar el mouse
+                    var groupClass = $(this).attr('class').match(/hover-group-\d+/)[0];
+                    $('.' + groupClass + ' .first-cell').css('background-color', 'rgb(155, 168, 184, 0.2)');
+                },
+                function () { // Función al salir el mouse
+                    var groupClass = $(this).attr('class').match(/hover-group-\d+/)[0];
+                    $('.' + groupClass + ' .first-cell').css('background-color', '');
+                }
+            );
+
+
 
             if (data.consultantsToPayList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");

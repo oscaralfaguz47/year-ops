@@ -77,7 +77,7 @@ function getHolidaysList(firstTime, filters) {
                 var formattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + creationDate.getDate()).slice(-2) + '/' +
                     creationDate.getFullYear();
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                 <td>
                     <i onclick="deleteHolidaysList(${holiday.consultantHolidayId}, '${holiday.name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
                     <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.consultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>

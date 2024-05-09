@@ -202,6 +202,7 @@ function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus)
 }
 
 async function uploadFile(file, statusLabel, fileElement) {
+    submissionError.innerHTML = '';
     var token = $('[name="__RequestVerificationToken"]').val();
     const formData = new FormData();
     formData.append('files', file);
@@ -285,6 +286,7 @@ async function createFirstMovementIfDoesNotExist() {
 
 //CREATE, UPDATE TIME ENTRY MOVEMENT
 async function createUpdateTimeEntry() {
+    submissionError.innerHTML = '';
     var saveBtn = document.getElementById('save-btn');
     const savingLabel = `<i class="fa-solid fa-spinner saving-icon"></i> Saving Changes...`;
     const saveLabel = `<i class="fa-solid fa-floppy-disk"></i> Save Changes`;

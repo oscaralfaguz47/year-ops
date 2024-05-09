@@ -44,7 +44,7 @@ async function getListOfResults(firstTime, filters) {
                 if (obj.isActive === 'S') {
                     isActive = true;
                 }
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                   <td>
                   <i onclick="displayUpdateModal('modal-update-client', ${obj.clientId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.name}
