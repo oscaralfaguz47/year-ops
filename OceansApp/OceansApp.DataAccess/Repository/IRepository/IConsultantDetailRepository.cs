@@ -2,7 +2,6 @@
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.PaymentSheets;
-using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
@@ -19,5 +18,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
 
         Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
             PaymentSheetsPaginationFiltersVM filtersAndPagination);
+        Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId);
     }
 }

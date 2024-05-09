@@ -43,9 +43,10 @@ async function getListOfResults(firstTime, filters) {
             let nameCount = 0;
             let rows = [];
             let startIndex = 0;
-            let groupName = 0; // Identificador único para cada grupo de nombres
-
+            let groupName = 0;
+            console.log(data);
             data.consultantsToPayList.forEach(function (obj, index) {
+                let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionDate = obj.submissionDate ? new Date(obj.submissionDate) : null;
                 var submissionformattedDate = submissionDate ? ('0' + (submissionDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + submissionDate.getDate()).slice(-2) + '/' +
@@ -55,6 +56,10 @@ async function getListOfResults(firstTime, filters) {
                 var lastSubmissionformattedDate = lastSubmissionDate ? ('0' + (lastSubmissionDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + lastSubmissionDate.getDate()).slice(-2) + '/' +
                     lastSubmissionDate.getFullYear() : "No re-submitted";
+
+                if (obj.transactionStatusName === 'Waiting to be approved') {
+                    actionsBtns = `<div class="action-btns-box"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
+                }
 
                 if (obj.consultantName !== previousName) {
                     if (previousName !== null) {
@@ -69,7 +74,7 @@ async function getListOfResults(firstTime, filters) {
                 <td>${lastSubmissionformattedDate}</td>
                 <td>${submissionformattedDate}</td>
                 <td>${getStatusLabel(obj.transactionStatusName)}</td>
-                <td></td>
+                <td>${actionsBtns}</td>
             </tr>`);
                 } else {
                     nameCount++;
@@ -78,7 +83,7 @@ async function getListOfResults(firstTime, filters) {
                 <td>${lastSubmissionformattedDate}</td>
                 <td>${submissionformattedDate}</td>
                 <td>${getStatusLabel(obj.transactionStatusName)}</td>
-                <td></td>
+                <td>${actionsBtns}</td>
             </tr>`);
                 }
                 previousName = obj.consultantName;
@@ -88,19 +93,18 @@ async function getListOfResults(firstTime, filters) {
                 }
             });
 
-            // Suponiendo que tienes un <tbody> en tu HTML con id="tbody"
             tbody.html('');
             rows.forEach(row => {
                 tbody.append(row);
             });
 
-            // Manejar el hover para cambiar el color de fondo de la celda combinada
+            // Handle hover to change combined cell background color
             $('[class^="hover-group"]').hover(
-                function () { // Función al entrar el mouse
+                function () { // Mouse-in function
                     var groupClass = $(this).attr('class').match(/hover-group-\d+/)[0];
                     $('.' + groupClass + ' .first-cell').css('background-color', 'rgb(155, 168, 184, 0.2)');
                 },
-                function () { // Función al salir el mouse
+                function () { // Mouse exit function
                     var groupClass = $(this).attr('class').match(/hover-group-\d+/)[0];
                     $('.' + groupClass + ' .first-cell').css('background-color', '');
                 }
@@ -119,6 +123,7 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
+
 
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, button) {

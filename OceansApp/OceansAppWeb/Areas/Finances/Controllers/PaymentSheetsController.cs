@@ -96,5 +96,27 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 return BadRequest(new { errors = new[] { $"There was an error fetching the list of consultants." }, success = false, result = "errorGet", detail = ex.Message });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetReportDetailsFromSubmissionById(int submissionId)
+        {
+            try
+            {
+                var reportDetails = await _unitOfWork.ConsultantDetail.GetReportDetailsFromSubmission(submissionId);
+                if (reportDetails == null)
+                {
+                    return BadRequest(new { error = "The submission is not longer in the database." });
+                }
+
+                return Ok(new
+                {
+                    reportDetails = reportDetails
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

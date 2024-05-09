@@ -298,5 +298,26 @@ namespace OceansApp.DataAccess.Repository
 
             return (consultantsToPay, totalCount);
         }
+
+        public async Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@SubmissionId", submissionId);
+
+            using (var multiResultSet = await connection.QueryMultipleAsync("SP_REPORTING_MY_TIME_MOVEMENT_SUBMISSIONS_GetSubmissionReportById", parameters, commandType: CommandType.StoredProcedure))
+            {
+                var report = await multiResultSet.ReadFirstOrDefaultAsync<GetReportDetailsFromSubmissionVM>();
+                if (report != null)
+                {
+                    return report;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+        }
     }
 }

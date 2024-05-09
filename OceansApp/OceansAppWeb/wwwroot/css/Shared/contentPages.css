@@ -127,7 +127,7 @@ table {
 }
 
 #payment-sheets-table tr:hover {
-    background-color: none; /* Esto es solo para fines de prueba */
+    background-color: none; 
 }
 
 #payment-sheets-table tr:not([class^="hover-group"]) td:not([rowspan]),
