@@ -319,5 +319,63 @@ namespace OceansApp.DataAccess.Repository
 
             }
         }
+
+        public async Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var submission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.FirstOrDefaultAsync(x => x.SubmissionId == dataFromUser.SubmissionId);
+                    if (submission == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Submission does not exist.");
+                    }
+
+                    var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == submission.ProjectId &&
+                    x.ConsultantId == submission.ConsultantId && (x.ActionDate >= submission.StartPeriodDate &&
+                    x.ActionDate <= submission.EndPeriodDate)).ToListAsync();
+
+
+                    var transactionStatusFromDb = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == dataFromUser.TransactionStatus);
+                    if (transactionStatusFromDb == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status '" + dataFromUser.TransactionStatus + "' not found.");
+                    }
+
+                    foreach (var repMovement in movements)
+                    {
+                        repMovement.TransactionStatusId = transactionStatusFromDb.TransactionStatusId;
+                    }
+
+                    submission.TransactionStatusId = transactionStatusFromDb.TransactionStatusId;
+
+                    if (dataFromUser.TransactionStatus == "Rejected")
+                    {
+                        var commentToCreate = new ReportingMyTimeComments
+                        {
+                            ConsultantId = submission.ConsultantId,
+                            ProjectId = submission.ProjectId,
+                            Body = dataFromUser.Body,
+                            CreationDate = DateTime.UtcNow,
+                            ActionDate = submission.EndPeriodDate,
+                            UserId = userIdCreatedBy,
+                            SubmissionId = submission.SubmissionId
+                        };
+                        await _db.REPORTING_MY_TIME_COMMENTS.AddAsync(commentToCreate);
+                    }
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("You have " + dataFromUser.TransactionStatus + " the submission!");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
     }
 }

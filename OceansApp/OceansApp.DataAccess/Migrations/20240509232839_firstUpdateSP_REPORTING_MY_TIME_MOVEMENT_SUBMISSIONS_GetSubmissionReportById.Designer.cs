@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240509232839_firstUpdateSP_REPORTING_MY_TIME_MOVEMENT_SUBMISSIONS_GetSubmissionReportById")]
+    partial class firstUpdateSP_REPORTING_MY_TIME_MOVEMENT_SUBMISSIONS_GetSubmissionReportById
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2005,54 +2008,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("PROVIDER_EVENT_DATES");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeComments", b =>
-                {
-                    b.Property<int>("CommentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentId"));
-
-                    b.Property<DateTime>("ActionDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SubmissionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("CommentId");
-
-                    b.HasIndex("ConsultantId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("SubmissionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("REPORTING_MY_TIME_COMMENTS");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovement", b =>
                 {
                     b.Property<int>("MovementId")
@@ -3019,40 +2974,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("Provider");
 
                     b.Navigation("ProviderEvent");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeComments", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ConsultantDetail", "ConsultantDetail")
-                        .WithMany()
-                        .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ReportingMyTimeMovementSubmission", "ReportingMyTimeMovementSubmission")
-                        .WithMany()
-                        .HasForeignKey("SubmissionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("ConsultantDetail");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("ReportingMyTimeMovementSubmission");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovement", b =>

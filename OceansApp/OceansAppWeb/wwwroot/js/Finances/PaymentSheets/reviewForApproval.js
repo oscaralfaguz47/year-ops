@@ -1,5 +1,6 @@
 ﻿//Display modal review for approval
 async function displayReviewForApprovalModal(modalId, submissionId) {
+    document.getElementById('submissionId-input').value = submissionId;
     var url = "/Finances/PaymentSheets/GetReportDetailsFromSubmissionById?submissionId=" + encodeURIComponent(submissionId);
     displaySpinner();
     try {
@@ -76,8 +77,9 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
                         attachmentsSection.appendChild(pdf);
                     }
                     if (fileType === 'other') {
-                        let other = document.createElement('label');
-                        other.textContent = blob.BlobUrl;
+                        let other = document.createElement('a');
+                        other.href = blob.BlobUrl;
+                        other.textContent = cleanBlobName(blob.BlobName);
                         attachmentsSection.appendChild(other);
                     }
                 });
@@ -90,7 +92,6 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         submissionDetailsContainer.appendChild(movementsBody);
         submissionDetailsContainer.appendChild(attachmentsSection);
 
-
         hideSpinner();
         showModal(modalId);
         return dataFromApi;
@@ -100,5 +101,89 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         console.error('Network or fetch error:', err);
         displayToasterError('Something went wrong, more details: ' + err);
         return null;
+    }
+}
+function displayApproveRejectConfirmation(action) {
+    showModal('modal-approve-reject-submission');
+    document.getElementById('action-input').value = action;
+    let buttonAction = action === 'Approved' ? 'Approve' : 'Reject';
+    let confirmBtn = document.getElementById('confirm-approve-reject-btn');
+    confirmBtn.textContent = buttonAction;
+    confirmBtn.className = action === 'Approved' ? 'btn-approve' : 'btn-reject';
+    let bodyContainer = document.getElementById('body-container');
+    if (action === 'Approved') {
+        bodyContainer.innerHTML = `<p>Are you sure you want to <strong>APPROVE</strong> this submission?</p>`;
+    } else {
+        bodyContainer.innerHTML = `<p>Are you sure you want to <strong>REJECT</strong> this submission?</p>
+        <div><textarea placeholder="Why are you rejecting this submission?, Please leave a comment." id="comment-input"></textarea>
+        <span id="val-mess-message">* The message is required</span>
+        </div>`;
+    }
+}
+//Approve - Reject Submission
+async function approveRejectSubmission() {
+    let commentInputValue = null;
+    let confirmModal = 'modal-approve-reject-submission';
+    let reviewModal = 'modal-review-for-approval';
+    let actionInput = document.getElementById('action-input');
+    let submissionInput = document.getElementById('submissionId-input');
+    if (actionInput.value === 'Rejected') {
+        let commentInput = document.getElementById('comment-input');
+        if (commentInput.value === '' || commentInput.value === null) {
+            document.getElementById('val-mess-message').style.display = 'block';
+            return;
+        }
+        commentInputValue = commentInput.value;
+    }
+
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        SubmissionId: Number(submissionInput.value),
+        Body: commentInputValue,
+        TransactionStatus: actionInput.value
+    };
+
+    try {
+        const response = await fetch('/Finances/PaymentSheets/RejectApproveSubmission', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        hideModal(confirmModal);
+        hideModal(reviewModal);
+        getListOfResults(false, true);
+        displayToasterSuccess(dataFromApi.message);
+        return dataFromApi;
+    } catch (err) {
+        console.error('Network or fetch error:', err);
+        displayToasterError('Something went wrong, more details: ' + err);
+        hideSpinner();
+        return null; 
     }
 }

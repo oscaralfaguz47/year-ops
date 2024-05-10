@@ -13,15 +13,24 @@
     text-align: center;
     margin-top: 25px;
 }
-.attachments-section img {
-    width: 100%;
-    margin: 10px;
+.attachments-section {
+    display: flex;
+    flex-direction: column;
 }
-.attachments-section iframe {
-    width: 100%;
-    height: 500px;
-    margin: 10px;
-}
+    .attachments-section a {
+        order: 1;
+    }
+    .attachments-section img {
+        width: 100%;
+        margin: 10px;
+        order: 2;
+    }
+    .attachments-section iframe {
+        width: 100%;
+        height: 500px;
+        margin: 10px;
+        order: 3;
+    }
 p {
     margin-bottom: 3px;
 }
@@ -42,4 +51,26 @@ h4{
 .total-hours-per-line{
     width: 95px;
     padding-left: 5px;
+}
+/* Approve - Reject Confirmation Modal */
+#modal-approve-reject-submission .action-btns-box {
+    text-align: center;
+    margin-top: 25px;
+}
+#body-container {
+    text-align:center;
+    padding: 20px;
+}
+    #body-container p {
+        font-size: 20px;
+    }
+    #body-container textarea {
+        width: 100%;
+        margin-top: 20px;
+        height: 100px;
+    }
+#val-mess-message{
+    color: red;
+    font-size: 17px;
+    display: none;
 }

@@ -260,6 +260,34 @@ namespace OceansApp.DataAccess.Data
                .HasForeignKey(p => p.ProjectId)
                .IsRequired().OnDelete(DeleteBehavior.Restrict);
 
+            // REPORTING MY TIME COMMENTS
+            modelBuilder.Entity<ReportingMyTimeComments>()
+                .HasKey(r => new { r.CommentId });
+            modelBuilder.Entity<ReportingMyTimeComments>()
+                .HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeComments>()
+                .HasOne(c => c.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(c => c.ConsultantId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ReportingMyTimeComments>()
+                .HasOne(c => c.ReportingMyTimeMovementSubmission)
+                .WithMany()
+                .HasForeignKey(c => c.SubmissionId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ReportingMyTimeComments>()
+                .HasOne(c => c.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ReportingMyTimeComments>()
+                .Property(d => d.ActionDate)
+                .HasColumnType("date")
+                .IsRequired();
+
             // REPORTING MY TIME MOVEMENTS
             modelBuilder.Entity<ReportingMyTimeMovement>()
                 .HasKey(r => new { r.MovementId });
@@ -479,6 +507,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
+        public DbSet<ReportingMyTimeComments> REPORTING_MY_TIME_COMMENTS { get; set; }
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }
         public DbSet<ReportingMyTimeMovementBlob> REPORTING_MY_TIME_MOVEMENT_BLOBS { get; set; }
         public DbSet<ReportingMyTimeMovementType> REPORTING_MY_TIME_MOVEMENT_TYPES { get; set; }

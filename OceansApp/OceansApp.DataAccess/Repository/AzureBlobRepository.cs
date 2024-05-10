@@ -82,7 +82,7 @@ namespace OceansApp.DataAccess.Repository
                 BlobName = blobClient.Name,
                 Resource = "b",
                 StartsOn = DateTimeOffset.UtcNow,
-                ExpiresOn = DateTimeOffset.UtcNow.AddHours(1000) // Token valid for 12 hour
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(10000) // Token valid for 10000 hour
             };
 
             if (storedPolicyName == null)

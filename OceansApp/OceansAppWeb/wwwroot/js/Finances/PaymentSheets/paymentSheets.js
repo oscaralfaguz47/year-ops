@@ -51,11 +51,24 @@ async function getListOfResults(firstTime, filters) {
                 var submissionformattedDate = submissionDate ? ('0' + (submissionDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + submissionDate.getDate()).slice(-2) + '/' +
                     submissionDate.getFullYear() : "Not submitted yet";
+                var lastSubmissionDate = null;
+                if (obj.lastSubmissionDate !== null) {
+                    var lastSubmissionDate = new Date(obj.lastSubmissionDate);
+                }
+                var lastSubmissionformattedDate = 'No re-submitted';
+             
+                if (lastSubmissionDate instanceof Date && !isNaN(lastSubmissionDate)) {
+                    let diferenciaMinutos = lastSubmissionDate.getTimezoneOffset();
 
-                var lastSubmissionDate = obj.lastSubmissionDate ? new Date(obj.lastSubmissionDate) : null;
-                var lastSubmissionformattedDate = lastSubmissionDate ? ('0' + (lastSubmissionDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + lastSubmissionDate.getDate()).slice(-2) + '/' +
-                    lastSubmissionDate.getFullYear() : "No re-submitted";
+
+                    let fechaLocalEnviada = new Date(lastSubmissionDate.getTime() - diferenciaMinutos * 60000);
+
+                    let fechaLocalEnviadaString = fechaLocalEnviada.toLocaleString();
+
+                    lastSubmissionformattedDate = fechaLocalEnviada;
+                }
+               
+
 
                 if (obj.transactionStatusName === 'Waiting to be approved') {
                     actionsBtns = `<div class="action-btns-box"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;

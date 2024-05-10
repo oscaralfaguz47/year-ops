@@ -6,14 +6,33 @@
         <div class="container">
             <div>
                 <h2 id="review-for-approval-modal-title"></h2>
-                <div id="submission-details-container"> 
-
+                <input type="hidden" id="submissionId-input" />
+                <div id="submission-details-container">
                 </div>
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-review-for-approval')" class="cancel-btn">Cancel</button>
-                    <button class="btn-reject">Reject</button>
-                    <button class="btn-approve">Approve</button>
+                    <button class="btn-reject" onclick="displayApproveRejectConfirmation('Rejected')">Reject</button>
+                    <button class="btn-approve" onclick="displayApproveRejectConfirmation('Approved')">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve/Reject Submission Modal -->
+<div id="modal-approve-reject-submission" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="review-for-approval-modal-title"></h2>
+                <input type="hidden" id="action-input" />
+                <div id="body-container">
+                </div>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-approve-reject-submission')" class="cancel-btn">Cancel</button>
+                    <button class="btn-confirm" id="confirm-approve-reject-btn" onclick="approveRejectSubmission()"></button>
                 </div>
             </div>
         </div>

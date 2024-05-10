@@ -5,6 +5,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
@@ -116,6 +117,49 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectApproveSubmission([FromBody] ApproveRejectSubmissionVM dataFromUser)
+        {
+            if (dataFromUser == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldIntType("SubmissionId", "SubmissionId", dataFromUser.SubmissionId, ModelState);
+            validateInputs.ValidateRequiredFieldStringValue("Action", "Action", dataFromUser.TransactionStatus, ModelState);
+            if (dataFromUser.TransactionStatus == "Rejected") validateInputs.ValidateRequiredFieldStringValue("Body", "Message", dataFromUser.Body, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                }
+
+                MethodResponse response = await _unitOfWork.ConsultantDetail.ApproveAndRejectSubmission (userActionedBy, dataFromUser);
+                if (!response.Success)
+                {
+                    return BadRequest(new { error = response.Message, messageType = response.MessageType });
+                }
+                return Ok(new { success = true, message = response.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
             }
         }
     }

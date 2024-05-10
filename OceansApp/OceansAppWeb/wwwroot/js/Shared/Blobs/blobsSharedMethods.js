@@ -24,3 +24,7 @@ function getFileType(fileType) {
     }
 }
 
+function cleanBlobName(fileName) {
+    const regex = /^[a-f0-9]+_\d+_/i;
+    return fileName.replace(regex, '');
+}
