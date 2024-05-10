@@ -61,6 +61,13 @@ async function getListOfResults(firstTime, filters) {
                     actionsBtns = `<div class="action-btns-box"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
                 }
 
+                let menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
+                              <div class="menu-options" id="menuOptions-${obj.consultantId}">
+                               <ul>
+                                 <li>Make Payment</li>
+                               </ul>
+                              </div>`;
+
                 if (obj.consultantName !== previousName) {
                     if (previousName !== null) {
                         rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
@@ -69,7 +76,7 @@ async function getListOfResults(firstTime, filters) {
                     nameCount = 1;
                     groupName++;
                     rows.push(`<tr class="hover-group-${groupName}">
-                <td class="first-cell" rowspan="1">${obj.consultantName}</td>
+                <td class="first-cell" rowspan="1">${menuBtn}${obj.consultantName}</td>
                 <td>${obj.projectName}</td>
                 <td>${lastSubmissionformattedDate}</td>
                 <td>${submissionformattedDate}</td>

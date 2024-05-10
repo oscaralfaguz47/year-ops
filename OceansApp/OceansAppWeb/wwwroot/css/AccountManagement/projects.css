@@ -53,6 +53,7 @@
     display: flex;
     margin-bottom: 5px;
     list-style: none;
+    position:relative;
 }
 
 #modal-update-create-project .modal-scroll-container {
