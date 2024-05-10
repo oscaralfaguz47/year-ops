@@ -47,28 +47,15 @@ async function getListOfResults(firstTime, filters) {
             console.log(data);
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
-                var submissionDate = obj.submissionDate ? new Date(obj.submissionDate) : null;
-                var submissionformattedDate = submissionDate ? ('0' + (submissionDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + submissionDate.getDate()).slice(-2) + '/' +
-                    submissionDate.getFullYear() : "Not submitted yet";
-                var lastSubmissionDate = null;
-                if (obj.lastSubmissionDate !== null) {
-                    var lastSubmissionDate = new Date(obj.lastSubmissionDate);
+                var submissionformattedDate = "Not submitted yet";
+                if (obj.submissionDate !== null) {
+                    submissionformattedDate = formatUtcToLocalMmDdYyyyTime(obj.submissionDate);
                 }
+
                 var lastSubmissionformattedDate = 'No re-submitted';
-             
-                if (lastSubmissionDate instanceof Date && !isNaN(lastSubmissionDate)) {
-                    let diferenciaMinutos = lastSubmissionDate.getTimezoneOffset();
-
-
-                    let fechaLocalEnviada = new Date(lastSubmissionDate.getTime() - diferenciaMinutos * 60000);
-
-                    let fechaLocalEnviadaString = fechaLocalEnviada.toLocaleString();
-
-                    lastSubmissionformattedDate = fechaLocalEnviada;
+                if (obj.lastSubmissionDate !== null) {
+                    lastSubmissionformattedDate = formatUtcToLocalMmDdYyyyTime(obj.lastSubmissionDate);
                 }
-               
-
 
                 if (obj.transactionStatusName === 'Waiting to be approved') {
                     actionsBtns = `<div class="action-btns-box"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
