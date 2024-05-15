@@ -251,7 +251,7 @@ async function searchAllActiveConsultantsBySearchTextFromDebitsCredits(searchTex
             resultList.id = 'search-result-list'; // Assign an ID to the results list container
             for (let item of data.consultants) {
                 let listItem = document.createElement('li');
-                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span class="green-label">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
+                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span style="color:gray">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
                 listItem.onclick = function () {
                     document.getElementById(hiddenInputForId).value = item.consultantId;
                     document.getElementById(consultantNameInput).value = item.consultantName;

@@ -346,11 +346,12 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
-    let spanToInnerToConsultant = consultantName;
+    let spanToInnerToConsultant = `<strong>${consultantName}</strong>`;
 
     if (consProjAssId !== '') {
         var actionStatusSpan = '';
         var activeInactiveBtn = '';
+        let userCategorySpanColor = userCategoryName === 'Consultant' ? '#2196F3' : 'gray';
         if (statusAction !== null) {
             const todayDate = new Date();
             const localDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
@@ -362,7 +363,6 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
             let isActive = false;
             let statusLabel = '';
             let statusClass = 'red-label';
-
             if (statusText === 'Consultant Activated') {
                 statusLabel = 'Activated';
                 statusClass = 'green-label';
@@ -371,14 +371,14 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
             }
             if (statusDate.toISOString().split('T')[0] > localDate.toISOString().split('T')[0]) {
                 actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '">Will be <strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
-                spanToInnerToConsultant = consultantName + ' ' + actionStatusSpan + '';
+                spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
             } else if (statusDate.toISOString().split('T')[0] < localDate.toISOString().split('T')[0]) {
                 ableToActivateOrInactivate = true;
                 if (statusText === 'Consultant Activated') {
                     isActive = true;
                 }
                 actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
-                spanToInnerToConsultant = consultantName + ' ' + actionStatusSpan + '';
+                spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
             } else if (statusDate.toISOString().split('T')[0] === localDate.toISOString().split('T')[0]) {
                 if (statusText === 'Consultant Activated') {
                     isActive = true;
@@ -387,14 +387,13 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
                     actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
                 }
                 ableToActivateOrInactivate = false;
-                spanToInnerToConsultant = consultantName + ' ' + actionStatusSpan + '';
+                spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
             }
             activeInactiveBtn = ableToActivateOrInactivate ? `<li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive}, ${projectId})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? 'Deactivate from Project' : 'Activate in the Project'}</li>` : '';
         } else {
             activeInactiveBtn = `<li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', true, ${projectId})"><i class="bi bi-x-lg red-label"></i>Deactivate from Project</li>`;
-            spanToInnerToConsultant += ' <label style="font-size:13px"><span class="green-label"><strong>(Active)</strong></span></label>';
+            spanToInnerToConsultant += `<span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span>` + ` <label style="font-size:13px"><span class="green-label"><strong>(Active)</strong></span></label>`;
         }
-
         var dotsIcon = document.createElement("i");
         var editConsultantParametersBtn = '';
         var viewHistoryBtn = '';
@@ -402,7 +401,8 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
             editConsultantParametersBtn = `<li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>`;
             viewHistoryBtn = `<li onclick="getProjectConsultantHistory(${consProjAssId}, 'modal-consultant-history')"><i class="bi bi-clock-history"></i> View History</li>`;
         }
-        dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
+        if (activeInactiveBtn !== '' || editConsultantParametersBtn !== '' || viewHistoryBtn !== '') {
+            dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
                                ${activeInactiveBtn}
@@ -411,6 +411,9 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
                            </ul>
                          </div>
                          `;
+        } else {
+            dotsIcon.innerHTML = `<li style="color:transparent" class="bi bi-info-circle"></li>`;
+        }
         row.appendChild(dotsIcon);
     }
 

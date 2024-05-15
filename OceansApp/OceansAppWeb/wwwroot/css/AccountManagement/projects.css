@@ -33,7 +33,7 @@
 
 /*MODAL CREATE UPDATE*/
 .global-modal-content{
-    width: 580px !important;
+    width: 650px !important;
 }
 #modal-update-create-project #ClientSelect {
     width: 300px;

@@ -106,8 +106,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
 app.UseRouting();
 SeedDatabase();
 app.UseMiddleware<RedirectToDashboardMiddleware>();
