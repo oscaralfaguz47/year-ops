@@ -15,6 +15,7 @@ async function getConsultantsBySearchText(searchText) {
             throw new Error('The request to the server failed!. More details: ' + errorData.detail);
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error('Error fetching consultants:', error);
         return null;
     }
@@ -38,6 +39,7 @@ async function getAllActiveConsultantsBySearchText(searchText, userCategoryName)
             throw new Error('The request to the server failed!. More details: ' + errorData.detail);
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error('Error fetching consultants:', error);
         return null;
     }

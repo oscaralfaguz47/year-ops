@@ -41,6 +41,7 @@
             hideSpinner();
         })
         .catch(error => {
+            validateSessionExpiration(error.message);
             console.error('There has been a problem with the fetch operation:', error);
             hideSpinner();
         });
@@ -71,6 +72,9 @@ function sendStatusToSM() {
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
                     hideSpinner();
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 });
         }
     });
@@ -103,6 +107,7 @@ function SendNotification(clientName, documentId) {
                     hideSpinner();
                 },
                 error: function (data) {
+                    validateSessionExpiration(error.message);
                     displayToasterError(data.responseJSON.error);
                     displayToasterError(data.responseJSON.detail);
                     hideSpinner();

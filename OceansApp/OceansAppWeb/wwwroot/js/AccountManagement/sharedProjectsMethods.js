@@ -203,6 +203,9 @@ function addConsultantToProject(modalId) {
                     displayToasterSuccess(data.message);
                     getListOfResults(false, false);
                 })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
+                })
                 .finally(() => {
                     hideSpinner();
                 })
@@ -353,6 +356,7 @@ async function getSuccessManagerIdAndNameByClientId(clientId) {
             throw new Error('The request to the server failed!. More details: ' + errorData.error);
         }
     } catch (error) {
+            validateSessionExpiration(error.message);
         console.error('Error fetching data:', error);
         return null;
     }

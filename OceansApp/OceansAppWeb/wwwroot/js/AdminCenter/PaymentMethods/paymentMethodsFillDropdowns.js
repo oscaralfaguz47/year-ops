@@ -13,6 +13,7 @@ async function getPaymentMethodsWhereCompanyList(companyId) {
             }
         })
         .catch(error => {
+                validateSessionExpiration(error.message);
             displayToasterError(error.message);
         });
 }

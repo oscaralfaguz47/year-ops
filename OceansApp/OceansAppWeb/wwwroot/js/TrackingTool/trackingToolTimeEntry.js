@@ -23,7 +23,11 @@ async function getTrackingToolProjectMovements() {
         .then(data => {
             tackingToolSection.style.display = 'block';
             return data;
-        }).finally(() => {
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
             loadingBoxIntern.style.display = 'none';
         });
 }

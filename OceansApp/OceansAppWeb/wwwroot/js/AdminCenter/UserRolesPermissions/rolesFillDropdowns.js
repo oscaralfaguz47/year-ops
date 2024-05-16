@@ -13,6 +13,7 @@ async function getRolesList() {
             }
         })
         .catch(error => {
+                validateSessionExpiration(error.message);
             displayToasterError(error.message);
         });
 }

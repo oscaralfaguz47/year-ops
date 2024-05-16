@@ -59,6 +59,9 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
                 benefitCategorySelect.val(data.benefitReimbursementData.benefitCategoryId);
                 showModal(modalId);
             })
+            .catch(error => {
+                validateSessionExpiration(error.message);
+            })
             .finally(() => {
                 hideSpinner();
             });
@@ -153,6 +156,9 @@ async function createUpdateBenefitReimbursement(modalId) {
                     }
                 });
             }
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         })
         .then(data => {
             inicializeModalButtons(modalId);

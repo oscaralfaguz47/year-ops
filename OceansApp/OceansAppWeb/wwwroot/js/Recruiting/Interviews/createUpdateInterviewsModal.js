@@ -50,6 +50,9 @@ async function displayUpdateCreateInterviewModal(modalId, id) {
                 createUpdateForm.find('[name="date"]').val(actionDateFormat.toISOString().split('T')[0]);
                 showModal(modalId);
             })
+            .catch(error => {
+                validateSessionExpiration(error.message);
+            })
             .finally(() => {
                 hideSpinner();
             });
@@ -106,6 +109,9 @@ async function createUpdateInterview(modalId) {
             displayToasterSuccess(data.message);
             hideModal(modalId);
             getListOfResults(false, false);
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 

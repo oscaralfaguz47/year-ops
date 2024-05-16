@@ -95,6 +95,9 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 console.log(data.consultantData);
                 showModal(modalId);
             })
+            .catch(error => {
+                validateSessionExpiration(error.message);
+            })
             .finally(() => {
                 hideSpinner();
             });
@@ -203,6 +206,9 @@ async function createUpdateConsultant(modalId) {
                 hideModal(modalId);
             }
             getListOfResults(false, false);
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 

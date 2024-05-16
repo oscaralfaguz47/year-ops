@@ -132,10 +132,11 @@ async function selectProject(projectId) {
                     loadingBox.style.display = 'none';
                 }
                 getProjectInfo();
+            }).catch(error => {
+                validateSessionExpiration(error.message);
             });
     }
     catch (err) {
-        validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         loadingBox.style.display = 'none';

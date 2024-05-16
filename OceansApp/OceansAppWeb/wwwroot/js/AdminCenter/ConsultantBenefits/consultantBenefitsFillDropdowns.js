@@ -12,6 +12,7 @@
             }
         })
         .catch(error => {
+                validateSessionExpiration(error.message);
             displayToasterError("Internet connection failed");
             throw new Error('Network error or unable to reach the server. More details: ' + error.message);
         });
@@ -48,6 +49,7 @@ async function getBenefitCategoriesList(benefitId) {
             }
         })
         .catch(error => {
+                validateSessionExpiration(error.message);
             displayToasterError("Internet connection failed");
             throw new Error('Network error or unable to reach the server. More details: ' + error.message);
         });

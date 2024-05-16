@@ -18,6 +18,7 @@ function getDataForFiltersList() {
             });
         },
         error: function (error) {
+            validateSessionExpiration(error.message);
             displayToasterError("More error details: " + error.responseJSON.detail);
             displayToasterError(error.responseJSON.errors + " Ponte en contacto con el administrador para solucionar el problema");
         }
@@ -99,6 +100,7 @@ function getHolidaysList(firstTime, filters) {
             hideSpinner();
         },
         error: function (error) {
+            validateSessionExpiration(error.message);
             displayToasterError("More error details: " + error.responseJSON.detail);
             displayToasterError(error.responseJSON.errors + " Contact the administrator to resolve the issue.");
         }
@@ -109,7 +111,7 @@ function updatePagination(paginationData) {
 }
 
 function enterInSearch(event) {
-        paginationSubmit(false, true);
+    paginationSubmit(false, true);
 }
 
 function displayCreateUpdateModal(modalId, action, holidayId) {
@@ -175,6 +177,9 @@ function displayCreateUpdateModal(modalId, action, holidayId) {
                     console.error('There has been a problem with the fetch operation:', data.detail);
                 }
                 hideSpinner();
+            })
+            .catch(error => {
+                validateSessionExpiration(error.message);
             });
     } else {
         addNewDateRow();
@@ -282,6 +287,8 @@ function createUpdateHoliday(modalId) {
                 displayToasterErrorArray(data.errors);
                 inicializeModalButtons(modalId);
             }
+        }).catch(error => {
+            validateSessionExpiration(error.message);
         })
 }
 function deleteHolidaysList(holidaysListId, listName) {
@@ -316,6 +323,9 @@ function deleteHolidaysList(holidaysListId, listName) {
                         displayToasterError(data.error);
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 })
                 .finally(() => {
                     hideSpinner();

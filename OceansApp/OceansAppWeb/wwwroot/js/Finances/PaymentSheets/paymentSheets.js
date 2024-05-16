@@ -126,7 +126,11 @@ async function getListOfResults(firstTime, filters) {
                 tableRows.css("display", "block");
             };
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
-        }).finally(() => {
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
             hideSpinner();
         });
 }

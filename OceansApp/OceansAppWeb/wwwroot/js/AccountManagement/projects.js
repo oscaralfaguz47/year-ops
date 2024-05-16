@@ -58,7 +58,11 @@ async function getListOfResults(firstTime, filters) {
                 noResultsMessage.text("NO RECORDS FOUND");
             };
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
-        }).finally(() => {
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
             hideSpinner();
         });
 }
@@ -170,6 +174,9 @@ async function displayUpdateModal(modalId, id) {
                         item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.statusAction, null, null, data.allowedManageAdminConsultants, item.userCategoryName, data.projectData.projectId);
                 });
                 showModal(modalId);
+            })
+            .catch(error => {
+                validateSessionExpiration(error.message);
             })
             .finally(() => {
                 hideSpinner();
@@ -291,6 +298,8 @@ async function createUpdateProject(modalId) {
                 hideModal(modalId);
             }
             getListOfResults(false, false);
+        }).catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
@@ -308,6 +317,7 @@ function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
                 hideSpinner();
             })
             .catch(error => {
+                validateSessionExpiration(error.message);
                 console.error('Error fetching data:', error);
             });
         document.getElementById('successManagerIdSelect').disabled = false;
@@ -532,6 +542,7 @@ async function getSuccessManagers(thisElement) {
         }
 
     } catch (error) {
+            validateSessionExpiration(error.message);
         console.error('Error fetching success managers:', error);
     } finally {
         const loadingOption = successManagerSelect.querySelector('option[value="loading"]');
@@ -588,6 +599,9 @@ async function activateDeactivateProject(inputElement, projectId, name, status) 
                         displayToasterError(data.error);
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 })
                 .finally(() => {
                     hideSpinner();

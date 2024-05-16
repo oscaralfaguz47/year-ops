@@ -12,6 +12,7 @@
             }
         })
         .catch(error => {
+                validateSessionExpiration(error.message);
             displayToasterError("Network error or unable to reach the server.");
             throw new Error('Network error or unable to reach the server. More details: ' + error.message);
         });

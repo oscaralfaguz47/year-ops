@@ -65,6 +65,9 @@ async function displayUpdateCreateDebitCreditModal(modalId, id) {
 
                 showModal(modalId);
             })
+            .catch(error => {
+                validateSessionExpiration(error.message);
+            })
             .finally(() => {
                 hideSpinner();
             });
@@ -216,6 +219,9 @@ async function createUpdateDebitCredit(modalId) {
             displayToasterSuccess(data.message);
             hideModal(modalId);
             getListOfResults(false, false);
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 

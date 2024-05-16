@@ -87,7 +87,11 @@ async function getListOfResults(firstTime, filters) {
                 tableRows.css("display", "none");
             };
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
-        }).finally(() => {
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
             hideSpinner();
         });
 }
@@ -186,6 +190,9 @@ async function resetTwoFactorAuth(consultantId, name) {
                     }
                     getListOfResults(false, false);
                 })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
+                })
                 .finally(() => {
                     hideSpinner();
                 });
@@ -229,6 +236,9 @@ async function activateInactivateConsultantUser(consultantId, name, status) {
                     }
                     getListOfResults(false, false);
                 })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
+                })
                 .finally(() => {
                     hideSpinner();
                 });
@@ -269,6 +279,9 @@ async function resendInviteToConsultant(consultantId, name) {
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
                     getListOfResults(false, false);
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 })
                 .finally(() => {
                     hideSpinner();
