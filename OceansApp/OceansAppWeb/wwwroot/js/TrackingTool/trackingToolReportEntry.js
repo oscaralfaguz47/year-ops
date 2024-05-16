@@ -242,6 +242,7 @@ async function uploadFile(file, statusLabel, fileElement) {
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
         return data;
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error('Network or fetch error:', error);
         createReuploadBtn(fileElement, statusLabel);
         displayToasterError(error.message);
@@ -374,6 +375,7 @@ async function createUpdateTimeEntry() {
         displayToasterSuccess(dataFromApi.message);
         return dataFromApi;
     } catch (err) {
+        validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         saveBtn.disabled = false;
@@ -476,6 +478,7 @@ async function getProjectMovementsClientHasTrackTool() {
         updateInfoText();
         noTackingToolSection.style.display = 'block';
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error(error);
         // Handle any errors here
     } finally {
@@ -520,6 +523,7 @@ async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
             console.error('There has been a problem with the fetch operation:', data.detail);
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         statusLabel.textContent = 'Delete failed';
         deleteBtn.style.display = 'block';
         spinnerLabel.style.display = 'none';

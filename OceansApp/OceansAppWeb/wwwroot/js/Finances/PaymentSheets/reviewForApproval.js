@@ -98,7 +98,8 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
     }
     catch (err) {
         hideSpinner();
-        console.error('Network or fetch error:', err);
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err.message);
         displayToasterError('Something went wrong, more details: ' + err);
         return null;
     }
@@ -181,6 +182,7 @@ async function approveRejectSubmission() {
         displayToasterSuccess(dataFromApi.message);
         return dataFromApi;
     } catch (err) {
+        validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err);
         displayToasterError('Something went wrong, more details: ' + err);
         hideSpinner();

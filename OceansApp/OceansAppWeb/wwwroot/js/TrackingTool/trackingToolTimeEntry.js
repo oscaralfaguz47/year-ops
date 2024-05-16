@@ -276,6 +276,7 @@ async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, ti
         checkSavedIcon.style.display = 'block';
         return dataFromApi;
     } catch (err) {
+        validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         spinnerLabel.style.display = 'none';
@@ -330,6 +331,7 @@ async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel, 
         return true;
     } catch (err) {
         // Handling network errors or fetch failures
+        validateSessionExpiration(err.message);
         displayToasterError('There has been a problem with your fetch operation:', err);
         console.error('There has been a problem with your fetch operation:', err);
         deleteBtn.style.display = 'block';

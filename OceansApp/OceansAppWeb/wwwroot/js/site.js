@@ -8,7 +8,11 @@ window.onload = function () {
         copyrightYearElement.innerHTML = currentYear;
     }
 }
-
+function validateSessionExpiration(message) {
+    if (message.toString().includes('Unexpected token')) {
+        window.location.href = "/SessionExpired";
+    }
+}
 function displaySpinner() {
     const spinner = document.getElementById("loading-spinner");
     spinner.style.display = "block";

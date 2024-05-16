@@ -30,6 +30,7 @@ async function fillProjectsDropdown() {
             dropdownList.appendChild(listItem);
         });
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error("Error filling the projects dropdown:", error.message);
         dropdownList.innerHTML = '<li>Error loading options</li>';
     }
@@ -70,6 +71,7 @@ async function getProjectInfo() {
             loadingBox.style.display = 'none';
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error("Error filling the projects dropdown:", error.message);
         loadingBox.style.display = 'none';
         errorMessageBox.style.display = 'flex';
@@ -106,29 +108,39 @@ async function selectProject(projectId) {
     currentDate = new Date();
     loadingBox.style.display = 'flex';
     contentBox.style.display = 'none';
-    var token = $('[name="__RequestVerificationToken"]').val();
-    var formData = new FormData();
-    formData.append('projectId', projectId);
-    fetch("/AccountManagement/ProjectsConsultantsAssigned/SelectConsultantProject"
-        , {
-            method: 'POST',
-            headers: {
-                RequestVerificationToken: token
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                header.style.display = 'flex';
-                loadingBox.style.display = 'none';
-            } else {
-                displayToasterError(data.error);
-                console.error('There has been a problem with the fetch operation:', data.detail);
-                loadingBox.style.display = 'none';
-            }
-            getProjectInfo();
-        });
+    try {
+        var token = $('[name="__RequestVerificationToken"]').val();
+        var formData = new FormData();
+        formData.append('projectId', projectId);
+
+        fetch("/AccountManagement/ProjectsConsultantsAssigned/SelectConsultantProject"
+            , {
+                method: 'POST',
+                headers: {
+                    RequestVerificationToken: token
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    header.style.display = 'flex';
+                    loadingBox.style.display = 'none';
+                } else {
+                    displayToasterError(data.error);
+                    console.error('There has been a problem with the fetch operation:', data.detail);
+                    loadingBox.style.display = 'none';
+                }
+                getProjectInfo();
+            });
+    }
+    catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        loadingBox.style.display = 'none';
+        return null;
+    }
 }
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, button) {
@@ -225,6 +237,7 @@ async function submitReportToBePaid() {
         hideSpinner();
         return dataFromApi;
     } catch (err) {
+        validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         hideSpinner();
