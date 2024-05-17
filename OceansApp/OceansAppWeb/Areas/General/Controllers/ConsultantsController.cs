@@ -166,7 +166,6 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                     var resultMessage = "";
                     var userActionedBy = claim.Value;
                     int createdConsultantId = 0;
@@ -244,7 +243,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                             createdConsultantId = (int)res.IdCreatedElement;
                             await transaction.CommitAsync();
 
-                            var createSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, consultantData.Name, consultantData.Email, timeZone, userActionedBy);
+                            var createSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, consultantData.Name, consultantData.Email, userActionedBy);
                             if (!createSendNotification.Success)
                             {
                                 return BadRequest(new { MessageType = "Exception Error", error = createSendNotification.Message });
@@ -289,13 +288,13 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        public MethodResponse CreateAndSendCreatePasswordEmailNotification(string callbackUrl, string consultantName, string consultantEmail, DateTime sentDate, string userActionedBy)
+        public MethodResponse CreateAndSendCreatePasswordEmailNotification(string callbackUrl, string consultantName, string consultantEmail, string userActionedBy)
         {
             try
             {
                 // Prepare email content
                 var emailToSend = PrepareEmailContent(callbackUrl, consultantName.Trim(), consultantEmail.Trim());
-                var emailNotification = CreateNotification(emailToSend, sentDate, userActionedBy);
+                var emailNotification = CreateNotification(emailToSend, userActionedBy);
 
                 // Check if notification was successfully created
                 if (emailNotification == null || emailNotification.NotificationId <= 0)
@@ -329,7 +328,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             };
         }
 
-        private Notification CreateNotification(SendEmailVM emailToSend, DateTime sentDate, string userActionedBy)
+        private Notification CreateNotification(SendEmailVM emailToSend, string userActionedBy)
         {
             var notificatinType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
 
@@ -344,7 +343,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 Body = emailToSend.Body,
                 Subject = emailToSend.Subject,
                 Remitent = emailToSend.SharedEmailFrom,
-                SentDate = sentDate,
+                SentDate = DateTime.UtcNow,
                 SentByUser = userActionedBy
             };
             _unitOfWork.Notification.Add(emailNotification);
@@ -428,10 +427,9 @@ namespace OceansAppWeb.Areas.General.Controllers
                 }
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", code = user.Id + ":" + code }, protocol: HttpContext.Request.Scheme);
-                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var createAndSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, userDetails.Name, user.Email, timeZone, claim.Value);
+                var createAndSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, userDetails.Name, user.Email, claim.Value);
                 if (!createAndSendNotification.Success)
                 {
                     return BadRequest(new { MessageType = "Exception Error", error = createAndSendNotification.Message });

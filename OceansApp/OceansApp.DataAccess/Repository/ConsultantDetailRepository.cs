@@ -87,11 +87,10 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                 ConsultantDetail consultantToCreate = new()
                 {
                     UserId = createdUserId,
-                    CreationDate = timeZone,
+                    CreationDate = DateTime.UtcNow,
                     IdCountry = consultantData.IdCountry,
                     Phone2 = consultantData.Phone2,
                     CompanyId = consultantData.CompanyId,
@@ -169,7 +168,6 @@ namespace OceansApp.DataAccess.Repository
                 {
                     return new MethodResponse { MessageType = "Not Found", Success = false, Message = "User role not found." };
                 }
-                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
 
                 using var transaction = await _db.Database.BeginTransactionAsync();
                 _db.CONSULTANTS_AND_POSITIONS.RemoveRange(existingConsultantPositions);
@@ -198,7 +196,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.Address = consultantData.Address;
                 existingConsultant.PersonalEmail = consultantData.PersonalEmail;
                 existingConsultant.Location = consultantData.Location;
-                existingConsultant.LastUpdatedDate = timeZone;
+                existingConsultant.LastUpdatedDate = DateTime.UtcNow;
                 existingConsultant.UserLastUpdatedBy = userActionedBy;
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
                 existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;

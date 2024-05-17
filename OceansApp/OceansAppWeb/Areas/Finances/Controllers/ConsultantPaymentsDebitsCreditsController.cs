@@ -127,14 +127,13 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                     var resultMessage = "";
                     var userActionedBy = claim.Value;
 
                     //IF IS NOT ID THEN CREATE IT
                     if (debitCreditData.ConsultantPaymentDebitsCreditsId == null)
                     {
-                        var res = await _unitOfWork.ConsultantPaymentsDebitsCredits.CreateDebitCredit(userActionedBy, timeZone, debitCreditData);
+                        var res = await _unitOfWork.ConsultantPaymentsDebitsCredits.CreateDebitCredit(userActionedBy, debitCreditData);
 
                         if (res.Success)
                         {
@@ -160,7 +159,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     else
                     {
                         //IF IS ID THEN UPDATE THE DEBIT/CREDIT
-                        var res = await _unitOfWork.ConsultantPaymentsDebitsCredits.UpdateDebitCredit(userActionedBy, timeZone, debitCreditData);
+                        var res = await _unitOfWork.ConsultantPaymentsDebitsCredits.UpdateDebitCredit(userActionedBy, debitCreditData);
                         if (res.Success)
                         {
                             resultMessage = res.Message;
@@ -232,8 +231,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
-                var res = await _unitOfWork.ConsultantPaymentsDebitsCredits.RejectDebitCredit(claim.Value, timeZone, consultantPaymentDebitsCreditsId);
+                var res = await _unitOfWork.ConsultantPaymentsDebitsCredits.RejectDebitCredit(claim.Value, consultantPaymentDebitsCreditsId);
                 if (res.Success)
                 {
                     return Ok(new { success = true, message = res.Message });

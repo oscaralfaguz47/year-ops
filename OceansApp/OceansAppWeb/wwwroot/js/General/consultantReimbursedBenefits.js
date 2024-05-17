@@ -33,16 +33,6 @@ async function getListOfResults(firstTime, filters) {
                     ('0' + reimbursedDate.getDate()).slice(-2) + '/' +
                     reimbursedDate.getFullYear();
 
-                var creationDate = new Date(obj.creationDate);
-                var creationformattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + creationDate.getDate()).slice(-2) + '/' +
-                    creationDate.getFullYear();
-
-                var updateDate = new Date(obj.lastUpdateDate);
-                var updateformattedDate = ('0' + (updateDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + updateDate.getDate()).slice(-2) + '/' +
-                    updateDate.getFullYear();
-
                 var rejectBtn = ``;
                 var editBtn = ``;
                 var menuBtn = `<i title="You are not able to edit it, it is status ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
@@ -70,9 +60,9 @@ async function getListOfResults(firstTime, filters) {
                   <td>${reimbursedformattedDate}</td>
                   <td>${getStatusLabel(obj.transactionStatusName)}</td>
                   <td>${obj.userCreatedBy}</td>
-                  <td>${creationformattedDate}</td>
+                  <td>${formatUtcToLocalMmDdYyyyTime(obj.creationDate)}</td>
                   <td>${obj.userLastUpdatedBy === null ? "Not updated" : obj.userLastUpdatedBy}</td>
-                  <td>${obj.lastUpdateDate === null ? "Not updated" : updateformattedDate}</td>
+                  <td>${obj.lastUpdateDate === null ? "Not updated" : formatUtcToLocalMmDdYyyyTime(obj.lastUpdateDate) }</td>
               </tr>`;
                 tbody.append(row);
             });

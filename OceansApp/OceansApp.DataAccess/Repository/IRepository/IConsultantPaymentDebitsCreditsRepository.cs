@@ -7,11 +7,11 @@ namespace OceansApp.DataAccess.Repository.IRepository
     public interface IConsultantPaymentDebitsCreditsRepository : IRepository<ConsultantPaymentDebitsCredits>
     {
         Task<(List<ConsultantPaymentDebitsCreditsGetAllWithFiltersVM> debitsCredits, int totalCount)> GetAllPaymentsDebitsCreditsWithFiltersAsync(ConsultantPaymentsDebitsCreditsPaginationFiltersVM filtersAndPagination);
-        Task<MethodResponse> CreateDebitCredit(string userIdCreatedBy, DateTime timeZone,
+        Task<MethodResponse> CreateDebitCredit(string userIdCreatedBy,
             CreateUpdateConsultantPaymentDebitCreditVM debitCreditData);
-        Task<MethodResponse> UpdateDebitCredit(string userActionedBy, DateTime timeZone,
+        Task<MethodResponse> UpdateDebitCredit(string userActionedBy,
             CreateUpdateConsultantPaymentDebitCreditVM debitCreditData);
-        Task<MethodResponse> RejectDebitCredit(string userActionedBy, DateTime timeZone, int consultantPaymentDebitsCreditsId);
+        Task<MethodResponse> RejectDebitCredit(string userActionedBy, int consultantPaymentDebitsCreditsId);
         Task<CreateUpdateConsultantPaymentDebitCreditVM> GetDebitCreditDataById(int consultantPaymentDebitsCreditsId);
     }
 }

@@ -40,7 +40,7 @@ namespace OceansApp.DataAccess.Repository
             return (interviews, totalCount);
         }
 
-        public async Task<MethodResponse> CreateInterview(string userIdCreatedBy, DateTime timeZone,
+        public async Task<MethodResponse> CreateInterview(string userIdCreatedBy,
             CreateUpdateInterviewVM interviewData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -59,7 +59,7 @@ namespace OceansApp.DataAccess.Repository
                         DurationMinutes = (decimal)interviewData.DurationMinutes,
                         Date = (DateTime)interviewData.Date,
                         TransactionStatusId = transactionStatus.TransactionStatusId,
-                        CreationDate = timeZone,
+                        CreationDate = DateTime.UtcNow,
                         ConsultantIdCreatedBy = currentUser.ConsultantId
                     };
                     var createdInterview = await _db.INTERVIEWS.AddAsync(interviewToCreate);
@@ -87,7 +87,7 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> UpdateInterview(string userActionedBy, DateTime timeZone, CreateUpdateInterviewVM interviewData)
+        public async Task<MethodResponse> UpdateInterview(string userActionedBy, CreateUpdateInterviewVM interviewData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -104,7 +104,7 @@ namespace OceansApp.DataAccess.Repository
                     existingInterview.ConsultantId = (int)interviewData.ConsultantId;
                     existingInterview.DurationMinutes = (decimal)interviewData.DurationMinutes;
                     existingInterview.Date = (DateTime)interviewData.Date;
-                    existingInterview.LastUpdateDate = timeZone;
+                    existingInterview.LastUpdateDate = DateTime.UtcNow;
                     existingInterview.ConsultantIdLastUpdatedBy = currentUser.ConsultantId;
 
                     await _db.SaveChangesAsync();
@@ -140,7 +140,7 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> RejectInterview(string userActionedBy, DateTime timeZone, int interviewId)
+        public async Task<MethodResponse> RejectInterview(string userActionedBy, int interviewId)
         {
             try
             {
@@ -157,7 +157,7 @@ namespace OceansApp.DataAccess.Repository
                 var consultantUserActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                 interviewToReject.TransactionStatusId = transactionRejectedStatus.TransactionStatusId;
                 interviewToReject.ConsultantIdLastUpdatedBy = consultantUserActionedBy.ConsultantId;
-                interviewToReject.LastUpdateDate = timeZone;
+                interviewToReject.LastUpdateDate = DateTime.UtcNow;
 
                 await _db.SaveChangesAsync();
                 return new MethodResponse { Success = true, Message = $"The interview was rejected successfully." };

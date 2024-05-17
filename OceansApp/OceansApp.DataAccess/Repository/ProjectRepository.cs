@@ -85,7 +85,6 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == projectData.CreatedBy);
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
@@ -97,7 +96,7 @@ namespace OceansApp.DataAccess.Repository
                     IsActive = (bool)projectData.IsActive,
                     IsBillable = (bool)projectData.IsBillable,
                     CreatedBy = projectData.CreatedBy,
-                    CreationDate = costaRicaTime,
+                    CreationDate = DateTime.UtcNow,
                     ClientId = (int)projectData.ClientId,
                     SuccessManagerId = (int)projectData.SuccessManagerId,
                     ClientHasTrackingTool = (bool)projectData.ClientHasTrackingTool
@@ -127,7 +126,6 @@ namespace OceansApp.DataAccess.Repository
             try
             {
                 var existingProject = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == projectData.ProjectId);
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == projectData.CreatedBy);
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
@@ -138,7 +136,7 @@ namespace OceansApp.DataAccess.Repository
                 existingProject.SuccessManagerId = (int)projectData.SuccessManagerId;
                 existingProject.ClientHasTrackingTool = (bool)projectData.ClientHasTrackingTool;
                 existingProject.UpdatedBy = projectData.CreatedBy;
-                existingProject.DateLastUpdate = costaRicaTime;
+                existingProject.DateLastUpdate = DateTime.UtcNow;
 
                 if (projectData.AssignedConsultants != null)
                 {
@@ -150,7 +148,7 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 ProjectId = existingProject.ProjectId,
                                 ConsultantId = consultant.ConsultantId,
-                                CreationDate = costaRicaTime,
+                                CreationDate = DateTime.UtcNow,
                                 IsActive = true,
                                 HourlyClientRate = consultant.HourlyClientRate,
                                 HourlySalary = consultant.HourlySalary,
@@ -187,7 +185,7 @@ namespace OceansApp.DataAccess.Repository
                                     ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
                                     ActionId = action.ActionId,
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
-                                    CreationDate = costaRicaTime,
+                                    CreationDate = DateTime.UtcNow,
                                     UserActionedBy = userActionedBy.ConsultantId,
                                     NewValue = clientRate,
                                     NewValueDetail = clientRateMethod
@@ -199,7 +197,7 @@ namespace OceansApp.DataAccess.Repository
                                     ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
                                     ActionId = action.ActionId,
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
-                                    CreationDate = costaRicaTime,
+                                    CreationDate = DateTime.UtcNow,
                                     UserActionedBy = userActionedBy.ConsultantId,
                                     NewValue = consultantRate,
                                     NewValueDetail = consultantRateMethod
@@ -210,7 +208,7 @@ namespace OceansApp.DataAccess.Repository
                                     ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
                                     ActionId = action.ActionId,
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
-                                    CreationDate = costaRicaTime,
+                                    CreationDate = DateTime.UtcNow,
                                     UserActionedBy = userActionedBy.ConsultantId,
                                     NewValueDetail = consultant.PositionDetail
                                 };
@@ -243,7 +241,6 @@ namespace OceansApp.DataAccess.Repository
                     return new MethodResponse { MessageType = "Validation Error", Success = false, Message = "The Consultant Assignation was not found." };
                 }
 
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userUpdatedBy);
 
                 var historyToSaveList = new List<ProjectConsultantAssignedHistory>();
@@ -254,7 +251,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     newHistory.NewValueDetail = consultantAssignationData.PositionDetail;
@@ -267,7 +264,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     newHistory.NewValue = consultantAssignationData.HourlyClientRate;
@@ -280,7 +277,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     newHistory.NewValue = consultantAssignationData.MonthlyClientRate;
@@ -293,7 +290,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     newHistory.NewValue = consultantAssignationData.HourlySalary;
@@ -306,7 +303,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     newHistory.NewValue = consultantAssignationData.MonthlySalary;
@@ -319,7 +316,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
@@ -330,7 +327,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
@@ -341,7 +338,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
@@ -352,7 +349,7 @@ namespace OceansApp.DataAccess.Repository
                     var newHistory = new ProjectConsultantAssignedHistory();
                     newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = costaRicaTime;
+                    newHistory.CreationDate = DateTime.UtcNow;
                     newHistory.UserActionedBy = userActionedBy.ConsultantId;
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);

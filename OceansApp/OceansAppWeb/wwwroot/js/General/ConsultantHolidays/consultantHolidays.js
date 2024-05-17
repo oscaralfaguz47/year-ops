@@ -74,10 +74,6 @@ function getHolidaysList(firstTime, filters) {
             noResultsMessage.empty();
             tbody.empty();
             data.holidaysList.forEach(function (holiday) {
-                var creationDate = new Date(holiday.creationDate);
-                var formattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + creationDate.getDate()).slice(-2) + '/' +
-                    creationDate.getFullYear();
                 var row = `<tr class="hover-group">
                 <td>
                     <i onclick="deleteHolidaysList(${holiday.consultantHolidayId}, '${holiday.name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
@@ -86,7 +82,7 @@ function getHolidaysList(firstTime, filters) {
                 </td>
                 <td>${holiday.year}</td>
                 <td>${holiday.numHolidays}</td>
-                <td>${formattedDate}</td>
+                <td>${formatUtcToLocalMmDdYyyyTime(holiday.creationDate)}</td>
                 <td>${holiday.createdByName}</td>
             </tr>`;
 

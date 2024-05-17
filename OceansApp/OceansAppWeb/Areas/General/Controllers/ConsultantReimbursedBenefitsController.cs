@@ -123,14 +123,13 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                     var resultMessage = "";
                     var userActionedBy = claim.Value;
 
                     //IF IS NOT BENEFIT REIMBURSEMENT ID THEN CREATE IT
                     if (benefitReimbursementData.ReimbursedBenefitId == null)
                     {
-                        var res = await _unitOfWork.ConsultantReimbursedBenefit.CreateBenefitReimbursement(userActionedBy, timeZone, benefitReimbursementData);
+                        var res = await _unitOfWork.ConsultantReimbursedBenefit.CreateBenefitReimbursement(userActionedBy, benefitReimbursementData);
 
                         if (res.Success)
                         {
@@ -156,7 +155,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     else
                     {
                         //IF IS ID THEN UPDATE THE BENEFIT REIMBURSEMENT
-                        var res = await _unitOfWork.ConsultantReimbursedBenefit.UpdateBenefitReimbursement(userActionedBy, timeZone, benefitReimbursementData);
+                        var res = await _unitOfWork.ConsultantReimbursedBenefit.UpdateBenefitReimbursement(userActionedBy, benefitReimbursementData);
                         if (res.Success)
                         {
                             resultMessage = res.Message;
@@ -228,8 +227,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
-                var res = await _unitOfWork.ConsultantReimbursedBenefit.RejectBenefitReimbursement(claim.Value, timeZone, benefitReimbursementId);
+                var res = await _unitOfWork.ConsultantReimbursedBenefit.RejectBenefitReimbursement(claim.Value, benefitReimbursementId);
                 if (res.Success)
                 {
                     return Ok(new { success = true, message = res.Message });

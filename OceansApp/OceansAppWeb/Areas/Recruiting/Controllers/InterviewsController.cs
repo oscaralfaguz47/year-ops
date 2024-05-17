@@ -122,14 +122,13 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
                     var resultMessage = "";
                     var userActionedBy = claim.Value;
 
                     //IF IS NOT ID THEN CREATE IT
                     if (interviewData.InterviewId == null)
                     {
-                        var res = await _unitOfWork.Interview.CreateInterview(userActionedBy, timeZone, interviewData);
+                        var res = await _unitOfWork.Interview.CreateInterview(userActionedBy, interviewData);
 
                         if (res.Success)
                         {
@@ -155,7 +154,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
                     else
                     {
                         //IF IS ID THEN UPDATE THE DEBIT/CREDIT
-                        var res = await _unitOfWork.Interview.UpdateInterview(userActionedBy, timeZone, interviewData);
+                        var res = await _unitOfWork.Interview.UpdateInterview(userActionedBy, interviewData);
                         if (res.Success)
                         {
                             resultMessage = res.Message;
@@ -227,8 +226,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
             {
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var timeZone = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, _config["Config:TimeZone"]);
-                var res = await _unitOfWork.Interview.RejectInterview(claim.Value, timeZone, interviewId);
+                var res = await _unitOfWork.Interview.RejectInterview(claim.Value, interviewId);
                 if (res.Success)
                 {
                     return Ok(new { success = true, message = res.Message });

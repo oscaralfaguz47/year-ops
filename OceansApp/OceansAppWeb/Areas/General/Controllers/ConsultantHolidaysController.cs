@@ -152,7 +152,6 @@ namespace OceansAppWeb.Areas.General.Controllers
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var resultMessage = "";
 
-                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                     //IF IS NOT HOLIDAY ID THEN CREATE THE HOLIDAY
                     if (holidayData.ConsultantHolidayId == null)
                     {

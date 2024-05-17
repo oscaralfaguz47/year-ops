@@ -211,7 +211,6 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                     var resultMessage = "";
                     projectData.CreatedBy = claim.Value;
                     int createdProjectId = 0;
@@ -334,7 +333,6 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 }
                 var actionDescription = consultantAssignation.IsActive ? "Consultant Deactivated" : "Consultant Activated";
                 var action = _unitOfWork.ProjectConsultantAssignedHistoryAction.GetFirstOrDefault(x => x.Name == actionDescription);
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                 var userActionedBy = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == claim.Value);
@@ -345,7 +343,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         ProjectConsultantAssignedId = projectConsultantAssignedId,
                         ActionId = action.ActionId,
                         ActionDate = actionDate,
-                        CreationDate = costaRicaTime,
+                        CreationDate = DateTime.UtcNow,
                         UserActionedBy = userActionedBy.ConsultantId,
                         NewValue = 0,
                         OldValue = 1
@@ -359,7 +357,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         ProjectConsultantAssignedId = projectConsultantAssignedId,
                         ActionId = action.ActionId,
                         ActionDate = actionDate,
-                        CreationDate = costaRicaTime,
+                        CreationDate = DateTime.UtcNow,
                         UserActionedBy = userActionedBy.ConsultantId,
                         NewValue = 1,
                         OldValue = 0

@@ -8,12 +8,12 @@ namespace OceansApp.DataAccess.Repository.IRepository
     public interface IConsultantReimbursedBenefitRepository : IRepository<ConsultantReimbursedBenefit>
     {
         Task<(List<ConsultantReimbursedBenefitsGetAllWithFiltersVM> reimbursedBenefits, int totalCount)> GetAllConsultantsReimbursedBenefitsWithFiltersAsync(ConsultantReimbursedBenefitsPaginationFiltersVM filtersAndPagination);
-        Task<MethodResponse> CreateBenefitReimbursement(string userIdCreatedBy, DateTime timeZone,
+        Task<MethodResponse> CreateBenefitReimbursement(string userIdCreatedBy,
             CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData);
-        Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, DateTime timeZone,
+        Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy,
             CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData);
         Task<CreateUpdateConsultantBenefitReimbursementVM> GetBenefitReimbursementDataById(int benefitReimbursementId);
-        Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, DateTime timeZone, int benetifReimbursementId);
+        Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, int benetifReimbursementId);
         Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(int consultantId, int benefitId, int year,
             decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore, IDbTransaction transaction = null);
     }

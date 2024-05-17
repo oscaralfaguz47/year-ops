@@ -22,14 +22,13 @@ namespace OceansApp.DataAccess.Repository
             string sentByUser, List<SaveNotificationRecipientVM> recipients, int notificationStatus)
         {
             var notificationType = _db.NOTIFICATION_TYPES.FirstOrDefault(x => x.Name == from);
-            var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
             var notification = new Notification()
             {
                 NotificationTypeId = notificationType.NotificationTypeId,
                 Body = body,
                 Subject = subject,
                 Remitent = remitent,
-                SentDate = costaRicaTime,
+                SentDate = DateTime.UtcNow,
                 SentByUser = sentByUser
             };
             _db.NOTIFICATIONS.Add(notification);

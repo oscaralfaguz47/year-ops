@@ -43,7 +43,7 @@ namespace OceansApp.DataAccess.Repository
             return (reimbursedBenefits, totalCount);
         }
 
-        public async Task<MethodResponse> CreateBenefitReimbursement(string userIdCreatedBy, DateTime timeZone,
+        public async Task<MethodResponse> CreateBenefitReimbursement(string userIdCreatedBy,
             CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -73,7 +73,7 @@ namespace OceansApp.DataAccess.Repository
                         AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed,
                         DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed,
                         TransactionStatusId = transactionStatus.TransactionStatusId,
-                        CreationDate = timeZone,
+                        CreationDate = DateTime.UtcNow,
                         ConsultantIdCreatedBy = currentUser.ConsultantId,
                         BenefitCategoryId = (int)benefitReimbursementData.BenefitCategoryId
                     };
@@ -102,7 +102,7 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, DateTime timeZone, CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
+        public async Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -132,7 +132,7 @@ namespace OceansApp.DataAccess.Repository
                     existingBenefitReimbursement.ConsultantId = (int)benefitReimbursementData.ConsultantId;
                     existingBenefitReimbursement.AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed;
                     existingBenefitReimbursement.DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed;
-                    existingBenefitReimbursement.LastUpdateDate = timeZone;
+                    existingBenefitReimbursement.LastUpdateDate = DateTime.UtcNow;
                     existingBenefitReimbursement.ConsultantIdLastUpdatedBy = currentUser.ConsultantId;
 
                     await _db.SaveChangesAsync();
@@ -168,7 +168,7 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, DateTime timeZone, int benetifReimbursementId)
+        public async Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, int benetifReimbursementId)
         {
             try
             {
@@ -185,7 +185,7 @@ namespace OceansApp.DataAccess.Repository
                 var consultantUserActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                 benefitReimbursementToReject.TransactionStatusId = transactionRejectedStatus.TransactionStatusId;
                 benefitReimbursementToReject.ConsultantIdLastUpdatedBy = consultantUserActionedBy.ConsultantId;
-                benefitReimbursementToReject.LastUpdateDate = timeZone;
+                benefitReimbursementToReject.LastUpdateDate = DateTime.UtcNow;
 
                 await _db.SaveChangesAsync();
                 return new MethodResponse { Success = true, Message = $"The Benefit Reimbursement was rejected successfully." };

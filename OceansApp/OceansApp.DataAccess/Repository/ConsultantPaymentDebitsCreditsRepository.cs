@@ -41,7 +41,7 @@ namespace OceansApp.DataAccess.Repository
             return (paymentDebitsCredits, totalCount);
         }
 
-        public async Task<MethodResponse> CreateDebitCredit(string userIdCreatedBy, DateTime timeZone,
+        public async Task<MethodResponse> CreateDebitCredit(string userIdCreatedBy,
             CreateUpdateConsultantPaymentDebitCreditVM debitCreditData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -69,7 +69,7 @@ namespace OceansApp.DataAccess.Repository
                         Amount = (decimal)debitCreditData.Amount,
                         ActionDateWithinFortnight = (DateTime)debitCreditData.ActionDateWithinFortnight,
                         TransactionStatusId = transactionStatus.TransactionStatusId,
-                        CreationDate = timeZone,
+                        CreationDate = DateTime.UtcNow,
                         ConsultantIdCreatedBy = currentUser.ConsultantId,
                         TransactionTypeId = transactionType.TransactionTypeId
                     };
@@ -98,7 +98,7 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> UpdateDebitCredit(string userActionedBy, DateTime timeZone, CreateUpdateConsultantPaymentDebitCreditVM debitCreditData)
+        public async Task<MethodResponse> UpdateDebitCredit(string userActionedBy, CreateUpdateConsultantPaymentDebitCreditVM debitCreditData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -125,7 +125,7 @@ namespace OceansApp.DataAccess.Repository
                     existingDebitCredit.Amount = (decimal)debitCreditData.Amount;
                     existingDebitCredit.ActionDateWithinFortnight = (DateTime)debitCreditData.ActionDateWithinFortnight;
                     existingDebitCredit.TransactionTypeId = transactionType.TransactionTypeId;
-                    existingDebitCredit.LastUpdateDate = timeZone;
+                    existingDebitCredit.LastUpdateDate = DateTime.UtcNow;
                     existingDebitCredit.ConsultantIdLastUpdatedBy = currentUser.ConsultantId;
 
                     await _db.SaveChangesAsync();
@@ -161,7 +161,7 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> RejectDebitCredit(string userActionedBy, DateTime timeZone, int consultantPaymentDebitsCreditsId)
+        public async Task<MethodResponse> RejectDebitCredit(string userActionedBy, int consultantPaymentDebitsCreditsId)
         {
             try
             {
@@ -178,7 +178,7 @@ namespace OceansApp.DataAccess.Repository
                 var consultantUserActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                 debitCreditToReject.TransactionStatusId = transactionRejectedStatus.TransactionStatusId;
                 debitCreditToReject.ConsultantIdLastUpdatedBy = consultantUserActionedBy.ConsultantId;
-                debitCreditToReject.LastUpdateDate = timeZone;
+                debitCreditToReject.LastUpdateDate = DateTime.UtcNow;
 
                 await _db.SaveChangesAsync();
                 return new MethodResponse { Success = true, Message = $"The transaction was rejected successfully." };

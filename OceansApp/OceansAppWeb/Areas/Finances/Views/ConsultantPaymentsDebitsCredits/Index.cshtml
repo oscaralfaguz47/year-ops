@@ -52,21 +52,21 @@
                         Accounting Account
                         <span class="sort-arrow" id="sortArrowAccountingAccountName"></span>
                     </th>
-                     <th>
+                    <th>
                         Quantity
                     </th>
                     <th onclick="orderByTableList('Amount', 'AmountTableHeader', 'sortArrowAmount')" data-sort="ANY" name="AmountTableHeader" class="sortable-col">
                         Unit Amount
                         <span class="sort-arrow" id="sortArrowAmount"></span>
                     </th>
-                     <th>
+                    <th>
                         Total Amount
                     </th>
                     <th onclick="orderByTableList('ActionDateWithinFortnight', 'ActionDateWithinFortnightTableHeader', 'sortArrowActionDateWithinFortnight')" data-sort="ANY" name="ActionDateWithinFortnightTableHeader" class="sortable-col">
                         Action Date
                         <span class="sort-arrow" id="sortArrowActionDateWithinFortnight"></span>
                     </th>
-                     <th onclick="orderByTableList('TransactionTypeName', 'TransactionTypeNameTableHeader', 'sortArrowTransactionTypeName')" data-sort="ANY" name="TransactionTypeNameTableHeader" class="sortable-col">
+                    <th onclick="orderByTableList('TransactionTypeName', 'TransactionTypeNameTableHeader', 'sortArrowTransactionTypeName')" data-sort="ANY" name="TransactionTypeNameTableHeader" class="sortable-col">
                         Transaction Type
                         <span class="sort-arrow" id="sortArrowTransactionTypeName"></span>
                     </th>
@@ -104,9 +104,8 @@
     <partial name="_CreateUpdateDebitOrCreditModalPartialView" />
 </div>
 
-@section Scripts{
 <script src="~/js/Finances/consultantPaymentsDebitsCredits.js"></script>
 <script src="~/js/Shared/pagination.js"></script>
-    <script src="~/js/Shared/Labels/transactionStatuses.js"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js"></script>
 <script src="~/js/Shared/sharedComponents.js"></script>
-    }
+<script src="~/js/Shared/Dates/datesMethods.js"></script>
