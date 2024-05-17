@@ -390,6 +390,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Monthly Client Rate updated" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Hourly Salary updated" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Monthly Salary updated" });
+                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Hybrid Salary updated" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Monthly)" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Hourly)" });
                     actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Monthly)" });
