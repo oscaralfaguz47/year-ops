@@ -154,6 +154,7 @@ namespace OceansApp.DataAccess.Repository
                                 HourlySalary = consultant.HourlySalary,
                                 MonthlyClientRate = consultant.MonthlyClientRate,
                                 MonthlySalary = consultant.MonthlySalary,
+                                MonthlySalaryThirdParty = consultant.MonthlySalaryThirdParty,
                                 PositionDetail = consultant.PositionDetail
                             };
                             var createdAssignedConsultant = await _db.PROJECTS_CONSULTANTS_ASSIGNED.AddAsync(consultantAssignedToCreate);
@@ -310,6 +311,19 @@ namespace OceansApp.DataAccess.Repository
                     newHistory.OldValue = existingConsultantAssignation.MonthlySalary;
                     historyToSaveList.Add(newHistory);
                 }
+                if (existingConsultantAssignation.MonthlySalaryThirdParty != consultantAssignationData.MonthlySalaryThirdParty)
+                {
+                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Third Party Salary updated");
+                    var newHistory = new ProjectConsultantAssignedHistory();
+                    newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
+                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
+                    newHistory.CreationDate = DateTime.UtcNow;
+                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
+                    newHistory.ActionId = action.ActionId;
+                    newHistory.NewValue = consultantAssignationData.MonthlySalaryThirdParty;
+                    newHistory.OldValue = existingConsultantAssignation.MonthlySalaryThirdParty;
+                    historyToSaveList.Add(newHistory);
+                }
                 if (existingConsultantAssignation.HourlyClientRate > 0 && consultantAssignationData.HourlyClientRate == 0)
                 {
                     var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Client pricing method updated (Monthly)");
@@ -361,6 +375,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultantAssignation.HourlyClientRate = consultantAssignationData.HourlyClientRate;
                 existingConsultantAssignation.MonthlySalary = consultantAssignationData.MonthlySalary;
                 existingConsultantAssignation.HourlySalary = consultantAssignationData.HourlySalary;
+                existingConsultantAssignation.MonthlySalaryThirdParty = consultantAssignationData.MonthlySalaryThirdParty;
                 existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.isMonthlySalaryCalculatedPerHour;
 
                 await _db.SaveChangesAsync();

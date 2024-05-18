@@ -17,6 +17,23 @@ var createUpdateForm = $('#form-add-update-consultant');
 function validateRatesInputs() {
     var clientRateMethod = document.querySelector('input[name="client-rate-model"]:checked').value;
     var consultantRateMethod = document.querySelector('input[name="consultant-rate-model"]:checked').value;
+    var consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
+    var oceansPaymentSection = document.getElementById('oceans-payment-section');
+    var oceansPaymentRadioSection = document.getElementById('oceans-payment-radio-section');
+    var thirdPartySalaryInput = document.getElementById('thirdPartyConsultantSalaryEl');
+
+    if (consultantPaymentModel === 'O' || consultantPaymentModel === 'Hy') {
+        oceansPaymentSection.style.display = 'flex';
+        oceansPaymentRadioSection.style.display = 'block';
+    } else {
+        oceansPaymentSection.style.display = 'none';
+        oceansPaymentRadioSection.style.display = 'none';
+    }
+    if (consultantPaymentModel === 'T' || consultantPaymentModel === 'Hy') {
+        thirdPartySalaryInput.style.display = 'block';
+    } else {
+        thirdPartySalaryInput.style.display = 'none';
+    }
 
     if (clientRateMethod === 'H') {
         document.getElementById('hourlyClientRateEl').style.display = 'block';
@@ -34,14 +51,14 @@ function validateRatesInputs() {
         document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'block';
         document.getElementById("calculationMethod").value = true;
         document.getElementById("calculationMethod").checked = true;
-    } else {
+    } else if (consultantRateMethod === 'H') {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('monthlySalary').value = null;
         document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'none';
         document.getElementById("calculationMethod").value = false;
         document.getElementById("calculationMethod").checked = false;
-    }
+    } 
 }
 //DISPLAY MODAL
 async function displayAddUpdateConsultant(modalId, id) {
@@ -90,11 +107,19 @@ async function displayAddUpdateConsultant(modalId, id) {
                 if (data.consultantAssignation.monthlyClientRate !== 0) document.getElementsByName('client-rate-model')[1].checked = true;
                 if (data.consultantAssignation.monthlySalary !== 0) document.getElementsByName('consultant-rate-model')[0].checked = true;
                 if (data.consultantAssignation.hourlySalary !== 0) document.getElementsByName('consultant-rate-model')[1].checked = true;
+                if (data.consultantAssignation.monthlySalaryThirdParty === 0 && (data.consultantAssignation.monthlySalary !== 0 ||
+                    data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[0].checked = true;
+                if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary !== 0 || 
+                    data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[1].checked = true;
+                if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary === 0 &&
+                    data.consultantAssignation.hourlySalary === 0)) document.getElementsByName('consultant-payment-model')[2].checked = true;
+                console.log(data);
                 validateRatesInputs();
                 createUpdateForm.find('[name="monthlyClientRate"]').val(data.consultantAssignation.monthlyClientRate);
                 createUpdateForm.find('[name="hourlyClientRate"]').val(data.consultantAssignation.hourlyClientRate);
                 createUpdateForm.find('[name="monthlySalary"]').val(data.consultantAssignation.monthlySalary);
                 createUpdateForm.find('[name="hourlySalary"]').val(data.consultantAssignation.hourlySalary);
+                createUpdateForm.find('[name="thirdPartySalary"]').val(data.consultantAssignation.monthlySalaryThirdParty);
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').val(data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 showModal(modalId);
@@ -389,6 +414,7 @@ async function activateDeactivateConsultantFromProjectHttps(projectConsultantAss
             }
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error('Error fetching data:', error);
         return null;
     }
@@ -413,6 +439,7 @@ async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
             hideSpinner();
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         displayToasterError('Error fetching data: ' + error);
         console.error('Error fetching data:', error);
         hideSpinner();

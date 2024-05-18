@@ -9,6 +9,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public decimal? HourlySalary { get; set; }
         public decimal? MonthlyClientRate { get; set; }
         public decimal? MonthlySalary { get; set; }
+        public decimal? MonthlySalaryThirdParty { get; set; }
         public string PositionDetail { get; set; }
         public bool isMonthlySalaryCalculatedPerHour { get; set; }
         public string UserCategoryName { get; set; }

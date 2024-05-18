@@ -44,8 +44,8 @@ namespace OceansApp.DataAccess.Repository
                     }
 
                     var movement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
-                    x.ConsultantId == currentUser.ConsultantId && x.Quantity > 0 && (x.ActionDate >= submissionData.StartPeriodDate &&
-                    x.ActionDate <= submissionData.EndPeriodDate));
+                    x.ConsultantId == currentUser.ConsultantId && x.Quantity > 0 && (x.ActionDate.Date >= submissionData.StartPeriodDate.Date &&
+                    x.ActionDate.Date <= submissionData.EndPeriodDate.Date));
 
                     if (movement == null)
                     {
@@ -54,8 +54,8 @@ namespace OceansApp.DataAccess.Repository
                     if (project.ClientHasTrackingTool)
                     {
                         var blobMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
-                    x.ConsultantId == currentUser.ConsultantId && (x.ActionDate >= submissionData.StartPeriodDate &&
-                    x.ActionDate <= submissionData.EndPeriodDate));
+                    x.ConsultantId == currentUser.ConsultantId && (x.ActionDate.Date >= submissionData.StartPeriodDate.Date &&
+                    x.ActionDate.Date <= submissionData.EndPeriodDate.Date));
                         if (blobMovement == null)
                         {
                             return MethodResponse.CreateFailureValidationResponse("Enter and save your worked hours to submit the report.", "Hours");
@@ -74,14 +74,14 @@ namespace OceansApp.DataAccess.Repository
                     }
 
                     var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == project.ProjectId &&
-                    x.ConsultantId == currentUser.ConsultantId && (x.ActionDate >= submissionData.StartPeriodDate &&
-                    x.ActionDate <= submissionData.EndPeriodDate) && (x.TransactionStatus.Name == "No actions" 
+                    x.ConsultantId == currentUser.ConsultantId && (x.ActionDate.Date >= submissionData.StartPeriodDate.Date &&
+                    x.ActionDate.Date <= submissionData.EndPeriodDate.Date) && (x.TransactionStatus.Name == "No actions" 
                     || x.TransactionStatus.Name == "Rejected"))
                         .Include(x => x.TransactionStatus).ToListAsync();
 
                     var existingSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.Include(x => x.TransactionStatus).FirstOrDefaultAsync(x => 
-                    x.ConsultantId == currentUser.ConsultantId && x.ProjectId == submissionData.ProjectId && x.StartPeriodDate == submissionData.StartPeriodDate 
-                    && x.EndPeriodDate == submissionData.EndPeriodDate);
+                    x.ConsultantId == currentUser.ConsultantId && x.ProjectId == submissionData.ProjectId && x.StartPeriodDate.Date == submissionData.StartPeriodDate.Date 
+                    && x.EndPeriodDate.Date == submissionData.EndPeriodDate.Date);
 
                     if (existingSubmission == null)
                     {
