@@ -155,7 +155,8 @@ namespace OceansApp.DataAccess.Repository
                                 MonthlyClientRate = consultant.MonthlyClientRate,
                                 MonthlySalary = consultant.MonthlySalary,
                                 MonthlySalaryThirdParty = consultant.MonthlySalaryThirdParty,
-                                PositionDetail = consultant.PositionDetail
+                                PositionDetail = consultant.PositionDetail,
+                                IsMonthlySalaryCalculatedPerHour = consultant.IsMonthlySalaryCalculatedPerHour
                             };
                             var createdAssignedConsultant = await _db.PROJECTS_CONSULTANTS_ASSIGNED.AddAsync(consultantAssignedToCreate);
                             await _db.SaveChangesAsync();
@@ -214,6 +215,22 @@ namespace OceansApp.DataAccess.Repository
                                     NewValueDetail = consultant.PositionDetail
                                 };
                                 await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyDetail);
+                                if (consultant.MonthlySalaryThirdParty > 0)
+                                {
+                                    ProjectConsultantAssignedHistory historyThirdParty = new()
+                                    {
+                                        ProjectConsultantAssignedId = createdAssignedConsultant.Entity.ProjectConsultantAssignedId,
+                                        ActionId = action.ActionId,
+                                        ActionDate = DateTime.Parse(consultant.ActionDate),
+                                        CreationDate = DateTime.UtcNow,
+                                        UserActionedBy = userActionedBy.ConsultantId,
+                                        NewValue = consultant.MonthlySalaryThirdParty,
+                                        NewValueDetail = "Consultant Third Party Mothly Salary"
+                                    };
+                                    await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyThirdParty);
+                                }
+                               
+
                                 await _db.SaveChangesAsync();
                             }
                         }
@@ -376,7 +393,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultantAssignation.MonthlySalary = consultantAssignationData.MonthlySalary;
                 existingConsultantAssignation.HourlySalary = consultantAssignationData.HourlySalary;
                 existingConsultantAssignation.MonthlySalaryThirdParty = consultantAssignationData.MonthlySalaryThirdParty;
-                existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.isMonthlySalaryCalculatedPerHour;
+                existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.IsMonthlySalaryCalculatedPerHour;
 
                 await _db.SaveChangesAsync();
 

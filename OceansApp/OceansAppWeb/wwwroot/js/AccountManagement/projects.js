@@ -228,6 +228,7 @@ async function createUpdateProject(modalId) {
         var monthlySalaryCreateProject = fila.querySelector('[name="monthlySalaryCreateProject"]').value;
         var monthlySalaryThirdPartyCreateProject = fila.querySelector('[name="monthlySalaryThirdPartyCreateProject"]').value;
         var actionDateCreateProject = fila.querySelector('[name="actionDateCreateProject"]').value;
+        var mothlySalaryCalculatedPerHourInput = fila.querySelector('input[name="monthlySalaryCalculatedPerHourCreateProject"]');
         return {
             ProjectConsultantAssignedId: projectConsultantAssignedId,
             ConsultantId: Number(consultantId),
@@ -236,6 +237,7 @@ async function createUpdateProject(modalId) {
             MonthlyClientRate: Number(monthlyClientRateCreateProject),
             MonthlySalary: Number(monthlySalaryCreateProject),
             MonthlySalaryThirdParty: Number(monthlySalaryThirdPartyCreateProject),
+            IsMonthlySalaryCalculatedPerHour: Boolean(mothlySalaryCalculatedPerHourInput.value),
             PositionDetail: positionDetail,
             ActionDate: actionDateCreateProject ? actionDateCreateProject.toString() : null
         };

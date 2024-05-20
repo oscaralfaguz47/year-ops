@@ -341,6 +341,14 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(t => t.TransactionStatusId)
                 .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
+                .Property(d => d.StartPeriodDate)
+                .HasColumnType("date")
+                .IsRequired();
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
+                .Property(d => d.EndPeriodDate)
+                .HasColumnType("date")
+                .IsRequired();
 
             // CONSULTANTS BENEFITS
             modelBuilder.Entity<ConsultantBenefit>()
