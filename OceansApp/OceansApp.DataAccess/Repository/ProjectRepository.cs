@@ -6,6 +6,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Projects;
 using System.Data;
+using System.Reflection.Metadata;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -106,14 +107,18 @@ namespace OceansApp.DataAccess.Repository
                 await transaction.CommitAsync();
                 if (createdProject.Entity.ProjectId > 0)
                 {
-                    return new MethodResponse { Success = true, Message = $"The Project {projectData.Name} was created successfully.", 
-                        IdCreatedElement =  createdProject.Entity.ProjectId};
+                    return new MethodResponse
+                    {
+                        Success = true,
+                        Message = $"The Project {projectData.Name} was created successfully.",
+                        IdCreatedElement = createdProject.Entity.ProjectId
+                    };
                 }
                 else
                 {
                     return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the project, please try again." };
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -144,6 +149,20 @@ namespace OceansApp.DataAccess.Repository
                     {
                         if (consultant.ProjectConsultantAssignedId == null)
                         {
+                            var projectAssignations = await _db.PROJECTS_CONSULTANTS_ASSIGNED.Where(x => x.ConsultantId == consultant.ConsultantId).ToListAsync();
+                            var defaultProject = false;
+                            if (projectAssignations.Count == 0 || consultant.IsDefaultProject)
+                            {
+                                defaultProject = true;
+                            }
+
+                            if (projectAssignations.Count > 0)
+                            {
+                                foreach (var projectAss in projectAssignations)
+                                {
+                                    projectAss.IsDefaultProject = false;
+                                }
+                            }
                             ProjectConsultantAssigned consultantAssignedToCreate = new()
                             {
                                 ProjectId = existingProject.ProjectId,
@@ -157,7 +176,8 @@ namespace OceansApp.DataAccess.Repository
                                 MonthlySalaryThirdParty = consultant.MonthlySalaryThirdParty,
                                 PositionDetail = consultant.PositionDetail,
                                 IsMonthlySalaryCalculatedPerHour = consultant.IsMonthlySalaryCalculatedPerHour,
-                                AccessToTrackingTool = consultant.AccessToTrackingTool
+                                AccessToTrackingTool = consultant.AccessToTrackingTool,
+                                IsDefaultProject = defaultProject
                             };
                             var createdAssignedConsultant = await _db.PROJECTS_CONSULTANTS_ASSIGNED.AddAsync(consultantAssignedToCreate);
                             await _db.SaveChangesAsync();
@@ -230,7 +250,7 @@ namespace OceansApp.DataAccess.Repository
                                     };
                                     await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyThirdParty);
                                 }
-                               
+
 
                                 await _db.SaveChangesAsync();
                             }
@@ -387,6 +407,16 @@ namespace OceansApp.DataAccess.Repository
                     historyToSaveList.Add(newHistory);
                 }
                 using var transaction = await _db.Database.BeginTransactionAsync();
+
+                if (consultantAssignationData.IsDefaultProject)
+                {
+                    var projectAssignations = await _db.PROJECTS_CONSULTANTS_ASSIGNED.Where(x => x.ConsultantId == existingConsultantAssignation.ConsultantId).ToListAsync();
+                    foreach (var projectAss in projectAssignations)
+                    {
+                        projectAss.IsDefaultProject = false;
+                    }
+                    existingConsultantAssignation.IsDefaultProject = true;
+                }
 
                 existingConsultantAssignation.PositionDetail = consultantAssignationData.PositionDetail;
                 existingConsultantAssignation.MonthlyClientRate = consultantAssignationData.MonthlyClientRate;

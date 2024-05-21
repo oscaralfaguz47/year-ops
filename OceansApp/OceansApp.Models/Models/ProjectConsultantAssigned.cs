@@ -24,6 +24,7 @@ namespace OceansApp.Models.Models
         public decimal? MonthlySalaryThirdParty { get; set; }
         public bool? IsMonthlySalaryCalculatedPerHour { get; set; }
         public bool? AccessToTrackingTool { get; set; }
+        public bool IsDefaultProject { get; set; }
         [Required]
         [MaxLength(130)]
         public string PositionDetail { get; set; }

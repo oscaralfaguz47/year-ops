@@ -74,6 +74,7 @@ async function displayAddUpdateConsultant(modalId, id) {
     resetForm('form-add-update-consultant');
     createUpdateForm.find('[name="proConsAssignedId"]').val("");
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
+    createUpdateForm.find('[name="isDefaultProject"]').prop('disabled', false);
     validateRatesInputs();
     document.getElementById('search-input-cont').style.display = 'block';
     var clientRateSection = document.getElementById("client-rate-section");
@@ -130,6 +131,10 @@ async function displayAddUpdateConsultant(modalId, id) {
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 createUpdateForm.find('[name="accessToTrackingTool"]').val(data.consultantAssignation.accessToTrackingTool);
                 createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked', data.consultantAssignation.accessToTrackingTool);
+                createUpdateForm.find('[name="isDefaultProject"]').val(data.consultantAssignation.isDefaultProject);
+                createUpdateForm.find('[name="isDefaultProject"]').prop('checked', data.consultantAssignation.isDefaultProject);
+                data.consultantAssignation.isDefaultProject ? createUpdateForm.find('[name="isDefaultProject"]').prop('disabled', true) : '';
+
                 showModal(modalId);
             })
             .finally(() => {
@@ -154,6 +159,7 @@ function addConsultantToProject(modalId) {
     var isBillableValue = document.getElementById("IsBillable").value;
     var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
     var accessToTrackingToolVal = createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked');
+    var isDefaultProjectVal = createUpdateForm.find('[name="isDefaultProject"]').prop('checked');
     var consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
     
     var modelState = true;
@@ -213,7 +219,8 @@ function addConsultantToProject(modalId) {
                 PositionDetail: positionDetailValue,
                 ActionDate: actionDateValue ? actionDateValue.toString() : null,
                 IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal),
-                AccessToTrackingTool: Boolean(accessToTrackingToolVal)
+                AccessToTrackingTool: Boolean(accessToTrackingToolVal),
+                IsDefaultProject: Boolean(isDefaultProjectVal)
             };
             fetch('/AccountManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',

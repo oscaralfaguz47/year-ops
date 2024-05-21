@@ -58,8 +58,13 @@ async function getListOfResults(firstTime, filters) {
                 }
 
                 var lastSubmissionformattedDate = 'No re-submitted';
+
                 if (obj.lastSubmissionDate !== null) {
                     lastSubmissionformattedDate = formatUtcToLocalMmDdYyyyTime(obj.lastSubmissionDate);
+                }
+                if (obj.transactionStatusName === 'Approved' && obj.submissionId === null) {
+                    lastSubmissionformattedDate = 'No Submission is needed';
+                    submissionformattedDate = 'No Submission is needed';
                 }
 
                 if (obj.transactionStatusName === 'Waiting to be approved') {

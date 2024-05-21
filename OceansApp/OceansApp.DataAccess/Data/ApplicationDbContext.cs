@@ -127,6 +127,10 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(CC => CC.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantHolidayDate>()
+                .Property(d => d.Date)
+                .HasColumnType("date")
+                .IsRequired();
 
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
@@ -163,6 +167,10 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(cc => cc.TransactionStatusId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Interview>()
+                .Property(d => d.Date)
+                .HasColumnType("date")
+                .IsRequired();
 
             //PARTNERS
             modelBuilder.Entity<Partner>()
@@ -230,6 +238,10 @@ namespace OceansApp.DataAccess.Data
                 .HasOne(a => a.Action)
                 .WithMany()
                 .HasForeignKey(a => a.ActionId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
+                .Property(d => d.ActionDate)
+                .HasColumnType("date")
                 .IsRequired();
 
             // PROJECTS USERS SELECTED
@@ -418,6 +430,10 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(cc => cc.TransactionStatusId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantReimbursedBenefit>()
+                .Property(d => d.DateToBeReimbursed)
+                .HasColumnType("date")
+                .IsRequired();
 
             // CONSULTANT PAYMENTS DEBITS AND CREDITS
             modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
@@ -457,6 +473,10 @@ namespace OceansApp.DataAccess.Data
                 .HasOne(cp => cp.ConsultantDetailUpdatedBy)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
+                .Property(d => d.ActionDateWithinFortnight)
+                .HasColumnType("date")
+                .IsRequired();
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
