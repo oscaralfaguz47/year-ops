@@ -156,7 +156,8 @@ namespace OceansApp.DataAccess.Repository
                                 MonthlySalary = consultant.MonthlySalary,
                                 MonthlySalaryThirdParty = consultant.MonthlySalaryThirdParty,
                                 PositionDetail = consultant.PositionDetail,
-                                IsMonthlySalaryCalculatedPerHour = consultant.IsMonthlySalaryCalculatedPerHour
+                                IsMonthlySalaryCalculatedPerHour = consultant.IsMonthlySalaryCalculatedPerHour,
+                                AccessToTrackingTool = consultant.AccessToTrackingTool
                             };
                             var createdAssignedConsultant = await _db.PROJECTS_CONSULTANTS_ASSIGNED.AddAsync(consultantAssignedToCreate);
                             await _db.SaveChangesAsync();
@@ -394,6 +395,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultantAssignation.HourlySalary = consultantAssignationData.HourlySalary;
                 existingConsultantAssignation.MonthlySalaryThirdParty = consultantAssignationData.MonthlySalaryThirdParty;
                 existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.IsMonthlySalaryCalculatedPerHour;
+                existingConsultantAssignation.AccessToTrackingTool = consultantAssignationData.AccessToTrackingTool;
 
                 await _db.SaveChangesAsync();
 

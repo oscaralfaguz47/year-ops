@@ -16,5 +16,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public string? StatusAction { get; set; }
         public bool? IsMonthlySalaryCalculatedPerHour { get; set; }
         public string? UserCategoryName { get; set; }
+        public bool? AccessToTrackingTool { get; set; }
     }
 }

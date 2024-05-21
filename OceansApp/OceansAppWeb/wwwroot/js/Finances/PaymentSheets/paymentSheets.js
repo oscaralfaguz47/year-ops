@@ -48,6 +48,11 @@ async function getListOfResults(firstTime, filters) {
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionformattedDate = "Not submitted yet";
+                let makePaymentBtn = '';
+                let setAsAccountsPayableBtn = '';
+                let sendPaymentDetails = '';
+                let menuBtn = '';
+
                 if (obj.submissionDate !== null) {
                     submissionformattedDate = formatUtcToLocalMmDdYyyyTime(obj.submissionDate);
                 }
@@ -61,12 +66,17 @@ async function getListOfResults(firstTime, filters) {
                     actionsBtns = `<div class="action-btns-box"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
                 }
 
-                let menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
+                if (obj.numApprovedSubmissions === obj.numProjectsIsActive) {
+                    makePaymentBtn = `<li>Make Payment</li>`;
+                    setAsAccountsPayableBtn = `<li>Set as accounts payable</li>`;
+                    sendPaymentDetails = `<li>Send payment details</li>`;
+                    menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.consultantId}">
                                <ul>
-                                 <li>Make Payment</li>
+                                 ${makePaymentBtn + setAsAccountsPayableBtn + sendPaymentDetails}
                                </ul>
                               </div>`;
+                }
 
                 if (obj.consultantName !== previousName) {
                     if (previousName !== null) {

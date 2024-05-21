@@ -128,6 +128,8 @@ async function displayAddUpdateConsultant(modalId, id) {
                 createUpdateForm.find('[name="thirdPartySalary"]').val(data.consultantAssignation.monthlySalaryThirdParty);
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').val(data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
+                createUpdateForm.find('[name="accessToTrackingTool"]').val(data.consultantAssignation.accessToTrackingTool);
+                createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked', data.consultantAssignation.accessToTrackingTool);
                 showModal(modalId);
             })
             .finally(() => {
@@ -151,6 +153,7 @@ function addConsultantToProject(modalId) {
     var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
     var isBillableValue = document.getElementById("IsBillable").value;
     var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
+    var accessToTrackingToolVal = createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked');
     var consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
     
     var modelState = true;
@@ -209,7 +212,8 @@ function addConsultantToProject(modalId) {
                 MonthlySalaryThirdParty: Number(thirdPartyConsultantSalaryValue),
                 PositionDetail: positionDetailValue,
                 ActionDate: actionDateValue ? actionDateValue.toString() : null,
-                IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal)
+                IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal),
+                AccessToTrackingTool: Boolean(accessToTrackingToolVal)
             };
             fetch('/AccountManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',

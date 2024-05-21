@@ -610,7 +610,10 @@ h2 {
         box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-
+    /* GLOBAL ICONS */
+.global-icon{
+    width: 22px;
+}
 /*FOOTER*/
 footer {
     position: fixed;

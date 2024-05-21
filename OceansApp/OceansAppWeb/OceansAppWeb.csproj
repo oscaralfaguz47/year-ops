@@ -27,8 +27,4 @@
     <ProjectReference Include="..\OceansApp.Utility\OceansApp.Utility.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\img\globalIcons\" />
-  </ItemGroup>
-
 </Project>
