@@ -336,6 +336,20 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("VARCHAR(255)");
 
             // REPORTING MY TIME SUBMISSIONS
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.StartPeriodDate, e.EndPeriodDate });
+
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.TransactionStatusId);
+
+                // Índices en fechas
+                entity.HasIndex(e => e.SubmissionDate);
+                entity.HasIndex(e => e.LastSubmissionDate);
+            });
             modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
                 .HasKey(r => new { r.SubmissionId });
             modelBuilder.Entity<ReportingMyTimeMovementSubmission>()

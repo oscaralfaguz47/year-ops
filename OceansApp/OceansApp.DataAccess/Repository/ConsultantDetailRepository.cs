@@ -291,6 +291,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             var results = await connection.QueryAsync<PaymentSheetsGetAllWithFiltersVM>("SP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters", parameters, commandType: CommandType.StoredProcedure);
+
             var totalCount = parameters.Get<int>("@TotalCount");
             var consultantsToPay = results.ToList();
 

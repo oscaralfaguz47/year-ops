@@ -384,7 +384,8 @@ namespace OceansApp.DataAccess.Repository
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
-                if (existingConsultantAssignation.HourlySalary > 0 && consultantAssignationData.HourlySalary == 0)
+                if (existingConsultantAssignation.HourlySalary > 0 && consultantAssignationData.HourlySalary == 0 
+                    && consultantAssignationData.MonthlySalary > 0)
                 {
                     var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant pricing method updated (Monthly)");
                     var newHistory = new ProjectConsultantAssignedHistory();
@@ -395,7 +396,8 @@ namespace OceansApp.DataAccess.Repository
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
-                if (existingConsultantAssignation.MonthlySalary > 0 && consultantAssignationData.MonthlySalary == 0)
+                if (existingConsultantAssignation.MonthlySalary > 0 && consultantAssignationData.MonthlySalary == 0 
+                    && consultantAssignationData.HourlySalary > 0)
                 {
                     var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant pricing method updated (Hourly)");
                     var newHistory = new ProjectConsultantAssignedHistory();
