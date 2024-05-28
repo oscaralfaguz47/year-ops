@@ -3,7 +3,7 @@ name: Deploy ASP.NET Core App to Azure
 on:
   push:
     branches:
-      - demo  # Cambia 'demo' si tu rama tiene otro nombre
+      - demo  
 
 jobs:
   build:
@@ -21,16 +21,16 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.x'  # Asegúrate de usar la versión correcta de .NET
+          dotnet-version: '8.x'  
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore src/OceansApp.sln  # Solution file path
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build src/OceansApp.sln --configuration Release --no-restore  # Solution file path
 
       - name: Publish
-        run: dotnet publish --configuration Release --no-build --output ./output
+        run: dotnet publish src/OceansApp.sln --configuration Release --no-build --output ./output  # Solution file path
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
