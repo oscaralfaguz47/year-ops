@@ -3,22 +3,25 @@ name: Deploy ASP.NET Core App to Azure
 on:
   push:
     branches:
-      - demo  
+      - demo 
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3  
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Especificar Node.js 20
+          node-version: '20'
+
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3  
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.x'  
+          dotnet-version: '8.x' 
 
       - name: Restore dependencies
         run: dotnet restore
