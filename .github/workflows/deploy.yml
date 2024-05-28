@@ -1,0 +1,40 @@
+name: Deploy ASP.NET Core App to Azure
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'  
+
+      - name: Restore dependencies
+        run: dotnet restore OceansApp/OceansApp.sln  # Solution file path
+
+      - name: Build
+        run: dotnet build OceansApp/OceansApp.sln --configuration Release --no-restore  # Solution file path
+
+      - name: Publish
+        run: dotnet publish OceansApp/OceansApp.sln --configuration Release --no-build --output ./output  # Solution file path
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'OceansApp'  # Azure App Service Name
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PRODUCTION }}
+          package: ./output
