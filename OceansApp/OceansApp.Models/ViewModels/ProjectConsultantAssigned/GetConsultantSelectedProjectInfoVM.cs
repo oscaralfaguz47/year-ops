@@ -10,5 +10,7 @@
         public string SuccessManagerEmail { get; set; }
         public bool ParticipatesInOnCalls { get; set; }
         public int? PartnerId { get; set; }
+        public bool AccessToTrackingTool { get; set; }
+        public int NumAssignedProjects { get; set; }
     }
 }

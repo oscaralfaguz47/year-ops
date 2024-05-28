@@ -41,6 +41,9 @@ const errorMessageBox = document.getElementById('error-message-rep-time');
 const contentBox = document.getElementById('content-box');
 const noProjectsBox = document.getElementById('no-projects-box');
 
+const dropdownSelect = document.querySelector('.dropdown-selected');
+const projectNamelabelSelect = document.getElementById('project-name');
+
 async function getProjectInfo() {
     loadingBox.style.display = 'flex';
     errorMessageBox.style.display = 'none';
@@ -48,7 +51,24 @@ async function getProjectInfo() {
     try {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
-        if (projectInfo !== null) {
+        console.log(projectInfo);
+        if (!projectInfo.accessToTrackingTool) {
+            noProjectsBox.style.display = 'block';
+            noProjectsBox.innerHTML = `<div>
+            <div class="background-cont">
+                <div><i>Non reportable project</i></div>
+                <p><strong>You are part of the <span>"${projectInfo.projectName}"</span> project, but you are not allowed to report any time here.</strong></p>
+                <p><strong>Please contact the administrator if you need to report any time.</strong></p>
+            </div>
+        </div>`;
+        }
+        if (projectInfo.numAssignedProjects > 1) {
+            dropdownSelect.innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
+            projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
+            header.style.display = 'flex';
+        }
+        if (projectInfo !== null && projectInfo.accessToTrackingTool) {
+            noProjectsBox.style.display = 'none';
             document.getElementById('projectId').value = projectInfo.projectId;
             document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
             clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
@@ -58,18 +78,23 @@ async function getProjectInfo() {
             document.getElementById('payment-period-container').innerHTML = `<span>Your payment period is <strong>${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}.</strong></span>`;
             let currentDateNoChange = new Date();
             calculatePeriod(currentDateNoChange, paymentPeriod);
-            document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
-            document.getElementById('project-name').innerHTML = `${projectInfo.projectName}`;
             document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
             <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
             ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
             header.style.display = 'flex';
             loadingBox.style.display = 'none';
             contentBox.style.display = 'block';
-        } else {
+        } else if (projectInfo === null) {
             noProjectsBox.style.display = 'block';
-            loadingBox.style.display = 'none';
+            noProjectsBox.innerHTML = `<div>
+            <div class="background-cont">
+                <div><i>Wow!</i></div>
+                <p><strong>Looks like you do not have assigned projects yet.</strong></p>
+                <p><strong>Please contact the administrator to assign you a project</strong></p>
+            </div>
+        </div>`;
         }
+        loadingBox.style.display = 'none';
     } catch (error) {
         validateSessionExpiration(error.message);
         console.error("Error filling the projects dropdown:", error.message);
