@@ -24,13 +24,13 @@ jobs:
           dotnet-version: '8.x'  
 
       - name: Restore dependencies
-        run: dotnet restore src/OceansApp.sln  # Solution file path
+        run: dotnet restore src/OceansAppWeb/OceansApp.sln  # Solution file path
 
       - name: Build
-        run: dotnet build src/OceansApp.sln --configuration Release --no-restore  # Solution file path
+        run: dotnet build src/OceansAppWeb/OceansApp.sln --configuration Release --no-restore  # Solution file path
 
       - name: Publish
-        run: dotnet publish src/OceansApp.sln --configuration Release --no-build --output ./output  # Solution file path
+        run: dotnet publish src/OceansAppWeb/OceansApp.sln --configuration Release --no-build --output ./output  # Solution file path
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
