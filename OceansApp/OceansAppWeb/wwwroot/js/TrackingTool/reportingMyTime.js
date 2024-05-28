@@ -62,7 +62,7 @@ async function getProjectInfo() {
             </div>
         </div>`;
         }
-        if (projectInfo.numAssignedProjects > 1) {
+        if (projectInfo.numAssignedProjects > 1 || projectInfo.accessToTrackingTool) {
             dropdownSelect.innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
             projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
             header.style.display = 'flex';
