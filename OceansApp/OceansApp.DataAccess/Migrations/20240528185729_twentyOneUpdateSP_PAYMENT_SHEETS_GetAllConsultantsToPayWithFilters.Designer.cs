@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240528185729_twentyOneUpdateSP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters")]
+    partial class twentyOneUpdateSP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -89,7 +92,7 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(21)");
 
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
@@ -110,7 +113,7 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -550,30 +553,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ClientId");
 
-                    b.HasIndex("AllowSentLatePaymentNotifications");
-
-                    b.HasIndex("ClientCategory");
-
-                    b.HasIndex("ClientClass");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("Contact");
-
-                    b.HasIndex("ContactOccupation");
-
-                    b.HasIndex("Discount");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("LatePaymentFee");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("PaymentCondition");
-
-                    b.HasIndex("SuccessManager");
-
                     b.ToTable("CLIENT");
                 });
 
@@ -622,16 +601,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("BenefitId");
 
-                    b.HasIndex("Amount");
-
-                    b.HasIndex("BenefitPeriod");
-
-                    b.HasIndex("EndDate");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("StartDate");
-
                     b.ToTable("CONSULTANT_BENEFITS");
                 });
 
@@ -654,8 +623,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("BenefitCategoryId");
 
                     b.HasIndex("BenefitId");
-
-                    b.HasIndex("Name");
 
                     b.ToTable("CONSULTANT_BENEFIT_CATEGORIES");
                 });
@@ -688,8 +655,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("BenefitId");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CostCenterId");
 
                     b.ToTable("CONSULTANT_BENEFIT_COMPANIES");
@@ -704,7 +669,7 @@ namespace OceansApp.DataAccess.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantId"));
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CompanyId")
                         .HasMaxLength(8)
@@ -765,33 +730,19 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ConsultantId");
 
-                    b.HasIndex("Address");
-
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("ConsultantHolidayId");
 
                     b.HasIndex("IdCountry");
 
-                    b.HasIndex("ParticipatesInOnCalls");
-
                     b.HasIndex("PartnerId");
 
                     b.HasIndex("PaymentMethodId");
-
-                    b.HasIndex("PaymentPeriod");
-
-                    b.HasIndex("PersonalEmail");
-
-                    b.HasIndex("Phone2");
 
                     b.HasIndex("UserCreatedBy");
 
                     b.HasIndex("UserId");
 
                     b.HasIndex("UserLastUpdatedBy");
-
-                    b.HasIndex("UserId", "ConsultantId");
 
                     b.ToTable("CONSULTANT_DETAILS");
                 });
@@ -823,10 +774,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("ConsultantHolidayId");
 
                     b.HasIndex("CreatedBy");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("Year");
 
                     b.ToTable("CONSULTANT_HOLIDAYS");
                 });
@@ -870,10 +817,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantHolidayId");
 
                     b.HasIndex("CreatedBy");
-
-                    b.HasIndex("Date");
-
-                    b.HasIndex("Name");
 
                     b.HasIndex("UpdatedBy");
 
@@ -932,8 +875,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("AccountingAccountId");
 
-                    b.HasIndex("Amount");
-
                     b.HasIndex("ConsultantId");
 
                     b.HasIndex("ConsultantIdCreatedBy");
@@ -941,8 +882,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantIdLastUpdatedBy");
 
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("Quantity");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1034,8 +973,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ReimbursedBenefitId");
 
-                    b.HasIndex("AmountReimbursed");
-
                     b.HasIndex("BenefitCategoryId");
 
                     b.HasIndex("BenefitId");
@@ -1045,8 +982,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantIdCreatedBy");
 
                     b.HasIndex("ConsultantIdLastUpdatedBy");
-
-                    b.HasIndex("DateToBeReimbursed");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1197,11 +1132,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("AccountingAccountId");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("Status");
 
                     b.ToTable("COSTS_CENTERS_ACCOUNTING_ACCOUNTS");
                 });
@@ -1312,10 +1243,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("DocumentType", "DocumentDate", "CompanyId", "ClientId");
-
                     b.ToTable("DOCUMENTS_CC");
                 });
 
@@ -1374,10 +1301,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ConsultantIdLastUpdatedBy");
 
-                    b.HasIndex("Date");
-
-                    b.HasIndex("DurationMinutes");
-
                     b.HasIndex("TransactionStatusId");
 
                     b.ToTable("INTERVIEWS");
@@ -1433,15 +1356,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("AccountingAccountId");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("Date");
-
-                    b.HasIndex("LocalCredit");
-
-                    b.HasIndex("LocalDebit");
 
                     b.ToTable("LEDGER_MOVEMENT");
                 });
@@ -1720,21 +1635,13 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ProjectId");
 
-                    b.HasIndex("ClientHasTrackingTool");
-
                     b.HasIndex("ClientId");
 
                     b.HasIndex("CreatedBy");
 
-                    b.HasIndex("IsBillable");
-
-                    b.HasIndex("Name");
-
                     b.HasIndex("SuccessManagerId");
 
                     b.HasIndex("UpdatedBy");
-
-                    b.HasIndex("IsActive", "ClientId", "SuccessManagerId", "StartDate", "Name");
 
                     b.ToTable("PROJECTS");
                 });
@@ -1790,19 +1697,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ProjectConsultantAssignedId");
 
-                    b.HasIndex("AccessToTrackingTool");
-
                     b.HasIndex("ConsultantId");
 
-                    b.HasIndex("IsDefaultProject");
-
-                    b.HasIndex("IsMonthlySalaryCalculatedPerHour");
-
-                    b.HasIndex("MonthlySalaryThirdParty");
-
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("ConsultantId", "ProjectId", "HourlySalary", "MonthlySalary");
 
                     b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED");
                 });
@@ -1848,13 +1745,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ActionId");
 
-                    b.HasIndex("NewValue");
-
                     b.HasIndex("ProjectConsultantAssignedId");
 
                     b.HasIndex("UserActionedBy");
-
-                    b.HasIndex("ProjectConsultantAssignedId", "ActionId", "ActionDate");
 
                     b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY");
                 });
@@ -1873,8 +1766,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("ActionId");
-
-                    b.HasIndex("Name");
 
                     b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS");
                 });
@@ -2187,15 +2078,11 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("MovementId");
 
-                    b.HasIndex("ActionDate");
-
                     b.HasIndex("ConsultantId");
 
                     b.HasIndex("MovementTypeId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("Quantity");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -2279,19 +2166,13 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ConsultantId");
 
-                    b.HasIndex("EndPeriodDate");
-
                     b.HasIndex("LastSubmissionDate");
 
                     b.HasIndex("ProjectId");
 
-                    b.HasIndex("StartPeriodDate");
-
                     b.HasIndex("SubmissionDate");
 
                     b.HasIndex("TransactionStatusId");
-
-                    b.HasIndex("TransactionStatusId", "StartPeriodDate", "EndPeriodDate");
 
                     b.HasIndex("ConsultantId", "ProjectId", "StartPeriodDate", "EndPeriodDate");
 
@@ -2426,11 +2307,11 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Occupation")
                         .HasMaxLength(100)
@@ -2446,27 +2327,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("UserCategoryId")
                         .HasColumnType("int");
 
-                    b.HasIndex("DeactivationDate");
-
-                    b.HasIndex("Email");
-
-                    b.HasIndex("EmailConfirmed");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("LockoutEnabled");
-
-                    b.HasIndex("LockoutEnd");
-
-                    b.HasIndex("Occupation");
-
-                    b.HasIndex("PhoneNumber");
-
-                    b.HasIndex("TwoFactorEnabled");
-
                     b.HasIndex("UserCategoryId");
-
-                    b.HasIndex("Id", "Name", "LastName");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });

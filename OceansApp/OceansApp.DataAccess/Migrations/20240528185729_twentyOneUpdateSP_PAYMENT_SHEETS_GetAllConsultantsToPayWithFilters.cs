@@ -5,7 +5,7 @@
 namespace OceansApp.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class twentyUpdateSP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters : Migration
+    public partial class twentyOneUpdateSP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -99,6 +99,7 @@ namespace OceansApp.DataAccess.Migrations
                                 'Consultant pricing method updated (Monthly)', 
                                 'Consultant pricing method updated (Hourly)'
                             )
+                            AND PCAH.ActionDate <= @EndDate
                         )
                     )
                     -- 2. Handle cases with 'Consultant pricing method updated (Monthly)' or 'Consultant pricing method updated (Hourly)'
@@ -154,31 +155,33 @@ namespace OceansApp.DataAccess.Migrations
                     )
                     -- 3. Handle cases with only 'Hourly Salary updated' and 'Monthly Salary updated' without 'Consultant pricing method updated'
                     AND (
-                        NOT EXISTS (
-                            SELECT 1
-                            FROM (
-                                SELECT 
-                                    HA.Name,
-                                    PCAH.NewValue,
-                                    ROW_NUMBER() OVER (ORDER BY PCAH.ActionDate DESC, PCAH.Id DESC) AS rn
-                                FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH
-                                INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA ON PCAH.ActionId = HA.ActionId
-                                WHERE PCAH.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM (
+                            SELECT 
+                                HA.Name,
+                                PCAH.NewValue,
+                                ROW_NUMBER() OVER (ORDER BY PCAH.ActionDate DESC, PCAH.Id DESC) AS rn
+                            FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH
+                            INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA ON PCAH.ActionId = HA.ActionId
+                            WHERE PCAH.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
+                            AND PCAH.ActionDate <= @EndDate
+                            AND HA.Name IN ('Hourly Salary updated', 'Monthly Salary updated')
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH2
+                                INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA2 ON PCAH2.ActionId = HA2.ActionId
+                                WHERE PCAH2.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
+                                AND HA2.Name IN ('Consultant pricing method updated (Monthly)', 'Consultant pricing method updated (Hourly)')
                                 AND PCAH.ActionDate <= @EndDate
-                                AND HA.Name IN ('Hourly Salary updated', 'Monthly Salary updated')
-                                AND NOT EXISTS (
-                                    SELECT 1
-                                    FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH2
-                                    INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA2 ON PCAH2.ActionId = HA2.ActionId
-                                    WHERE PCAH2.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
-                                    AND HA2.Name IN ('Consultant pricing method updated (Monthly)', 'Consultant pricing method updated (Hourly)')
-                                )
-                            ) SubQuery
-                            WHERE SubQuery.rn = 1
-                            AND SubQuery.NewValue = 0
-                        )
+                            )
+                        ) SubQuery
+                        WHERE SubQuery.rn = 1
+                        AND SubQuery.NewValue = 0
                     )
-            ),
+                )
+            )
+            ,
             
             -- Calculate the number of approved submissions for each consultant
             NumApprovedSubmissionsConsistent AS (
@@ -704,9 +707,7 @@ namespace OceansApp.DataAccess.Migrations
                             AND SubQuery.NewValue = 0
                         )
                     )
-            )
-            
-            ,
+            ),
             
             -- Calculate the number of approved submissions for each consultant
             NumApprovedSubmissionsConsistent AS (
@@ -872,6 +873,7 @@ namespace OceansApp.DataAccess.Migrations
                                 'Consultant pricing method updated (Monthly)', 
                                 'Consultant pricing method updated (Hourly)'
                             )
+                            AND PCAH.ActionDate <= @EndDate
                         )
                     )
                     -- 2. Handle cases with 'Consultant pricing method updated (Monthly)' or 'Consultant pricing method updated (Hourly)'
@@ -927,32 +929,32 @@ namespace OceansApp.DataAccess.Migrations
                     )
                     -- 3. Handle cases with only 'Hourly Salary updated' and 'Monthly Salary updated' without 'Consultant pricing method updated'
                     AND (
-                        NOT EXISTS (
-                            SELECT 1
-                            FROM (
-                                SELECT 
-                                    HA.Name,
-                                    PCAH.NewValue,
-                                    ROW_NUMBER() OVER (ORDER BY PCAH.ActionDate DESC, PCAH.Id DESC) AS rn
-                                FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH
-                                INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA ON PCAH.ActionId = HA.ActionId
-                                WHERE PCAH.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM (
+                            SELECT 
+                                HA.Name,
+                                PCAH.NewValue,
+                                ROW_NUMBER() OVER (ORDER BY PCAH.ActionDate DESC, PCAH.Id DESC) AS rn
+                            FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH
+                            INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA ON PCAH.ActionId = HA.ActionId
+                            WHERE PCAH.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
+                            AND PCAH.ActionDate <= @EndDate
+                            AND HA.Name IN ('Hourly Salary updated', 'Monthly Salary updated')
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH2
+                                INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA2 ON PCAH2.ActionId = HA2.ActionId
+                                WHERE PCAH2.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
+                                AND HA2.Name IN ('Consultant pricing method updated (Monthly)', 'Consultant pricing method updated (Hourly)')
                                 AND PCAH.ActionDate <= @EndDate
-                                AND HA.Name IN ('Hourly Salary updated', 'Monthly Salary updated')
-                                AND NOT EXISTS (
-                                    SELECT 1
-                                    FROM PROJECTS_CONSULTANTS_ASSIGNED_HISTORY PCAH2
-                                    INNER JOIN PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS HA2 ON PCAH2.ActionId = HA2.ActionId
-                                    WHERE PCAH2.ProjectConsultantAssignedId = PCA.ProjectConsultantAssignedId
-                                    AND HA2.Name IN ('Consultant pricing method updated (Monthly)', 'Consultant pricing method updated (Hourly)')
-                                )
-                            ) SubQuery
-                            WHERE SubQuery.rn = 1
-                            AND SubQuery.NewValue = 0
-                        )
+                            )
+                        ) SubQuery
+                        WHERE SubQuery.rn = 1
+                        AND SubQuery.NewValue = 0
                     )
+                )
             )
-            
             ,
             
             -- Calculate the number of approved submissions for each consultant

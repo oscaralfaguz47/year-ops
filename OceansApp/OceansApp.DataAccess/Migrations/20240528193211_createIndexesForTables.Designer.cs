@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240528193211_createIndexesForTables")]
+    partial class createIndexesForTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -550,30 +553,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ClientId");
 
-                    b.HasIndex("AllowSentLatePaymentNotifications");
-
-                    b.HasIndex("ClientCategory");
-
-                    b.HasIndex("ClientClass");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("Contact");
-
-                    b.HasIndex("ContactOccupation");
-
-                    b.HasIndex("Discount");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("LatePaymentFee");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("PaymentCondition");
-
-                    b.HasIndex("SuccessManager");
-
                     b.ToTable("CLIENT");
                 });
 
@@ -622,16 +601,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("BenefitId");
 
-                    b.HasIndex("Amount");
-
-                    b.HasIndex("BenefitPeriod");
-
-                    b.HasIndex("EndDate");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("StartDate");
-
                     b.ToTable("CONSULTANT_BENEFITS");
                 });
 
@@ -654,8 +623,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("BenefitCategoryId");
 
                     b.HasIndex("BenefitId");
-
-                    b.HasIndex("Name");
 
                     b.ToTable("CONSULTANT_BENEFIT_CATEGORIES");
                 });
@@ -687,8 +654,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("AccountingAccountId");
 
                     b.HasIndex("BenefitId");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CostCenterId");
 
@@ -824,10 +789,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.HasIndex("Name");
-
-                    b.HasIndex("Year");
-
                     b.ToTable("CONSULTANT_HOLIDAYS");
                 });
 
@@ -870,10 +831,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantHolidayId");
 
                     b.HasIndex("CreatedBy");
-
-                    b.HasIndex("Date");
-
-                    b.HasIndex("Name");
 
                     b.HasIndex("UpdatedBy");
 
@@ -932,8 +889,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("AccountingAccountId");
 
-                    b.HasIndex("Amount");
-
                     b.HasIndex("ConsultantId");
 
                     b.HasIndex("ConsultantIdCreatedBy");
@@ -941,8 +896,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantIdLastUpdatedBy");
 
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("Quantity");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1034,8 +987,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ReimbursedBenefitId");
 
-                    b.HasIndex("AmountReimbursed");
-
                     b.HasIndex("BenefitCategoryId");
 
                     b.HasIndex("BenefitId");
@@ -1045,8 +996,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantIdCreatedBy");
 
                     b.HasIndex("ConsultantIdLastUpdatedBy");
-
-                    b.HasIndex("DateToBeReimbursed");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1197,11 +1146,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("AccountingAccountId");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("Status");
 
                     b.ToTable("COSTS_CENTERS_ACCOUNTING_ACCOUNTS");
                 });
@@ -1312,10 +1257,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("DocumentType", "DocumentDate", "CompanyId", "ClientId");
-
                     b.ToTable("DOCUMENTS_CC");
                 });
 
@@ -1374,10 +1315,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ConsultantIdLastUpdatedBy");
 
-                    b.HasIndex("Date");
-
-                    b.HasIndex("DurationMinutes");
-
                     b.HasIndex("TransactionStatusId");
 
                     b.ToTable("INTERVIEWS");
@@ -1433,15 +1370,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("AccountingAccountId");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("Date");
-
-                    b.HasIndex("LocalCredit");
-
-                    b.HasIndex("LocalDebit");
 
                     b.ToTable("LEDGER_MOVEMENT");
                 });
@@ -1720,21 +1649,13 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("ProjectId");
 
-                    b.HasIndex("ClientHasTrackingTool");
-
                     b.HasIndex("ClientId");
 
                     b.HasIndex("CreatedBy");
 
-                    b.HasIndex("IsBillable");
-
-                    b.HasIndex("Name");
-
                     b.HasIndex("SuccessManagerId");
 
                     b.HasIndex("UpdatedBy");
-
-                    b.HasIndex("IsActive", "ClientId", "SuccessManagerId", "StartDate", "Name");
 
                     b.ToTable("PROJECTS");
                 });
@@ -2187,15 +2108,11 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("MovementId");
 
-                    b.HasIndex("ActionDate");
-
                     b.HasIndex("ConsultantId");
 
                     b.HasIndex("MovementTypeId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("Quantity");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -2279,13 +2196,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ConsultantId");
 
-                    b.HasIndex("EndPeriodDate");
-
                     b.HasIndex("LastSubmissionDate");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("StartPeriodDate");
 
                     b.HasIndex("SubmissionDate");
 

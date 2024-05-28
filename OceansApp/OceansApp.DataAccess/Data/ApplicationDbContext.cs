@@ -17,6 +17,28 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<IdentityUser>()
                 .ToTable("Users")
                 .HasKey(u => u.Id);
+
+            // APPLICATION USER
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.Id, e.Name, e.LastName });
+
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.UserCategoryId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.Occupation);
+                entity.HasIndex(e => e.DeactivationDate);
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.Email);
+                entity.HasIndex(e => e.EmailConfirmed);
+                entity.HasIndex(e => e.PhoneNumber);
+                entity.HasIndex(e => e.TwoFactorEnabled);
+                entity.HasIndex(e => e.LockoutEnd);
+                entity.HasIndex(e => e.LockoutEnabled);
+
+            });
             modelBuilder.Entity<ApplicationUser>()
                .HasOne(a => a.ApplicationUserCategory)
                .WithMany()
@@ -52,6 +74,13 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             //COST CENTER ACCOUNTING ACCOUNT
+            modelBuilder.Entity<CostCenterAccountingAccount>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.Status);
+            });
             modelBuilder.Entity<CostCenterAccountingAccount>()
                 .HasKey(ca => new { ca.CostCenterAccountingAccountId });
             modelBuilder.Entity<CostCenterAccountingAccount>()
@@ -66,6 +95,29 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             //CONSULTANT_DETAIL TABLE
+            modelBuilder.Entity<ConsultantDetail>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.UserId, e.ConsultantId});
+
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.IdCountry);
+                entity.HasIndex(e => e.UserCreatedBy);
+                entity.HasIndex(e => e.UserLastUpdatedBy);
+                entity.HasIndex(e => e.PaymentMethodId);
+                entity.HasIndex(e => e.PartnerId);
+                entity.HasIndex(e => e.ConsultantHolidayId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.Phone2);
+                entity.HasIndex(e => e.Address);
+                entity.HasIndex(e => e.PersonalEmail);
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.PaymentPeriod);
+                entity.HasIndex(e => e.ParticipatesInOnCalls);
+
+            });
             modelBuilder.Entity<ConsultantDetail>()
                 .HasKey(rq => new { rq.ConsultantId });
             modelBuilder.Entity<ConsultantDetail>()
@@ -102,13 +154,28 @@ namespace OceansApp.DataAccess.Data
         .Ignore(c => c.ProjectsConsultantsAssigned)
         .Ignore(c => c.ReportingMyTimeMovements);
 
-
+            //  CONSULTANT HOLIDAY
+            modelBuilder.Entity<ConsultantHoliday>(entity =>
+            {
+                entity.HasIndex(e => e.Year);
+                entity.HasIndex(e => e.CreatedBy);
+                entity.HasIndex(e => e.Name);
+            });
             modelBuilder.Entity<ConsultantHoliday>()
                 .HasOne(cc => cc.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(CC => CC.CreatedBy)
                 .IsRequired();
 
+            // HOLIDAY DATE
+            modelBuilder.Entity<ConsultantHolidayDate>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantHolidayId);
+                entity.HasIndex(e => e.Date);
+                entity.HasIndex(e => e.CreatedBy);
+                entity.HasIndex(e => e.UpdatedBy);
+                entity.HasIndex(e => e.Name);
+            });
             modelBuilder.Entity<ConsultantHolidayDate>()
                 .HasOne(cc => cc.ConsultantHoliday)
                 .WithMany()
@@ -135,6 +202,34 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<DocumentsCCNotification>()
                .HasKey(d => new { d.DocumentCCId, d.NotificationId });
 
+            // DOCUMENT CC
+            modelBuilder.Entity<DocumentCC>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.DocumentType, e.DocumentDate, e.CompanyId, e.ClientId });
+
+                entity.HasIndex(e => e.ClientId);
+                entity.HasIndex(e => e.CompanyId);
+            });
+
+            // CLIENT
+            modelBuilder.Entity<Client>(entity =>
+            {
+                // Indexes for columns
+                entity.HasIndex(e => e.Name);
+                entity.HasIndex(e => e.Contact);
+                entity.HasIndex(e => e.ContactOccupation);
+                entity.HasIndex(e => e.PaymentCondition);
+                entity.HasIndex(e => e.Discount);
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.ClientCategory);
+                entity.HasIndex(e => e.ClientClass);
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.LatePaymentFee);
+                entity.HasIndex(e => e.AllowSentLatePaymentNotifications);
+                entity.HasIndex(e => e.SuccessManager);
+
+            });
             modelBuilder.Entity<Client>()
                 .Property(p => p.LatePaymentFee)
                 .HasColumnType("decimal(18, 4)");
@@ -144,6 +239,15 @@ namespace OceansApp.DataAccess.Data
                 .HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
 
             // INTERVIEWS
+            modelBuilder.Entity<Interview>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.ConsultantIdCreatedBy);
+                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.DurationMinutes);
+                entity.HasIndex(e => e.Date);
+            });
             modelBuilder.Entity<Interview>()
                 .HasKey(c => new { c.InterviewId });
             modelBuilder.Entity<Interview>()
@@ -171,7 +275,16 @@ namespace OceansApp.DataAccess.Data
                 .Property(d => d.Date)
                 .HasColumnType("date")
                 .IsRequired();
-
+            // LEDGER MOVEMENT
+            modelBuilder.Entity<LedgerMovement>(entity =>
+            {
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.Date);
+                entity.HasIndex(e => e.LocalDebit);
+                entity.HasIndex(e => e.LocalCredit);
+            });
             //PARTNERS
             modelBuilder.Entity<Partner>()
                 .HasKey(x => new { x.PartnerId });
@@ -183,6 +296,19 @@ namespace OceansApp.DataAccess.Data
 
 
             //PROJECTS
+            modelBuilder.Entity<Project>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.IsActive, e.ClientId, e.SuccessManagerId, e.StartDate, e.Name});
+
+                entity.HasIndex(e => e.CreatedBy);
+                entity.HasIndex(e => e.UpdatedBy);
+                entity.HasIndex(e => e.ClientId);
+                entity.HasIndex(e => e.SuccessManagerId);
+                entity.HasIndex(e => e.ClientHasTrackingTool);
+                entity.HasIndex(e => e.IsBillable);
+                entity.HasIndex(e => e.Name);
+            });
             modelBuilder.Entity<Project>()
                 .HasKey(p => new { p.ProjectId });
             modelBuilder.Entity<Project>()
@@ -207,6 +333,21 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(p => p.SuccessManagerId)
                 .IsRequired();
             // PROJECTS CONSULTANTS ASSIGNED
+            modelBuilder.Entity<ProjectConsultantAssigned>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.HourlySalary, e.MonthlySalary });
+
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.ConsultantId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.IsMonthlySalaryCalculatedPerHour);
+                entity.HasIndex(e => e.MonthlySalaryThirdParty);
+                entity.HasIndex(e => e.AccessToTrackingTool);
+                entity.HasIndex(e => e.IsDefaultProject);
+            });
             modelBuilder.Entity<ProjectConsultantAssigned>()
                 .HasKey(p => new { p.ProjectConsultantAssignedId });
             modelBuilder.Entity<ProjectConsultantAssigned>()
@@ -222,6 +363,19 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
             // PROJECTS CONSULTANTS ASSIGNED HISTORY
+            modelBuilder.Entity<ProjectConsultantAssignedHistory>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionId, e.ActionDate});
+
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ProjectConsultantAssignedId);
+                entity.HasIndex(e => e.UserActionedBy);
+                entity.HasIndex(e => e.ActionId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.NewValue);
+            });
             modelBuilder.Entity<ProjectConsultantAssignedHistory>()
                 .HasKey(p => new { p.Id });
             modelBuilder.Entity<ProjectConsultantAssignedHistory>()
@@ -243,6 +397,13 @@ namespace OceansApp.DataAccess.Data
                 .Property(d => d.ActionDate)
                 .HasColumnType("date")
                 .IsRequired();
+
+            // PROJECTS CONSULTANTS ASSIGNED HISTORY ACTIONS
+            modelBuilder.Entity<ProjectConsultantAssignedHistoryAction>(entity =>
+            {
+                // Indexes for columns
+                entity.HasIndex(e => e.Name);
+            });
 
             // PROJECTS USERS SELECTED
             modelBuilder.Entity<ProjectUserSelected>()
@@ -287,6 +448,15 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             // REPORTING MY TIME MOVEMENTS
+            modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
+            {
+                entity.HasIndex(e => e.ActionDate);
+                entity.HasIndex(e => e.Quantity);
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.MovementTypeId);
+            });
             modelBuilder.Entity<ReportingMyTimeMovement>()
                 .HasKey(r => new { r.MovementId });
             modelBuilder.Entity<ReportingMyTimeMovement>()
@@ -338,8 +508,19 @@ namespace OceansApp.DataAccess.Data
             // REPORTING MY TIME SUBMISSIONS
             modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
             {
+                entity.HasIndex(e => e.SubmissionDate);
+                entity.HasIndex(e => e.LastSubmissionDate);
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.StartPeriodDate);
+                entity.HasIndex(e => e.EndPeriodDate);
+                entity.HasIndex(e => e.TransactionStatusId);
+            });
+            modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
+            {
                 // Composite index
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.StartPeriodDate, e.EndPeriodDate });
+                entity.HasIndex(e => new { e.TransactionStatusId, e.StartPeriodDate, e.EndPeriodDate });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.ProjectId);
@@ -377,10 +558,30 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             // CONSULTANTS BENEFITS
+            // REPORTING MY TIME SUBMISSIONS
+            modelBuilder.Entity<ConsultantBenefit>(entity =>
+            {
+                // Índices en fechas
+                entity.HasIndex(e => e.Name);
+                entity.HasIndex(e => e.Amount);
+                entity.HasIndex(e => e.BenefitPeriod);
+                entity.HasIndex(e => e.StartDate);
+                entity.HasIndex(e => e.EndDate);
+            });
             modelBuilder.Entity<ConsultantBenefit>()
                 .HasKey(c => new { c.BenefitId });
 
             // CONSULTANTS BENEFITS COMPANIES
+            modelBuilder.Entity<ConsultantBenefitCompany>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.BenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.CompanyId);
+            });
             modelBuilder.Entity<ConsultantBenefitCompany>()
                 .HasKey(c => new { c.ConsultantaBenefitCompanyId });
             modelBuilder.Entity<ConsultantBenefitCompany>()
@@ -400,6 +601,14 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             // CONSULTANTS BENEFITS CATEGORIES
+            modelBuilder.Entity<ConsultantBenefitCategory>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.BenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.Name);
+            });
             modelBuilder.Entity<ConsultantBenefitCategory>()
                 .HasKey(c => new { c.BenefitCategoryId });
             modelBuilder.Entity<ConsultantBenefitCategory>()
@@ -409,6 +618,17 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             // CONSULTANTS REIMBURSED BENEFITS
+            modelBuilder.Entity<ConsultantReimbursedBenefit>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.BenefitId);
+                entity.HasIndex(e => e.AmountReimbursed);
+                entity.HasIndex(e => e.DateToBeReimbursed);
+                entity.HasIndex(e => e.ConsultantIdCreatedBy);
+                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
+                entity.HasIndex(e => e.BenefitCategoryId);
+                entity.HasIndex(e => e.TransactionStatusId);
+            });
             modelBuilder.Entity<ConsultantReimbursedBenefit>()
                 .HasKey(c => new { c.ReimbursedBenefitId });
             modelBuilder.Entity<ConsultantReimbursedBenefit>()
@@ -450,6 +670,18 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
 
             // CONSULTANT PAYMENTS DEBITS AND CREDITS
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.TransactionTypeId);
+                entity.HasIndex(e => e.ConsultantIdCreatedBy);
+                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
+                entity.HasIndex(e => e.Quantity);
+                entity.HasIndex(e => e.Amount);
+            });
             modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
                 .HasKey(c => new { c.ConsultantPaymentDebitsCreditsId });
             modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
