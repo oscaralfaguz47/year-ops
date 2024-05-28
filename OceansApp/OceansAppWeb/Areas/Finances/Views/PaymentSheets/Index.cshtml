@@ -1,0 +1,83 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Finances/PaymentSheets/paymentSheets.css" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css" />
+<link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
+
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+            <div class="header-page">
+                <h2>PAYMENT SHEETS</h2>
+            </div>
+            <partial name="_Pagination" />
+        </div>
+    </div>
+    <div class="global-table-container">
+        <div class="table-header-actions">
+            <input type="hidden" id="dateToInput" />
+            <input type="hidden" id="dateFromInput" />
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
+            <div class="payment-period-sel">
+                <select onchange="changePaymentPeriod()" id="paymentPeriod" class="form-select">
+                    <option selected value="1">Biweekly Consultants</option>
+                    <option value="2">Monthly Consultants</option>
+                </select>
+            </div>
+            <div class="navigation-container">
+                <div class="navegation-box">
+                    <button class="btn-arrow" onclick="handleButtonClick(this, 'left')">< Previous</button>
+                    <label id="previous-date"></label> - <label id="next-date"></label>
+                    <button class="btn-arrow" onclick="handleButtonClick(this, 'right')">Next ></button>
+                </div>
+            </div>
+            <button class="refresh-btn" onclick="getListOfResults(false, true)"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
+        </div>
+        <table id="payment-sheets-table" style="display:none">
+            <thead>
+                <tr>
+                    <th onclick="orderByTableList('ConsultantName', 'ConsultantNameTableHeader', 'sortArrowConsultantName')" data-sort="ANY" name="ConsultantNameTableHeader" class="sortable-col">
+                        Consultant Name
+                        <span class="sort-arrow" id="sortArrowConsultantName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('ProjectName', 'ProjectNameTableHeader', 'sortArrowProjectName')" data-sort="ANY" name="ProjectNameTableHeader" class="sortable-col">
+                        Project Name
+                        <span class="sort-arrow" id="sortArrowProjectName"></span>
+                    </th>
+                    <th onclick="orderByTableList('LastSubmissionDate', 'LastSubmissionDateTableHeader', 'sortArrowLastSubmissionDate')" data-sort="ANY" name="LastSubmissionDateTableHeader" class="sortable-col">
+                        Last Submitted Date
+                        <span class="sort-arrow" id="sortArrowLastSubmissionDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('SubmissionDate', 'SubmissionDateTableHeader', 'sortArrowSubmissionDate')" data-sort="ANY" name="SubmissionDateTableHeader" class="sortable-col">
+                        Submission Date
+                        <span class="sort-arrow" id="sortArrowSubmissionDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
+                        Status
+                        <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
+                    </th>
+                    <th>Status Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="no-results"></div>
+    </div>
+</div>
+
+<div>
+    <partial name="_ReviewForApprovalModalPartialView" />
+</div>
+
+<script src="~/js/Finances/PaymentSheets/paymentSheets.js"></script>
+<script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js"></script>
+<script src="~/js/Shared/navigateBetweenPeriods.js"></script>
+<script src="~/js/Shared/sharedComponents.js"></script>

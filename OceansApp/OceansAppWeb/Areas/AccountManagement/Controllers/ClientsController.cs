@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
@@ -10,7 +11,9 @@ using System.Security.Claims;
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
     [Area("AccountManagement")]
+    [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     public class ClientsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

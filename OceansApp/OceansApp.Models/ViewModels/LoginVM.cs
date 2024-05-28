@@ -4,17 +4,17 @@ namespace OceansApp.Models.ViewModels
 {
     public class LoginVM
     {
-        [Required(ErrorMessage = "El correo es requerido")]
-        [Display(Name = "Correo")]
-        [EmailAddress(ErrorMessage = "El correo debe ser un e-mail valido")]
+        [Required(ErrorMessage = "The Email is required.")]
+        [Display(Name = "Email")]
+        [EmailAddress(ErrorMessage = "The email must be a valid email.")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "La contraseña es requerida")]
-        [Display(Name = "Contraseña")]
+        [Required(ErrorMessage = "The Password is required.")]
+        [Display(Name = "Password")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        [Display(Name = "Recordarme en este dispositivo")]
+        [Display(Name = "Remember me on this device")]
         public bool RememberMe { get; set; }
     }
 }

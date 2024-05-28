@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http.Features;
 using OceansApp.Utility.Configuration;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility;
+using OceansApp.DataAccess.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,10 @@ builder.Services.AddScoped<ISendEmailRepository, SendEmailRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISendEmailRepository>)); //Lazy Loading
 builder.Services.AddScoped<ISlackRepository, SlackRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISlackRepository>)); //Lazy Loading
+builder.Services.AddScoped<IAzureBlobRepository, AzureBlobRepository>();
+builder.Services.AddScoped(typeof(LazyServiceProvider<IAzureBlobRepository>)); //Lazy Loading
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<BackgroundTaskService>();
 builder.Services.Configure<IdentityOptions>(opt =>
 {
     opt.Password.RequiredLength = 8;
@@ -67,12 +72,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/AccessDenied");
     options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
 });
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
-    options.AddServerHeader = false;
-});
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -80,7 +80,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
-
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
+    options.AddServerHeader = false;
+});
 // CORS configuration
 builder.Services.AddCors(options =>
 {
@@ -101,18 +106,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseCors("AllowSpecificOrigin");
-
 SeedDatabase();
 app.UseMiddleware<RedirectToDashboardMiddleware>();
 
 app.UseSession();
 app.UseCookiePolicy();
 app.UseAuthentication();
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthorization();
 app.UseStaticFiles();
 

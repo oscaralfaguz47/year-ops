@@ -20,7 +20,7 @@ namespace OceansApp.Utility.Configuration.AuthorizationRequirement.General
 
                 var policies = new List<string>
             {
-                "AccessToConsultantsPage",
+                "AccessToViewNoSensitiveInfoForAllConsultants",
                 "AccessToHolidaysPage"
             };
 

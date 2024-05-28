@@ -7,8 +7,11 @@ using OceansApp.Utility.Configuration.AuthorizationRequirement.AccountManagement
 using OceansApp.Utility.ConstantData.Claims.AdminCenter;
 using OceansApp.Utility.ConstantData.Claims.Finances;
 using OceansApp.Utility.ConstantData.Claims.General;
-using OceansApp.Utility.ConstantData.Claims.Hours_TrackingTool;
+using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.Finances;
+using OceansApp.Utility.Configuration.AuthorizationRequirement.Recruiting;
+using OceansApp.Utility.ConstantData.Claims.Recruiting;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -43,6 +46,12 @@ namespace OceansApp.Utility.Configuration
             });
 
             //FINANCES
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesFinancesRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInFinances", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesFinancesRequirement()));
+            });
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToAccountsReceivable", policy =>
@@ -68,7 +77,26 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToEditVacationsAndRemoveExpensesAndCostsFromFinancialCalculator", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType, FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue));
             });
-
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageConsultantPaymentsDebitsAndCredits", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToCostsCentersList", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAccountingAccountsList", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageTheBasicsOfPaymentSheets", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType, FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue));
+            });
             //GENERAL
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
             services.AddAuthorization(options =>
@@ -82,18 +110,23 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToConsultantsPage", policy =>
                     policy.RequireClaim(ConsultantsClaimsCD.Consultants_Page_ClaimType, ConsultantsClaimsCD.Consultants_Page_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageAdministrativeConsultants", policy =>
+                    policy.RequireClaim(ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType, ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue));
+            });
             //GENERAL - HOLIDAYS
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToHolidaysPage", policy =>
                     policy.RequireClaim(HolidaysClaimsCD.Holidays_Page_ClaimType, HolidaysClaimsCD.Holidays_Page_ClaimValue));
             });
-
-            //HOURS TRACKING TOOL
+            //GENERAL - CONSULTANT REIMBURSED BENEFITS
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("AccessToTrackingTool", policy =>
-                    policy.RequireClaim(HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimType, HoursTrackingToolClaimsCD.Hours_Tracking_Tool_ClaimValue));
+                options.AddPolicy("AccessToManageConsultantReimbursedBenefits", policy =>
+                    policy.RequireClaim(ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType,
+                    ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue));
             });
 
             //PROJECT MANAGEMENT
@@ -117,22 +150,41 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(ProjectsClaimsCD.Projects_Page_ClaimType, ProjectsClaimsCD.Projects_Page_ClaimValue));
             });
 
+            //RECRUITING
+            services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesRecruitingRequirementHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AnyOfPoliciesInRecruiting", policy =>
+                    policy.Requirements.Add(new AnyOfPoliciesRecruitingRequirement()));
+            });
+            //TRACKING TOOL - REPORTING MY TIME
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("BasicAccessToReportingMyTime", policy =>
+                    policy.RequireClaim(TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType, TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue));
+            });
+            //INTERVIEWS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToManageInterviews", policy =>
+                    policy.RequireClaim(InterviewsClaimsCD.Manage_Interviews_Page_ClaimType, InterviewsClaimsCD.Manage_Interviews_ClaimValue));
+            });
 
             //COMBINED POLICIES
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToSuccessManagersListForSelect", policy =>
                     policy.RequireAssertion(context =>
-                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType 
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue) ||
-                        context.User.HasClaim(claim => claim.Type == ClientsClaimsCD.Clients_Page_ClaimType 
+                        context.User.HasClaim(claim => claim.Type == ClientsClaimsCD.Clients_Page_ClaimType
                         && claim.Value == ClientsClaimsCD.Clients_Page_ClaimValue)));
             });
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToClientsListForSelect", policy =>
                     policy.RequireAssertion(context =>
-                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType 
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
             });
             services.AddAuthorization(options =>
@@ -144,10 +196,87 @@ namespace OceansApp.Utility.Configuration
             });
             services.AddAuthorization(options =>
             {
+                options.AddPolicy("AccessToSearchAllActiveConsultantsBySearchText", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
+                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllConsultantBenefitsListForSelect", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
+                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
                 options.AddPolicy("AccessToGetSuccessManagerIdAndNameWhereClientId", policy =>
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType
                         && claim.Value == ProjectsClaimsCD.Projects_Page_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToViewNoSensitiveInfoForAllConsultants", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllCountriesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllConsultantPositionsList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllRolesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToPaymentMethodsList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToListOfPartners", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToListOfHolidaysForSelect", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
             });
 
         }

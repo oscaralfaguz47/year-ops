@@ -1,0 +1,36 @@
+﻿.global-modal-content{
+    width: 670px;
+}
+
+@media only screen and (max-width: 695px) {
+    .global-modal-content {
+        width: 95%;
+    }
+}
+.other-config-cont {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 25px;
+}
+    .other-config-cont label {
+        color: #2aa7ff;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight:bold;
+    }
+        .other-config-cont label:hover {
+            color: rgb(42, 167, 255, 0.7);
+        }
+    .other-config-cont span{
+        font-weight: normal;
+    }
+#form-other-config .row {
+    padding-top: 5px;
+    padding-bottom: 10px;
+    border-bottom: solid 0.5px rgb(1, 192, 183, 0.3);
+    margin-bottom: 5px;
+}
+#form-other-config{
+    margin-bottom: 20px;
+}

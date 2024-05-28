@@ -1,5 +1,9 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Collections;
+using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OceansApp.Utility.SharedMethods.InputValidations
 {
@@ -14,7 +18,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
         }
 
-        public void ValidateNotRequiredAndStringLength(string field, string fieldName, string stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
+        public void ValidateNotRequiredAndStringLength(string field, string fieldName, string? stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
         {
             if (stringToValidate != null)
             {
@@ -49,7 +53,8 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             if (valueToValidate == null)
             {
                 modelState.AddModelError(field, $"The {fieldName} is required.");
-            }else if (valueToValidate is string && string.IsNullOrWhiteSpace(valueToValidate as string))
+            }
+            else if (valueToValidate is string && string.IsNullOrWhiteSpace(valueToValidate as string))
             {
                 modelState.AddModelError(field, $"The {fieldName} is required.");
             }
@@ -65,7 +70,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 modelState.AddModelError(field, $"The {fieldName} value should be a boolean.");
             }
         }
-        public void ValidateRequiredFieldIntType(string field, string fieldName, object valueToValidate, ModelStateDictionary modelState)
+        public void ValidateRequiredFieldIntType(string field, string fieldName, object? valueToValidate, ModelStateDictionary modelState)
         {
             if (valueToValidate == null)
             {
@@ -74,6 +79,16 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             else if (!(valueToValidate is int))
             {
                 modelState.AddModelError(field, $"The {fieldName} value should be an int.");
+            }
+        }
+        public void ValidateNonRequiredFieldIntType(string field, string fieldName, int? valueToValidate, ModelStateDictionary modelState)
+        {
+            if (valueToValidate != null)
+            {
+                if (!(valueToValidate is int))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} value should be an int.");
+                }
             }
         }
 
@@ -91,14 +106,27 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 }
             }
         }
+        public void ValidateNotRequiredFieldNumberValue(string field, string fieldName, object? numToValidate, ModelStateDictionary modelState)
+        {
+            if (numToValidate != null)
+            {
+                if (!(numToValidate is int || numToValidate is decimal || numToValidate is float))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} should be a number.");
+                }
+            }
+        }
         public void ValidateEmail(string field, string fieldName, string email, ModelStateDictionary modelState)
         {
-            if (email.Trim() != null && email.Trim() != "")
+            if (email != null)
             {
-                ValidateData validateData = new();
-                if (!validateData.IsValidEmail(email.Trim()))
+                if (email.Trim() != null && email.Trim() != "")
                 {
-                    modelState.AddModelError(field, $"The {fieldName} is not a valid email.");
+                    ValidateData validateData = new();
+                    if (!validateData.IsValidEmail(email.Trim()))
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} is not a valid email.");
+                    }
                 }
             }
         }
@@ -126,21 +154,49 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
         }
 
-        public void ValidateDateValidFormat(string field, string fieldName, object dateValue, ModelStateDictionary modelState)
+        public void ValidateDateValidFormat(string field, string fieldName, object? dateValue, ModelStateDictionary modelState)
         {
-            var validationResult = ValidateDateFormat(dateValue, fieldName);
-
-            if (!validationResult.Result)
+            if (dateValue != null)
             {
-                modelState.AddModelError(field, validationResult.ResultFalseMessage);
+                var validationResult = ValidateDateFormat(dateValue.ToString(), fieldName);
+
+                if (!validationResult.Result)
+                {
+                    modelState.AddModelError(field, validationResult.ResultFalseMessage);
+                }
             }
         }
 
-        public void ValidateNoNegativeNumber(string field, string fieldName, decimal numToValidate, ModelStateDictionary modelState)
+        public void ValidateNoNegativeNumber(string field, string fieldName, object? numToValidate, ModelStateDictionary modelState)
         {
-            if (numToValidate < 0)
+            if (numToValidate != null)
             {
-                modelState.AddModelError(field, $"The {fieldName} can not be a negative number.");
+                if ((numToValidate is int || numToValidate is decimal || numToValidate is float))
+                {
+                    if ((decimal)numToValidate < 0)
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} can not be a negative number.");
+                    }
+                }
+            }
+        }
+        public void ValidateLengthTypeNumber(string field, string fieldName, decimal? numToValidate, int entireLong, int decimalLong, ModelStateDictionary modelState)
+        {
+            if (numToValidate != null)
+            {
+                string stringNum = numToValidate.Value.ToString(CultureInfo.InvariantCulture);
+                string[] parts = stringNum.Split('.');
+                int currentEntireLong = parts[0].Length;
+                if (parts[0].StartsWith("-"))
+                {
+                    currentEntireLong--;
+                }
+
+                int currentDecimalLong = parts.Length > 1 ? parts[1].Length : 0;
+                if (!((currentEntireLong <= entireLong - decimalLong) && currentDecimalLong <= decimalLong))
+                {
+                    modelState.AddModelError(field, $"The {fieldName} is not a valid number, it must contain {entireLong - 2} entiger numbers and {decimalLong} decimals.");
+                }
             }
         }
         public void ValidateMinAndMaxLenthNumber(string field, string fieldName, decimal? numToValidate, decimal minNum, decimal maxNum, ModelStateDictionary modelState)
@@ -150,6 +206,46 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 if (numToValidate < minNum || numToValidate > maxNum)
                 {
                     modelState.AddModelError(field, $"The {fieldName} must be between {minNum} and {maxNum}.");
+                }
+            }
+        }
+        public void ValidateNumberLessOrEqualThanZero(string field, string fieldName, decimal? numToValidate, ModelStateDictionary modelState)
+        {
+            if (numToValidate != null)
+            {
+                if (numToValidate <= 0)
+                {
+                    modelState.AddModelError(field, $"The {fieldName} must be greater than zero.");
+                }
+            }
+        }
+        public void ValidateNotEmptyArray(string field, string fieldName, object arrayToValidate, ModelStateDictionary modelState)
+        {
+            if (arrayToValidate != null)
+            {
+                if (arrayToValidate is IEnumerable array)
+                {
+                    if (!array.Cast<object>().Any())
+                    {
+                        modelState.AddModelError(field, $"The {fieldName} is required.");
+                    }
+                }
+            }
+        }
+        public void ValidateRequiredFiles(string field, string fieldName, List<IFormFile> files, ModelStateDictionary modelState)
+        {
+            if (files.Count == 0)
+            {
+                modelState.AddModelError(field, $"You must upload at least one file.");
+            }
+        }
+        public void ValidateValidFiles(string field, List<IFormFile> files, ModelStateDictionary modelState)
+        {
+            foreach (var file in files)
+            {
+                if (file.Length == 0 || file.Length > 10_000_000)
+                {
+                    modelState.AddModelError(field, $"The file {file.Name} must be less than 10 MB and cannot be empty.");
                 }
             }
         }

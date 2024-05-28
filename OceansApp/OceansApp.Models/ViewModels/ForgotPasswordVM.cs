@@ -4,10 +4,10 @@ namespace OceansApp.Models.ViewModels
 {
     public class ForgotPasswordVM
     {
-        [Required(ErrorMessage = "El correo es requerido.")]
-        [MaxLength(256, ErrorMessage = "El correo no puede tener más de 256 caracteres")]
-        [EmailAddress(ErrorMessage = "El correo debe de ser un e-mail valido.")]
-        [Display(Name = "Correo")]
+        [Required(ErrorMessage = "The Email is required.")]
+        [MaxLength(256, ErrorMessage = "The email cannot be more than 256 characters")]
+        [EmailAddress(ErrorMessage = "The email must be a valid email.")]
+        [Display(Name = "Email")]
         public string Email { get; set; }
 
     }

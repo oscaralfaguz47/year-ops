@@ -1,69 +1,45 @@
 ﻿
-document.addEventListener("DOMContentLoaded", function () {
-    var actionDate = document.getElementById('actionDate');
-    var today = new Date();
-    var todayFormatted = today.toISOString().substr(0, 10);
-    actionDate.min = todayFormatted;
-    function validateDate() {
-        if (actionDate.value < actionDate.min) {
-            actionDate.value = actionDate.min;
-        }
-    }
-    actionDate.addEventListener('change', validateDate);
-});
+//document.addEventListener("DOMContentLoaded", function () {
+//    var actionDate = document.getElementById('actionDate');
+//    var today = new Date();
+//    var todayFormatted = today.toISOString().substr(0, 10);
+//    actionDate.min = todayFormatted;
+//    function validateDate() {
+//        if (actionDate.value < actionDate.min) {
+//            actionDate.value = actionDate.min;
+//        }
+//    }
+//    actionDate.addEventListener('change', validateDate);
+//});
 
 var createUpdateForm = $('#form-add-update-consultant');
 
-function hideConsultantResults() {
-    let resultsContainer = document.getElementById('consultant-search-results');
-    resultsContainer.style.display = 'none';
-}
-
-async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, consultantNameInput, consultantEmailInput) {
-    if (searchTextInput.value.length > 100) {
-        searchTextInput.value = searchTextInput.value.slice(0, 100);
-    } else {
-        let resultsContainer = document.getElementById('consultant-search-results');
-        resultsContainer.innerHTML = '';
-        resultsContainer.innerHTML = `<div class="text-center"><div class="spinner-border" role="status">
-        <span class="sr-only" ></span>
-                </div></div>`;
-        let data = await getConsultantsBySearchText(searchTextInput.value);
-        resultsContainer.innerHTML = '';
-        resultsContainer.style.display = 'block';
-        if (data.consultants.length > 0) {
-            let resultList = document.createElement('ul');
-            for (let item of data.consultants) {
-                let listItem = document.createElement('li');
-                listItem.innerHTML = '<strong>' + item.consultantName + '</strong>' + ' (' + item.email + ')';
-                listItem.onclick = function () {
-                    document.getElementById(hiddenInputForId).value = item.consultantId;
-                    document.getElementById(consultantNameInput).value = item.consultantName;
-                    document.getElementById(consultantEmailInput).value = item.email;
-                    hideConsultantResults();
-                };
-                resultList.appendChild(listItem);
-            }
-            resultsContainer.appendChild(resultList);
-        } else {
-            resultsContainer.innerHTML = '<div class="red-label text-center">No results found</div>';
-        }
-        document.addEventListener('click', function (event) {
-            let isClickInside = resultsContainer.contains(event.target);
-            if (!isClickInside) {
-                hideConsultantResults();
-            }
-        });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === "Escape") {
-                hideConsultantResults();
-            }
-        });
-    }
-}
 function validateRatesInputs() {
     var clientRateMethod = document.querySelector('input[name="client-rate-model"]:checked').value;
     var consultantRateMethod = document.querySelector('input[name="consultant-rate-model"]:checked').value;
+    var consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
+    var oceansPaymentSection = document.getElementById('oceans-payment-section');
+    var oceansPaymentRadioSection = document.getElementById('oceans-payment-radio-section');
+    var thirdPartySalaryInput = document.getElementById('thirdPartyConsultantSalaryEl');
+
+    if (consultantPaymentModel === 'O' || consultantPaymentModel === 'Hy') {
+        oceansPaymentSection.style.display = 'flex';
+        oceansPaymentRadioSection.style.display = 'block';
+    } else {
+        oceansPaymentSection.style.display = 'none';
+        oceansPaymentRadioSection.style.display = 'none';
+    }
+    if (consultantPaymentModel === 'T' || consultantPaymentModel === 'Hy') {
+        thirdPartySalaryInput.style.display = 'block';
+    } else {
+        thirdPartySalaryInput.style.display = 'none';
+    }
+    if (consultantPaymentModel === 'T') {
+        document.getElementById('hourlySalary').value = null;
+        document.getElementById('monthlySalary').value = null;
+    } else if (consultantPaymentModel === 'O'){
+        document.getElementById('thirdPartySalary').value = null;
+    }
 
     if (clientRateMethod === 'H') {
         document.getElementById('hourlyClientRateEl').style.display = 'block';
@@ -78,11 +54,17 @@ function validateRatesInputs() {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlySalary').value = null;
-    } else {
+        document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'block';
+        document.getElementById("calculationMethod").value = true;
+        document.getElementById("calculationMethod").checked = true;
+    } else if (consultantRateMethod === 'H') {
         document.getElementById('monthlyConsultantSalaryEl').style.display = 'none';
         document.getElementById('hourlyConsultantSalaryEl').style.display = 'block';
         document.getElementById('monthlySalary').value = null;
-    }
+        document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'none';
+        document.getElementById("calculationMethod").value = false;
+        document.getElementById("calculationMethod").checked = false;
+    } 
 }
 //DISPLAY MODAL
 async function displayAddUpdateConsultant(modalId, id) {
@@ -92,8 +74,18 @@ async function displayAddUpdateConsultant(modalId, id) {
     resetForm('form-add-update-consultant');
     createUpdateForm.find('[name="proConsAssignedId"]').val("");
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
+    createUpdateForm.find('[name="isDefaultProject"]').prop('disabled', false);
     validateRatesInputs();
     document.getElementById('search-input-cont').style.display = 'block';
+    var clientRateSection = document.getElementById("client-rate-section");
+    var clientRateInputs = document.getElementById("client-rate-inputs");
+    if (document.getElementById('external-pt').checked) {
+        clientRateSection.style.display = 'block';
+        clientRateInputs.style.display = 'flex';
+    } else {
+        clientRateSection.style.display = 'none';
+        clientRateInputs.style.display = 'none';
+    }
 
     if (id !== null) {
         createUpdateForm.find('[name="proConsAssignedId"]').val(id);
@@ -122,11 +114,27 @@ async function displayAddUpdateConsultant(modalId, id) {
                 if (data.consultantAssignation.monthlyClientRate !== 0) document.getElementsByName('client-rate-model')[1].checked = true;
                 if (data.consultantAssignation.monthlySalary !== 0) document.getElementsByName('consultant-rate-model')[0].checked = true;
                 if (data.consultantAssignation.hourlySalary !== 0) document.getElementsByName('consultant-rate-model')[1].checked = true;
+                if (data.consultantAssignation.monthlySalaryThirdParty === 0 && (data.consultantAssignation.monthlySalary !== 0 ||
+                    data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[0].checked = true;
+                if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary !== 0 || 
+                    data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[1].checked = true;
+                if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary === 0 &&
+                    data.consultantAssignation.hourlySalary === 0)) document.getElementsByName('consultant-payment-model')[2].checked = true;
+                console.log(data);
                 validateRatesInputs();
                 createUpdateForm.find('[name="monthlyClientRate"]').val(data.consultantAssignation.monthlyClientRate);
                 createUpdateForm.find('[name="hourlyClientRate"]').val(data.consultantAssignation.hourlyClientRate);
                 createUpdateForm.find('[name="monthlySalary"]').val(data.consultantAssignation.monthlySalary);
                 createUpdateForm.find('[name="hourlySalary"]').val(data.consultantAssignation.hourlySalary);
+                createUpdateForm.find('[name="thirdPartySalary"]').val(data.consultantAssignation.monthlySalaryThirdParty);
+                createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').val(data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
+                createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
+                createUpdateForm.find('[name="accessToTrackingTool"]').val(data.consultantAssignation.accessToTrackingTool);
+                createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked', data.consultantAssignation.accessToTrackingTool);
+                createUpdateForm.find('[name="isDefaultProject"]').val(data.consultantAssignation.isDefaultProject);
+                createUpdateForm.find('[name="isDefaultProject"]').prop('checked', data.consultantAssignation.isDefaultProject);
+                data.consultantAssignation.isDefaultProject ? createUpdateForm.find('[name="isDefaultProject"]').prop('disabled', true) : '';
+
                 showModal(modalId);
             })
             .finally(() => {
@@ -143,10 +151,17 @@ function addConsultantToProject(modalId) {
     var monthlyClientRateValue = createUpdateForm.find('[name="monthlyClientRate"]').val();
     var hourlyConsultantRateValue = createUpdateForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateForm.find('[name="monthlySalary"]').val();
+    var thirdPartyConsultantSalaryValue = createUpdateForm.find('[name="thirdPartySalary"]').val();
     var clientRateMethodRb = document.querySelector('input[name="client-rate-model"]:checked').value;
     var consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
     var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
     var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
+    var isBillableValue = document.getElementById("IsBillable").value;
+    var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
+    var accessToTrackingToolVal = createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked');
+    var isDefaultProjectVal = createUpdateForm.find('[name="isDefaultProject"]').prop('checked');
+    var consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
+    
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -158,21 +173,25 @@ function addConsultantToProject(modalId) {
         displayToasterWarning('The Position Description is required.');
     }
 
-    if (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H') {
+    if (isBillableValue === "true" && (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H')) {
         modelState = false;
         displayToasterWarning('The Hourly Client Rate is required.');
     }
-    if (Number(monthlyClientRateValue) === 0 && clientRateMethodRb === 'M') {
+    if (isBillableValue === "true" && (Number(monthlyClientRateValue) === 0 && clientRateMethodRb === 'M')) {
         modelState = false;
         displayToasterWarning('The Monthly Client Rate is required.');
     }
-    if (Number(hourlyConsultantRateValue) === 0 && consultantRateMethodRb === 'H') {
+    if (Number(hourlyConsultantRateValue) === 0 && consultantRateMethodRb === 'H' && (consultantPaymentModel === 'Hy' || consultantPaymentModel === 'O')) {
         modelState = false;
         displayToasterWarning('The Hourly Consultant Salary is required.');
     }
-    if (Number(monthlyConsultantRateValue) === 0 && consultantRateMethodRb === 'M') {
+    if (Number(monthlyConsultantRateValue) === 0 && consultantRateMethodRb === 'M' && (consultantPaymentModel === 'Hy' || consultantPaymentModel === 'O')) {
         modelState = false;
         displayToasterWarning('The Monthly Consultant Salary is required.');
+    }
+    if (Number(thirdPartyConsultantSalaryValue) === 0 && (consultantPaymentModel === 'T' || consultantPaymentModel === 'Hy')) {
+        modelState = false;
+        displayToasterWarning('Consultant Monthly Salary - Third Party is required.');
     }
     if (actionDateValue === '') {
         modelState = false;
@@ -183,7 +202,6 @@ function addConsultantToProject(modalId) {
             displayToasterWarning('The Action Date is not a valid date.');
         }
     }
-
     if (modelState) {
         addConsultantToModalCreateUpdateProject(modalId);
         //EDIT CONSULTANT PARAMETERS
@@ -197,8 +215,12 @@ function addConsultantToProject(modalId) {
                 HourlySalary: Number(hourlyConsultantRateValue),
                 MonthlyClientRate: Number(monthlyClientRateValue),
                 MonthlySalary: Number(monthlyConsultantRateValue),
+                MonthlySalaryThirdParty: Number(thirdPartyConsultantSalaryValue),
                 PositionDetail: positionDetailValue,
-                ActionDate: actionDateValue ? actionDateValue.toString() : null
+                ActionDate: actionDateValue ? actionDateValue.toString() : null,
+                IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal),
+                AccessToTrackingTool: Boolean(accessToTrackingToolVal),
+                IsDefaultProject: Boolean(isDefaultProjectVal)
             };
             fetch('/AccountManagement/Projects/UpdateConsultantParameters', {
                 method: 'POST',
@@ -229,6 +251,9 @@ function addConsultantToProject(modalId) {
                     createUpdateForm[0].reset();
                     displayToasterSuccess(data.message);
                     getListOfResults(false, false);
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 })
                 .finally(() => {
                     hideSpinner();
@@ -275,15 +300,15 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
                     return false;
                 }
                 return [actionDate];
-            },
-            didOpen: () => {
-                const today = new Date();
-                const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-                document.getElementById('swal-input-action-date').setAttribute('min', localDate);
-                document.getElementById('swal-input-action-date').onkeydown = (e) => {
-                    e.preventDefault();
-                };
-            }
+            }//,
+            //didOpen: () => {
+            //    const today = new Date();
+            //    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            //    document.getElementById('swal-input-action-date').setAttribute('min', localDate);
+            //    document.getElementById('swal-input-action-date').onkeydown = (e) => {
+            //        e.preventDefault();
+            //    };
+            //}
         });
 
         if (result.isConfirmed) {
@@ -309,11 +334,13 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
     var bodyList = document.getElementById('consultant-history-body');
     var actionIcon = "";
     await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        showModal(modalId);
         var count = 0;
         var firstRow = "";
         var row = "";
         var titleLabelClass = "";
+        console.log(data);
+        const filteredArray = data.historyList.result.filter(item => item.action === "Consultant Assigned First Time");
+        console.log(filteredArray);
         data.historyList.result.forEach(function (obj) {
             if (obj.action === 'Consultant Assigned First Time') {
                 actionIcon = '<i class="bi bi-plus-square green-label"></i>';
@@ -321,7 +348,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
             } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated' || obj.action === 'Position Details updated'
                 || obj.action === 'Consultant pricing method updated (Hourly)' || obj.action === 'Client pricing method updated (Monthly)'
                 || obj.action === 'Monthly Client Rate updated' || obj.action === 'Hourly Salary updated' || obj.action === 'Consultant pricing method updated (Monthly)'
-                || obj.action === 'Client pricing method updated (Hourly)') {
+                || obj.action === 'Client pricing method updated (Hourly)' || obj.action === 'Third Party Salary updated') {
                 actionIcon = '<i style="color:#2aa7ff" class="bi bi-pencil-square"></i>';
                 titleLabelClass = 'consultant-updated';
             } else if (obj.action === 'Consultant Deactivated') {
@@ -335,13 +362,25 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
             var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
                 ('0' + actionDate.getDate()).slice(-2) + '/' +
                 actionDate.getFullYear();
-            if (obj.action === 'Consultant Assigned First Time' && count < 3) {
+            var isExternalProject = document.getElementById('external-pt').checked;
+            var clientRateLabel = '';
+            if (isExternalProject) {
+                clientRateLabel = `${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>, `;
+            }
+
+            if (obj.action === 'Consultant Assigned First Time' && count < 4) {
                 if (count === 0) {
-                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>`;
+                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${clientRateLabel}`;
                 } else if (count === 1) {
-                    firstRow += `, ${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
+                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
                 } else if (count === 2) {
-                    firstRow += `Position: <strong>${obj.newValueDetail}</strong>. Assigned by: ${obj.userActionedBy}.</li>`;
+                    firstRow += `Position: <strong>${obj.newValueDetail}</strong>, ${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Third Party Salary: ' + obj.newValue : ''}`;
+                }
+                else if (count === 3) {
+                    firstRow += `${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Third Party Salary: ' + '<strong>$' + obj.newValue + '</strong>,' : ''}`;
+                }
+                if (filteredArray.length === count + 1) {
+                    firstRow += ` Assigned by: ${ obj.userActionedBy }.</li >`
                     row += firstRow;
                 }
             } else {
@@ -359,6 +398,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
         });
         bodyList.innerHTML = row;
         hideSpinner();
+        showModal(modalId);
     });
 }
 
@@ -375,6 +415,7 @@ async function getSuccessManagerIdAndNameByClientId(clientId) {
             throw new Error('The request to the server failed!. More details: ' + errorData.error);
         }
     } catch (error) {
+            validateSessionExpiration(error.message);
         console.error('Error fetching data:', error);
         return null;
     }
@@ -407,6 +448,7 @@ async function activateDeactivateConsultantFromProjectHttps(projectConsultantAss
             }
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         console.error('Error fetching data:', error);
         return null;
     }
@@ -428,11 +470,112 @@ async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
                 displayToasterError(errorData.error || 'An unknown error occurred.');
                 throw new Error('The request to the server failed!. More details: ' + errorData.error);
             }
+            hideSpinner();
         }
     } catch (error) {
+        validateSessionExpiration(error.message);
         displayToasterError('Error fetching data: ' + error);
         console.error('Error fetching data:', error);
+        hideSpinner();
         return null;
     }
 }
 
+
+
+let selectedIndexA = -1;
+
+async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, consultantNameInput, consultantEmailInput, userCategoryName) {
+    if (searchTextInput.value.length > 100) {
+        searchTextInput.value = searchTextInput.value.slice(0, 100);
+    } else {
+        let resultsContainer = document.getElementById('consultant-search-results');
+        resultsContainer.innerHTML = '';
+        resultsContainer.innerHTML = `<div class="text-center"><div class="spinner-border" role="status">
+        <span class="sr-only"></span>
+        </div></div>`;
+        let data = await getConsultantsBySearchText(searchTextInput.value);
+        resultsContainer.innerHTML = '';
+        resultsContainer.style.display = 'block';
+        if (data.consultants.length > 0) {
+            let resultList = document.createElement('ul');
+            resultList.id = 'search-result-list'; // Assign an ID to the results list container
+            for (let item of data.consultants) {
+                let listItem = document.createElement('li');
+                listItem.innerHTML = '<strong>' + item.consultantName + '</strong> ' + (item.userCategoryName === "Administrative" ? '<span style="color:gray">(' : '<span class="blue-label">(') + item.userCategoryName + ')</span>';
+                listItem.onclick = function () {
+                    document.getElementById(hiddenInputForId).value = item.consultantId;
+                    document.getElementById(consultantNameInput).value = item.consultantName;
+                    document.getElementById(consultantEmailInput).value = item.email;
+                    hideConsultantResultsD();
+                };
+                resultList.appendChild(listItem);
+            }
+            resultsContainer.appendChild(resultList);
+        } else {
+            resultsContainer.innerHTML = '<div class="red-label text-center">No results found</div>';
+        }
+    }
+    document.addEventListener('keydown', keyboardNavigationC);
+}
+
+// Function to update the active item in the results list
+function updateActiveItemA() {
+    const listItems = document.querySelectorAll('#search-result-list li');
+    // Removes the active class from all elements.
+    listItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    // Adds the active class to the selected element.
+    if (selectedIndexA >= 0 && selectedIndexA < listItems.length) {
+        listItems[selectedIndexA].classList.add('active');
+        listItems[selectedIndexA].scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+}
+
+function keyboardNavigationC(event) {
+    const resultsContainer = document.getElementById('consultant-search-results');
+    const listItems = document.querySelectorAll('#search-result-list li');
+    if (resultsContainer.style.display !== 'none') {
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                if (selectedIndexA < listItems.length - 1) {
+                    selectedIndexA++;
+                    updateActiveItemA();
+                }
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                if (selectedIndexA > 0) {
+                    selectedIndexA--;
+                    updateActiveItemA();
+                }
+                break;
+            case 'Enter':
+                event.preventDefault();
+                if (selectedIndexA >= 0 && selectedIndexA < listItems.length) {
+                    listItems[selectedIndexA].click();
+                }
+                break;
+        }
+    }
+    if (event.key === 'Escape') {
+        hideConsultantResultsD();
+    }
+}
+
+function hideConsultantResultsD() {
+    let resultsContainer = document.getElementById('consultant-search-results');
+    resultsContainer.style.display = 'none';
+    selectedIndexA = -1; // Reset the selected index
+    document.getElementById('search-consultant-input').value = null;
+}
+
+// Add a listener for clicks outside the results container to close the results when clicked outside.
+document.addEventListener('click', function (event) {
+    const searchContainer = document.getElementById('consultants-search-cont');
+    if (!searchContainer.contains(event.target)) {
+        hideConsultantResultsD();
+    }
+});

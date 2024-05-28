@@ -15,22 +15,34 @@
         ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; }
         ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; }
         IClientRepository Client { get; }
+        IPartnerRepository Partner { get; }
         IProviderCategoryRepository ProviderCategory { get; }
         IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
+        IConsultantBenefitRepository ConsultantBenefit { get; }
+        IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; }
+        IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; }
         IConsultantDetailRepository ConsultantDetail { get; }
         IConsultantHolidayRepository ConsultantHoliday { get; }
+        IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; }
         IConsultantPositionRepository ConsultantPosition { get; }
         IConsultantRoleRepository ConsultantRole { get; }
         IConsultantQualityLevelRepository ConsultantQualityLevel { get; }
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IConsultantSeniorityRepository ConsultantSeniority { get; }
+        ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; }
+        IInterviewRepository Interview { get; }
+        IPaymentMethodRepository PaymentMethod { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantAssignedHistoryActionRepository ProjectConsultantAssignedHistoryAction { get; }
         IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; }
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
+        IProjectUserSelectedRepository ProjectUserSelected { get; }
+        IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; }
+        IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; }
+        IReportingMyTimeMovementTypeRepository ReportingMyTimeMovementType { get; }
         IDocumentCCRepository DocumentCC { get; }
         IDocumentsCCNotificationRepository DocumentsCCNotification { get; }
         INotificationTypeRepository NotificationType { get; }

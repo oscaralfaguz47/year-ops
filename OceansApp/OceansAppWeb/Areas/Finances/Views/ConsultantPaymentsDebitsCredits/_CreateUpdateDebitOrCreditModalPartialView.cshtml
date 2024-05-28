@@ -1,0 +1,137 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/General/sharedConsultantDetailsMethods.css" />
+<link rel="stylesheet" href="~/css/Finances/createUpdateConsultantPaymentsDebitsCreditsModal.css" />
+
+
+<!--MODAL UPDATE CREATE REIMBURSEMENT-->
+<div id="modal-update-create-debit-credit" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-debit-credit-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="consultantPaymentDebitsCreditsId">
+                    <div>
+                        <div id="consultants-search-cont">
+                            <div id="search-input-cont" class="input-container">
+                                <input id="search-consultant-input" autocomplete="off" oninput="searchAllActiveConsultantsBySearchTextFromDebitsCredits(this, 'consultantIdFromSearch', 'consultantNameInput', 'consultantEmailInput', null)" type="text" placeholder="Search consultant" class="form-control">
+                                <i class="bi bi-search placeholder-image"></i>
+                                <div id="consultant-search-results" class="search-results"></div>
+                            </div>
+                            <input type="hidden" name="consultantIdFromSearch" id="consultantIdFromSearch">
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label>Consultant Name <span class="required-asterisk">*</span></label>
+                                <div class="input-container">
+                                    <input disabled type="text" class="form-control" name="consultantNameInput" id="consultantNameInput">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label>Consultant Email <span class="required-asterisk">*</span></label>
+                                <div class="input-container">
+                                    <input disabled type="text" class="form-control" id="consultantEmailInput" name="consultantEmailInput">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Detail <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="detail" id="Detail" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="CostCenterSelect">Cost Center <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onchange="selectCostCenter('CostCenterSelect', this.value, false)" class="form-select" id="CostCenterSelect" name="costCenterId">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="AccountingAccountSelect">Accounting Account <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="AccountingAccountSelect" name="AccountingAccountId">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="QuantityInput">Quantity <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input placeholder="#" type="number" value="1" class="form-control" step="0.01" name="quantity" id="QuantityInput">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="Amount">Unit Amount $ <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input placeholder="$" type="number" class="form-control" step="0.01" name="amount" id="Amount">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="TotalAmount">Total Amount $ <span class="required-asterisk"></span></label>
+                            <div class="input-container">
+                                <input placeholder="0.00" type="number" disabled class="form-control" step="0.01" name="amount" id="TotalAmount">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="ActionDateWithinFortnight">Action Date <span class="required-asterisk">*</span> </label> <div class="tooltip-container ">
+                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <div class="tooltip-content">
+                                    <div class="tooltip-arrow"></div>
+                                    Date corresponding to the fortnight during which the debit or credit will be effect.
+                                </div>
+                            </div>
+                            <div class="">
+                                <input type="date" class="form-control" name="actionDateWithinFortnight" id="ActionDateWithinFortnight">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Transaction Type <span class="required-asterisk">*</span> </label>
+                            <div class="radio-group transaction-type-rg">
+                                <label class="radio-tran-label">
+                                    <input name="transaction-type" type="radio" value="Credit" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Credit <span class="green-label"><i class="bi bi-plus"></i></span>
+                                </label>
+                                <label class="radio-tran-label">
+                                    <input name="transaction-type" type="radio" value="Debit" class="radio-input">
+                                    <span class="radio-custom"></span>
+                                    &nbsp; Debit <span class="red-label"><i class="bi bi-dash"></i></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-debit-credit')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateDebitCredit('modal-update-create-debit-credit')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
+<script src="~/js/Finances/createUpdateConsultantPaymentsDebitsCreditsModal.js"></script>
+<script src="~/js/Finances/CostsCenters/costsCentersHttpRequests.js"></script>
+<script src="~/js/Finances/AccountingAccounts/accountingAccountsHttpRequests.js"></script>
+<script src="~/js/Shared/inputValidations.js"></script>

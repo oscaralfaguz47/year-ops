@@ -12,13 +12,16 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
     [Area("AccountManagement")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToProjectsPage")]
     public class ProjectsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ProjectsController(IUnitOfWork unitOrWork)
+        private readonly IAuthorizationService _authorizationService;
+        public ProjectsController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
         {
             _unitOfWork = unitOrWork;
+            _authorizationService = authorizationService;
         }
         public IActionResult Index()
         {
@@ -44,8 +47,8 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                             ValidateInputs validateInputs = new();
                             //Validate Filter inputs
                             validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
-                            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"].ToString(), ModelState);
-                            validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"].ToString(), ModelState);
+                            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"], ModelState);
+                            validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"], ModelState);
                             if (!ModelState.IsValid)
                             {
                                 var errors = ModelState.Values.SelectMany(v => v.Errors)
@@ -104,10 +107,12 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     return BadRequest(new { error = "The project is not longer in the database.", detail = "The project was not found in the database." });
                 }
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 
                 return Ok(new
                 {
-                    projectData = projectData
+                    projectData = projectData,
+                    allowedManageAdminConsultants = authToManageAdminitrativeConsultants.Succeeded
                 });
             }
             catch (Exception ex)
@@ -126,7 +131,15 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     return BadRequest(new { error = "The consultant assignation is not longer in the database.", detail = "The consultant assignation was not found in the database." });
                 }
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 
+                if (!authToManageAdminitrativeConsultants.Succeeded)
+                {
+                    if (consultantAssignationData.UserCategoryName == "Administrative")
+                    {
+                        return BadRequest(new { error = "You are not allow to retrieve data from Administrative consultants.", detail = "Without permissions to retrieve data." });
+                    }
+                }
                 return Ok(new
                 {
                     consultantAssignation = consultantAssignationData
@@ -153,9 +166,24 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateRequiredAndStringLength("Name", "Project Name", projectData.Name, 150, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Description", "Project Description", projectData.Description, 300, ModelState);
                 validateInputs.ValidateDateValidFormat("StartDate", "Start Date", projectData.StartDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", projectData.StartDate, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsActive", "Is Active", projectData.IsActive, ModelState);
-                validateInputs.ValidateRequiredFieldBooleanType("IsBillable", "Is Billable", projectData.IsBillable, ModelState);
-                validateInputs.ValidateRequiredFieldIntType("ClientId", "Client", projectData.ClientId, ModelState);
+                if (projectData.ProjectType == "E")
+                {
+                    validateInputs.ValidateRequiredFieldIntType("ClientId", "Client", projectData.ClientId, ModelState);
+                    validateInputs.ValidateRequiredFieldBooleanType("IsBillable", "Is Billable", projectData.IsBillable, ModelState);
+                }
+                else
+                {
+                    var internalClient = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == "OCEADMIN01");
+                    if (internalClient == null)
+                    {
+                        return BadRequest(new { error = "The internal client was not found.", detail = "Client not found." });
+                    }
+                    projectData.ClientId = internalClient.ClientId;
+                    projectData.ClientHasTrackingTool = false;
+                    projectData.IsBillable = false;
+                }
                 validateInputs.ValidateRequiredFieldIntType("SuccessManagerId", "Success Manager", projectData.SuccessManagerId, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("ClientHasTrackingTool", "Client has tracking tool", projectData.ClientHasTrackingTool, ModelState);
 
@@ -183,18 +211,19 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                     var resultMessage = "";
                     projectData.CreatedBy = claim.Value;
+                    int createdProjectId = 0;
 
                     //IF IS NOT PROJECT ID THEN CREATE THE PROJECT
                     if (projectData.ProjectId == null)
                     {
-                        var res = await _unitOfWork.Project.CreateProjectWithAssignedConsultants(projectData);
+                        var res = await _unitOfWork.Project.CreateProject(projectData);
 
                         if (res.Success)
                         {
                             resultMessage = res.Message;
+                            createdProjectId = (int)res.IdCreatedElement;
                         }
                         else
                         {
@@ -220,7 +249,8 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     return Ok(new
                     {
                         success = true,
-                        message = $"The project {projectData.Name} was updated successfully!"
+                        message = resultMessage,
+                        projectId = createdProjectId
                     });
                 }
                 else
@@ -303,7 +333,6 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 }
                 var actionDescription = consultantAssignation.IsActive ? "Consultant Deactivated" : "Consultant Activated";
                 var action = _unitOfWork.ProjectConsultantAssignedHistoryAction.GetFirstOrDefault(x => x.Name == actionDescription);
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                 var userActionedBy = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == claim.Value);
@@ -314,7 +343,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         ProjectConsultantAssignedId = projectConsultantAssignedId,
                         ActionId = action.ActionId,
                         ActionDate = actionDate,
-                        CreationDate = costaRicaTime,
+                        CreationDate = DateTime.UtcNow,
                         UserActionedBy = userActionedBy.ConsultantId,
                         NewValue = 0,
                         OldValue = 1
@@ -328,7 +357,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         ProjectConsultantAssignedId = projectConsultantAssignedId,
                         ActionId = action.ActionId,
                         ActionDate = actionDate,
-                        CreationDate = costaRicaTime,
+                        CreationDate = DateTime.UtcNow,
                         UserActionedBy = userActionedBy.ConsultantId,
                         NewValue = 1,
                         OldValue = 0
@@ -376,8 +405,17 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId);
-
+                var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
+                string? userCategoryName = null;
+                if (!authToManageAdminitrativeConsultants.Succeeded)
+                {
+                    userCategoryName = "Consultant";
+                }
+                var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId, userCategoryName);
+                if (historyList.Result.Count == 0)
+                {
+                    return BadRequest(new { error = "The consultant does not have history or the user does not have permission to retrive the data."});
+                }
                 return Ok(new
                 {
                     HistoryList = historyList

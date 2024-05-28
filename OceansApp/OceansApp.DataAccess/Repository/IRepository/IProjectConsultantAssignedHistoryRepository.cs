@@ -5,7 +5,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IProjectConsultantAssignedHistoryRepository : IRepository<ProjectConsultantAssignedHistory> 
     {
-        Task<List<GetProjectConsultantAssignedHistoryVM>> GetProjectConsultantAssignedHistoryByAssignationId(int projectConsultantAssignedId);
+        Task<List<GetProjectConsultantAssignedHistoryVM>> GetProjectConsultantAssignedHistoryByAssignationId(int projectConsultantAssignedId, string? userCategoryName);
         void Update(ProjectConsultantAssignedHistory obj);
 
     }

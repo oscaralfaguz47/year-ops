@@ -4,22 +4,22 @@ namespace OceansApp.Models.ViewModels
 {
     public class ResetPasswordVM
     {
-        [Required(ErrorMessage = "El correo es requerido.")]
-        [EmailAddress(ErrorMessage = "El correo debe ser un e-mail valido.")]
+        [Required(ErrorMessage = "The Email is required.")]
+        [EmailAddress(ErrorMessage = "The email must be a valid email.")]
         [Display(Name = "Correo")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "La contraseña es requerida.")]
-        [MaxLength(50, ErrorMessage = "La contraseña no puede tener más de 50 caracteres.")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "La contraseña debe contener al menos 8 caracteres, una letra minúscula, una letra mayúscula, un número y un símbolo especial.")]
+        [Required(ErrorMessage = "The Password is required.")]
+        [MaxLength(50, ErrorMessage = "Password cannot be more than 50 characters.")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "The password must contain at least 8 characters, a lowercase letter, an uppercase letter, a number, and a special symbol.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Contraseña")]
+        [Display(Name = "Password")]
         public string Password { get; set; }
 
-        [Required(ErrorMessage = "La confirmación de contraseña es requerida.")]
+        [Required(ErrorMessage = "Password Confirmation is required.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirma Contraseña")]
-        [Compare("Password", ErrorMessage = "La contraseña y confirma contraseña no coinciden.")]
+        [Display(Name = "Password Confirmation")]
+        [Compare("Password", ErrorMessage = "The Password and Password Confirmation do not match.")]
         public string ConfirmPassword { get; set; }
 
         public string Code { get; set; }

@@ -10,8 +10,13 @@ namespace OceansApp.Models.ViewModels.Projects
         public decimal? HourlySalary { get; set; }
         public decimal? MonthlyClientRate { get; set; }
         public decimal? MonthlySalary { get; set; }
+        public decimal? MonthlySalaryThirdParty { get; set; }
         public string PositionDetail { get; set; }
         public string? ActionDate { get; set; }
-        public bool? IsActive { get; set; }
+        public string? StatusAction { get; set; }
+        public bool? IsMonthlySalaryCalculatedPerHour { get; set; }
+        public string? UserCategoryName { get; set; }
+        public bool? AccessToTrackingTool { get; set; }
+        public bool IsDefaultProject { get; set; }
     }
 }

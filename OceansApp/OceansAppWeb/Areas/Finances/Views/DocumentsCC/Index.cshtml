@@ -5,6 +5,7 @@
 
 <link rel="stylesheet" href="~/css/Shared/pagination.css" />
 <link rel="stylesheet" href="~/css/Finances/documentsCC.css" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -166,7 +167,7 @@
                 {
                     @foreach (var documentCC in Model.DocumentsCCList)
                     {
-                        <tr>
+                        <tr class="hover-group">
                             <td>
                                 <div class="cel-with-btns-cont">
                                     <span> @documentCC.ClientName</span>

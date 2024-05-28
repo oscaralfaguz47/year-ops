@@ -44,7 +44,7 @@ async function getListOfResults(firstTime, filters) {
                 if (obj.isActive === 'S') {
                     isActive = true;
                 }
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                   <td>
                   <i onclick="displayUpdateModal('modal-update-client', ${obj.clientId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.name}
@@ -68,7 +68,7 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.address === null ? "" : obj.address}</td>
                   <td>${obj.companyId}</td>
                   <td>${obj.successManager === null ? "" : obj.successManager}</td>
-                  <td>${obj.latePaymentFee}</td>
+                  <td>${(obj.latePaymentFee * 100)}%</td>
                   <td>${obj.additionalEmailsForNotifications === null ? "" : obj.additionalEmailsForNotifications}</td>
               </tr>`;
 
@@ -79,7 +79,11 @@ async function getListOfResults(firstTime, filters) {
                 noResultsMessage.text("NO RECORDS FOUND");
             };
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
-        }).finally(() => {
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
             hideSpinner();
         });
 }
@@ -117,6 +121,7 @@ async function getSuccessManagers() {
         }
 
     } catch (error) {
+            validateSessionExpiration(error.message);
         console.error('Error fetching success managers:', error);
     } finally {
         const loadingOption = successManagerSelect.querySelector('option[value="loading"]');
@@ -165,6 +170,9 @@ async function activateDeactivate(inputElement, clientId, name, status) {
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
                 })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
+                })
                 .finally(() => {
                     hideSpinner();
                 });
@@ -198,6 +206,9 @@ async function activateDeactivateNotifications(inputElement, clientId, name, sta
                 displayToasterError(data.error);
                 console.error('There has been a problem with the fetch operation:', data.detail);
             }
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         })
         .finally(() => {
             hideSpinner();
@@ -266,6 +277,9 @@ async function displayUpdateModal(modalId, clientId) {
                 });
             }
             showModal(modalId);
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         })
         .finally(() => {
             hideSpinner();
@@ -368,6 +382,9 @@ async function createUpdateClient(modalId) {
             hideModal(modalId);
             displayToasterSuccess(data.message);
             getListOfResults(false, false);
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 function deleteHolidaysList(holidaysListId, listName) {
@@ -402,6 +419,9 @@ function deleteHolidaysList(holidaysListId, listName) {
                         displayToasterError(data.error);
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 })
                 .finally(() => {
                     hideSpinner();

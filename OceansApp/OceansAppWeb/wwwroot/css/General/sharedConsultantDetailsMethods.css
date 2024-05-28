@@ -1,0 +1,35 @@
+﻿#consultants-search-cont .search-results {
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #consultants-search-cont .search-results ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #consultants-search-cont .search-results li {
+        padding: 5px;
+        cursor: pointer;
+        border-bottom: solid 1px var(--clr-blueLight);
+        background-color: rgb(1, 192, 183,0.1);
+    }
+
+        #consultants-search-cont .search-results li:hover {
+            background-color: var(--clr-blueLight);
+            color: #fff;
+        }
+#search-consultant-input{
+    padding-left: 30px !important;
+}
+.active {
+    background-color: var(--clr-blueLight) !important;
+    color: #fff;
+}
+

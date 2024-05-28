@@ -1,0 +1,11 @@
+﻿.global-modal-content {
+    width: 580px !important;
+}
+label{
+    margin-top: 10px;
+}
+@media only screen and (max-width: 700px) {
+    .global-modal-content {
+        width: 95% !important;
+    }
+}

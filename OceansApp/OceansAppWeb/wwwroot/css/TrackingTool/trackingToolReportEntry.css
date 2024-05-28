@@ -1,0 +1,190 @@
+﻿#notesInput{
+    width: 100%;
+}
+.saving-icon {
+    animation: spin 1.5s linear infinite;
+    margin: 5px;
+}
+.tooltip-container {
+    margin-left: 5px;
+}
+.file-upload-container {
+    display: flex;
+    justify-content: center;
+}
+.row-selected-file {
+    display: flex;
+    border-bottom: solid 0.5px rgb(5,5,5,0.2);
+    align-items: center;
+}
+    .row-selected-file > span:first-child {
+        flex-grow: 1; 
+        flex-shrink: 1; 
+        overflow: hidden; 
+        text-overflow: ellipsis;
+        white-space: nowrap; 
+    }
+
+.span-status {
+    order: 2; 
+    flex-grow: 0; 
+    flex-shrink: 0; 
+}
+.row-selected-file span{
+    text-align: left;
+}
+.delete-btn {
+    border: none;
+    background-color: transparent;
+    color: red;
+    order: -1;
+    margin-right: 10px;
+}
+.spinner-label {
+    order: -1;
+    margin-right: 10px;
+}
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    padding: 15px;
+    border: 2px dashed #009578;
+    border-radius: 5px;
+    color: #009578;
+    transition: border .3s ease;
+}
+    .file-upload-wrapper.dragover {
+        border-color: #007B55;
+        background-color: #f0f0f0;
+    }
+
+    .file-upload-wrapper:hover {
+        border-color: #007B55;
+    }
+
+.file-upload-label {
+    display: inline-block;
+    padding: 10px 25px;
+    background-color: #009578;
+    color: #FFF;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color .3s;
+}
+
+    .file-upload-label:hover {
+        background-color: #007B55;
+    }
+.file-upload-instructions {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
+}
+
+.file-upload-name {
+    margin-top: 10px;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #666;
+}
+.uploaded-files-section{
+    padding:5px;
+    text-align:center;
+    height: 170px;
+    overflow-y: scroll;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+    .uploaded-files-section::-webkit-scrollbar {
+        width: 5px; 
+        border-radius: 15px;
+    }
+
+    .uploaded-files-section::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .uploaded-files-section::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 15px;
+    }
+
+        .uploaded-files-section::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+.fa {
+    margin-right: 8px;
+}
+.save-report-cont{
+    text-align: center;
+    margin-top: 10px
+}
+    .save-report-cont button {
+        border: none;
+        margin-top: 8px;
+        padding: 7px 12px;
+        background-color: var(--clr-blueDark);
+        border-radius: 15px;
+        color: #fff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        width: 180px;
+    }
+    .save-report-cont #save-btn i {
+        margin:5px;
+    }
+.report-input-cont{
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+    .report-input-cont .fields-backg {
+        justify-content: center;
+        align-items: center;
+        background-color: rgb(155, 168, 184, 0.2);
+        padding: 10px;
+        width: 100%;
+        display: flex;
+        border-radius: 5px;
+        margin-bottom: 8px;
+    }
+        .report-input-cont .fields-backg label {
+            color: rgb(7, 8, 8, 0.6);
+        }
+    .report-input-cont .form-select{
+        font-size: 15px;
+    }
+    .report-input-cont .input-time {
+        width: 100%;
+    }
+    .report-input-cont label {
+        color: var(--clr-grayDark);
+        font-weight: bold;
+    }
+.span-status{
+    display: flex;
+    align-items: center;
+}
+.reupload-label{
+    color: red;
+    cursor: pointer;
+}
+    .reupload-label:hover i {
+        color: gray;
+    }
+    .reupload-label i {
+        color: #2aa7ff;
+        margin:5px;
+    }
+.uploaded-check-icon {
+    margin-left: 8px;
+    font-size: 18px;
+}

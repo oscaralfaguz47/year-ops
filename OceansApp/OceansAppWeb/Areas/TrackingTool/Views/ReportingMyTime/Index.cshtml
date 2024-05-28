@@ -1,0 +1,116 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/TrackingTool/reportingMyTime.css" />
+<link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
+<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css" />
+
+<div id="rmt-background">
+    <div id="header">
+        <div id="proj-drop-cont">
+            <input type="hidden" id="projectId" />
+            <input type="hidden" id="dateToInput" />
+            <input type="hidden" id="dateFromInput" />
+            <div id="project-name"></div>
+            <div id="projectsDropdown" class="dropdown">
+                <div class="dropdown-header">
+                    <span class="dropdown-selected"><div class="circle"></div></span>
+                </div>
+                <ul class="dropdown-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-box" id="loading-box-global">
+        <div>
+            <div class="spinner"></div>
+            <div>
+                <p><strong>Loading project info, wait...</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-Message-box" id="error-message-rep-time">
+        <div>
+            <div><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+                <p><strong>Something went wrong!</strong></p>
+            </div>
+            <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
+        </div>
+    </div>
+
+    <div id="no-projects-box">
+    </div>
+
+
+    <div id="content-box">
+        <div class="container">
+            <!-- Date Navegation buttons -->
+            <div class="row justify-content-center">
+                <div class="col-md-8" style="display: flex">
+                    <div>
+                        <div class="text-center mb-2"> <i class="fa-regular fa-calendar"></i> <strong>SELECT THE PERIOD</strong></div>
+                        <div class="navegation-box">
+                            <button class="btn-arrow" onclick="handleButtonClick(this, 'left')">< Previous</button>
+                            <label id="previous-date"></label> - <label id="next-date"></label>
+                            <button class="btn-arrow" onclick="handleButtonClick(this, 'right')">Next ></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="track-col">
+                            <div id="tracking-tool-time-entry" style="display:none">
+                                <partial name="_TrackingToolTimeEntryPartialView" />
+                            </div>
+                            <div id="tracking-tool-report-entry" style="display:none">
+                                <partial name="_TrackingToolReportEntryPartialView" />
+                            </div>
+                            @* Loading message *@
+                            <div class="loading-box loading-box-intern" id="loading-box-intern">
+                                <div>
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                            @* Error message *@
+                            <div class="error-Message-box error-message-box-intern" id="error-message-intern">
+                                <div>
+                                    <div><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                    <div>
+                                        <p><strong>Something went wrong!</strong></p>
+                                    </div>
+                                    <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="track-col">
+                            <div id="questions">
+                            </div>
+                        </div>
+                        <div class="track-col">
+                            <div id="payment-period-container">
+                            </div>
+                        </div>
+                        <div class="track-col">
+                            <div id="submission-info" class="submit-report">
+                            </div>
+                            <div id="submission-errors">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="~/js/Shared/navigateBetweenPeriods.js"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js"></script>
+    <script src="~/js/TrackingTool/reportingMyTime.js"></script>
+    <script src="~/js/AccountManagement/Projects/projectsConsultantAssigned.js"></script>

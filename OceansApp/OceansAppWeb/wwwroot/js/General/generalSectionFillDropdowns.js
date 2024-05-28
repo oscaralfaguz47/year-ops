@@ -10,6 +10,8 @@
                     throw new Error('The request to the server failed!. More details: ' + errorData.detail);
                 });
             }
+        }).catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 function fillSuccessManagersSelectForFilters(selectElement) {

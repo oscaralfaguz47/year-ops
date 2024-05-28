@@ -5,6 +5,8 @@
 @using OceansApp.Utility.ConstantData.Claims.Finances
 @using OceansApp.Utility.ConstantData.Claims.General
 @using OceansApp.Utility.ConstantData.Claims.AccountManagement
+@using OceansApp.Utility.ConstantData.Claims.Recruiting
+@using OceansApp.Utility.ConstantData.Claims.TrackingTool
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -21,6 +23,8 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <script src="https://kit.fontawesome.com/a609136563.js" crossorigin="anonymous"></script>
+
     <link rel="stylesheet" href="//cdn.datatables.net/1.11.2/css/jquery.dataTables.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
@@ -48,10 +52,16 @@
                                         <li class="nav-item">
                                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
                                         </li>
+                                         @if (User.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType && c.Value == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue))
+                                        {
+                                            <li class="nav-item">
+                                                <a class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index"><i class="bi bi-stopwatch"></i> Reporting My Time</a>
+                                            </li>
+                                        }
                                         @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_ClaimValue))
                                         {
                                             <li class="nav-item">
-                                                <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index"><i class="bi bi-calculator"></i> Calculadora</a>
+                                                <a class="nav-link" asp-area="Finances" asp-controller="Calculator" asp-action="Index"><i class="bi bi-calculator"></i> Calculator</a>
                                             </li>
                                         }
                                         @if (User.IsAuthorizedForGeneral())
@@ -59,14 +69,18 @@
                                             <li class="nav-item dropdown">
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-house-heart-fill"></i> General</a>
                                                 <div class="dropdown-menu">
-                                                    @if (User.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue))
-                                                        //{
-                                                        //    <a id="manage" class="nav-link text-dark" asp-area="General" asp-controller="Consultants" asp-action="Index">Consultores</a>
-                                                        //}
-                                                        @if (User.HasClaim(c => c.Type == HolidaysClaimsCD.Holidays_Page_ClaimType && c.Value == HolidaysClaimsCD.Holidays_Page_ClaimValue))
-                                                        {
-                                                            <a id="holidays" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index">Holidays</a>
-                                                        }
+                                                    @if (User.IsAuthorizedForConsultantsPage())
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="General" asp-controller="Consultants" asp-action="Index">Consultants</a>
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == HolidaysClaimsCD.Holidays_Page_ClaimType && c.Value == HolidaysClaimsCD.Holidays_Page_ClaimValue))
+                                                    {
+                                                        <a id="holidays" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index">Holidays</a>
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType && c.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue))
+                                                    {
+                                                        <a id="consultant-reimbursed-benefits" class="nav-link text-dark" asp-area="General" asp-controller="ConsultantReimbursedBenefits" asp-action="Index">Benefit Reimbursements</a>
+                                                    }
                                                 </div>
                                             </li>
                                         }
@@ -90,19 +104,39 @@
                                         @if (User.IsAuthorizedForFinances())
                                         {
                                             <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finanzas</a>
-                                                @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
-                                                {
-                                                    <div class="dropdown-menu">
-                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Cuentas por Cobrar</a>
-                                                    </div>
-                                                }
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-bank2"></i> Finances</a>
+                                                <div class="dropdown-menu">
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue))
+                                                    {
+                                                        <a id="payment-debits-credits" class="nav-link text-dark" asp-area="Finances" asp-controller="ConsultantPaymentsDebitsCredits" asp-action="Index">Consultant Payments, Debits & Credits</a>
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Receivables</a>
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="PaymentSheets" asp-action="Index">Payment Sheets</a>
+                                                    }
+                                                </div>
+                                            </li>
+                                        }
+                                        @if (User.IsAuthorizedForRecruiting())
+                                        {
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-person-hearts"></i> Recruiting</a>
+                                                <div class="dropdown-menu">
+                                                    @if (User.HasClaim(c => c.Type == InterviewsClaimsCD.Manage_Interviews_Page_ClaimType && c.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue))
+                                                    {
+                                                        <a id="interviews" class="nav-link text-dark" asp-area="Recruiting" asp-controller="Interviews" asp-action="Index">Interviews</a>
+                                                    }
+                                                </div>
                                             </li>
                                         }
                                         @if (User.IsAuthorizedForAdminCenter())
                                         {
                                             <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrador</a>
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrator</a>
                                                 <div class="dropdown-menu">
                                                     <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="Home" asp-action="Index">Admin Center</a>
                                                 </div>
@@ -137,18 +171,18 @@
                     <span class="sr-only"></span>
                 </div>
                 <div>
-                    <span><i class="bi bi-hourglass-split"></i> Procesando datos, espera.... </span>
+                    <span><i class="bi bi-hourglass-split"></i> Processing data, wait.... </span>
                 </div>
             </div>
         </div>
     </div>
+
     @if (!SignInManager.IsSignedIn(User))
     {
         <footer>
             <div>
-                Advertencia: Esta plataforma constituye software propietario de Oceans Code Experts y su uso no autorizado, copia, o
-                distribución para usos ajenos a la operación de Oceans Code Experts está estrictamente prohibido. Todos los derechos
-                reservados. Oceans Code Experts 2023.
+                Warning: This platform constitutes proprietary software of Oceans Code Experts and its unauthorized use, copying, or distribution
+                for uses outside the operation of Oceans Code Experts is strictly prohibited. All rights reserved. Oceans Code Experts <span id="copyright-year"></span>.
             </div>
         </footer>
     }

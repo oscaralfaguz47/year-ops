@@ -1,0 +1,105 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
+using System.Security.Claims;
+
+namespace OceansAppWeb.Areas.AccountManagement.Controllers
+{
+    [Area("AccountManagement")]
+    [RequireTwoFactorEnabled]
+    [Authorize]
+    public class ProjectsConsultantsAssignedController : Controller
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IAuthorizationService _authorizationService;
+        public ProjectsConsultantsAssignedController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
+        {
+            _unitOfWork = unitOrWork;
+            _authorizationService = authorizationService;
+        }
+
+        [Authorize(Policy = "BasicAccessToReportingMyTime")]
+        [HttpGet]
+        public async Task<IActionResult> GetProjectsWhereConsultantAssigned()
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                if (claim == null)
+                {
+                    return BadRequest(new { error = "User not valid." });
+                }
+
+                var projects = await _unitOfWork.ProjectConsultantAssigned.GetProjectsWhereConsultantAssigned(claim.Value);
+
+                return Ok(new
+                {
+                    projects = projects
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+        [Authorize(Policy = "BasicAccessToReportingMyTime")]
+        [HttpGet]
+        public async Task<IActionResult> GetConsultantSelectedProjectInfo()
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                if (claim == null)
+                {
+                    return BadRequest(new { error = "User not valid." });
+                }
+                var projectInfoData = await _unitOfWork.ProjectConsultantAssigned.GetConsultantSelectedProjectInfo(claim.Value);
+
+                return Ok(new
+                {
+                    projectInfoData = projectInfoData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "BasicAccessToReportingMyTime")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SelectConsultantProject(int projectId)
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                var projectUserSelectedToDelete = _unitOfWork.ProjectUserSelected.GetFirstOrDefault(x => x.UserId == claim.Value);
+                if (projectUserSelectedToDelete == null)
+                {
+                    return BadRequest(new { error = "The user has not a project selected." });
+                }
+                var transact = await _unitOfWork.BeginTran();
+                _unitOfWork.ProjectUserSelected.Remove(projectUserSelectedToDelete);
+                ProjectUserSelected projectUserSelectedToCreate = new()
+                {
+                    ProjectId = projectId,
+                    UserId = claim.Value
+                };
+                _unitOfWork.ProjectUserSelected.Add(projectUserSelectedToCreate);
+                _unitOfWork.Save();
+                transact.Commit();
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the project could not be selected.", detail = ex.Message });
+            }
+        }
+    }
+}

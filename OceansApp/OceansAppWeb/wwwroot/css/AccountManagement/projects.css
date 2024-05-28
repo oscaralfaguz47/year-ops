@@ -32,7 +32,10 @@
 }
 
 /*MODAL CREATE UPDATE*/
-#modal-update-create-project #ClientSelect{
+.global-modal-content{
+    width: 650px !important;
+}
+#modal-update-create-project #ClientSelect {
     width: 300px;
 }
 #modal-update-create-project #successManagerIdSelect {
@@ -50,6 +53,7 @@
     display: flex;
     margin-bottom: 5px;
     list-style: none;
+    position:relative;
 }
 
 #modal-update-create-project .modal-scroll-container {
@@ -66,6 +70,9 @@
 @media only screen and (max-width: 770px) {
     #consultants-search-cont {
         width: 100%;
+    }
+    .global-modal-content {
+        width: 95% !important;
     }
 }
 #form-add-update-consultant .radio-group {

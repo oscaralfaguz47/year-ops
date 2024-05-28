@@ -9,8 +9,16 @@ namespace OceansApp.Models.Models
         [Required]
         public int ConsultantId { get; set; }
         [ForeignKey("Id")]
+        [Required]
         public string UserId { get; set; }
-        public DateTime StartDate { get; set; }
+        [Required]
+        public DateTime CreationDate { get; set; }
+        [MaxLength(450)]
+        public string? UserCreatedBy { get; set; }
+        public DateTime? LastUpdatedDate { get; set; }
+        [MaxLength(450)]
+        public string? UserLastUpdatedBy { get; set; }
+
         [MaxLength(4)]
         public string? IdCountry { get; set; }
         [MaxLength(50)]
@@ -21,6 +29,14 @@ namespace OceansApp.Models.Models
         public string? Location { get; set; }
         [MaxLength(20)]
         public string? ShirtSize { get; set; }
+        [MaxLength(8)]
+        public string? CompanyId { get; set; }
+        public int? PaymentMethodId { get; set; }
+        public int? PaymentPeriod { get; set; }
+        [Required]
+        public bool ParticipatesInOnCalls { get; set; } = false;
+        public int? PartnerId { get; set; }
+        public int? ConsultantHolidayId { get; set; }
 
 
         [ValidateNever]
@@ -28,6 +44,21 @@ namespace OceansApp.Models.Models
 
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
+
+        [ValidateNever]
+        public ApplicationUser? ApplicationUserCreated { get; set; }
+        [ValidateNever]
+        public ApplicationUser? ApplicationUserUpdated { get; set; }
+        [ValidateNever]
+        public PaymentMethod? PaymentMethod { get; set; }
+        [ValidateNever]
+        public Partner? Partner { get; set; }
+        [ValidateNever]
+        public ConsultantHoliday? ConsultantHoliday { get; set; }
+        [ValidateNever]
+        public virtual ICollection<ProjectConsultantAssigned> ProjectsConsultantsAssigned { get; set; }
+        [ValidateNever]
+        public virtual ICollection<ReportingMyTimeMovement> ReportingMyTimeMovements { get; set; }
 
     }
 }

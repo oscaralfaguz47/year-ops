@@ -9,7 +9,7 @@ namespace OceansAppWeb.Areas.General.Controllers
 {
     [Area("General")]
     [RequireTwoFactorEnabled]
-    [Authorize(Policy = "AccessToHolidaysPage")]
+    [Authorize]
     public class ConsultantHolidaysController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -17,11 +17,13 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             _unitOfWork = unitOrWork;
         }
+        [Authorize(Policy = "AccessToHolidaysPage")]
         public IActionResult Index()
         {
             return View();
         }
 
+        [Authorize(Policy = "AccessToHolidaysPage")]
         [HttpGet]
         public async Task<IActionResult> GetUniqueYears()
         {
@@ -41,6 +43,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToHolidaysPage")]
         [HttpGet]
         public async Task<IActionResult> GetHolidaysList(string model)
         {
@@ -83,6 +86,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToHolidaysPage")]
         [HttpGet]
         public async Task<IActionResult> GetHolidayListData(int holidayId)
         {
@@ -102,6 +106,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToHolidaysPage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateHoliday([FromBody] CreateUpdateHolidayVM holidayData)
@@ -147,7 +152,6 @@ namespace OceansAppWeb.Areas.General.Controllers
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var resultMessage = "";
 
-                    var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
                     //IF IS NOT HOLIDAY ID THEN CREATE THE HOLIDAY
                     if (holidayData.ConsultantHolidayId == null)
                     {
@@ -198,6 +202,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToHolidaysPage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteHolidaysList(int holidaysListId)
@@ -219,5 +224,27 @@ namespace OceansAppWeb.Areas.General.Controllers
                 return BadRequest(new { error = $"There was an error in the server, the holidays list could not be deleted.", result = "ErrorDeleting", detail = ex.Message });
             }
         }
+
+        [Authorize(Policy = "AccessToListOfHolidaysForSelect")]
+        [HttpGet]
+        public async Task<IActionResult> GetHolidaysListForSelectByYear(int year)
+        {
+            try
+            {
+                var holidays = await _unitOfWork.ConsultantHoliday.GetAllAsync(x => x.Year == year).ConfigureAwait(false);
+                var holidaysList = holidays.Select(holiday => new GetDataForSelectVM
+                {
+                    Value = holiday.ConsultantHolidayId,
+                    Text = holiday.Name
+                }).ToList();
+
+                return Ok(new { Holidays = holidaysList });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
     }
 }

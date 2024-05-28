@@ -6,7 +6,7 @@
 <!-- WIDGET PROVIDERS -->
 @if (User.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue))
 {
-    <div class="container">
+    @*<div class="container">
         <div class="modal fade" id="providersModal" tabindex="-1" aria-labelledby="providersModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>*@
 }
 <!-- END WIDGET PROVIDERS -->
 @section Scripts {

@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 
@@ -7,9 +9,13 @@ namespace OceansApp.DataAccess.Repository
     public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _db;
-        public UnitOfWork(ApplicationDbContext db)
+        private readonly IConfiguration _config;
+        private readonly UserManager<IdentityUser> _userManager;
+        public UnitOfWork(ApplicationDbContext db, IConfiguration config, UserManager<IdentityUser> userManager)
         {
             _db = db;
+            _config = config;
+            _userManager = userManager;
             AccountingAccounts = new AccountingAccountRepository(_db);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
@@ -26,19 +32,31 @@ namespace OceansApp.DataAccess.Repository
             ProviderCategory = new ProviderCategoryRepository(_db);
             Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
-            ConsultantDetail = new ConsultantDetailRepository(_db);
+            ConsultantDetail = new ConsultantDetailRepository(_db, _config, _userManager);
+            ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db);
             ConsultantPosition = new ConsultantPositionRepository(_db);
+            ConsultantBenefit = new ConsultantBenefitRepository(_db);
+            ConsultantBenefitCategory = new ConsultantBenefitCategoryRepository(_db);
+            ConsultantReimbursedBenefit = new ConsultantReimbursedBenefitRepository(_db);
             ConsultantHoliday = new ConsultantHolidayRepository(_db);
             ConsultantRole = new ConsultantRoleRepository(_db);
             ConsultantQualityLevel = new ConsultantQualityLevelRepository(_db);
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
+            CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
+            Interview = new InterviewRepository(_db);
+            Partner = new PartnerRepository(_db);
+            PaymentMethod = new PaymentMethodRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
             ProjectConsultantAssignedHistoryAction = new ProjectConsultantAssignedHistoryActionRepository(_db);
+            ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ProviderEvent = new ProviderEventRepository(_db);
             ProviderEventDate = new ProviderEventDateRepository(_db);
+            ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
+            ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);
+            ReportingMyTimeMovementType = new ReportingMyTimeMovementTypeRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
             DocumentsCCNotification = new DocumentsCCNotificationRepository(_db);
             NotificationType = new NotificationTypeRepository(_db);
@@ -62,22 +80,34 @@ namespace OceansApp.DataAccess.Repository
         public ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; set; }
         public ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; set; }
         public IClientRepository Client { get; set; }
+        public IPartnerRepository Partner { get; set; }
         public IProviderCategoryRepository ProviderCategory { get; set; }
         public IProviderRepository Provider { get; set; }
         public ICountryRepository Country { get; set; }
         public IConsultantHolidayRepository ConsultantHoliday { get; set; }
         public IConsultantDetailRepository ConsultantDetail { get; set; }
+        public IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; set; }
         public IConsultantPositionRepository ConsultantPosition { get; set; }
+        public IConsultantBenefitRepository ConsultantBenefit { get; set; }
+        public IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; set; }
+        public IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; set; }
         public IConsultantRoleRepository ConsultantRole { get; set; }
         public IConsultantQualityLevelRepository ConsultantQualityLevel { get; set; }
         public IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; set; }
         public IConsultantSeniorityRepository ConsultantSeniority { get; set; }
+        public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
+        public IInterviewRepository Interview { get; set; }
+        public IPaymentMethodRepository PaymentMethod { get; set; }
         public IProjectRepository Project { get; set; }
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
         public IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; set; }
         public IProjectConsultantAssignedHistoryActionRepository ProjectConsultantAssignedHistoryAction { get; set; }
         public IProviderEventRepository ProviderEvent { get; set; }
         public IProviderEventDateRepository ProviderEventDate { get; set; }
+        public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
+        public IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; set; }
+        public IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; set; }
+        public IReportingMyTimeMovementTypeRepository ReportingMyTimeMovementType { get; set; }
         public IDocumentCCRepository DocumentCC { get; set; }
         public IDocumentsCCNotificationRepository DocumentsCCNotification { get; set; }
         public INotificationTypeRepository NotificationType { get; set; }

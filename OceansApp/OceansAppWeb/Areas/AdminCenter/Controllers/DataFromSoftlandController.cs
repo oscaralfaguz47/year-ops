@@ -6,11 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Cors;
 
 namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
+    [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
+    [Authorize]
     [Authorize(Policy = "AccessToUpdateDataFromSoftlandSection")]
     public class DataFromSoftlandController : Controller
     {
@@ -31,7 +34,7 @@ namespace OceansApp.Areas.Admin.Controllers
             else
             {
                 TempData["globalLastDate"] = DateTime.Now;
-                TempData["globalLastDateSection"] = "Aún no existen registros";
+                TempData["globalLastDateSection"] = "There are no records yet";
             }
 
             return View();
@@ -58,7 +61,8 @@ namespace OceansApp.Areas.Admin.Controllers
                             && validateCorrectJsonStructureProviderCategory(obj.DataToSave)
                             && validateCorrectJsonStructureCountry(obj.DataToSave)
                             && validateCorrectJsonStructureProvider(obj.DataToSave)
-                            && validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
+                            && validateCorrectJsonStructureDocumentsCC(obj.DataToSave)
+                            && validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
                         {
                             var updatedSections = "";
 
@@ -91,7 +95,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Cuentas Contables /";
+                                    updatedSections = updatedSections + "Accounting Accounts /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -118,7 +122,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Centros de Costo /";
+                                    updatedSections = updatedSections + "Centers of costs /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -162,7 +166,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Movimientos del Mayor /";
+                                    updatedSections = updatedSections + "Ledger Movements /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -209,7 +213,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Clientes /";
+                                    updatedSections = updatedSections + "Clients /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -235,7 +239,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Categorias de Proveedor /";
+                                    updatedSections = updatedSections + "Provider Categories /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -260,7 +264,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Paises /";
+                                    updatedSections = updatedSections + "Countries /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -371,7 +375,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Proveedores /";
+                                    updatedSections = updatedSections + "Providers /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -420,7 +424,48 @@ namespace OceansApp.Areas.Admin.Controllers
                                 }
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Documentos CC /";
+                                    updatedSections = updatedSections + "Documents CC /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
+                            //INSERT COST CENTER ACCOUNTING ACCOUNT
+                            if (jsonFromInput.costsCenterAccounts != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.costsCenterAccounts)
+                                {
+                                    var costCenterCode = "";
+                                    var accountingAccountCode = "";
+                                    var companyId = "";
+                                    if (jsonMaster.CENTRO_COSTO != null)
+                                    {
+                                        costCenterCode = jsonMaster.CENTRO_COSTO;
+                                        accountingAccountCode = jsonMaster.CUENTA_CONTABLE;
+                                        companyId = jsonMaster.CompanyId;
+                                    }
+                                    var costCenter = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenterCode
+                                    && x.CompanyId == companyId);
+                                    var accountingAccount = _unitOfWork.AccountingAccounts.GetFirstOrDefault(x => x.AccountingAccountCode == accountingAccountCode
+                                    && x.CompanyId == companyId);
+
+                                    CostCenterAccountingAccount costCenterAccount = new()
+                                    {
+                                        CostCenterId = costCenter.CostCenterId,
+                                        AccountingAccountId = accountingAccount.AccountingAccountId,
+                                        Status = jsonMaster.ESTADO,
+                                        CreateDate = jsonMaster.CreateDate,
+                                        CompanyId = companyId
+                                    };
+                                    if (_unitOfWork.CostCenterAccountingAccount.AddCostCenterAccountingAccount(costCenterAccount))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                        _unitOfWork.Save();
+                                    }
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Costs Centes Accounting Accounts /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -438,42 +483,46 @@ namespace OceansApp.Areas.Admin.Controllers
                                 _unitOfWork.DataUpdateDates.Add(dataUpdateDate);
                                 _unitOfWork.Save();
                             }
-                            TempData["success"] = updatedRecords + " registros fueron afectados.";
+                            TempData["success"] = updatedRecords + " records were affected.";
                             return RedirectToAction("Index");
                         }
                         else
                         {
                             if (!validateCorrectJsonStructureAccountingAccount(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para las Cuentas Contables Contables");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Accounting Accounts");
                             }
                             if (!validateCorrectJsonStructureCostCenter(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Centros de Costo");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Cost Centers");
                             }
                             if (!validateCorrectJsonStructureLedgerMovement(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los movimientos del Mayor");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for the Mayor's movements");
                             }
                             if (!validateCorrectJsonStructureClients(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Clientes");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Clients");
                             }
                             if (!validateCorrectJsonStructureProviderCategory(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para la categoría de Proveedores");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for the Suppliers category");
                             }
                             if (!validateCorrectJsonStructureCountry(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los paises");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for countries");
                             }
                             if (!validateCorrectJsonStructureProvider(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los proveedores");
+                                ModelState.AddModelError("dataToSave", "JSON structure is not correct for providers");
                             }
                             if (!validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
                             {
-                                ModelState.AddModelError("dataToSave", "La estructura del JSON no es correcta para los Documentos CC");
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for CC Documents");
+                            }
+                            if (!validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Costs Centers Accounting Accounts");
                             }
 
                             return View("Index");
@@ -481,7 +530,7 @@ namespace OceansApp.Areas.Admin.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("dataToSave", "El dato a incluir debe de ser un JSON valido");
+                        ModelState.AddModelError("dataToSave", "The data to be included must be valid JSON");
                         return View("Index");
                     }
                 }
@@ -842,6 +891,40 @@ namespace OceansApp.Areas.Admin.Controllers
                         if (document.DocumentNumber == null || document.DocumentType == null || document.DocumentDate.ToString() == null
                             || document.DocumentAmount == null || document.BalanceAmount == null
                             || document.Canceled == null || document.CreationDate.ToString() == null || document.CompanyId == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public bool validateCorrectJsonStructureCostCenterAccount(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.costsCenterAccounts != null)
+                {
+                    foreach (var result in json.costsCenterAccounts)
+                    {
+                        CostCenterAccountingAccount costCenterAccount = new()
+                        {
+                            Status = result.ESTADO,
+                            CreateDate = result.CreateDate,
+                            CompanyId = result.CompanyId
+                        };
+                        if (costCenterAccount.Status == null
+                            || costCenterAccount.CompanyId == null)
                         {
                             return false;
                         }

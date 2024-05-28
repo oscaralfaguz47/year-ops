@@ -2,6 +2,8 @@
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.CostsCenters;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -41,6 +43,25 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<GetCostsCentersForListVM>> GetCostsCentersWhereCompanyIdAsync(string companyId)
+        {
+            var results = await _db.COST_CENTER.Where(x => x.CompanyId == companyId && x.Description != "NO UTILIZAR" &&
+            x.Description != "No Definido" && x.Description != "NO DEFINIDO" && x.Description != "CONTABILIDAD")
+                .OrderBy(x=>x.CostCenterCode).ToListAsync();
+            var listToReturn = new List<GetCostsCentersForListVM>();
+            foreach (var costCenter in results)
+            {
+                var selectVM = new GetCostsCentersForListVM
+                {
+                    CostCenterId = costCenter.CostCenterId, 
+                    Description = costCenter.Description,
+                    CostCenterCode = costCenter.CostCenterCode,
+                    AcceptData = costCenter.AcceptData
+                };
+                listToReturn.Add(selectVM);
+            }
+            return listToReturn;
+        }
         public void Update(CostCenter obj)
         {
             _db.COST_CENTER.Update(obj);

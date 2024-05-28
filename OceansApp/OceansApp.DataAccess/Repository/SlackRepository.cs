@@ -28,14 +28,10 @@ namespace OceansApp.DataAccess.Repository
             }
             catch (HttpRequestException e)
             {
-                // Manejo de excepciones relacionadas con la red
-                // Log del error
                 throw new Exception("Error de red al intentar enviar mensaje a Slack: " + e.Message);
             }
             catch (Exception e)
             {
-                // Manejo de otras excepciones generales
-                // Log del error
                 throw new Exception("Error general al intentar enviar mensaje a Slack: " + e.Message);
             }
         }

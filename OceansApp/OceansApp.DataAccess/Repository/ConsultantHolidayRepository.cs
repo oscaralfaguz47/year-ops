@@ -6,6 +6,7 @@ using Dapper;
 using System.Data;
 using OceansApp.Models.ViewModels.Holidays;
 using OceansApp.Models.ViewModels.Components;
+using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -15,6 +16,15 @@ namespace OceansApp.DataAccess.Repository
         public ConsultantHolidayRepository(ApplicationDbContext db) : base(db)
         {
             _db = db;
+        }
+        public async Task<List<ConsultantHoliday>> GetAllAsync(Expression<Func<ConsultantHoliday, bool>>? predicate = null)
+        {
+            IQueryable<ConsultantHoliday> query = _db.CONSULTANT_HOLIDAYS;
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+            return await query.ToListAsync();
         }
 
         public async Task<List<int>> GetHolidaysYears()
@@ -73,8 +83,6 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
                 ConsultantHoliday holidayListToCreate = new()
@@ -82,7 +90,7 @@ namespace OceansApp.DataAccess.Repository
                     Name = holidayData.Name.Trim(),
                     Year = (int)holidayData.Year,
                     CreatedBy = holidayData.CreatedBy,
-                    CreationDate = costaRicaTime
+                    CreationDate = DateTime.UtcNow
                 };
                 var createdHolidayList = await _db.CONSULTANT_HOLIDAYS.AddAsync(holidayListToCreate);
                 await _db.SaveChangesAsync();
@@ -96,7 +104,7 @@ namespace OceansApp.DataAccess.Repository
                             ConsultantHolidayId = createdHolidayList.Entity.ConsultantHolidayId,
                             Name = holiday.Name.Trim(),
                             Date = (DateTime)holiday.Date,
-                            CreationDate = costaRicaTime,
+                            CreationDate = DateTime.UtcNow,
                             CreatedBy = holidayData.CreatedBy
                         };
                         await _db.CONSULTANT_HOLIDAY_DATES.AddAsync(holidayDateToCreate);
@@ -120,8 +128,6 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
-
                 var holidayListToUpdate = await _db.CONSULTANT_HOLIDAYS.FirstOrDefaultAsync(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId);
 
                 if (holidayListToUpdate == null)
@@ -168,7 +174,7 @@ namespace OceansApp.DataAccess.Repository
                             ConsultantHolidayId = holidayListToUpdate.ConsultantHolidayId,
                             Name = holidayInListToAddOrUpdate.Name,
                             Date = (DateTime)holidayInListToAddOrUpdate.Date,
-                            CreationDate = costaRicaTime,
+                            CreationDate = DateTime.UtcNow,
                             CreatedBy = updatedCreatedBy
                         };
                         await _db.CONSULTANT_HOLIDAY_DATES.AddAsync(holidayDateToCreate);
@@ -182,7 +188,7 @@ namespace OceansApp.DataAccess.Repository
                         {
                             existingHolidayInList.Name = holidayInListToAddOrUpdate.Name;
                             existingHolidayInList.Date = (DateTime)holidayInListToAddOrUpdate.Date;
-                            existingHolidayInList.DateLastUpdate = costaRicaTime;
+                            existingHolidayInList.DateLastUpdate = DateTime.UtcNow;
                             existingHolidayInList.UpdatedBy = updatedCreatedBy;
                         }
                     }

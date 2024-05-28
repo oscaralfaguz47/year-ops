@@ -31,7 +31,7 @@ async function getListOfResults(firstTime, filters) {
                 var formattedDate = ('0' + (startDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + startDate.getDate()).slice(-2) + '/' +
                     startDate.getFullYear();
-                var row = `<tr>
+                var row = `<tr class="hover-group">
                   <td>
                   <i onclick="displayUpdateModal('modal-update-create-project', ${obj.projectId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                       ${obj.name}
@@ -58,7 +58,11 @@ async function getListOfResults(firstTime, filters) {
                 noResultsMessage.text("NO RECORDS FOUND");
             };
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
-        }).finally(() => {
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
             hideSpinner();
         });
 }
@@ -86,18 +90,33 @@ async function displayUpdateModal(modalId, id) {
     var consultantsContainer = $("#consultants-container");
     consultantsContainer.empty();
     createUpdateForm.find('[name="projectId"]').val("");
-
+    var projectTypeInputsCont = document.getElementById("project-type-inputs-cont");
+    projectTypeInputsCont.style.display = 'block';
+    var projectTypeLabel = document.getElementById("saved-project-type-label");
+    projectTypeLabel.style.display = 'none';
     const clientSelect = createUpdateForm.find('[name="client"]')[0];
+    var clientSelectCont = document.getElementById("client-select-cont");
+    clientSelectCont.style.display = 'block';
     clientSelect.innerHTML = '<option value="null">-Select a client-</option>';
     clientSelect.disabled = false;
     const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
     successManagerSelect.innerHTML = '<option value="null">-Select a user-</option>';
     successManagerSelect.disabled = true;
+    var billableTrackingToolCont = document.getElementById("billable-tracking-tool-cont");
+    billableTrackingToolCont.style.display = 'block';
+    var consultantsAssignedSection = document.getElementById("consultants-assigned-section");
+    consultantsAssignedSection.style.display = 'none';
+    document.getElementById("saved-project-message").style.display = "none";
+    var billableInput = document.getElementById("IsBillable");
+    billableInput.disabled = false;
     showModal(modalId);
     if (id !== null) {
+        billableInput.disabled = true;
         document.getElementById('create-Project-modal-title').textContent = "UPDATE PROJECT";
         var url = "/AccountManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
         displaySpinner();
+        projectTypeInputsCont.style.display = 'none';
+        projectTypeLabel.style.display = 'block';
         fetch(url)
             .then(response => {
                 if (response.ok) {
@@ -111,10 +130,21 @@ async function displayUpdateModal(modalId, id) {
                 }
             })
             .then(data => {
+                consultantsAssignedSection.style.display = 'block';
                 createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
                 createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
                 createUpdateForm.find('[name="description"]').val(data.projectData.description);
-
+                if (data.projectData.clientName === "Oceans Code Experts") {
+                    clientSelectCont.style.display = 'none';
+                    billableTrackingToolCont.style.display = 'none';
+                    document.getElementById("saved-project-type-span").textContent = '"Administrative Internal"';
+                    document.getElementById('internal-pt').checked = true;
+                    document.getElementById('external-pt').checked = false;
+                } else {
+                    document.getElementById("saved-project-type-span").textContent = '"Client External"';
+                    document.getElementById('external-pt').checked = true;
+                    document.getElementById('internal-pt').checked = false;
+                }
                 var newOptionClient = document.createElement('option');
                 newOptionClient.value = data.projectData.clientId;
                 newOptionClient.text = data.projectData.clientName;
@@ -139,15 +169,42 @@ async function displayUpdateModal(modalId, id) {
                 createUpdateForm.find('[name="isBillable"]').prop('checked', data.projectData.isBillable);
                 createUpdateForm.find('[name="clientHasTrackingTool"]').val(data.projectData.clientHasTrackingTool);
                 createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked', data.projectData.clientHasTrackingTool);
+
                 data.projectData.assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionDetail,
-                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.isActive)
+                        item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.statusAction, null,
+                        null, data.allowedManageAdminConsultants, item.userCategoryName, data.projectData.projectId, item.MonthlySalaryThirdParty);
                 });
                 showModal(modalId);
+            })
+            .catch(error => {
+                validateSessionExpiration(error.message);
             })
             .finally(() => {
                 hideSpinner();
             });
+    }
+}
+function validateProjectType() {
+    var externalProjectType = document.querySelector('input[name="projectTypeRb"]:checked').value;
+    var clientSelectContainer = document.getElementById("client-select-cont");
+    var clientSelect = document.getElementById("ClientSelect");
+    var successManagerSelect = document.getElementById("successManagerIdSelect");
+    var billableTrackingToolCont = document.getElementById("billable-tracking-tool-cont");
+    let isBillableCheckbox = document.getElementById('IsBillable');
+
+    if (externalProjectType === 'E') {
+        clientSelectContainer.style.display = 'block';
+        clientSelect.value = null;
+        billableTrackingToolCont.style.display = 'block';
+        isBillableCheckbox.value = true;
+        isBillableCheckbox.checked = true;
+    } else {
+        clientSelectContainer.style.display = 'none';
+        successManagerSelect.disabled = false;
+        billableTrackingToolCont.style.display = 'none';
+        isBillableCheckbox.value = false;
+        isBillableCheckbox.checked = false;
     }
 }
 //CreateUpdate Project
@@ -158,12 +215,14 @@ async function createUpdateProject(modalId) {
     var projectNameData = createUpdateForm.find('[name="projectName"]').val();
     var projectDetailData = createUpdateForm.find('[name="description"]').val();
     var clientIdData = createUpdateForm.find('[name="client"]').val();
-    var startDateData = createUpdateForm.find('[name="startDate"]').val();
+    var startDateData = createUpdateForm.find('[name="startDate"]').val() || null;
     var successManagerData = createUpdateForm.find('[name="successManager"]').val();
     var isActiveData = createUpdateForm.find('[name="isActive"]').prop('checked');
     var isBillableData = createUpdateForm.find('[name="isBillable"]').prop('checked');
     var clientHasTrackingToolData = createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked');
     var consultantsElements = document.querySelectorAll(".consultantRow");
+    var projectTypeValue = document.querySelector('input[name="projectTypeRb"]:checked').value;
+    var billableInput = document.getElementById("IsBillable");
     var consultantsData = [];
     consultantsData = Array.from(consultantsElements).map(function (fila) {
         var projectConsultantAssignedId = fila.querySelector('[name="projectConsultantAssignedId"]').value ? fila.querySelector('[name="projectConsultantAssignedId"]').value : null;
@@ -173,7 +232,11 @@ async function createUpdateProject(modalId) {
         var monthlyClientRateCreateProject = fila.querySelector('[name="monthlyClientRateCreateProject"]').value;
         var hourlySalaryCreateProject = fila.querySelector('[name="hourlySalaryCreateProject"]').value;
         var monthlySalaryCreateProject = fila.querySelector('[name="monthlySalaryCreateProject"]').value;
+        var monthlySalaryThirdPartyCreateProject = fila.querySelector('[name="monthlySalaryThirdPartyCreateProject"]').value;
         var actionDateCreateProject = fila.querySelector('[name="actionDateCreateProject"]').value;
+        var monthlySalaryCalculatedPerHourInput = fila.querySelector('[name="monthlySalaryCalculatedPerHourCreateProject"]');
+        var accessToTrackingToolInput = fila.querySelector('[name="accessToTrackingToolCreateProject"]');
+        var isDefaultProjectInput = fila.querySelector('[name="isDefaultProjectCreateProject"]');
         return {
             ProjectConsultantAssignedId: projectConsultantAssignedId,
             ConsultantId: Number(consultantId),
@@ -181,6 +244,10 @@ async function createUpdateProject(modalId) {
             HourlySalary: Number(hourlySalaryCreateProject),
             MonthlyClientRate: Number(monthlyClientRateCreateProject),
             MonthlySalary: Number(monthlySalaryCreateProject),
+            MonthlySalaryThirdParty: Number(monthlySalaryThirdPartyCreateProject),
+            IsMonthlySalaryCalculatedPerHour: Boolean(monthlySalaryCalculatedPerHourInput.value === "true"),
+            AccessToTrackingTool: Boolean(accessToTrackingToolInput.value === "true"),
+            IsDefaultProject: Boolean(isDefaultProjectInput.value === "true"),
             PositionDetail: positionDetail,
             ActionDate: actionDateCreateProject ? actionDateCreateProject.toString() : null
         };
@@ -197,8 +264,10 @@ async function createUpdateProject(modalId) {
         IsActive: Boolean(isActiveData),
         IsBillable: Boolean(isBillableData),
         ClientHasTrackingTool: Boolean(clientHasTrackingToolData),
-        AssignedConsultants: consultantsData
+        AssignedConsultants: consultantsData,
+        ProjectType: projectTypeValue
     };
+
     fetch('/AccountManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
@@ -225,10 +294,28 @@ async function createUpdateProject(modalId) {
             }
         })
         .then(data => {
-            hideModal(modalId);
-            createUpdateForm[0].reset();
+            document.getElementById("consultants-assigned-section").style.display = "block";
+            billableInput.disabled = true;
+            inicializeModalButtons(modalId);
             displayToasterSuccess(data.message);
+            createUpdateForm.find('[name="client"]').prop('disabled', true);
+            if (data.projectId > 0) {
+                billableInput.value = isBillableData;
+                document.getElementById("saved-project-type-label").style.display = 'block';
+                if (projectTypeValue === "I") {
+                    document.getElementById("saved-project-type-span").textContent = '"Administrative Internal"';
+                } else {
+                    document.getElementById("saved-project-type-span").textContent = '"Client External"';
+                }
+                document.getElementById("project-type-inputs-cont").style.display = "none";
+                document.getElementById("saved-project-message").style.display = "block";
+                createUpdateForm.find('[name="projectId"]').val(data.projectId);
+            } else {
+                hideModal(modalId);
+            }
             getListOfResults(false, false);
+        }).catch(error => {
+            validateSessionExpiration(error.message);
         });
 }
 function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
@@ -237,7 +324,6 @@ function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
         displaySpinner();
         getSuccessManagerIdAndNameByClientId(selectElement.value)
             .then(data => {
-                console.log(data);
                 var successManagerSelect = document.getElementById('successManagerIdSelect');
                 if (data !== null) {
                     successManagerSelect.innerHTML = '<option selected value="' + data.successManager.userId + '">' + data.successManager.userName + '</option>';
@@ -247,6 +333,7 @@ function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
                 hideSpinner();
             })
             .catch(error => {
+                validateSessionExpiration(error.message);
                 console.error('Error fetching data:', error);
             });
         document.getElementById('successManagerIdSelect').disabled = false;
@@ -265,11 +352,17 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var monthlyClientRateValue = createUpdateConsultantForm.find('[name="monthlyClientRate"]').val();
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
+    var monthlyConsultantThirdPartyValue = createUpdateConsultantForm.find('[name="thirdPartySalary"]').val();
+    var accessToTrackingToolValue = createUpdateConsultantForm.find('[name="accessToTrackingTool"]').prop('checked');
+    var isDefaultProjectValue = createUpdateConsultantForm.find('[name="isDefaultProject"]').prop('checked');
     var actionDateValue = createUpdateConsultantForm.find('[name="actionDate"]').val();
+    var monthlySalaryCalculatedPerHourValue = createUpdateConsultantForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
 
     if (consultantProjectAssignedId === "") {
         addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
-            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null, actionDateValue)
+            hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null,
+            actionDateValue, monthlySalaryCalculatedPerHourValue, null, null, null, monthlyConsultantThirdPartyValue,
+            accessToTrackingToolValue, isDefaultProjectValue)
     } else {
         document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
@@ -280,21 +373,79 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     hideModal(modalId);
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
-    hourlyConsultantSalary, monthlyConsultantSalary, isActive, actionDate) {
+    hourlyConsultantSalary, monthlyConsultantSalary, statusAction, actionDate, monthlySalaryCalculatedPerHour, allowedMAdminConsultants,
+    userCategoryName, projectId, monthlySalaryThirdParty, accessToTrackingToolValue, isDefaultProject) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
+    let spanToInnerToConsultant = `<strong>${consultantName}</strong>`;
+
     if (consProjAssId !== '') {
+        var actionStatusSpan = '';
+        var activeInactiveBtn = '';
+        let userCategorySpanColor = userCategoryName === 'Consultant' ? '#2196F3' : 'gray';
+        if (statusAction !== null) {
+            const todayDate = new Date();
+            const localDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+
+            let statusAndDate = statusAction.split("; ");
+            let statusDate = new Date(statusAndDate[0]);
+            let statusText = statusAndDate[1];
+            let ableToActivateOrInactivate = false;
+            let isActive = false;
+            let statusLabel = '';
+            let statusClass = 'red-label';
+            if (statusText === 'Consultant Activated') {
+                statusLabel = 'Activated';
+                statusClass = 'green-label';
+            } else {
+                statusLabel = 'Deactivated';
+            }
+            if (statusDate.toISOString().split('T')[0] > localDate.toISOString().split('T')[0]) {
+                actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '">Will be <strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
+                spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
+            } else if (statusDate.toISOString().split('T')[0] < localDate.toISOString().split('T')[0]) {
+                ableToActivateOrInactivate = true;
+                if (statusText === 'Consultant Activated') {
+                    isActive = true;
+                }
+                actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
+                spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
+            } else if (statusDate.toISOString().split('T')[0] === localDate.toISOString().split('T')[0]) {
+                if (statusText === 'Consultant Activated') {
+                    isActive = true;
+                    actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
+                } else {
+                    actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
+                }
+                ableToActivateOrInactivate = false;
+                spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
+            }
+            activeInactiveBtn = ableToActivateOrInactivate ? `<li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive}, ${projectId})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? 'Deactivate from Project' : 'Activate in the Project'}</li>` : '';
+        } else {
+            activeInactiveBtn = `<li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', true, ${projectId})"><i class="bi bi-x-lg red-label"></i>Deactivate from Project</li>`;
+            spanToInnerToConsultant += `<span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span>` + ` <label style="font-size:13px"><span class="green-label"><strong>(Active)</strong></span></label>`;
+        }
         var dotsIcon = document.createElement("i");
-        dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
+        var editConsultantParametersBtn = '';
+        var viewHistoryBtn = '';
+        if (allowedMAdminConsultants || userCategoryName === 'Consultant') {
+            editConsultantParametersBtn = `<li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>`;
+            viewHistoryBtn = `<li onclick="getProjectConsultantHistory(${consProjAssId}, 'modal-consultant-history')"><i class="bi bi-clock-history"></i> View History</li>`;
+        }
+        if (activeInactiveBtn !== '' || editConsultantParametersBtn !== '' || viewHistoryBtn !== '') {
+            dotsIcon.innerHTML = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${consProjAssId}', 'menuIcon-${consProjAssId}')" class="bi bi-three-dots-vertical" id="menuIcon-${consProjAssId}"></i>
                          <div class="menu-options" id="menuOptions-${consProjAssId}">
                            <ul>
-                             <li id="activate-deactivate-li-${consProjAssId}" onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${isActive})">${isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${isActive ? ' Deactivate from Project' : ' Activate in the Project'}</li>
-                             <li onclick="displayAddUpdateConsultant('modal-add-consultant', ${consProjAssId})"><i class="bi bi-pencil-square"></i> Edit Consultant parameters</li>
-                              <li onclick="getProjectConsultantHistory(${consProjAssId}, 'modal-consultant-history')"><i class="bi bi-clock-history"></i> View History</li>
+                               ${activeInactiveBtn}
+                               ${editConsultantParametersBtn}
+                               ${viewHistoryBtn}
                            </ul>
                          </div>
                          `;
+        } else {
+            dotsIcon.innerHTML = `<li style="color:transparent" class="bi bi-info-circle"></li>`;
+        }
         row.appendChild(dotsIcon);
     }
 
@@ -315,12 +466,8 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     row.appendChild(consultantIdInput);
 
     var spanElement = document.createElement("span");
-    if (isActive !== null) {
-        var isActiveSpan = isActive ? '<label id="a-i-label-' + consProjAssId + '"><span class="green-label">(Active)</span></label>' : '<label id="a-i-label-' + consProjAssId + '"><span class="red-label">(Inactive)</span></label>';
-        spanElement.innerHTML = consultantName + ' ' + isActiveSpan + '';
-    } else {
-        spanElement.textContent = consultantName;
-    }
+    spanElement.innerHTML = spanToInnerToConsultant;
+
     row.appendChild(spanElement);
 
     var positionDetailInput = document.createElement("input");
@@ -357,6 +504,34 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     monthlyConsultantSalaryInput.name = "monthlySalaryCreateProject";
     monthlyConsultantSalaryInput.type = "hidden";
     row.appendChild(monthlyConsultantSalaryInput);
+
+    var monthlyConsultantSalaryThirdPartyInput = document.createElement("input");
+    monthlyConsultantSalaryThirdPartyInput.value = monthlySalaryThirdParty;
+    monthlyConsultantSalaryThirdPartyInput.id = `monthlySalaryThirdParty-${consProjAssId}`;
+    monthlyConsultantSalaryThirdPartyInput.name = "monthlySalaryThirdPartyCreateProject";
+    monthlyConsultantSalaryThirdPartyInput.type = "hidden";
+    row.appendChild(monthlyConsultantSalaryThirdPartyInput);
+
+    var monthlySalaryCalculatedPerHourInput = document.createElement("input");
+    monthlySalaryCalculatedPerHourInput.value = monthlySalaryCalculatedPerHour;
+    monthlySalaryCalculatedPerHourInput.id = `monthlySalaryCalculatedPerHour-${consProjAssId}`;
+    monthlySalaryCalculatedPerHourInput.name = "monthlySalaryCalculatedPerHourCreateProject";
+    monthlySalaryCalculatedPerHourInput.type = "hidden";
+    row.appendChild(monthlySalaryCalculatedPerHourInput);
+
+    var accessToTrackingToolInput = document.createElement("input");
+    accessToTrackingToolInput.value = accessToTrackingToolValue;
+    accessToTrackingToolInput.id = `accessToTrackingTool-${consProjAssId}`;
+    accessToTrackingToolInput.name = "accessToTrackingToolCreateProject";
+    accessToTrackingToolInput.type = "hidden";
+    row.appendChild(accessToTrackingToolInput);
+
+    var isDefaultProjectInput = document.createElement("input");
+    isDefaultProjectInput.value = isDefaultProject;
+    isDefaultProjectInput.id = `isDefaultProject-${consProjAssId}`;
+    isDefaultProjectInput.name = "isDefaultProjectCreateProject";
+    isDefaultProjectInput.type = "hidden";
+    row.appendChild(isDefaultProjectInput);
 
     var actionDateInput = document.createElement("input");
     actionDateInput.value = actionDate === undefined ? null : actionDate;
@@ -410,6 +585,7 @@ async function getSuccessManagers(thisElement) {
         }
 
     } catch (error) {
+            validateSessionExpiration(error.message);
         console.error('Error fetching success managers:', error);
     } finally {
         const loadingOption = successManagerSelect.querySelector('option[value="loading"]');
@@ -419,25 +595,11 @@ async function getSuccessManagers(thisElement) {
     }
 }
 // Activate / Deactivate consultant
-async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status) {
+async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status, projectId) {
     try {
         const data = await activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status);
         if (data) {
-            var updatedStatus = status ? false : true;
-            var activateInactivateBtn = document.getElementById('activate-deactivate-li-' + projectConsultantAssignedId);
-            var activateInactivateLabel = document.getElementById('a-i-label-' + projectConsultantAssignedId);
-
-            var iTag = activateInactivateBtn.querySelector('i');
-            if (iTag) {
-                iTag.parentNode.removeChild(iTag);
-            }
-            activateInactivateBtn.innerHTML = updatedStatus ? `
-                             <i class="bi bi-x-lg red-label"></i>${updatedStatus ? ' Deactivate from Project' : ' Activate in the Project'}` :
-                `<i class="bi bi-plus-lg green-label"></i>${updatedStatus ? ' Deactivate from Project' : ' Activate in the Project'}`;
-            activateInactivateBtn.setAttribute('onclick', `activateDeactivateConFromProject(${projectConsultantAssignedId}, '${name}', ${updatedStatus})`);
-            activateInactivateLabel.innerHTML = '';
-            activateInactivateLabel.innerHTML = updatedStatus ? `<span class="green-label">(Active)</span>` :
-                `<span class="red-label"> (Inactive)</span>`;
+            displayUpdateModal('modal-update-create-project', projectId);
         }
     } catch (error) {
         console.error("Error: ", error);
@@ -480,6 +642,9 @@ async function activateDeactivateProject(inputElement, projectId, name, status) 
                         displayToasterError(data.error);
                         console.error('There has been a problem with the fetch operation:', data.detail);
                     }
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
                 })
                 .finally(() => {
                     hideSpinner();

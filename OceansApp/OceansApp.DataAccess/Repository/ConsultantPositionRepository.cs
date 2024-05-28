@@ -1,6 +1,8 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -11,7 +13,21 @@ namespace OceansApp.DataAccess.Repository
         {
             _db = db;
         }
-     
+
+        public async Task<List<GetDataForSelectVM>> GetPositionsByIsAdministrative(bool isAdministrative)
+        {
+            IEnumerable<ConsultantPosition> positionsListFromDb = await _db.CONSULTANT_POSITIONS.Where(x => x.IsAdministrative == isAdministrative).ToListAsync();
+            List<GetDataForSelectVM> positionsToReturn = new();
+            foreach (var position in positionsListFromDb)
+            {
+                positionsToReturn.Add(new GetDataForSelectVM
+                {
+                    Value = position.ConsultantPositionId,
+                    Text = position.Name 
+                });
+            }
+            return positionsToReturn;
+        }
 
         public void Update(ConsultantPosition obj)
         {

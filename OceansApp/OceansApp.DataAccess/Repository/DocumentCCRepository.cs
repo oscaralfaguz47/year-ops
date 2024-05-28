@@ -122,7 +122,8 @@ namespace OceansApp.DataAccess.Repository
                     ,(SELECT COUNT(*) FROM DOCUMENTS_CC_NOTIFICATIONS WHERE DocumentCCId = DCC.DocumentCCId) AS NumNotificationsSent
                      FROM DOCUMENTS_CC DCC
                      JOIN CLIENT C ON DCC.ClientId = C.ClientId
-                     LEFT JOIN Users U ON C.SuccessManagerId = U.Id
+					 LEFT JOIN CONSULTANT_DETAILS CD ON C.SuccessManager = CD.ConsultantId
+                     LEFT JOIN Users U ON CD.UserId = U.Id
 					 WHERE DCC.DocumentType = 'FAC' 
 					 AND DCC.Canceled = 'N'
 					 AND C.ClientCategory NOT LIKE '%CON%'

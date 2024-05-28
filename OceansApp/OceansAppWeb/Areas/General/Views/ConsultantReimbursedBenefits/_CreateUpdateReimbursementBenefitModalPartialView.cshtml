@@ -1,0 +1,108 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/General/sharedConsultantDetailsMethods.css" />
+<link rel="stylesheet" href="~/css/General/createUpdateConsultantReimbursedBenefitModal.css" />
+
+
+<!--MODAL UPDATE CREATE REIMBURSEMENT-->
+<div id="modal-update-create-reimbursement" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-reimbursement-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="reimburseBenefitId">
+                    <div>
+                        <div id="consultants-search-cont">
+                            <div id="search-input-cont" class="input-container">
+                                <input id="search-consultant-input" autocomplete="off" oninput="searchAllActiveConsultantsBySearchText(this, 'consultantIdFromSearch', 'consultantNameInput', 'consultantEmailInput', null)" type="text" placeholder="Search consultant" class="form-control">
+                                <i class="bi bi-search placeholder-image"></i>
+                                <div id="consultant-search-results" class="search-results"></div>
+                            </div>
+                            <input type="hidden" name="consultantIdFromSearch" id="consultantIdFromSearch">
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label>Consultant Name</label>
+                                <div class="input-container">
+                                    <input disabled type="text" class="form-control" name="consultantNameInput" id="consultantNameInput">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label>Consultant Email</label>
+                                <div class="input-container">
+                                    <input disabled type="text" class="form-control" id="consultantEmailInput" name="consultantEmailInput">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="BenefitSelect">Benefit <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select onfocus="fillBenefitsSelect(this, 'Select a benefit')" onchange="selectBenefit('BenefitSelect', this.value, false)" class="form-select" id="BenefitSelect" name="idBenefit">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="BenefitCategorySelect">Benefit Category <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="BenefitCategorySelect" name="benefitCategoryId">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6" id="hourlyClientRateEl">
+                            <label for="AmountReimbursed">Amount to Reimburse <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input placeholder="$" type="number" class="form-control" step="0.01" name="amountReimbursed" id="AmountReimbursed">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="DateToBeReimbursed">Reimbursement Date <span class="required-asterisk">*</span> </label> <div class="tooltip-container ">
+                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <div class="tooltip-content">
+                                    <div class="tooltip-arrow"></div>
+                                    Date corresponding to the fortnight during which the benefit will be reimbursed.
+                                </div>
+                            </div>
+                            <div class="">
+                                <input type="date" class="form-control" name="dateToBeReimbursed" id="DateToBeReimbursed">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Detail</label>
+                            <div class="input-container">
+                                <textarea type="text" class="form-control" name="detail" id="Detail"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-reimbursement')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateBenefitReimbursement('modal-update-create-reimbursement')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
+<script src="~/js/General/createUpdateConsultantReimbursedBenefitModal.js"></script>
+<script src="~/js/AdminCenter/ConsultantBenefits/consultantBenefitsFillDropdowns.js"></script>
+<script src="~/js/Shared/inputValidations.js"></script>

@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using OceansApp.Models.Models;
 using OceansApp.DataAccess.Data;
+using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.AccountingAccounts;
+using System.Linq;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -76,6 +79,29 @@ namespace OceansApp.DataAccess.Repository
                 return latestDate.DateLastUpdate;
             }
 
+        }
+        public async Task<List<GetAccountingAccountsForListVM>> GetAccountingAccountsWhereCostCenterIdAsync(int costCenterId)
+        {
+            var results = await _db.COSTS_CENTERS_ACCOUNTING_ACCOUNTS.Where(x => x.CostCenterId == costCenterId)
+                .Join(_db.ACCOUNTING_ACCOUNT, 
+                ccaa => ccaa.AccountingAccountId, aa => aa.AccountingAccountId, (ccaa, aa)=> new
+                {
+                    CCAA = ccaa,
+                    AA = aa
+                }).OrderBy(x => x.AA.AccountingAccountCode).ToListAsync();
+            var listToReturn = new List<GetAccountingAccountsForListVM>();
+            foreach (var accountingAccount in results)
+            {
+                var selectVM = new GetAccountingAccountsForListVM
+                {
+                    AccountingAccountId = accountingAccount.CCAA.AccountingAccountId,
+                    Description = accountingAccount.AA.Description,
+                    AccountingAccountCode = accountingAccount.AA.AccountingAccountCode,
+                    AcceptData = accountingAccount.AA.AcceptData
+                };
+                listToReturn.Add(selectVM);
+            }
+            return listToReturn;
         }
     }
 }

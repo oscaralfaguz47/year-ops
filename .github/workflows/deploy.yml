@@ -3,11 +3,12 @@ name: Deploy ASP.NET Core App to Azure
 on:
   push:
     branches:
-      - main  
+      - main
+      - demo
 
 jobs:
   build:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -21,20 +22,29 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.x'  
+          dotnet-version: '8.x'
 
       - name: Restore dependencies
-        run: dotnet restore OceansApp/OceansApp.sln  # Solution file path
+        run: dotnet restore OceansApp/OceansApp.sln
 
       - name: Build
-        run: dotnet build OceansApp/OceansApp.sln --configuration Release --no-restore  # Solution file path
+        run: dotnet build OceansApp/OceansApp.sln --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish OceansApp/OceansApp.sln --configuration Release --no-build --output ./output  # Solution file path
+        run: dotnet publish OceansApp/OceansApp.sln --configuration Release --no-build --output ./output
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (main)
+        if: github.ref == 'refs/heads/main'
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'OceansApp'  # Azure App Service Name
+          app-name: 'OceansApp'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PRODUCTION }}
+          package: ./output
+
+      - name: Deploy to Azure Web App (demo)
+        if: github.ref == 'refs/heads/demo'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'OceansAppDemo'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DEMO }}
           package: ./output
