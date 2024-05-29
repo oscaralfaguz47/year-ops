@@ -52,38 +52,42 @@ async function getProjectInfo() {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
         console.log(projectInfo);
-        if (!projectInfo.accessToTrackingTool) {
-            noProjectsBox.style.display = 'block';
-            noProjectsBox.innerHTML = `<div>
+
+        if (projectInfo !== null) {
+            if (projectInfo.numAssignedProjects > 1 || projectInfo.accessToTrackingTool) {
+                dropdownSelect.innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
+                projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
+                header.style.display = 'flex';
+            }
+            if (projectInfo.accessToTrackingTool) {
+                noProjectsBox.style.display = 'none';
+                document.getElementById('projectId').value = projectInfo.projectId;
+                document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
+                clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
+                trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
+                trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
+                paymentPeriod = projectInfo.paymentPeriod;
+                document.getElementById('payment-period-container').innerHTML = `<span>Your payment period is <strong>${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}.</strong></span>`;
+                let currentDateNoChange = new Date();
+                calculatePeriod(currentDateNoChange, paymentPeriod);
+                document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
+            <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
+            ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
+                header.style.display = 'flex';
+                loadingBox.style.display = 'none';
+                contentBox.style.display = 'block';
+            } else {
+                if (!projectInfo.accessToTrackingTool) {
+                    noProjectsBox.style.display = 'block';
+                    noProjectsBox.innerHTML = `<div>
             <div class="background-cont">
                 <div><i>Non reportable project</i></div>
                 <p><strong>You are part of the <span>"${projectInfo.projectName}"</span> project, but you are not allowed to report any time here.</strong></p>
                 <p><strong>Please contact the administrator if you need to report any time.</strong></p>
             </div>
         </div>`;
-        }
-        if (projectInfo.numAssignedProjects > 1 || projectInfo.accessToTrackingTool) {
-            dropdownSelect.innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
-            projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
-            header.style.display = 'flex';
-        }
-        if (projectInfo !== null && projectInfo.accessToTrackingTool) {
-            noProjectsBox.style.display = 'none';
-            document.getElementById('projectId').value = projectInfo.projectId;
-            document.getElementById('on-call-section').style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
-            clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
-            trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
-            trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
-            paymentPeriod = projectInfo.paymentPeriod;
-            document.getElementById('payment-period-container').innerHTML = `<span>Your payment period is <strong>${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}.</strong></span>`;
-            let currentDateNoChange = new Date();
-            calculatePeriod(currentDateNoChange, paymentPeriod);
-            document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
-            <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
-            ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
-            header.style.display = 'flex';
-            loadingBox.style.display = 'none';
-            contentBox.style.display = 'block';
+                }
+            }
         } else if (projectInfo === null) {
             noProjectsBox.style.display = 'block';
             noProjectsBox.innerHTML = `<div>
