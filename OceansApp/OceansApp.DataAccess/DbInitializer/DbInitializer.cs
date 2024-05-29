@@ -451,7 +451,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Clients" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Projects" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 8, Name = "Interviews" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 11, Name = "Interviews" });
 
                 foreach (var subArea in systemSubAreasList)
                 {
