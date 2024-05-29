@@ -10,10 +10,22 @@ using OceansApp.Utility.Configuration;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility;
 using OceansApp.DataAccess.BackgroundServices;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "OCEANS APP API", Version = "v1" });
+    c.OperationFilter<FormDataOperationFilter>();
+    c.OperationFilter<AddAntiforgeryTokenHeaderParameter>();
+});
+
+
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 string connectionString;
 
@@ -105,6 +117,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OCEANS APP API v1"));
+
 app.UseHttpsRedirection();
 app.UseRouting();
 SeedDatabase();
@@ -115,6 +130,7 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthorization();
+app.MapControllers();
 app.UseStaticFiles();
 
 app.MapRazorPages();

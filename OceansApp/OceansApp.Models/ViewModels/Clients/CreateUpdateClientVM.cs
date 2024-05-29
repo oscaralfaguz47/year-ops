@@ -1,4 +1,7 @@
-﻿namespace OceansApp.Models.ViewModels.Clients
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+
+namespace OceansApp.Models.ViewModels.Clients
 {
     public class CreateUpdateClientVM
     {

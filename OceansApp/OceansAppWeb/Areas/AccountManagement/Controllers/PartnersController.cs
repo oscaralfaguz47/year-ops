@@ -5,6 +5,8 @@ using OceansApp.Models.ViewModels.Components;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
+    [ApiController]
+    [Route("AccountManagement/[controller]")]
     [Area("AccountManagement")]
     [RequireTwoFactorEnabled]
     [Authorize]
@@ -17,7 +19,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToListOfPartners")]
-        [HttpGet]
+        [HttpGet("GetAllPartnersListForSelect")]
         public async Task<IActionResult> GetAllPartnersListForSelect()
         {
             try

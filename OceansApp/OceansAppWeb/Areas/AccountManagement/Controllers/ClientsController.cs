@@ -10,10 +10,12 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
+    [ApiController]
     [Area("AccountManagement")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
     [Authorize]
+    [Route("AccountManagement/[controller]")]
     public class ClientsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -21,14 +23,16 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             _unitOfWork = unitOrWork;
         }
+
         [Authorize(Policy = "AccessToClientsPage")]
+        [HttpGet("Clients")]
         public IActionResult Index()
         {
             return View();
         }
 
         [Authorize(Policy = "AccessToClientsPage")]
-        [HttpGet]
+        [HttpGet("GetClientsList")]
         public async Task<IActionResult> GetClientsList(string model)
         {
             try
@@ -98,7 +102,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToClientsListForSelect")]
-        [HttpGet]
+        [HttpGet("GetAllClientsListForSelect")]
         public async Task<IActionResult> GetAllClientsListForSelect()
         {
             try
@@ -116,7 +120,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToClientsPage")]
-        [HttpGet]
+        [HttpGet("GetClientDataById")]
         public async Task<IActionResult> GetClientDataById(int clientId)
         {
             try
@@ -139,7 +143,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToGetSuccessManagerIdAndNameWhereClientId")]
-        [HttpGet]
+        [HttpGet("GetSuccessManagerIdAndNameByClientId")]
         public async Task<IActionResult> GetSuccessManagerIdAndNameByClientId(int clientId)
         {
             try
@@ -161,7 +165,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToClientsPage")]
-        [HttpPost]
+        [HttpPost("CreateUpdateClient")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateClient([FromBody] CreateUpdateClientVM clientData)
         {
@@ -250,9 +254,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToClientsPage")]
-        [HttpPost]
+        [HttpPost("ActivateDeactivateClient")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateClient(int clientId)
+        public async Task<IActionResult> ActivateDeactivateClient([FromForm] int clientId)
         {
             try
             {
@@ -275,9 +279,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToClientsPage")]
-        [HttpPost]
+        [HttpPost("ActivateDeactivateNotifications")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateNotifications(int clientId)
+        public async Task<IActionResult> ActivateDeactivateNotifications([FromForm] int clientId)
         {
             try
             {
