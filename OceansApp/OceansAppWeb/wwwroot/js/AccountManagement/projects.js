@@ -2,6 +2,9 @@
     getListOfResults(true, false);
 });
 
+let externalClientRb = document.getElementById('external-pt');
+let internalClientRb = document.getElementById('internal-pt');
+
 // -Get list
 async function getListOfResults(firstTime, filters) {
     displaySpinner();
@@ -138,12 +141,12 @@ async function displayUpdateModal(modalId, id) {
                     clientSelectCont.style.display = 'none';
                     billableTrackingToolCont.style.display = 'none';
                     document.getElementById("saved-project-type-span").textContent = '"Administrative Internal"';
-                    document.getElementById('internal-pt').checked = true;
-                    document.getElementById('external-pt').checked = false;
+                    internalClientRb.checked = true;
+                    externalClientRb.checked = false;
                 } else {
                     document.getElementById("saved-project-type-span").textContent = '"Client External"';
-                    document.getElementById('external-pt').checked = true;
-                    document.getElementById('internal-pt').checked = false;
+                    externalClientRb.checked = true;
+                    internalClientRb.checked = false;
                 }
                 var newOptionClient = document.createElement('option');
                 newOptionClient.value = data.projectData.clientId;
@@ -267,7 +270,6 @@ async function createUpdateProject(modalId) {
         AssignedConsultants: consultantsData,
         ProjectType: projectTypeValue
     };
-
     fetch('/AccountManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
@@ -318,10 +320,18 @@ async function createUpdateProject(modalId) {
             validateSessionExpiration(error.message);
         });
 }
-function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
+async function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
     fillClientsSelectForFilters(selectElement, firstOption);
     selectElement.onchange = function () {
         displaySpinner();
+        let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
+        if (selectedOptionText === "Oceans Code Experts") {
+            internalClientRb.checked = true;
+            validateProjectType();
+        } else {
+            externalClientRb.disabled = false;
+        }
+
         getSuccessManagerIdAndNameByClientId(selectElement.value)
             .then(data => {
                 var successManagerSelect = document.getElementById('successManagerIdSelect');
