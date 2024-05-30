@@ -25,7 +25,8 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToClientsPage")]
-        [HttpGet("Clients")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();

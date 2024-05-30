@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
+    [ApiController]
+    [Route("TrackingTool/[controller]")]
     [Area("TrackingTool")]
     [Authorize]
     [Authorize(Policy = "BasicAccessToReportingMyTime")]
@@ -28,13 +30,15 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             _azureBlobRepository = azureBlobRepository;
             _containerId = "consultant-hour-reports";
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
         // CLIENT HAS TRACKING TOOL - METHODS
-        [HttpGet]
+        [HttpGet("GetProjectMovements")]
         public async Task<IActionResult> GetProjectMovements(int projectId, DateTime startDate, DateTime endDate)
         {
             try
@@ -73,7 +77,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateUpdateTimeEntryClientNoTrackingTool")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateTimeEntryClientNoTrackingTool([FromForm] List<CreateUpdateMovementClientNoTrackingToolVM> reportMovementListData)
         {
@@ -195,9 +199,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("UploadFilesClientNoTrackingTool")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files, int movementId)
+        public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files, [FromForm] int movementId)
         {
             try
             {
@@ -267,7 +271,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateMovementClientNoTrackingTool")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMovementClientNoTrackingTool([FromForm] UploadFilesVM uploadFilesData)
         {
@@ -345,9 +349,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("DeleteBlob")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteBlob(string fileName)
+        public async Task<IActionResult> DeleteBlob([FromForm] string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
@@ -371,7 +375,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         }
 
         // CLIENT DOES NOT HAVE TRACKING TOOL - METHODS
-        [HttpPost]
+        [HttpPost("CreateUpdateTimeEntryTrackingTool")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateTimeEntryTrackingTool([FromBody] CreateUpdateMovementTrackingToolVM timeEntryData)
         {
@@ -431,7 +435,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetTrackingToolProjectMovements")]
         public async Task<IActionResult> GetTrackingToolProjectMovements(int projectId, DateTime startDate, DateTime endDate)
         {
             try
@@ -470,9 +474,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("DeleteTrackingToolTimeEntry")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteTrackingToolTimeEntry(int movementId)
+        public async Task<IActionResult> DeleteTrackingToolTimeEntry([FromForm] int movementId)
         {
             if (movementId == null)
             {
@@ -501,7 +505,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         }
 
         // SUBMIT REPORT
-        [HttpPost]
+        [HttpPost("SubmitReport")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitReport([FromBody] CreateSubmissionVM submissionData)
         {

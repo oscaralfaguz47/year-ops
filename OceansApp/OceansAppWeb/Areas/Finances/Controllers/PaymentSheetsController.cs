@@ -9,6 +9,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
+    [ApiController]
+    [Route("Finances/[controller]")]
     [Area("Finances")]
     [Authorize]
     [Authorize(Policy = "AccessToManageTheBasicsOfPaymentSheets")]
@@ -20,12 +22,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         {
             _unitOfWork = unitOrWork;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("GetConsultantsToPayList")]
         public async Task<IActionResult> GetConsultantsToPayList(string model)
         {
             try
@@ -98,7 +102,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetReportDetailsFromSubmissionById")]
         public async Task<IActionResult> GetReportDetailsFromSubmissionById(int submissionId)
         {
             try
@@ -120,7 +124,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("RejectApproveSubmission")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectApproveSubmission([FromBody] ApproveRejectSubmissionVM dataFromUser)
         {

@@ -10,6 +10,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
+    [ApiController]
+    [Route("AccountManagement/[controller]")]
     [Area("AccountManagement")]
     [RequireTwoFactorEnabled]
     [Authorize]
@@ -23,12 +25,14 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             _unitOfWork = unitOrWork;
             _authorizationService = authorizationService;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("GetProjectsList")]
         public async Task<IActionResult> GetProjectsList(string model)
         {
             try
@@ -97,7 +101,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetProjectDataById")]
         public async Task<IActionResult> GetProjectDataById(int projectId)
         {
             try
@@ -121,7 +125,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetAssignedConsultantToProjectById")]
         public async Task<IActionResult> GetAssignedConsultantToProjectById(int consultantProjectAssignedtId)
         {
             try
@@ -151,7 +155,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateUpdateProject")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateProject([FromBody] CreateUpdateProjectVM projectData)
         {
@@ -267,7 +271,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("UpdateConsultantParameters")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateConsultantParameters([FromBody] CreateUpdateProjectConsultantAssignedVM consultantParametersData)
         {
@@ -320,9 +324,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("ActivateDeactivateConsultantFromProject")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateConsultantFromProject(int projectConsultantAssignedId, DateTime actionDate)
+        public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId, DateTime actionDate)
         {
             try
             {
@@ -377,9 +381,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("ActivateDeactivateProject")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateProject(int projectId)
+        public async Task<IActionResult> ActivateDeactivateProject([FromForm] int projectId)
         {
             try
             {
@@ -400,7 +404,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetProjectConsultantAssignedHistoryById")]
         public async Task<IActionResult> GetProjectConsultantAssignedHistoryById(int projectConsultantAssignedId)
         {
             try

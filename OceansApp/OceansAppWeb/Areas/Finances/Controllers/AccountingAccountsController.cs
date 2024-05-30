@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
+    [ApiController]
+    [Route("Finances/[controller]")]
     [Area("Finances")]
     [Authorize]
     [RequireTwoFactorEnabled]
@@ -17,7 +19,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         }
 
         [Authorize(Policy = "AccessToAccountingAccountsList")]
-        [HttpGet]
+        [HttpGet("GetAccountingAccountsListWhereCostCenterId")]
         public async Task<IActionResult> GetAccountingAccountsListWhereCostCenterId(int costCenterId)
         {
             try

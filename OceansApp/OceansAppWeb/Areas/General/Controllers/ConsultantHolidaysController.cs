@@ -7,6 +7,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
+    [ApiController]
+    [Route("General/[controller]")]
     [Area("General")]
     [RequireTwoFactorEnabled]
     [Authorize]
@@ -18,13 +20,16 @@ namespace OceansAppWeb.Areas.General.Controllers
             _unitOfWork = unitOrWork;
         }
         [Authorize(Policy = "AccessToHolidaysPage")]
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
         [Authorize(Policy = "AccessToHolidaysPage")]
-        [HttpGet]
+        [HttpGet("GetUniqueYears")]
         public async Task<IActionResult> GetUniqueYears()
         {
             try
@@ -44,7 +49,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToHolidaysPage")]
-        [HttpGet]
+        [HttpGet("GetHolidaysList")]
         public async Task<IActionResult> GetHolidaysList(string model)
         {
             try
@@ -55,7 +60,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 paginationFilters.Filters = new HolidaysFiltersGetAllVM();
 
                 int numAppliedFilters = 0;
-                if(holidaysPaginationFilters.Filters != null)
+                if (holidaysPaginationFilters.Filters != null)
                 {
                     foreach (var prop in holidaysPaginationFilters.Filters.GetType().GetProperties())
                     {
@@ -87,7 +92,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToHolidaysPage")]
-        [HttpGet]
+        [HttpGet("GetHolidayListData")]
         public async Task<IActionResult> GetHolidayListData(int holidayId)
         {
             try
@@ -107,7 +112,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToHolidaysPage")]
-        [HttpPost]
+        [HttpPost("CreateUpdateHoliday")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateHoliday([FromBody] CreateUpdateHolidayVM holidayData)
         {
@@ -203,21 +208,18 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToHolidaysPage")]
-        [HttpPost]
+        [HttpPost("DeleteHolidaysList")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteHolidaysList(int holidaysListId)
+        public async Task<IActionResult> DeleteHolidaysList([FromForm] int holidaysListId)
         {
             try
             {
                 var res = await _unitOfWork.ConsultantHoliday.DeleteHolidaysList(holidaysListId);
-                if (res.Success)
+                if (!res.Success)
                 {
-                    return Ok(new { success = true, message = res.Message });
+                    return BadRequest(new { error = res.Message, messageType = res.MessageType });
                 }
-                else
-                {
-                    return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Holiday list could be updated." });
-                }
+                return Ok(new { success = true, message = res.Message });
             }
             catch (Exception ex)
             {
@@ -226,7 +228,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToListOfHolidaysForSelect")]
-        [HttpGet]
+        [HttpGet("GetHolidaysListForSelectByYear")]
         public async Task<IActionResult> GetHolidaysListForSelectByYear(int year)
         {
             try

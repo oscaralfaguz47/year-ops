@@ -6,6 +6,8 @@ using OceansApp.Models.ViewModels.Components;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
+    [ApiController]
+    [Route("AdminCenter/[controller]")]
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
@@ -19,7 +21,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [Authorize(Policy = "AccessToAllConsultantBenefitsListForSelect")]
-        [HttpGet]
+        [HttpGet("GetAllBenefitsListForSelect")]
         public async Task<IActionResult> GetAllBenefitsListForSelect()
         {
             try
@@ -40,8 +42,9 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+        
         [Authorize(Policy = "AccessToAllConsultantBenefitsListForSelect")]
-        [HttpGet]
+        [HttpGet("GetAllBenefitCategoriesListForSelect")]
         public IActionResult GetAllBenefitCategoriesListForSelect(int benefitId)
         {
             try

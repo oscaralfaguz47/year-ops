@@ -20,7 +20,7 @@
                     </a>
                 </div>
             }
-             @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Administracion_Usuarios_ClaimType && c.Value == AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue))
+@*              @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Administracion_Usuarios_ClaimType && c.Value == AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue))
             {
                 <div class="col-lg-2">
                     <a class="box-link" asp-area="AdminCenter" asp-controller="ApplicationUser" asp-action="Index">
@@ -31,7 +31,7 @@
                     </div>
                 </a>
             </div>
-            }
+            } *@
             @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimType && c.Value == AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue))
             {
                 <div class="col-lg-2">

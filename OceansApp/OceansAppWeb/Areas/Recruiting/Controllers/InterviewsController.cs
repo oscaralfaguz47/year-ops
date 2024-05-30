@@ -9,6 +9,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Recruiting.Controllers
 {
+    [ApiController]
+    [Route("Recruiting/[controller]")]
     [Area("Recruiting")]
     [Authorize]
     [Authorize(Policy = "AccessToManageInterviews")]
@@ -22,12 +24,14 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
             _unitOfWork = unitOrWork;
             _config = config;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("GetInterviewsList")]
         public async Task<IActionResult> GetInterviewsList(string model)
         {
             try
@@ -98,7 +102,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateUpdateInterview")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateInterview([FromBody] CreateUpdateInterviewVM interviewData)
         {
@@ -196,7 +200,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetInterviewDataById")]
         public async Task<IActionResult> GetInterviewDataById(int interviewId)
         {
             try
@@ -218,9 +222,9 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("RejectInterview")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectInterview(int interviewId)
+        public async Task<IActionResult> RejectInterview([FromForm] int interviewId)
         {
             try
             {

@@ -9,6 +9,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
+    [ApiController]
+    [Route("General/[controller]")]
     [Area("General")]
     [Authorize]
     [Authorize(Policy = "AccessToManageConsultantReimbursedBenefits")]
@@ -22,12 +24,15 @@ namespace OceansAppWeb.Areas.General.Controllers
             _unitOfWork = unitOrWork;
             _config = config;
         }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("GetConsultantReimbursedBenefitsList")]
         public async Task<IActionResult> GetConsultantReimbursedBenefitsList(string model)
         {
             try
@@ -96,7 +101,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateUpdateBenefitReimbursement")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateBenefitReimbursement([FromBody] CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
@@ -197,7 +202,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetBenefitReimbursementDataById")]
         public async Task<IActionResult> GetBenefitReimbursementDataById(int benefitReimbursementId)
         {
             try
@@ -219,9 +224,9 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("RejectBenefitReimbursement")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectBenefitReimbursement(int benefitReimbursementId)
+        public async Task<IActionResult> RejectBenefitReimbursement([FromForm] int benefitReimbursementId)
         {
             try
             {

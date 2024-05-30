@@ -6,6 +6,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
 {
+    [ApiController]
+    [Route("AccountManagement/[controller]")]
     [Area("AccountManagement")]
     [RequireTwoFactorEnabled]
     [Authorize]
@@ -20,7 +22,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "BasicAccessToReportingMyTime")]
-        [HttpGet]
+        [HttpGet("GetProjectsWhereConsultantAssigned")]
         public async Task<IActionResult> GetProjectsWhereConsultantAssigned()
         {
             try
@@ -44,8 +46,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+
         [Authorize(Policy = "BasicAccessToReportingMyTime")]
-        [HttpGet]
+        [HttpGet("GetConsultantSelectedProjectInfo")]
         public async Task<IActionResult> GetConsultantSelectedProjectInfo()
         {
             try
@@ -70,9 +73,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "BasicAccessToReportingMyTime")]
-        [HttpPost]
+        [HttpPost("SelectConsultantProject")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SelectConsultantProject(int projectId)
+        public async Task<IActionResult> SelectConsultantProject([FromForm] int projectId)
         {
             try
             {

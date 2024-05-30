@@ -5,6 +5,8 @@ using OceansApp.Utility.SharedMethods.InputValidations;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
+    [ApiController]
+    [Route("General/[controller]")]
     [Area("General")]
     [Authorize]
     [RequireTwoFactorEnabled]
@@ -17,13 +19,15 @@ namespace OceansAppWeb.Areas.General.Controllers
             _unitOfWork = unitOrWork;
             _authorizationService = authorizationService;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
         [Authorize(Policy = "AccessToSuccessManagersListForSelect")]
-        [HttpGet]
+        [HttpGet("GetSuccessManagers")]
         public async Task<IActionResult> GetSuccessManagers()
         {
             try
@@ -39,8 +43,9 @@ namespace OceansAppWeb.Areas.General.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+        
         [Authorize(Policy = "AccessToSearchConsultantsBySearchText")]
-        [HttpGet]
+        [HttpGet("GetConsultantsBySearchText")]
         public async Task<IActionResult> GetConsultantsBySearchText(string? searchText)
         {
             try
@@ -73,7 +78,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToSearchAllActiveConsultantsBySearchText")]
-        [HttpGet]
+        [HttpGet("GetAllActiveConsultantsBySearchText")]
         public async Task<IActionResult> GetAllActiveConsultantsBySearchText(string? searchText, string? userCategoryName)
         {
             try

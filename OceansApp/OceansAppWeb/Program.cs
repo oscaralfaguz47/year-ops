@@ -11,6 +11,8 @@ using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility;
 using OceansApp.DataAccess.BackgroundServices;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "OCEANS APP API", Version = "v1" });
+    c.CustomOperationIds(apiDesc =>
+    {
+        return apiDesc.TryGetMethodInfo(out MethodInfo methodInfo) ? methodInfo.Name : null;
+    });
     c.OperationFilter<FormDataOperationFilter>();
     c.OperationFilter<AddAntiforgeryTokenHeaderParameter>();
 });

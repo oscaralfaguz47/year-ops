@@ -213,6 +213,12 @@ namespace OceansApp.DataAccess.Repository
                     return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The Holidays list was not found in the database, it was removed before your request." };
                 }
 
+                int numConsultantsAssignedToHoliday = await _db.CONSULTANT_DETAILS.CountAsync(x=>x.ConsultantHolidayId == holidaysListToDelete.ConsultantHolidayId);
+
+                if (numConsultantsAssignedToHoliday > 0)
+                {
+                    return MethodResponse.CreateFailureValidationResponse($"The holiday list you want to delete is associated to {numConsultantsAssignedToHoliday} consultant{(numConsultantsAssignedToHoliday > 1 ? "s":"")}, you cannot delete it.");
+                }
                 List<ConsultantHolidayDate> existingHolidaysInListToRemove = await _db.CONSULTANT_HOLIDAY_DATES
                 .Where(x => x.ConsultantHolidayId == holidaysListId).ToListAsync();
                 using var transaction = await _db.Database.BeginTransactionAsync();

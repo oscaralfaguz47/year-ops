@@ -10,6 +10,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
+    [ApiController]
+    [Route("AdminCenter/[controller]")]
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
@@ -26,14 +28,17 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             _roleManager = roleManager;
             _userManager = userManager;
         }
+
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
-        [HttpGet]
+        [HttpGet("GetRolePermissionsList")]
         public async Task<List<GetRolesPermissionsVM>> GetRolePermissionsList()
         {
             var roleList = _roleManager.Roles.ToList().OrderBy(x => x.Name);
@@ -52,7 +57,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
-        [HttpGet]
+        [HttpGet("GetPermissionsWhereRoleList")]
         public async Task<IActionResult> GetPermissionsWhereRoleList(string roleId)
         {
             try
@@ -81,7 +86,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
-        [HttpGet]
+        [HttpGet("GetPermissionsList")]
         public async Task<IActionResult> GetPermissionsList()
         {
             try
@@ -100,8 +105,9 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { message = "Error fetching data", result = "error", detail = ex.Message });
             }
         }
+        
         [Authorize(Policy = "AccessToAllRolesList")]
-        [HttpGet]
+        [HttpGet("GetAllRolesListForSelect")]
         public async Task<IActionResult> GetAllRolesListForSelect()
         {
             try
@@ -129,7 +135,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
-        [HttpPost]
+        [HttpPost("CreateUpdateRole")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateRole([FromBody] CreateNewRoleVM roleData)
         {
@@ -277,8 +283,9 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { message = "Validation error", result = "error", errors = errors });
             }
         }
+        
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
-        [HttpPost]
+        [HttpPost("DeleteRole")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteRole(string roleId)
         {

@@ -4,6 +4,8 @@ using OceansApp.DataAccess.Repository.IRepository;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
+    [ApiController]
+    [Route("Finances/[controller]")]
     [Area("Finances")]
     [Authorize]
     [RequireTwoFactorEnabled]
@@ -16,7 +18,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         }
 
         [Authorize(Policy = "AccessToCostsCentersList")]
-        [HttpGet]
+        [HttpGet("GetCostsCentersListWhereCompanyId")]
         public async Task<IActionResult> GetCostsCentersListWhereCompanyId(string companyId)
         {
             try

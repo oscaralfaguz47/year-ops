@@ -6,6 +6,8 @@ using OceansApp.Models.ViewModels.Components;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
+    [ApiController]
+    [Route("AdminCenter/[controller]")]
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
     [RequireTwoFactorEnabled]
@@ -19,7 +21,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         }
 
         [Authorize(Policy = "AccessToPaymentMethodsList")]
-        [HttpGet]
+        [HttpGet("GetPaymentMethodsListWhereCompany")]
         public async Task<IActionResult> GetPaymentMethodsListWhereCompany(string companyId)
         {
             try

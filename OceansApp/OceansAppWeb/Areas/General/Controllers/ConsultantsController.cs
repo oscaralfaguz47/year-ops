@@ -14,6 +14,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
+    [ApiController]
+    [Route("General/[controller]")]
     [Area("General")]
     [RequireTwoFactorEnabled]
     [Authorize]
@@ -36,12 +38,14 @@ namespace OceansAppWeb.Areas.General.Controllers
             _backgroundTaskQueue = backgroundTaskQueue;
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("GetConsultantsList")]
         public async Task<IActionResult> GetConsultantsList(string model)
         {
             try
@@ -108,7 +112,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetConsultantDataById")]
         public async Task<IActionResult> GetConsultantDataById(int consultantId)
         {
             try
@@ -130,7 +134,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateUpdateConsultant")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateConsultant([FromBody] CreateUpdateConsultantVM consultantData)
         {
@@ -288,6 +292,7 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
         public MethodResponse CreateAndSendCreatePasswordEmailNotification(string callbackUrl, string consultantName, string consultantEmail, string userActionedBy)
         {
             try
@@ -408,9 +413,9 @@ namespace OceansAppWeb.Areas.General.Controllers
             unitOfWork.Save();
         }
 
-        [HttpPost]
+        [HttpPost("ResentInvite")]
         [RequireTwoFactorEnabled]
-        public async Task<IActionResult> ResentInvite(int consultantId)
+        public async Task<IActionResult> ResentInvite([FromForm] int consultantId)
         {
             try
             {
@@ -442,9 +447,9 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("ResetAuthenticatorFromUser")]
         [RequireTwoFactorEnabled]
-        public async Task<IActionResult> ResetAuthenticatorFromUser(int consultantId)
+        public async Task<IActionResult> ResetAuthenticatorFromUser([FromForm] int consultantId)
         {
             try
             {
@@ -464,8 +469,8 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
-        [HttpPost]
-        public IActionResult ActivateDeactivateConsultantUser(int consultantId)
+        [HttpPost("ActivateDeactivateConsultantUser")]
+        public IActionResult ActivateDeactivateConsultantUser([FromForm] int consultantId)
         {
             try
             {

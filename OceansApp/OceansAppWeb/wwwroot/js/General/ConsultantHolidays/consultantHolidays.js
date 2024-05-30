@@ -3,27 +3,32 @@
     getHolidaysList(true, false);
 });
 
-function getDataForFiltersList() {
-    var url = "/General/ConsultantHolidays/GetUniqueYears";
-    $.ajax({
-        type: "GET",
-        url: url,
-        success: function (data) {
-            let select = document.getElementById("year");
-            data.forEach(function (yearValue) {
-                let option = document.createElement("option");
-                option.value = yearValue;
-                option.text = yearValue;
-                select.appendChild(option);
-            });
-        },
-        error: function (error) {
-            validateSessionExpiration(error.message);
-            displayToasterError("More error details: " + error.responseJSON.detail);
-            displayToasterError(error.responseJSON.errors + " Ponte en contacto con el administrador para solucionar el problema");
+async function getDataForFiltersList() {
+    const url = "/General/ConsultantHolidays/GetUniqueYears";
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
+
+        const data = await response.json();
+        const select = document.getElementById("year");
+
+        data.forEach(function (yearValue) {
+            let option = document.createElement("option");
+            option.value = yearValue;
+            option.text = yearValue;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        validateSessionExpiration(error.message);
+        const errorResponse = await error.json();
+        displayToasterError("More error details: " + errorResponse.detail);
+        displayToasterError(errorResponse.errors + " Ponte en contacto con el administrador para solucionar el problema");
+    }
 }
+
 
 function paginationSubmit(firstTime, filters) {
     getHolidaysList(firstTime, filters);
@@ -60,21 +65,31 @@ function recolectDataFromForm(filters) {
         };
     }
 }
-function getHolidaysList(firstTime, filters) {
+async function getHolidaysList(firstTime, filters) {
     displaySpinner();
-    var formData = firstTime ? {} : recolectDataFromForm(filters);
-    var queryString = JSON.stringify(formData);
-    var url = "/General/ConsultantHolidays/GetHolidaysList?model=" + encodeURIComponent(queryString);
-    $.ajax({
-        type: "GET",
-        url: url,
-        success: function (data) {
-            var tbody = $(".global-table-container table tbody");
-            var noResultsMessage = $(".no-results");
-            noResultsMessage.empty();
-            tbody.empty();
-            data.holidaysList.forEach(function (holiday) {
-                var row = `<tr class="hover-group">
+
+    const formData = firstTime ? {} : recolectDataFromForm(filters);
+    const queryString = JSON.stringify(formData);
+    const url = `/General/ConsultantHolidays/GetHolidaysList?model=${encodeURIComponent(queryString)}`;
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            hideSpinner();
+            displayToasterError("Something went wrong, please report this issue.");
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const tbody = document.querySelector(".global-table-container table tbody");
+        const noResultsMessage = document.querySelector(".no-results");
+
+        noResultsMessage.textContent = '';
+        tbody.innerHTML = '';
+
+        data.holidaysList.forEach(function (holiday) {
+            const row = `<tr class="hover-group">
                 <td>
                     <i onclick="deleteHolidaysList(${holiday.consultantHolidayId}, '${holiday.name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
                     <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.consultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
@@ -85,23 +100,25 @@ function getHolidaysList(firstTime, filters) {
                 <td>${formatUtcToLocalMmDdYyyyTime(holiday.creationDate)}</td>
                 <td>${holiday.createdByName}</td>
             </tr>`;
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
 
-                tbody.append(row);
-            });
-            if (data.holidaysList.length === 0) {
-                noResultsMessage.text("NO RECORDS FOUND");
-            };
-            //Pagination
-            updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
-            hideSpinner();
-        },
-        error: function (error) {
-            validateSessionExpiration(error.message);
-            displayToasterError("More error details: " + error.responseJSON.detail);
-            displayToasterError(error.responseJSON.errors + " Contact the administrator to resolve the issue.");
+        if (data.holidaysList.length === 0) {
+            noResultsMessage.textContent = "NO RECORDS FOUND";
         }
-    });
+
+        // Paginación
+        updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
+        hideSpinner();
+    } catch (error) {
+        hideSpinner();
+        validateSessionExpiration(error.message);
+        const errorResponse = await error.json();
+        displayToasterError("More error details: " + errorResponse.detail);
+        displayToasterError(errorResponse.errors + " Contact the administrator to resolve the issue.");
+    }
 }
+
 function updatePagination(paginationData) {
     updatePaginationValues(paginationData);
 }
@@ -110,7 +127,7 @@ function enterInSearch(event) {
     paginationSubmit(false, true);
 }
 
-function displayCreateUpdateModal(modalId, action, holidayId) {
+async function displayCreateUpdateModal(modalId, action, holidayId) {
     var createUpdateForm = $('#form-create-update');
     var select = $('#selectYear');
     if (action === 'VIEW HOLIDAYS LIST') {
@@ -237,7 +254,7 @@ function addNewDateRow(holiday, action) {
     // Agregar la fila al contenedor
     document.getElementById("holidays-dates-container").appendChild(row);
 }
-function createUpdateHoliday(modalId) {
+async function createUpdateHoliday(modalId) {
     waitingForPostMethod();
     var createUpdateForm = $('#form-create-update');
     var holidaysListId = createUpdateForm.find('[name="consultantHolidayId"]').val() || null;
@@ -287,8 +304,8 @@ function createUpdateHoliday(modalId) {
             validateSessionExpiration(error.message);
         })
 }
-function deleteHolidaysList(holidaysListId, listName) {
-    Swal.fire({
+async function deleteHolidaysList(holidaysListId, listName) {
+    const confirmation = await Swal.fire({
         title: "Delete Holidays List",
         text: 'Are you sure you want to delete the list "' + listName + '"?',
         icon: 'warning',
@@ -297,36 +314,48 @@ function deleteHolidaysList(holidaysListId, listName) {
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete!',
         cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
+    });
+    if (confirmation.isConfirmed) {
+        try {
             displaySpinner();
             var token = $('[name="__RequestVerificationToken"]').val();
             var formData = new FormData();
             formData.append('holidaysListId', holidaysListId);
-            fetch("/General/ConsultantHolidays/DeleteHolidaysList"
-                , {
-                    method: 'POST',
-                    headers: {
-                        RequestVerificationToken: token
-                    },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        toastr.success(data.message);
-                    } else {
-                        displayToasterError(data.error);
-                        console.error('There has been a problem with the fetch operation:', data.detail);
-                    }
-                })
-                .catch(error => {
-                    validateSessionExpiration(error.message);
-                })
-                .finally(() => {
-                    hideSpinner();
-                    getHolidaysList(false, false);
-                });
+            const response = await fetch('/General/ConsultantHolidays/DeleteHolidaysList', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: formData
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                switch (errorData.messageType) {
+                    case "Validation Error":
+                        displayToasterWarning(errorData.error);
+                        break;
+                    case "Not Found":
+                        displayToasterError(errorData.detail);
+                        break;
+                    default:
+                        displayToasterError('An unexpected error occurred: ' + errorData.error);
+                }
+                hideSpinner();
+                return null;
+            }
+            const data = await response.json();
+            hideSpinner();
+            getHolidaysList(false, false);
+            toastr.success(data.message);
+            return data;
+        } catch (error) {
+            hideSpinner();
+            validateSessionExpiration(error.message);
+            console.error('Network or fetch error:', error);
+            displayToasterError(error.message);
+            return null;
         }
-    });
+    }
+
 }

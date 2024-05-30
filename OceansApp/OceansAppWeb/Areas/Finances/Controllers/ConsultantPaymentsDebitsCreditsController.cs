@@ -9,6 +9,8 @@ using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
+    [ApiController]
+    [Route("Finances/[controller]")]
     [Area("Finances")]
     [Authorize]
     [Authorize(Policy = "AccessToManageConsultantPaymentsDebitsAndCredits")]
@@ -22,12 +24,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             _unitOfWork = unitOrWork;
             _config = config;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("GetConsultantPaymentsDebitsCreditsList")]
         public async Task<IActionResult> GetConsultantPaymentsDebitsCreditsList(string model)
         {
             try
@@ -96,7 +100,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("CreateUpdateDebitCredit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateDebitCredit([FromBody] CreateUpdateConsultantPaymentDebitCreditVM debitCreditData)
         {
@@ -201,7 +205,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetDebitCreditDataById")]
         public async Task<IActionResult> GetDebitCreditDataById(int consultantPaymentDebitsCreditsId)
         {
             try
@@ -223,9 +227,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("RejectDebitCredit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectDebitCredit(int consultantPaymentDebitsCreditsId)
+        public async Task<IActionResult> RejectDebitCredit([FromForm] int consultantPaymentDebitsCreditsId)
         {
             try
             {
