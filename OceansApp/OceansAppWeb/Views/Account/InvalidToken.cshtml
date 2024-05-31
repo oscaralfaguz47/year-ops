@@ -1,0 +1,19 @@
+﻿@using OceansApp.Models.ViewModels.Account
+@model InvalidToken
+
+<div class="text-center">
+    <div class="custom-box">
+        <div class="sub-box">
+            <div>
+                <h2>
+                    @Model.Title
+                </h2>
+                <p><strong>@Model.Message</strong></p>
+                <br />
+                @if(@Model.ButtonText != null){
+                    <a class="btn-primary-submit" asp-area="" asp-controller="Account" asp-action="ForgotPassword">@Model.ButtonText</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

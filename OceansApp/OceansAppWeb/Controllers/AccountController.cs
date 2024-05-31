@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
+using OceansApp.Models.ViewModels.Account;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansAppWeb.Controllers;
@@ -124,6 +126,53 @@ namespace OceansAppWeb.Account.Controllers
             }
             else
             {
+                var errors = result.Errors.ToList();
+                if (errors.Any(e => e.Code.Contains("InvalidToken")))
+                {
+                    if (!user.EmailConfirmed)
+                    {
+                        var newCode = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var resultNewCode = await _userManager.ConfirmEmailAsync(user, newCode);
+                        var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", code = user.Id + ":" + newCode }, protocol: HttpContext.Request.Scheme);
+                        EmailTemplates emailTemplates = new();
+                        var createPassBody = emailTemplates.CreatePasswordBody(callbackurl, user.UserName.Trim());
+                        var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
+                        SendEmailVM emailModel = new()
+                        {
+                            Subject = "Create your account - Oceans App",
+                            EmailTo = user.Email.Trim(),
+                            Body = templateEmail,
+                            SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
+                        };
+                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+                        {
+                            using (var scope = scopeFactory.CreateScope())
+                            {
+                                var sendEmail = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
+                                try
+                                {
+                                    string? result = await sendEmail.SendEmail(emailModel);
+                                }
+                                catch (Exception ex)
+                                {
+                                    //Log the error
+                                }
+                            }
+                        });
+                        InvalidToken invalidTokenModelCreatePassword = new InvalidToken();
+                        invalidTokenModelCreatePassword.Title = "Your invite has been expired!";
+                        invalidTokenModelCreatePassword.Message = "We just sent you another invite. Please check your email";
+                        return View("InvalidToken", invalidTokenModelCreatePassword);
+                    }
+                    else
+                    {
+                        InvalidToken invalidTokenExpiredModel = new InvalidToken();
+                        invalidTokenExpiredModel.Title = "You have already corfirmed your email!";
+                        invalidTokenExpiredModel.Message = "Reset your password if you need it.";
+                        invalidTokenExpiredModel.ButtonText = "Ok, Reset my password";
+                        return View("InvalidToken", invalidTokenExpiredModel);
+                    }
+                }
                 return View("Error");
             }
 
@@ -424,7 +473,18 @@ namespace OceansAppWeb.Account.Controllers
                 {
                     return RedirectToAction("ResetPasswordConfirmation");
                 }
-                ModelState.AddModelError("Email", "Your Email is incorrect");
+                else
+                {
+                    var errors = result.Errors.ToList();
+                    if (errors.Any(e => e.Code.Contains("InvalidToken")))
+                    {
+                        ModelState.AddModelError("Email", "Your Email is incorrect or your request has been expired");
+                    }
+                    else
+                    {
+                        return View("Error");
+                    }
+                }
             }
             return View(model);
         }
