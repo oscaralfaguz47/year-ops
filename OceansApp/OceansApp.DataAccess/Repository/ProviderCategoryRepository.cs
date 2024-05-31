@@ -13,13 +13,13 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
         
-        public bool UpdateIfExistAddIfNot(ProviderCategory obj)
+        public async Task<bool> UpdateIfExistAddIfNot(ProviderCategory obj)
         {
-            var existingCategory = GetFirstOrDefault(u => u.ProviderCategoryCode == obj.ProviderCategoryCode && u.CompanyId == obj.CompanyId);
+            var existingCategory = await GetFirstOrDefaultAsync(u => u.ProviderCategoryCode == obj.ProviderCategoryCode && u.CompanyId == obj.CompanyId);
             if (existingCategory == null)
             {
-                _db.PROVIDER_CATEGORY.Add(obj);
-                _db.SaveChanges();
+                await _db.PROVIDER_CATEGORY.AddAsync(obj);
+                await _db.SaveChangesAsync();
                 return true;
             }
             else

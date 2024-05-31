@@ -34,14 +34,14 @@ namespace OceansApp.DataAccess.Repository
             return accountingAccountsList;
         }
 
-        public bool UpdateIfExistAddIfNot(AccountingAccount obj)
+        public async Task<bool> UpdateIfExistAddIfNot(AccountingAccount obj)
         {
-            var existingAccountingAccount = GetFirstOrDefault(u => u.AccountingAccountCode == obj.AccountingAccountCode && u.CompanyId == obj.CompanyId);
+            var existingAccountingAccount = await GetFirstOrDefaultAsync(u => u.AccountingAccountCode == obj.AccountingAccountCode && u.CompanyId == obj.CompanyId);
 
             if (existingAccountingAccount == null)
             {
-                _db.ACCOUNTING_ACCOUNT.Add(obj);
-                _db.SaveChanges();
+               await _db.ACCOUNTING_ACCOUNT.AddAsync(obj);
+               await _db.SaveChangesAsync();
                 return true;
             }
             else
@@ -67,9 +67,9 @@ namespace OceansApp.DataAccess.Repository
             _db.ACCOUNTING_ACCOUNT.Update(obj);
         }
 
-        public DateTime GetLatestUpdateDate()
+        public async Task<DateTime> GetLatestUpdateDate()
         {
-            var latestDate = _db.ACCOUNTING_ACCOUNT.OrderByDescending(x => x.DateLastUpdate).FirstOrDefault();
+            var latestDate = await _db.ACCOUNTING_ACCOUNT.OrderByDescending(x => x.DateLastUpdate).FirstOrDefaultAsync();
             if (latestDate == null)
             {
                 return DateTime.Now;

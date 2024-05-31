@@ -53,7 +53,7 @@
         ISystemAreaRepository SystemArea { get; }
         ISystemSubAreaRepository SystemSubArea { get; }
 
-        void Save();
-        Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTran();
+        Task SaveAsync();
+        Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTranAsync();
     }
 }

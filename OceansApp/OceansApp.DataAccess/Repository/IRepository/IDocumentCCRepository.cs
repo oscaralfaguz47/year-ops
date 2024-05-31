@@ -7,12 +7,12 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IDocumentCCRepository : IRepository<DocumentCC> 
     {
-        IEnumerable<SelectVM> GetDocumentsTypeWhereDocumentsExist();
+        Task<IEnumerable<SelectVM>> GetDocumentsTypeWhereDocumentsExistAsync();
         Task<List<DocumentCCGetExpiredDocsVM>> GetAllExpiredDocsWithDaysExpiredFiltersAsync();
         Task<List<DocumentCCGetExpiredDocsVM>> GetAllExpiredPendingDocsAsync();
         Task<(List<DocumentCCGetAllWithFiltersVM> documentsCC, int totalCount)> GetAllDocumentsCCWithFiltersAsync(DocumentCCGetAllForListVM filtersAndPagination);
         Task<List<DocumentCCGetNotificationsHistoryVM>> GetNotificationsHistoryByDocumentIdAsync(int documentId);
         void Update(DocumentCC obj);
-        public bool UpdateIfExistAddIfNot(DocumentCC obj);
+        Task<bool> UpdateIfExistAddIfNot(DocumentCC obj);
     }
 }

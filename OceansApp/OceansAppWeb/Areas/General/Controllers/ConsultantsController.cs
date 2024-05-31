@@ -186,7 +186,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                         }
                         userRole = consultantData.UserRole;
                         isAuthForManageAdminUsers = true;
-                        userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == consultantData.UserCategoryName);
+                        userCategory = await _unitOfWork.ApplicationUserCategory.GetFirstOrDefaultAsync(x => x.Name == consultantData.UserCategoryName);
                         consultantData.UserCategoryId = userCategory.UserCategoryId;
                         if (userCategory == null)
                         {
@@ -196,7 +196,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     else
                     {
                         userRole = "Computer Consultant";
-                        userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == "Consultant");
+                        userCategory = await _unitOfWork.ApplicationUserCategory.GetFirstOrDefaultAsync(x => x.Name == "Consultant");
                         consultantData.UserCategoryId = userCategory.UserCategoryId;
                         if (userCategory == null)
                         {
@@ -217,7 +217,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                             UserCategoryId = userCategory.UserCategoryId
                         };
 
-                        using var transaction = await _unitOfWork.BeginTran();
+                        using var transaction = await _unitOfWork.BeginTranAsync();
                         string password = GenerateTokensAndRandomStrings.GeneratePassword();
                         var result = await _userManager.CreateAsync(user, password);
 
@@ -247,7 +247,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                             createdConsultantId = (int)res.IdCreatedElement;
                             await transaction.CommitAsync();
 
-                            var createSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, consultantData.Name, consultantData.Email, userActionedBy);
+                            var createSendNotification = await CreateAndSendCreatePasswordEmailNotification(callbackurl, consultantData.Name, consultantData.Email, userActionedBy);
                             if (!createSendNotification.Success)
                             {
                                 return BadRequest(new { MessageType = "Exception Error", error = createSendNotification.Message });
@@ -293,13 +293,13 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        public MethodResponse CreateAndSendCreatePasswordEmailNotification(string callbackUrl, string consultantName, string consultantEmail, string userActionedBy)
+        public async Task<MethodResponse> CreateAndSendCreatePasswordEmailNotification(string callbackUrl, string consultantName, string consultantEmail, string userActionedBy)
         {
             try
             {
                 // Prepare email content
                 var emailToSend = PrepareEmailContent(callbackUrl, consultantName.Trim(), consultantEmail.Trim());
-                var emailNotification = CreateNotification(emailToSend, userActionedBy);
+                var emailNotification = await CreateNotification(emailToSend, userActionedBy);
 
                 // Check if notification was successfully created
                 if (emailNotification == null || emailNotification.NotificationId <= 0)
@@ -333,9 +333,9 @@ namespace OceansAppWeb.Areas.General.Controllers
             };
         }
 
-        private Notification CreateNotification(SendEmailVM emailToSend, string userActionedBy)
+        private async Task<Notification> CreateNotification(SendEmailVM emailToSend, string userActionedBy)
         {
-            var notificatinType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Create new Consultant");
+            var notificatinType = await _unitOfWork.NotificationType.GetFirstOrDefaultAsync(x => x.Name == "Create new Consultant");
 
             if (notificatinType == null)
             {
@@ -351,11 +351,11 @@ namespace OceansAppWeb.Areas.General.Controllers
                 SentDate = DateTime.UtcNow,
                 SentByUser = userActionedBy
             };
-            _unitOfWork.Notification.Add(emailNotification);
-            _unitOfWork.Save();
-            var notificationMedia = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
-            var recipientUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == emailToSend.EmailTo);
-            var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviando");
+            await _unitOfWork.Notification.AddAsync(emailNotification);
+            await _unitOfWork.SaveAsync();
+            var notificationMedia = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Email");
+            var recipientUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Email == emailToSend.EmailTo);
+            var notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviando");
             var notificationRecipient = new NotificationRecipient()
             {
                 RecipientMediaInfo = emailToSend.EmailTo,
@@ -364,8 +364,8 @@ namespace OceansAppWeb.Areas.General.Controllers
                 NotificationStatusId = notificationStatus.NotificationStatusId,
                 RecipientUserId = recipientUser?.Id
             };
-            _unitOfWork.NotificationRecipient.Add(notificationRecipient);
-            _unitOfWork.Save();
+            await _unitOfWork.NotificationRecipient.AddAsync(notificationRecipient);
+            await _unitOfWork.SaveAsync();
 
             return emailNotification;
         }
@@ -391,11 +391,11 @@ namespace OceansAppWeb.Areas.General.Controllers
             try
             {
                 var emailSent = await sendEmailService.SendEmail(emailToSend);
-                notificationStatusForUpdate = unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                notificationStatusForUpdate = await unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
             }
             catch (Exception)
             {
-                notificationStatusForUpdate = unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                notificationStatusForUpdate = await unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Envío fallido");
             }
 
             if (notificationStatusForUpdate == null)
@@ -403,14 +403,14 @@ namespace OceansAppWeb.Areas.General.Controllers
                 throw new InvalidOperationException("Notification status 'Enviado' or 'Envío fallido' not found.");
             }
 
-            var savedNotificationRecipients = unitOfWork.NotificationRecipient.GetAll(x => x.NotificationId == notificationId);
+            var savedNotificationRecipients = await unitOfWork.NotificationRecipient.GetAllAsync(x => x.NotificationId == notificationId);
 
             foreach (var recipient in savedNotificationRecipients)
             {
                 recipient.NotificationStatusId = notificationStatusForUpdate.NotificationStatusId;
             }
 
-            unitOfWork.Save();
+            await unitOfWork.SaveAsync();
         }
 
         [HttpPost("ResentInvite")]
@@ -419,13 +419,13 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             try
             {
-                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == consultantId);
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId);
                 if (consultant == null)
                 {
                     return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
                 }
                 var user = await _userManager.FindByIdAsync(consultant.UserId);
-                var userDetails = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+                var userDetails = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
                 if (userDetails == null)
                 {
                     return BadRequest(new { MessageType = "Not Found", error = $"The User was not found in the database. " });
@@ -434,7 +434,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                 var callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", code = user.Id + ":" + code }, protocol: HttpContext.Request.Scheme);
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var createAndSendNotification = CreateAndSendCreatePasswordEmailNotification(callbackurl, userDetails.Name, user.Email, claim.Value);
+                var createAndSendNotification = await CreateAndSendCreatePasswordEmailNotification(callbackurl, userDetails.Name, user.Email, claim.Value);
                 if (!createAndSendNotification.Success)
                 {
                     return BadRequest(new { MessageType = "Exception Error", error = createAndSendNotification.Message });
@@ -453,7 +453,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             try
             {
-                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == consultantId);
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId);
                 if (consultant == null)
                 {
                      return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
@@ -470,17 +470,17 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [HttpPost("ActivateDeactivateConsultantUser")]
-        public IActionResult ActivateDeactivateConsultantUser([FromForm] int consultantId)
+        public async Task<IActionResult> ActivateDeactivateConsultantUser([FromForm] int consultantId)
         {
             try
             {
                 var message = "";
-                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == consultantId);
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId);
                 if (consultant == null)
                 {
                     return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
                 }
-                var userToUpdate = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == consultant.UserId);
+                var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == consultant.UserId);
                 if (userToUpdate.IsActive == true)
                 {
                     userToUpdate.IsActive = false;
@@ -493,7 +493,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                     userToUpdate.LockoutEnd = DateTime.Now.AddDays(-1);
                     message = "The user was successfully activated!";
                 }
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
                 return Json(new { success = true, message = message });
             }
             catch (Exception e)

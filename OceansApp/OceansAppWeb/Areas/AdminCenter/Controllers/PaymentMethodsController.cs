@@ -27,7 +27,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             try
             {
                 List<GetDataForSelectVM> paymentMethodsList = new();
-                var paymentMethods = _unitOfWork.PaymentMethod.GetAll().Where(x => x.CompanyId == companyId);
+                var paymentMethods = (await _unitOfWork.PaymentMethod.GetAllAsync()).Where(x => x.CompanyId == companyId);
                 foreach (var paymentMethod in paymentMethods)
                 {
                     paymentMethodsList.Add(new GetDataForSelectVM { Value = paymentMethod.PaymentMethodId, Text = paymentMethod.Name });

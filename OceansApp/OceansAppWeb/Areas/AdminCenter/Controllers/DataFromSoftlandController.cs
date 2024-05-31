@@ -22,9 +22,9 @@ namespace OceansApp.Areas.Admin.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            DataUpdateDate dateLastGlobalUpdate = _unitOfWork.DataUpdateDates.GetLastDate();
+            DataUpdateDate dateLastGlobalUpdate = await _unitOfWork.DataUpdateDates.GetLastDate();
 
             if (dateLastGlobalUpdate != null)
             {
@@ -43,7 +43,7 @@ namespace OceansApp.Areas.Admin.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateData(DataFromSoftland obj)
+        public async Task<IActionResult> UpdateData(DataFromSoftland obj)
         {
             try
             {
@@ -87,11 +87,11 @@ namespace OceansApp.Areas.Admin.Controllers
                                         DateHour = jsonMaster.FECHA_HORA,
                                         CompanyId = jsonMaster.CompanyId
                                     };
-                                    if (_unitOfWork.AccountingAccounts.UpdateIfExistAddIfNot(accountingAccount))
+                                    if (await _unitOfWork.AccountingAccounts.UpdateIfExistAddIfNot(accountingAccount))
                                     {
                                         affectedRecords = affectedRecords + 1;
                                     }
-                                    _unitOfWork.Save();
+                                    await _unitOfWork.SaveAsync();
                                 }
                                 if (affectedRecords > 0)
                                 {
@@ -114,11 +114,11 @@ namespace OceansApp.Areas.Admin.Controllers
                                         CreateDate = jsonMaster.CreateDate,
                                         CompanyId = jsonMaster.CompanyId
                                     };
-                                    if (_unitOfWork.CenterOfCosts.UpdateIfExistAddIfNot(costCenter))
+                                    if (await _unitOfWork.CenterOfCosts.UpdateIfExistAddIfNot(costCenter))
                                     {
                                         affectedRecords = affectedRecords + 1;
                                     }
-                                    _unitOfWork.Save();
+                                    await _unitOfWork.SaveAsync();
                                 }
                                 if (affectedRecords > 0)
                                 {
@@ -141,9 +141,9 @@ namespace OceansApp.Areas.Admin.Controllers
                                         costCenterCode = jsonMaster.CENTRO_COSTO;
                                         companyId = jsonMaster.CompanyId;
                                     }
-                                    var accountingAccount = _unitOfWork.AccountingAccounts.GetFirstOrDefault(x => x.AccountingAccountCode == accountingAccountCode
+                                    var accountingAccount = await _unitOfWork.AccountingAccounts.GetFirstOrDefaultAsync(x => x.AccountingAccountCode == accountingAccountCode
                                     && x.CompanyId == companyId);
-                                    var costCenter = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenterCode
+                                    var costCenter = await _unitOfWork.CenterOfCosts.GetFirstOrDefaultAsync(x => x.CostCenterCode == costCenterCode
                                     && x.CompanyId == companyId);
                                     LedgerMovement ledgerMovement = new()
                                     {
@@ -161,7 +161,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                     if (_unitOfWork.LedgerMovements.AddIfNotExist(ledgerMovement))
                                     {
                                         affectedRecords = affectedRecords + 1;
-                                        _unitOfWork.Save();
+                                        await _unitOfWork.SaveAsync();
                                     }
                                 }
                                 if (affectedRecords > 0)
@@ -205,10 +205,10 @@ namespace OceansApp.Areas.Admin.Controllers
                                         LatePaymentFee = 0,
                                         AllowSentLatePaymentNotifications = true
                                     };
-                                    if (_unitOfWork.Client.UpdateIfExistAddIfNot(client))
+                                    if (await _unitOfWork.Client.UpdateIfExistAddIfNot(client))
                                     {
                                         affectedRecords = affectedRecords + 1;
-                                        _unitOfWork.Save();
+                                        await _unitOfWork.SaveAsync();
                                     }
                                 }
                                 if (affectedRecords > 0)
@@ -231,11 +231,11 @@ namespace OceansApp.Areas.Admin.Controllers
                                         CreateDate = jsonMaster.CreateDate,
                                         CompanyId = jsonMaster.CompanyId
                                     };
-                                    if (_unitOfWork.ProviderCategory.UpdateIfExistAddIfNot(category))
+                                    if (await _unitOfWork.ProviderCategory.UpdateIfExistAddIfNot(category))
                                     {
                                         affectedRecords = affectedRecords + 1;
                                     }
-                                    _unitOfWork.Save();
+                                    await _unitOfWork.SaveAsync();
                                 }
                                 if (affectedRecords > 0)
                                 {
@@ -256,11 +256,11 @@ namespace OceansApp.Areas.Admin.Controllers
                                         Name = jsonMaster.NOMBRE,
                                         CreateDate = jsonMaster.CreateDate
                                     };
-                                    if (_unitOfWork.Country.UpdateIfExistAddIfNot(country))
+                                    if (await _unitOfWork.Country.UpdateIfExistAddIfNot(country))
                                     {
                                         affectedRecords = affectedRecords + 1;
                                     }
-                                    _unitOfWork.Save();
+                                    await _unitOfWork.SaveAsync();
                                 }
                                 if (affectedRecords > 0)
                                 {
@@ -287,12 +287,12 @@ namespace OceansApp.Areas.Admin.Controllers
                                         categoryCode = jsonMaster.CATEGORIA_PROVEED;
                                         companyId = jsonMaster.CompanyId;
                                     }
-                                    var categoryProvider = _unitOfWork.ProviderCategory.GetFirstOrDefault(x => x.ProviderCategoryCode == categoryCode
+                                    var categoryProvider = await _unitOfWork.ProviderCategory.GetFirstOrDefaultAsync(x => x.ProviderCategoryCode == categoryCode
                                     && x.CompanyId == companyId);
                                     int? clientId = null;
                                     if (categoryProvider.Description.Length > 22)
                                     {
-                                        var client = _unitOfWork.Client.GetFirstOrDefault(x => x.Name.Contains((categoryProvider.Description).Substring(22))
+                                        var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.Name.Contains((categoryProvider.Description).Substring(22))
                                         || x.Alias.Contains((categoryProvider.Description).Substring(22)));
                                         if (client == null)
                                         {
@@ -323,30 +323,30 @@ namespace OceansApp.Areas.Admin.Controllers
                                         CompanyId = companyId,
                                         ClientId = clientId
                                     };
-                                    int? returnedProviderId = _unitOfWork.Provider.UpdateIfExistAddIfNot(provider);
+                                    int? returnedProviderId = await _unitOfWork.Provider.UpdateIfExistAddIfNot(provider);
                                     if (returnedProviderId != null)
                                     {
                                         affectedRecords = affectedRecords + 1;
-                                        _unitOfWork.Save();
-                                        var pEventEntrada = _unitOfWork.ProviderEvent.GetFirstOrDefault(x => x.Name == "Entrada");
-                                        var pEventContratoFirmado = _unitOfWork.ProviderEvent.GetFirstOrDefault(x => x.Name == "Contrato Firmado por 1era vez");
-                                        var providerEventDateEntrada = _unitOfWork.ProviderEventDate.GetFirstOrDefault(x => x.ProviderId == returnedProviderId
+                                        await _unitOfWork.SaveAsync();
+                                        var pEventEntrada = await _unitOfWork.ProviderEvent.GetFirstOrDefaultAsync(x => x.Name == "Entrada");
+                                        var pEventContratoFirmado = await _unitOfWork.ProviderEvent.GetFirstOrDefaultAsync(x => x.Name == "Contrato Firmado por 1era vez");
+                                        var providerEventDateEntrada = await _unitOfWork.ProviderEventDate.GetFirstOrDefaultAsync(x => x.ProviderId == returnedProviderId
                                         && x.ProviderEventId == pEventEntrada.ProviderEventId);
-                                        var providerEventDateContratoFirmado = _unitOfWork.ProviderEventDate.GetFirstOrDefault(x => x.ProviderId == returnedProviderId
+                                        var providerEventDateContratoFirmado = await _unitOfWork.ProviderEventDate.GetFirstOrDefaultAsync(x => x.ProviderId == returnedProviderId
                                         && x.ProviderEventId == pEventContratoFirmado.ProviderEventId);
                                         if (providerEventDateEntrada != null && providerEventDateContratoFirmado != null)
                                         {
-                                                if (!providerEventDateEntrada.EventDate.Equals(jsonMaster.FECHA_INGRESO))
-                                                {
-                                                    providerEventDateEntrada.EventDate = jsonMaster.FECHA_INGRESO;
-                                                    _unitOfWork.Save();
-                                                }
-                                                if (!providerEventDateContratoFirmado.EventDate.Equals(jsonMaster.FECHA_INGRESO))
-                                                {
-                                                    providerEventDateContratoFirmado.EventDate = jsonMaster.FECHA_INGRESO;
-                                                    _unitOfWork.Save();
-                                                }
-                                           
+                                            if (!providerEventDateEntrada.EventDate.Equals(jsonMaster.FECHA_INGRESO))
+                                            {
+                                                providerEventDateEntrada.EventDate = jsonMaster.FECHA_INGRESO;
+                                                await _unitOfWork.SaveAsync();
+                                            }
+                                            if (!providerEventDateContratoFirmado.EventDate.Equals(jsonMaster.FECHA_INGRESO))
+                                            {
+                                                providerEventDateContratoFirmado.EventDate = jsonMaster.FECHA_INGRESO;
+                                                await _unitOfWork.SaveAsync();
+                                            }
+
                                         }
                                         else
                                         {
@@ -359,8 +359,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                                 ProviderEventId = pEventEntrada.ProviderEventId,
                                                 CreatedBy = claim.Value
                                             };
-                                            _unitOfWork.ProviderEventDate.Add(providerEventDate1);
-                                            _unitOfWork.Save();
+                                            await _unitOfWork.ProviderEventDate.AddAsync(providerEventDate1);
+                                            await _unitOfWork.SaveAsync();
                                             ProviderEventDate providerEventDate2 = new()
                                             {
                                                 ProviderId = (int)returnedProviderId,
@@ -368,8 +368,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                                 ProviderEventId = pEventContratoFirmado.ProviderEventId,
                                                 CreatedBy = claim.Value
                                             };
-                                            _unitOfWork.ProviderEventDate.Add(providerEventDate2);
-                                            _unitOfWork.Save();
+                                            await _unitOfWork.ProviderEventDate.AddAsync(providerEventDate2);
+                                            await _unitOfWork.SaveAsync();
                                         }
                                     }
                                 }
@@ -398,9 +398,9 @@ namespace OceansApp.Areas.Admin.Controllers
                                         clientCode = jsonMaster.CLIENTE;
                                         companyId = jsonMaster.CompanyId;
                                     }
-                                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == clientCode
+                                    var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientCode == clientCode
                                     && x.CompanyId == companyId);
-            
+
                                     DocumentCC document = new()
                                     {
                                         DocumentNumber = jsonMaster.DOCUMENTO,
@@ -416,10 +416,10 @@ namespace OceansApp.Areas.Admin.Controllers
                                         CreationDate = jsonMaster.CreateDate,
                                         CompanyId = companyId
                                     };
-                                    if (_unitOfWork.DocumentCC.UpdateIfExistAddIfNot(document))
+                                    if (await _unitOfWork.DocumentCC.UpdateIfExistAddIfNot(document))
                                     {
                                         affectedRecords = affectedRecords + 1;
-                                        _unitOfWork.Save();
+                                        await _unitOfWork.SaveAsync();
                                     }
                                 }
                                 if (affectedRecords > 0)
@@ -444,9 +444,9 @@ namespace OceansApp.Areas.Admin.Controllers
                                         accountingAccountCode = jsonMaster.CUENTA_CONTABLE;
                                         companyId = jsonMaster.CompanyId;
                                     }
-                                    var costCenter = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenterCode
+                                    var costCenter = await _unitOfWork.CenterOfCosts.GetFirstOrDefaultAsync(x => x.CostCenterCode == costCenterCode
                                     && x.CompanyId == companyId);
-                                    var accountingAccount = _unitOfWork.AccountingAccounts.GetFirstOrDefault(x => x.AccountingAccountCode == accountingAccountCode
+                                    var accountingAccount = await _unitOfWork.AccountingAccounts.GetFirstOrDefaultAsync(x => x.AccountingAccountCode == accountingAccountCode
                                     && x.CompanyId == companyId);
 
                                     CostCenterAccountingAccount costCenterAccount = new()
@@ -460,7 +460,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                     if (_unitOfWork.CostCenterAccountingAccount.AddCostCenterAccountingAccount(costCenterAccount))
                                     {
                                         affectedRecords = affectedRecords + 1;
-                                        _unitOfWork.Save();
+                                        await _unitOfWork.SaveAsync();
                                     }
                                 }
                                 if (affectedRecords > 0)
@@ -480,8 +480,8 @@ namespace OceansApp.Areas.Admin.Controllers
                                     SectionsUpdated = updatedSections,
                                     CreatedBy = claim.Value
                                 };
-                                _unitOfWork.DataUpdateDates.Add(dataUpdateDate);
-                                _unitOfWork.Save();
+                                await _unitOfWork.DataUpdateDates.AddAsync(dataUpdateDate);
+                                await _unitOfWork.SaveAsync();
                             }
                             TempData["success"] = updatedRecords + " records were affected.";
                             return RedirectToAction("Index");

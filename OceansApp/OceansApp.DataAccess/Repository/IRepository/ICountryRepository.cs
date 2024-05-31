@@ -5,8 +5,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface ICountryRepository : IRepository<Country> 
     {
-        IEnumerable<CountriesSelectVM> GetCountriesWhereConsultantsAre();
-        bool UpdateIfExistAddIfNot(Country obj);
+        Task<IEnumerable<CountriesSelectVM>> GetCountriesWhereConsultantsAreAsync();
+        Task<bool> UpdateIfExistAddIfNot(Country obj);
         void Update(Country obj);
 
     }

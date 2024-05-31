@@ -53,7 +53,7 @@ namespace OceansAppWeb.Account.Controllers
         public async Task<IActionResult> ProfileAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+            var userFromDb = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
 
             ProfileVM myInfo = new()
             {
@@ -77,14 +77,14 @@ namespace OceansAppWeb.Account.Controllers
             {
                 try
                 {
-                    var userToUpdate = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == model.Id);
+                    var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
 
                     userToUpdate.Name = model.Name;
                     userToUpdate.LastName = model.LastName;
                     userToUpdate.Occupation = model.Ocupation;
                     userToUpdate.PhoneNumber = model.PhoneNumber;
 
-                    _unitOfWork.Save();
+                    await _unitOfWork.SaveAsync();
 
                     TempData["success"] = "Data was saved successfully!";
                     return View("Profile", model);
@@ -214,7 +214,7 @@ namespace OceansAppWeb.Account.Controllers
 
                     if (user != null && user.EmailConfirmed)
                     {
-                        var applicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+                        var applicationUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
                         if (applicationUser.IsActive)
                         {
                             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -403,7 +403,7 @@ namespace OceansAppWeb.Account.Controllers
                 var callbackurl = Url.Action("ResetPassword", "Account",
                     new { code = code }, protocol: HttpContext.Request.Scheme);
                 EmailTemplates emailTemplates = new();
-                var userDetails = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == user.Id);
+                var userDetails = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
                 if (userDetails == null)
                 {
                     return RedirectToAction("ForgotPasswordConfirmation");

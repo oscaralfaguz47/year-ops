@@ -118,7 +118,7 @@ ORDER BY AA.AccountingAccountCode";
         }
         public bool AddIfNotExist(LedgerMovement obj)
         {
-            var existingLedgerMovement = GetFirstOrDefault(u => u.IdSeat == obj.IdSeat && u.CostCenterId == obj.CostCenterId &&
+            var existingLedgerMovement = GetFirstOrDefaultAsync(u => u.IdSeat == obj.IdSeat && u.CostCenterId == obj.CostCenterId &&
             u.AccountingAccountId == obj.AccountingAccountId && u.LocalDebit == obj.LocalDebit &&
             u.LocalCredit == obj.LocalCredit && u.Consecutive == obj.Consecutive && u.CompanyId == obj.CompanyId);
 

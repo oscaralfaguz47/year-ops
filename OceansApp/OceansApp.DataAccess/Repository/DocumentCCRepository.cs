@@ -17,20 +17,21 @@ namespace OceansApp.DataAccess.Repository
         {
             _db = db;
         }
-        IEnumerable<SelectVM> IDocumentCCRepository.GetDocumentsTypeWhereDocumentsExist()
+        public async Task<IEnumerable<SelectVM>> GetDocumentsTypeWhereDocumentsExistAsync()
         {
-            IEnumerable<SelectVM> docTypesList = _db.DOCUMENTS_CC
+            var docTypesList = await _db.DOCUMENTS_CC
                 .FromSqlRaw(@"SELECT DocumentType FROM DOCUMENTS_CC 
-                            GROUP BY DocumentType
-        ")
+                    GROUP BY DocumentType")
                 .Select(c => new SelectVM
                 {
                     Value = c.DocumentType,
                     Name = c.DocumentType
                 })
-                .ToList();
+                .ToListAsync();
+
             return docTypesList;
         }
+
 
         public async Task<List<DocumentCCGetExpiredDocsVM>> GetAllExpiredDocsWithDaysExpiredFiltersAsync()
         {
@@ -193,9 +194,9 @@ namespace OceansApp.DataAccess.Repository
             _db.DOCUMENTS_CC.Update(obj);
         }
 
-        public bool UpdateIfExistAddIfNot(DocumentCC obj)
+        public async Task<bool> UpdateIfExistAddIfNot(DocumentCC obj)
         {
-            var existingDoc = GetFirstOrDefault(u => u.DocumentNumber == obj.DocumentNumber && u.DocumentType == obj.DocumentType && u.CompanyId == obj.CompanyId);
+            var existingDoc = await GetFirstOrDefaultAsync(u => u.DocumentNumber == obj.DocumentNumber && u.DocumentType == obj.DocumentType && u.CompanyId == obj.CompanyId);
             if (existingDoc == null)
             {
                 _db.DOCUMENTS_CC.Add(obj);

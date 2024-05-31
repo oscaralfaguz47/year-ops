@@ -272,31 +272,45 @@ namespace OceansApp.DataAccess.Repository
 
         //PAYMENT SHEETS
         public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
-            PaymentSheetsPaginationFiltersVM filtersAndPagination)
+    PaymentSheetsPaginationFiltersVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();
+            try
+            {
+                if (connection.State == System.Data.ConnectionState.Closed)
+                {
+                    await connection.OpenAsync();
+                }
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
-            parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
-            parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
-            parameters.Add("@TransactionStatusId", filtersAndPagination.Filters.TransactionStatusId, DbType.Int32);
-            parameters.Add("@ProjectId", filtersAndPagination.Filters.ProjectId, DbType.Int32);
-            parameters.Add("@PaymentPeriod", filtersAndPagination.Filters.PaymentPeriod, DbType.Int32);
+                var parameters = new DynamicParameters();
+                parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
+                parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
+                parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
+                parameters.Add("@TransactionStatusId", filtersAndPagination.Filters.TransactionStatusId, DbType.Int32);
+                parameters.Add("@ProjectId", filtersAndPagination.Filters.ProjectId, DbType.Int32);
+                parameters.Add("@PaymentPeriod", filtersAndPagination.Filters.PaymentPeriod, DbType.Int32);
+                parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
+                parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
+                parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+                parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+                parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
-            parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
-            parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
-            parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
-            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
-
-            var results = await connection.QueryAsync<PaymentSheetsGetAllWithFiltersVM>("SP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters", parameters, commandType: CommandType.StoredProcedure);
-
-            var totalCount = parameters.Get<int>("@TotalCount");
-            var consultantsToPay = results.ToList();
-
-            return (consultantsToPay, totalCount);
+                var results = await connection.QueryAsync<PaymentSheetsGetAllWithFiltersVM>("SP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters", parameters, commandType: CommandType.StoredProcedure);
+                var totalCount = parameters.Get<int>("@TotalCount");
+                var consultantsToPay = results.ToList();
+                return (consultantsToPay, totalCount);
+            }
+            finally
+            {
+                if (connection.State == System.Data.ConnectionState.Open)
+                {
+                    await connection.CloseAsync();
+                }
+            }
         }
+
+
+
 
         public async Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId)
         {

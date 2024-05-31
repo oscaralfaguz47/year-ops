@@ -27,7 +27,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             try
             {
                 List<GetDataForSelectVM> benefitsList = new();
-                var benefits = _unitOfWork.ConsultantBenefit.GetAll();
+                var benefits = await _unitOfWork.ConsultantBenefit.GetAllAsync();
                 foreach (var benefit in benefits)
                 {
                     benefitsList.Add(new GetDataForSelectVM { Value = benefit.BenefitId, Text = benefit.Name });
@@ -45,12 +45,12 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         
         [Authorize(Policy = "AccessToAllConsultantBenefitsListForSelect")]
         [HttpGet("GetAllBenefitCategoriesListForSelect")]
-        public IActionResult GetAllBenefitCategoriesListForSelect(int benefitId)
+        public async Task<IActionResult> GetAllBenefitCategoriesListForSelect(int benefitId)
         {
             try
             {
                 List<GetDataForSelectVM> benefitCategoriesList = new();
-                var categories = _unitOfWork.ConsultantBenefitCategory.GetAll().Where(x => x.BenefitId == benefitId);
+                var categories = await _unitOfWork.ConsultantBenefitCategory.GetAllAsync(x => x.BenefitId == benefitId);
                 foreach (var category in categories)
                 {
                     benefitCategoriesList.Add(new GetDataForSelectVM { Value = category.BenefitCategoryId, Text = category.Name });

@@ -64,7 +64,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         {
             if (ModelState.IsValid)
             {
-                var userCategory = _unitOfWork.ApplicationUserCategory.GetFirstOrDefault(x => x.Name == "Administrative");
+                var userCategory =  await _unitOfWork.ApplicationUserCategory.GetFirstOrDefaultAsync(x => x.Name == "Administrative");
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
@@ -115,9 +115,9 @@ namespace OceansApp.Areas.AdminCenter.Controllers
             }
             return View(model);
         }
-        public IActionResult Edit(string userId)
+        public async Task<IActionResult> Edit(string userId)
         {
-            var userFromDb = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == userId);
+            var userFromDb = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == userId);
             var role = _userManager.GetRolesAsync(userFromDb).Result;
 
             var roles = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
@@ -145,13 +145,13 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Update(ApplicationUserVM model)
+        public async Task<ActionResult> Update(ApplicationUserVM model)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var userToUpdate = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == model.Id);
+                    var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
                     var actualUserRole = _userManager.GetRolesAsync(userToUpdate).Result;
                     if (actualUserRole[0] != model.Role)
                     {
@@ -163,7 +163,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                     userToUpdate.Occupation = model.Ocupation;
                     userToUpdate.PhoneNumber = model.PhoneNumber;
 
-                    _unitOfWork.Save();
+                   await _unitOfWork.SaveAsync();
 
                     TempData["success"] = "¡Los datos fueron guardados con éxito!";
                     return RedirectToAction("Index");
@@ -178,13 +178,13 @@ namespace OceansApp.Areas.AdminCenter.Controllers
 
         //API CALLS REGION
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
             try
             {  
                 Collection<ApplicationUserVM> usersList = new Collection<ApplicationUserVM>();
 
-                var users = _unitOfWork.ApplicationUser.GetAll();
+                var users = await _unitOfWork.ApplicationUser.GetAllAsync();
                 foreach (var user in users)
                 { 
                     ApplicationUserVM customUser = new()
@@ -225,12 +225,12 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         }
         //POST
         [HttpPost]
-        public IActionResult ActivateDeactivate(String userId)
+        public async Task<IActionResult> ActivateDeactivate(String userId)
         {
             try
             {
                 var message = "";
-                var userToUpdate = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == userId);
+                var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == userId);
                 if (userToUpdate.IsActive == true)
                 {
                     userToUpdate.IsActive = false;
@@ -243,7 +243,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
                     userToUpdate.LockoutEnd = DateTime.Now;
                     message = "¡El usuario fue activado con éxito!";
                 }
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
                 return Json(new { success = true, message = message });
             }
             catch (Exception e)

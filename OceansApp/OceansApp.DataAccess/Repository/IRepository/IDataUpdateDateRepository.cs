@@ -5,7 +5,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
     public interface IDataUpdateDateRepository : IRepository<DataUpdateDate> 
     {
         void Update(DataUpdateDate obj);
-        DataUpdateDate GetLastDate();
+        Task<DataUpdateDate> GetLastDate();
 
     }
 }

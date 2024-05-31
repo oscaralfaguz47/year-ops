@@ -27,7 +27,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             try
             {
                 List<SelectVM> countriesList = new();
-                var countries = _unitOfWork.Country.GetAll();
+                var countries = await _unitOfWork.Country.GetAllAsync();
                 foreach (var country in countries)
                 {
                     countriesList.Add(new SelectVM { Value = country.IdCountry, Name = country.Name });

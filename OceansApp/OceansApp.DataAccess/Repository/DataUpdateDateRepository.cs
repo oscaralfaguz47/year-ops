@@ -1,4 +1,5 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 
@@ -17,9 +18,9 @@ namespace OceansApp.DataAccess.Repository
             _db.DATA_UPDATE_DATES.Update(obj);
         }
 
-        public DataUpdateDate GetLastDate()
+        public async Task<DataUpdateDate> GetLastDate()
         {
-            var latestDate = _db.DATA_UPDATE_DATES.OrderByDescending(x => x.Date).FirstOrDefault();
+            var latestDate = await _db.DATA_UPDATE_DATES.OrderByDescending(x => x.Date).FirstOrDefaultAsync();
             return latestDate;
         }
 

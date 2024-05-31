@@ -13,7 +13,7 @@ namespace OceansApp.DataAccess.Repository
         }
         public bool AddCostCenterAccountingAccount(CostCenterAccountingAccount obj)
         {
-            var existingCostCenterAccount = GetFirstOrDefault(u => u.CostCenterId == obj.CostCenterId && u.AccountingAccountId == obj.AccountingAccountId && u.CompanyId == obj.CompanyId);
+            var existingCostCenterAccount = GetFirstOrDefaultAsync(u => u.CostCenterId == obj.CostCenterId && u.AccountingAccountId == obj.AccountingAccountId && u.CompanyId == obj.CompanyId);
             if (existingCostCenterAccount == null)
             {
                 _db.COSTS_CENTERS_ACCOUNTING_ACCOUNTS.Add(obj);

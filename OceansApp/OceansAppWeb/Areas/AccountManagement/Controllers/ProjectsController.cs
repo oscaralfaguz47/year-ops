@@ -179,7 +179,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 }
                 else
                 {
-                    var internalClient = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientCode == "OCEADMIN01");
+                    var internalClient = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientCode == "OCEADMIN01");
                     if (internalClient == null)
                     {
                         return BadRequest(new { error = "The internal client was not found.", detail = "Client not found." });
@@ -249,7 +249,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         }
                     }
 
-                    _unitOfWork.Save();
+                    await _unitOfWork.SaveAsync();
                     return Ok(new
                     {
                         success = true,
@@ -303,7 +303,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     {
                         return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Consultant parameters could be updated." });
                     }
-                    _unitOfWork.Save();
+                    await _unitOfWork.SaveAsync();
                     return Ok(new
                     {
                         success = true,
@@ -330,16 +330,16 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var consultantAssignation = _unitOfWork.ProjectConsultantAssigned.GetFirstOrDefault(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
+                var consultantAssignation = await _unitOfWork.ProjectConsultantAssigned.GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
                 if (consultantAssignation == null)
                 {
                     return BadRequest(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
                 }
                 var actionDescription = consultantAssignation.IsActive ? "Consultant Deactivated" : "Consultant Activated";
-                var action = _unitOfWork.ProjectConsultantAssignedHistoryAction.GetFirstOrDefault(x => x.Name == actionDescription);
+                var action = await _unitOfWork.ProjectConsultantAssignedHistoryAction.GetFirstOrDefaultAsync(x => x.Name == actionDescription);
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var userActionedBy = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == claim.Value);
+                var userActionedBy = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == claim.Value);
                 if (consultantAssignation.IsActive)
                 {
                     ProjectConsultantAssignedHistory historyConsultant = new()
@@ -352,7 +352,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         NewValue = 0,
                         OldValue = 1
                     };
-                    _unitOfWork.ProjectConsultantAssignedHistory.Add(historyConsultant);
+                    _unitOfWork.ProjectConsultantAssignedHistory.AddAsync(historyConsultant);
                 }
                 else
                 {
@@ -366,10 +366,10 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         NewValue = 1,
                         OldValue = 0
                     };
-                    _unitOfWork.ProjectConsultantAssignedHistory.Add(historyConsultant);
+                    _unitOfWork.ProjectConsultantAssignedHistory.AddAsync(historyConsultant);
                 }
                 consultantAssignation.IsActive = consultantAssignation.IsActive ? false : true;
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
                 var successMessage = "The consultant was " + (consultantAssignation.IsActive ? "Activated" : "Deactivated") + " from the project!";
 
@@ -387,13 +387,13 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var project = _unitOfWork.Project.GetFirstOrDefault(x => x.ProjectId == projectId);
+                var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
                 if (project == null)
                 {
                     return BadRequest(new { error = "The Project no longer exist in the database.", MessageType = "No Exists Error" });
                 }
                 project.IsActive = project.IsActive ? false : true;
-                _unitOfWork.Save();
+                 await _unitOfWork.SaveAsync();
                 var successMessage = "The project " + project.Name + " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
 
                 return Ok(new { success = true, message = successMessage });

@@ -23,14 +23,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             _authorizationService = authorizationService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<CostCenter> costCenterList = (IEnumerable<CostCenter>)_unitOfWork.CenterOfCosts.GetCostCenterOfExpenses();
-            List<ConsultantRole> consultantRolesList = (List<ConsultantRole>)_unitOfWork.ConsultantRole.GetAll();
-            List<ConsultantQualityLevel> consultantQualityLevelsList = (List<ConsultantQualityLevel>)_unitOfWork.ConsultantQualityLevel.GetAll();
-            List<ConsultantSeniority> consultantSenioritisList = (List<ConsultantSeniority>)_unitOfWork.ConsultantSeniority.GetAll();
+            IEnumerable<CostCenter> costCenterList = (IEnumerable<CostCenter>)await _unitOfWork.CenterOfCosts.GetCostCenterOfExpensesAsync();
+            List<ConsultantRole> consultantRolesList = (List<ConsultantRole>)await _unitOfWork.ConsultantRole.GetAllAsync();
+            List<ConsultantQualityLevel> consultantQualityLevelsList = (List<ConsultantQualityLevel>)await _unitOfWork.ConsultantQualityLevel.GetAllAsync();
+            List<ConsultantSeniority> consultantSenioritisList = (List<ConsultantSeniority>)await _unitOfWork.ConsultantSeniority.GetAllAsync();
             List<GetConsultantRolesQualityLevelsVM> consultantRolesQualityLevelsList = (List<GetConsultantRolesQualityLevelsVM>)_unitOfWork.ConsultantRoleQualityLevel.GetConsultantRoleQualityLevelsList();
-            CalculatorGlobalConfiguration currentConfig = _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefault(x => x.Id == "Configuration1");
+            CalculatorGlobalConfiguration currentConfig = await _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefaultAsync(x => x.Id == "Configuration1");
             if (currentConfig == null)
             {
                 CalculatorGlobalConfiguration configToCreate = new()
@@ -49,17 +49,18 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     ProfitYellowPartner = 17,
                     MinimumGlobalProfit = 20
                 };
-                _unitOfWork.CalculatorGlobalConfiguration.Add(configToCreate);
-                _unitOfWork.Save();
+                await _unitOfWork.CalculatorGlobalConfiguration.AddAsync(configToCreate);
+                await _unitOfWork.SaveAsync();
             }
             Collection<CalculatorCostCenterIncreaseConfigurationVM> costCenterWithIncreaseList = new Collection<CalculatorCostCenterIncreaseConfigurationVM>();
             foreach (var costCenter in costCenterList)
             {
-                var costCenterIncreaseFromDB = _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x =>
-                x.CostCenterId == costCenter.CostCenterId);
+                var costCenterIncreaseFromDB = await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefaultAsync(x =>
+                    x.CostCenterId == costCenter.CostCenterId);
+
                 if (costCenterIncreaseFromDB != null)
                 {
-                    var description = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterId == costCenterIncreaseFromDB.CostCenterId);
+                    var description = await _unitOfWork.CenterOfCosts.GetFirstOrDefaultAsync(x => x.CostCenterId == costCenterIncreaseFromDB.CostCenterId);
                     CalculatorCostCenterIncreaseConfigurationVM costCenterIncrease = new()
                     {
                         CostCenterId = costCenterIncreaseFromDB.CostCenterId,
@@ -69,9 +70,10 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     };
                     costCenterWithIncreaseList.Add(costCenterIncrease);
                 }
+
                 else
                 {
-                    var description = _unitOfWork.CenterOfCosts.GetFirstOrDefault(x => x.CostCenterCode == costCenter.CostCenterCode);
+                    var description = await _unitOfWork.CenterOfCosts.GetFirstOrDefaultAsync(x => x.CostCenterCode == costCenter.CostCenterCode);
                     CalculatorCostCenterIncreaseConfigurationVM costCenterIncrease = new()
                     {
                         CostCenterId = costCenter.CostCenterId,
@@ -118,7 +120,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     {
                         foreach (var costCenterIncrease in obj.CalculatorCostCenterIncreaseConfigurationVM)
                         {
-                            var existingCostCenterFormDB = _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x =>
+                            var existingCostCenterFormDB = await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefaultAsync(x =>
                             x.CostCenterId == costCenterIncrease.CostCenterId);
                             if (existingCostCenterFormDB == null)
                             {
@@ -129,7 +131,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                     IdUserUpdatedBy = claim.Value,
                                     DateLastUpdate = costaRicaTime
                                 };
-                                _unitOfWork.CalculatorCostCenterIncreaseConfiguration.Add(costCenterIncreaseConfigToSave);
+                                await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.AddAsync(costCenterIncreaseConfigToSave);
                             }
                             else
                             {
@@ -138,12 +140,12 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                 existingCostCenterFormDB.DateLastUpdate = costaRicaTime;
                                 _unitOfWork.CalculatorCostCenterIncreaseConfiguration.Update(existingCostCenterFormDB);
                             }
-                            _unitOfWork.Save();
+                            await _unitOfWork.SaveAsync();
                         }
                     }
                     foreach (var consultantQualityRole in obj.ConsultantRolesQualityLevels)
                     {
-                        var existingCQFromDB = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
+                        var existingCQFromDB = await _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefaultAsync(x =>
                         x.ConsultantRoleId == consultantQualityRole.ConsultantRoleId
                         && x.ConsultantQualityLevelId == consultantQualityRole.ConsultantQualityLevelId
                         && x.ConsultantSeniorityId == consultantQualityRole.ConsultantSeniorityId);
@@ -159,7 +161,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                 UpdatedBy = claim.Value,
                                 UpdatedDate = costaRicaTime
                             };
-                            _unitOfWork.ConsultantRoleQualityLevel.Add(consultantQRToSave);
+                            _unitOfWork.ConsultantRoleQualityLevel.AddAsync(consultantQRToSave);
                         }
                         else
                         {
@@ -183,9 +185,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                 _unitOfWork.ConsultantRoleQualityLevel.Update(existingCQFromDB);
                             }
                         }
-                        _unitOfWork.Save();
+                        await _unitOfWork.SaveAsync();
                     }
-                    var globalConfig = _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefault(x => x.Id == "Configuration1");
+                    var globalConfig = await _unitOfWork.CalculatorGlobalConfiguration.GetFirstOrDefaultAsync(x => x.Id == "Configuration1");
                     if (globalConfig != null)
                     {
                         globalConfig.StartDate = obj.CalculatorGlobalConfiguration.StartDate;
@@ -204,7 +206,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                             globalConfig.MinimumGlobalProfit = obj.CalculatorGlobalConfiguration.MinimumGlobalProfit;
                         }
                         _unitOfWork.CalculatorGlobalConfiguration.Update(globalConfig);
-                        _unitOfWork.Save();
+                        await _unitOfWork.SaveAsync();
                     }
 
                     TempData["success"] = "¡Los cambios fueron guardados con Éxito!";
@@ -218,7 +220,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             return View("Index", obj);
         }
 
-     
+
         //GET
         //[HttpGet]
         //public async Task<IEnumerable<GetCareersPrincipalDataLandingViewModel>> GetCareersPrincipalDataEsp()

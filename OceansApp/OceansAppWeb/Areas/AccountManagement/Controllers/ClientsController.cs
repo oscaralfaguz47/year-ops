@@ -203,7 +203,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var costaRicaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Central America Standard Time");
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientData.ClientId);
+                    var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientId == clientData.ClientId);
                     if (client == null)
                     {
                         return BadRequest(new { MessageType = "Exception Error", error = $"The client does not exist in the database.", detail = "The client no longer exists." });
@@ -217,7 +217,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     client.LatePaymentFee = ((decimal)clientData.LatePaymentFee / 100m);
                     client.ClientClass = clientData.ClientClass;
                     client.Address = clientData.Address.Trim();
-                    var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x=>x.ConsultantId == clientData.SuccessManagerId);
+                    var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x=>x.ConsultantId == clientData.SuccessManagerId);
                     if (consultant == null)
                     {
                         return BadRequest(new { MessageType = "Exception Error", error = $"The Consultant does not exist in the database.", detail = "The Success Manager no longer exists." });
@@ -233,7 +233,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     client.AdditionalEmailsForNotifications = clientData.AdditionalEmailsForNotifications;
                     client.DateLastUpdate = costaRicaTime;
 
-                    _unitOfWork.Save();
+                    await _unitOfWork.SaveAsync();
                     return Ok(new
                     {
                         success = true,
@@ -261,13 +261,13 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientId);
+                var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientId == clientId);
                 if (client == null)
                 {
                     return BadRequest(new { error = "The Client no longer exist in the database.", MessageType = "No Exists Error" });
                 }
                 client.IsActive = client.IsActive == "S" ? "N" : "S";
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
                 var successMessage = "The client " + client.Name + " was " + (client.IsActive == "S" ? "Activated" : "Deactivated") + " successfully!";
 
@@ -286,13 +286,13 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == clientId);
+                var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientId == clientId);
                 if (client == null)
                 {
                     return BadRequest(new { error = "The Client no longer exist in the database.", MessageType = "No Exists Error" });
                 }
                 client.AllowSentLatePaymentNotifications = client.AllowSentLatePaymentNotifications == true ? false : true;
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
                 var activeDeactiveStatus = client.AllowSentLatePaymentNotifications ? "Activated" : "Deactivated";
                 var successMessage = "The notification for client " + client.Name + " was " + activeDeactiveStatus + " successfully!";

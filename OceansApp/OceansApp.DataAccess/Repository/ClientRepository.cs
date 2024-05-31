@@ -77,13 +77,13 @@ namespace OceansApp.DataAccess.Repository
             _db.CLIENT.Update(obj);
         }
 
-        public bool UpdateIfExistAddIfNot(Client obj)
+        public async Task<bool> UpdateIfExistAddIfNot(Client obj)
         {
-            var existingClient = GetFirstOrDefault(u => u.ClientCode == obj.ClientCode && u.CompanyId == obj.CompanyId);
+            var existingClient = await GetFirstOrDefaultAsync(u => u.ClientCode == obj.ClientCode && u.CompanyId == obj.CompanyId);
             if (existingClient == null)
             {
-                _db.CLIENT.Add(obj);
-                _db.SaveChanges();
+               await _db.CLIENT.AddAsync(obj);
+               await _db.SaveChangesAsync();
                 return true;
             }
             else

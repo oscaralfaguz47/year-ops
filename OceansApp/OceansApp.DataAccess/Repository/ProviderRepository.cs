@@ -153,13 +153,13 @@ namespace OceansApp.DataAccess.Repository
             _db.PROVIDER.Update(obj);
         }
 
-        public int? UpdateIfExistAddIfNot(Provider obj)
+        public async Task<int?> UpdateIfExistAddIfNot(Provider obj)
         {
-            var existingProvider = GetFirstOrDefault(u => u.ProviderCode == obj.ProviderCode && u.CompanyId == obj.CompanyId);
+            var existingProvider = await GetFirstOrDefaultAsync(u => u.ProviderCode == obj.ProviderCode && u.CompanyId == obj.CompanyId);
             if (existingProvider == null)
             {
-                _db.PROVIDER.Add(obj);
-                _db.SaveChanges();
+                await _db.PROVIDER.AddAsync(obj);
+                await _db.SaveChangesAsync();
                 return obj.ProviderId;
             }
             else

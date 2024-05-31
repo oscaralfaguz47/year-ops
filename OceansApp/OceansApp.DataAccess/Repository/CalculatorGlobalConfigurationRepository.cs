@@ -1,4 +1,5 @@
-﻿using OceansApp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 
@@ -12,9 +13,9 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-        public CalculatorGlobalConfiguration GetGlobalConfiguration()
+        public async Task<CalculatorGlobalConfiguration> GetGlobalConfiguration()
         {
-            var globalConfig = _db.CALCULATOR_GLOBAL_CONFIGURATIONS.FirstOrDefault(x => x.Id == "Configuration1");
+            var globalConfig = await _db.CALCULATOR_GLOBAL_CONFIGURATIONS.FirstOrDefaultAsync(x => x.Id == "Configuration1");
             if (globalConfig != null)
             {
                 return globalConfig;

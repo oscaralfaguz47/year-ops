@@ -82,20 +82,20 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-                var projectUserSelectedToDelete = _unitOfWork.ProjectUserSelected.GetFirstOrDefault(x => x.UserId == claim.Value);
+                var projectUserSelectedToDelete = await _unitOfWork.ProjectUserSelected.GetFirstOrDefaultAsync(x => x.UserId == claim.Value);
                 if (projectUserSelectedToDelete == null)
                 {
                     return BadRequest(new { error = "The user has not a project selected." });
                 }
-                var transact = await _unitOfWork.BeginTran();
+                var transact = await _unitOfWork.BeginTranAsync();
                 _unitOfWork.ProjectUserSelected.Remove(projectUserSelectedToDelete);
                 ProjectUserSelected projectUserSelectedToCreate = new()
                 {
                     ProjectId = projectId,
                     UserId = claim.Value
                 };
-                _unitOfWork.ProjectUserSelected.Add(projectUserSelectedToCreate);
-                _unitOfWork.Save();
+                await _unitOfWork.ProjectUserSelected.AddAsync(projectUserSelectedToCreate);
+                await _unitOfWork.SaveAsync();
                 transact.Commit();
                 return Ok(new { success = true });
             }

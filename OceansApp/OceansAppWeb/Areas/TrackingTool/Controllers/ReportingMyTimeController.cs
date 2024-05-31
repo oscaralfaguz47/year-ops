@@ -59,7 +59,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     return BadRequest(new { errors = errors });
                 }
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == userActionedBy);
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == userActionedBy);
                 if (consultant == null)
                 {
                     return NotFound(new { error = "Consultant does not exist." });
@@ -118,7 +118,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 foreach (var movementTime in reportMovementListData)
                 {
-                    var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == movementTime.MovementType);
+                    var movementType = await _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefaultAsync(x => x.Name == movementTime.MovementType);
                     if (movementType == null)
                     {
                         return BadRequest(new { error = "Movement Type does not exist.", messageType = "Exception Error" });
@@ -301,7 +301,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             {
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                var movementType = _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefault(x => x.Name == "Normal Hours");
+                var movementType = await _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefaultAsync(x => x.Name == "Normal Hours");
                 if (movementType == null)
                 {
                     return NotFound(new { error = "Movement Type not found" });
@@ -456,7 +456,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     return BadRequest(new { errors = errors });
                 }
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var consultant = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.UserId == userActionedBy);
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == userActionedBy);
                 if (consultant == null)
                 {
                     return NotFound(new { error = "Consultant does not exist." });

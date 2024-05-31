@@ -178,8 +178,8 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                         };
                                         try
                                         {
-                                            _unitOfWork.ApplicationRoleClaim.Add(roleClaim);
-                                            _unitOfWork.Save();
+                                            await _unitOfWork.ApplicationRoleClaim.AddAsync(roleClaim);
+                                            await _unitOfWork.SaveAsync();
                                         }
                                         catch (Exception ex)
                                         {
@@ -224,7 +224,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                         var roleClaimsInRole = await _roleManager.GetClaimsAsync(existingRole);
                         foreach (var permission in roleData.PermissionsList)
                         {
-                            var rolePermissionInDB = _unitOfWork.ApplicationSystemClaim.GetFirstOrDefault(x => x.ClaimId == permission.ClaimId);
+                            var rolePermissionInDB = await _unitOfWork.ApplicationSystemClaim.GetFirstOrDefaultAsync(x => x.ClaimId == permission.ClaimId);
                             if (rolePermissionInDB == null)
                             {
                                 return BadRequest(new { errors = new[] { $"The permit or Claim was not found in the database." }, result = "NotFound", detail = "The claim does not exist in the database." });
@@ -257,8 +257,8 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                     };
                                     try
                                     {
-                                        _unitOfWork.ApplicationRoleClaim.Add(roleClaimToAdd);
-                                        _unitOfWork.Save();
+                                        await _unitOfWork.ApplicationRoleClaim.AddAsync(roleClaimToAdd);
+                                        await _unitOfWork.SaveAsync();
                                     }
                                     catch (Exception ex)
                                     {

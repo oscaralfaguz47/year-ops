@@ -8,9 +8,9 @@ namespace OceansApp.DataAccess.Repository.IRepository
         IEnumerable<AccountingAccount> GetCostOfSalesAccountingAccounts();
         IEnumerable<AccountingAccount> GetExpensesAccountingAccounts();
         IEnumerable<AccountingAccount> GetReturnsAndDiscountsAccountingAccounts();
-        bool UpdateIfExistAddIfNot(AccountingAccount obj);
+        Task<bool> UpdateIfExistAddIfNot(AccountingAccount obj);
         void Update(AccountingAccount obj);
-        DateTime GetLatestUpdateDate();
+        Task<DateTime> GetLatestUpdateDate();
         Task<List<GetAccountingAccountsForListVM>> GetAccountingAccountsWhereCostCenterIdAsync(int costCenterId);
     }
 }

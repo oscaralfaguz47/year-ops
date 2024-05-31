@@ -118,11 +118,11 @@ namespace OceansApp.DataAccess.Repository
         public ISystemAreaRepository SystemArea { get; set; }
         public ISystemSubAreaRepository SystemSubArea { get; set; }
 
-        public void Save()
+        public async Task SaveAsync()
         {
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
-        public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTran()
+        public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTranAsync()
         {
           return _db.Database.BeginTransactionAsync();
         }

@@ -23,10 +23,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
             _authorizationService = authorizationService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             Collection<CalculatorCostCenterUserConfigurationVM> costCenterUserList = new Collection<CalculatorCostCenterUserConfigurationVM>();
-            IEnumerable<CostCenter> costCenterList = _unitOfWork.CenterOfCosts.GetCostCenterOfExpenses().OrderBy(x => x.Description);
+            var costCenterList = (await _unitOfWork.CenterOfCosts.GetCostCenterOfExpensesAsync()).OrderBy(x => x.Description);
+
             foreach (var costCenter in costCenterList)
             {
                 CalculatorCostCenterUserConfigurationVM costCenterUserObj = new()
@@ -40,18 +41,19 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 costCenterUserList.Add(costCenterUserObj);
             }
 
-            var clients = _unitOfWork.Client.GetAll(x => x.ClientCategory == "EXT" && x.IsActive == "S" && x.ClientCode != "OCELL_C0001").OrderBy(x => x.Name).Select(i => new SelectListItem
+            var clients = (await _unitOfWork.Client.GetAllAsync(x => x.ClientCategory == "EXT" && x.IsActive == "S" && x.ClientCode != "OCELL_C0001")).OrderBy(x => x.Name).Select(i => new SelectListItem
             {
                 Text = i.Name,
                 Value = i.ClientId.ToString()
             });
 
-            var roles = _unitOfWork.ConsultantRole.GetAll().Select(i => new SelectListItem
+            var roles = (await _unitOfWork.ConsultantRole.GetAllAsync()).Select(i => new SelectListItem
             {
                 Text = i.Name,
                 Value = i.ConsultantRoleId.ToString()
             });
-            var qualityLevels = _unitOfWork.ConsultantQualityLevel.GetAll().Select(i => new SelectListItem
+
+            var qualityLevels = (await _unitOfWork.ConsultantQualityLevel.GetAllAsync()).Select(i => new SelectListItem
             {
                 Text = i.Name,
                 Value = i.ConsultantQualityLevelId.ToString()
@@ -124,7 +126,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var globalConfiguration = _unitOfWork.CalculatorGlobalConfiguration.GetGlobalConfiguration();
+                    var globalConfiguration = await _unitOfWork.CalculatorGlobalConfiguration.GetGlobalConfiguration();
                     DateTime finalDate = Convert.ToDateTime("" + globalConfiguration.EndDate.Month + "/" + globalConfiguration.EndDate.Day + "/" + globalConfiguration.EndDate.Year + " 11:59:59 pm");
                     var costOfSalesAccountingAccounts = await _unitOfWork.LedgerMovements
                                    .GetAccountingAccountsWithBalance("5", globalConfiguration.StartDate, finalDate, 1, "D");
@@ -155,7 +157,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     }
                     else
                     {
-                        var costsCenters = _unitOfWork.CenterOfCosts.GetCostCenterOfExpenses();
+                        var costsCenters = await _unitOfWork.CenterOfCosts.GetCostCenterOfExpensesAsync();
                         foreach (var costCenter in costsCenters)
                         {
                             CalculatorCostCenterUserConfigurationVM costC = new()
@@ -202,7 +204,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                     Decimal totalAmountByCostCenterAfterPercentage = 0;
 
                                     amountByCostCenter += accountingAccount.TotalAmount;
-                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
+                                    var config = await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefaultAsync(x => x.CostCenterId == costCenter.CostCenterId);
+                                    decimal percentageIncrease = (decimal)config.Increase;
+
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter
                                         * ((decimal)percentageIncrease / 100));
@@ -233,7 +237,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 
                                     amountByCostCenter += accountingAccount.TotalAmount;
 
-                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
+                                    var config = await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefaultAsync(x => x.CostCenterId == costCenter.CostCenterId);
+                                    decimal percentageIncrease = (decimal)config.Increase;
+
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter * ((decimal)percentageIncrease / 100));
                                     if (amountByCostCenter > 0)
@@ -304,7 +310,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal appliedAmountGlobalIncrease = ((subtotalExpenses) * ((decimal)globalConfiguration.AdditionalGlobalIncrease / 100));
                     Decimal totalAmountOfExpensesAndCosts = subTotalMonthlyAmountPayToConsultant + subtotalExpenses + (subtotalExpenses * ((decimal)globalConfiguration.AdditionalGlobalIncrease) / 100);
 
-                    var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
+                    var clientRateAndConsultantAmount = await _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefaultAsync(x =>
                     x.ConsultantRoleId == int.Parse(model.CalculatorPriceToClient.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.CalculatorPriceToClient.ConsultantQualityLevelId)
                     && x.ConsultantSeniorityId == int.Parse(model.CalculatorPriceToClient.ConsultantSeniorityId));
                     bool isProfitLessThanConfig = false;
@@ -318,7 +324,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     Decimal yellowProfitAmount = 0;
                     Decimal yellowProfitPercentage = 0;
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == int.Parse(model.CalculatorPriceToClient.Client));
+                    var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientId == int.Parse(model.CalculatorPriceToClient.Client));
                     if (client != null)
                     {
                         if (client.ClientClass == "A")
@@ -589,8 +595,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         SearchByUserId = claim.Value,
                         SearchFrom = "Calcula rate al cliente"
                     };
-                    _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
-                    _unitOfWork.Save();
+                    await _unitOfWork.CalculatorSearchHistory.AddAsync(searchHistory);
+                    await _unitOfWork.SaveAsync();
 
                     //MODEL TO RETURN
                     CalculatorPriceToClientVM cptc = new()
@@ -709,7 +715,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                 {
                     var claimsIdentity = (ClaimsIdentity)User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var globalConfiguration = _unitOfWork.CalculatorGlobalConfiguration.GetGlobalConfiguration();
+                    var globalConfiguration = await _unitOfWork.CalculatorGlobalConfiguration.GetGlobalConfiguration();
                     DateTime finalDate = Convert.ToDateTime("" + globalConfiguration.EndDate.Month + "/" + globalConfiguration.EndDate.Day + "/" + globalConfiguration.EndDate.Year + " 11:59:59 pm");
                     var costOfSalesAccountingAccounts = await _unitOfWork.LedgerMovements
                                    .GetAccountingAccountsWithBalance("5", globalConfiguration.StartDate, finalDate, 1, "D");
@@ -740,7 +746,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     }
                     else
                     {
-                        var costsCenters = _unitOfWork.CenterOfCosts.GetCostCenterOfExpenses();
+                        var costsCenters = await _unitOfWork.CenterOfCosts.GetCostCenterOfExpensesAsync();
                         foreach (var costCenter in costsCenters)
                         {
                             CalculatorCostCenterUserConfigurationVM costC = new()
@@ -787,7 +793,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                                     Decimal totalAmountByCostCenterAfterPercentage = 0;
 
                                     amountByCostCenter += accountingAccount.TotalAmount;
-                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
+                                    var config = await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefaultAsync(x => x.CostCenterId == costCenter.CostCenterId);
+                                    decimal percentageIncrease = (decimal)(config?.Increase ?? 0);
+
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter
                                         * ((decimal)percentageIncrease / 100));
@@ -818,7 +826,9 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 
                                     amountByCostCenter += accountingAccount.TotalAmount;
 
-                                    Decimal percentageIncrease = (decimal)_unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefault(x => x.CostCenterId == costCenter.CostCenterId).Increase;
+                                    var config = await _unitOfWork.CalculatorCostCenterIncreaseConfiguration.GetFirstOrDefaultAsync(x => x.CostCenterId == costCenter.CostCenterId);
+                                    decimal percentageIncrease = (decimal)(config?.Increase ?? 0);
+
                                     totalAmountByCostCenterAfterPercentage = totalAmountByCostCenterAfterPercentage
                                         + (amountByCostCenter * ((decimal)percentageIncrease / 100));
                                     if (amountByCostCenter > 0)
@@ -888,14 +898,14 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 
                     TempData["totalAmountOfExpensesAndCosts"] = (subtotalExpenses + appliedAmountGlobalIncrease).ToString("#,##0.00");
 
-                    var clientRateAndConsultantAmount = _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefault(x =>
+                    var clientRateAndConsultantAmount = await _unitOfWork.ConsultantRoleQualityLevel.GetFirstOrDefaultAsync(x =>
                     x.ConsultantRoleId == int.Parse(model.CalculatorPriceToConsultant.ConsultantRoleId) && x.ConsultantQualityLevelId == int.Parse(model.CalculatorPriceToConsultant.ConsultantQualityLevelId)
                     && x.ConsultantSeniorityId == int.Parse(model.CalculatorPriceToConsultant.ConsultantSeniorityId));
 
                     //GET PRICE TO CONSULTANT
                     Decimal amountToChargeToClient = (((Decimal)globalConfiguration.NumLaborDaysInMonth * 8) * (Decimal)model.CalculatorPriceToConsultant.ClientAmount);
 
-                    var client = _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == int.Parse(model.CalculatorPriceToConsultant.Client));
+                    var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientId == int.Parse(model.CalculatorPriceToConsultant.Client));
                     if (client != null)
                     {
                         Decimal percentageProfitGreen = 0;
@@ -988,8 +998,8 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                         SearchByUserId = claim.Value,
                         SearchFrom = "Calcula pago al consultor"
                     };
-                    _unitOfWork.CalculatorSearchHistory.Add(searchHistory);
-                    _unitOfWork.Save();
+                    await _unitOfWork.CalculatorSearchHistory.AddAsync(searchHistory);
+                    await _unitOfWork.SaveAsync();
 
                     //MODEL TO RETURN
                     CalculatorPriceToConsultantVM cptco = new()

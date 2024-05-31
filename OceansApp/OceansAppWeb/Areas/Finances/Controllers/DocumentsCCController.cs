@@ -99,7 +99,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
                 };
 
-                var documentTypes = (List<SelectVM>?)_unitOfWork.DocumentCC.GetDocumentsTypeWhereDocumentsExist();
+                var documentTypes = (List<SelectVM>?) await _unitOfWork.DocumentCC.GetDocumentsTypeWhereDocumentsExistAsync();
                 List<SelectVM> documentTypesList = new List<SelectVM>();
                 if (documentTypes != null)
                 {
@@ -109,8 +109,8 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     }
                 }
 
-                var clients = _unitOfWork.Client.GetAll(x => x.ClientCode != "OCELL_C0001"
-                && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && x.ClientCode != "OCE_C0030").OrderBy(x => x.Name);
+                var clients = (await _unitOfWork.Client.GetAllAsync(x => x.ClientCode != "OCELL_C0001"
+                && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && x.ClientCode != "OCE_C0030")).OrderBy(x => x.Name);
                 List<SelectVM> clientList = new List<SelectVM>();
                 if (clients != null)
                 {
@@ -180,7 +180,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     slackSenderId = emailSlackSender;
                 }
                 string slackChannelId = _config["Slack:SuccessManagerChannel"];
-                var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                var notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
                 if (notificationStatus == null)
                 {
                     return Json(new { success = false, error = "Error en la obtención de datos." });
@@ -213,7 +213,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         string slackSuccessManagerId = "No Success Manager is assigned yet.";
                         if (invoice.SuccessManagerEmail != null)
                         {
-                            var successManagerUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == invoice.SuccessManagerEmail);
+                            var successManagerUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Email == invoice.SuccessManagerEmail);
                             if (successManagerUser == null)
                             {
                                 return Json(new { success = false, error = "No fue posible encontrar el usuario para el Success Manager en la base de datos." });
@@ -248,7 +248,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
                 catch (Exception ex)
                 {
-                    notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                    notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Envío fallido");
                 }
                 var recipient = new SaveNotificationRecipientVM()
                 {
@@ -291,14 +291,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         [HttpPost]
         public async Task<IActionResult> SendNotification(int documentId)
         {
-            using var transaction = await _unitOfWork.BeginTran();
+            using var transaction = await _unitOfWork.BeginTranAsync();
             try
             {
-                var documentCC = _unitOfWork.DocumentCC.GetFirstOrDefault(x => x.DocumentCCId == documentId);
-                var client = documentCC != null ? _unitOfWork.Client.GetFirstOrDefault(x => x.ClientId == documentCC.ClientId) : null;
-                var notificationType = _unitOfWork.NotificationType.GetFirstOrDefault(x => x.Name == "Cuentas por cobrar");
-                var notificationMediaEmail = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Email");
-                var notificationMediaSlack = _unitOfWork.NotificationMedia.GetFirstOrDefault(x => x.Name == "Slack");
+                var documentCC = await _unitOfWork.DocumentCC.GetFirstOrDefaultAsync(x => x.DocumentCCId == documentId);
+                var client = documentCC != null ? await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.ClientId == documentCC.ClientId) : null;
+                var notificationType = await _unitOfWork.NotificationType.GetFirstOrDefaultAsync(x => x.Name == "Cuentas por cobrar");
+                var notificationMediaEmail = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Email");
+                var notificationMediaSlack = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Slack");
                 var slackChannelId = _config["Slack:SuccessManagerChannel"];
                 var returnSuccessMessage = "¡Bien, le acabas de enviar un recordatorio de pago a: " + client.Name + " por email y una notifiación a los Success Managers al canal de Slack!";
 
@@ -328,8 +328,8 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
                 if (client.SuccessManager != null)
                 {
-                    var consultantDetail = _unitOfWork.ConsultantDetail.GetFirstOrDefault(x => x.ConsultantId == client.SuccessManager);
-                    var successManagerUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Id == consultantDetail.UserId);
+                    var consultantDetail = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == client.SuccessManager);
+                    var successManagerUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == consultantDetail.UserId);
                     if (successManagerUser == null)
                     {
                         return Json(new { success = false, error = "No fue posible encontrar el usuario para el Success Manager en la base de datos." });
@@ -370,7 +370,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     return Json(new { success = false, error = "El cliente no tiene correos electrónicos." });
                 }
-                var alreadyNotificationSent = _unitOfWork.DocumentsCCNotification.GetAll(x => x.DocumentCCId == documentId);
+                var alreadyNotificationSent = await _unitOfWork.DocumentsCCNotification.GetAllAsync(x => x.DocumentCCId == documentId);
 
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
@@ -399,7 +399,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 notificationSlack.SentDate = costaRicaTime;
                 notificationSlack.SentByUser = claim.Value;
 
-                var notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                var notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
                 if (notificationStatus == null)
                 {
                     return Json(new { success = false, error = "Error en la obtención de datos." });
@@ -544,8 +544,8 @@ emailsCCString;
 
                     notificationEmail.Body = emailBody;
 
-                    _unitOfWork.Notification.Add(notificationEmail);
-                    _unitOfWork.Save();
+                    await _unitOfWork.Notification.AddAsync(notificationEmail);
+                    await _unitOfWork.SaveAsync();
 
                     emailsCC.Add(emailTo); //Add emailTo to
 
@@ -574,16 +574,16 @@ emailsCCString;
                             DocumentCCId = documentId,
                             NotificationId = notificationEmail.NotificationId
                         };
-                        _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                        _unitOfWork.Save();
+                        await _unitOfWork.DocumentsCCNotification.AddAsync(documentNotification);
+                        await _unitOfWork.SaveAsync();
                     }
                     catch (Exception ex)
                     {
-                        notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                        notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Envío fallido");
                     }
                     foreach (var email in emailsCCAfterRemoveDuplicates)
                     {
-                        var recipientUserCC = _unitOfWork.ApplicationUser.GetFirstOrDefault(x => x.Email == email);
+                        var recipientUserCC = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Email == email);
                         var recipientUserIdCC = recipientUserCC?.Id;
                         var notificationRecipientCC = new NotificationRecipient()
                         {
@@ -593,18 +593,18 @@ emailsCCString;
                             NotificationStatusId = notificationStatus.NotificationStatusId,
                             RecipientUserId = recipientUserIdCC
                         };
-                        _unitOfWork.NotificationRecipient.Add(notificationRecipientCC);
+                        await _unitOfWork.NotificationRecipient.AddAsync(notificationRecipientCC);
                     }
-                    _unitOfWork.Save();
+                    await _unitOfWork.SaveAsync();
                 }
                 //Save Slack notification
                 notificationSlack.Body = slackBody;
                 notificationSlack.Subject = subjectSlack;
 
-                _unitOfWork.Notification.Add(notificationSlack);
-                _unitOfWork.Save();
+                await _unitOfWork.Notification.AddAsync(notificationSlack);
+                await _unitOfWork.SaveAsync();
 
-                notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Enviado");
+                notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
                 if (notificationStatus == null)
                 {
                     return Json(new { success = false, error = "Error en la obtención de datos." });
@@ -616,7 +616,7 @@ emailsCCString;
                 }
                 catch (Exception ex)
                 {
-                    notificationStatus = _unitOfWork.NotificationStatus.GetFirstOrDefault(x => x.Name == "Envío fallido");
+                    notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Envío fallido");
                 }
                 if (emailBody == "")
                 {
@@ -626,8 +626,8 @@ emailsCCString;
                         DocumentCCId = documentId,
                         NotificationId = notificationSlack.NotificationId
                     };
-                    _unitOfWork.DocumentsCCNotification.Add(documentNotification);
-                    _unitOfWork.Save();
+                    await _unitOfWork.DocumentsCCNotification.AddAsync(documentNotification);
+                    await _unitOfWork.SaveAsync();
                 }
                 var notificationRecipientSlack = new NotificationRecipient()
                 {
@@ -637,8 +637,8 @@ emailsCCString;
                     NotificationStatusId = notificationStatus.NotificationStatusId,
                     RecipientUserId = null
                 };
-                _unitOfWork.NotificationRecipient.Add(notificationRecipientSlack);
-                _unitOfWork.Save();
+                await _unitOfWork.NotificationRecipient.AddAsync(notificationRecipientSlack);
+                await _unitOfWork.SaveAsync();
 
                 await transaction.CommitAsync();
                 return Json(new { success = true, message = returnSuccessMessage });

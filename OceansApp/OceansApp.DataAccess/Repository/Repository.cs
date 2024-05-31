@@ -2,7 +2,8 @@
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using System.Linq.Expressions;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -15,12 +16,13 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
             this.dbSet = _db.Set<T>();
         }
-        public void Add(T entity)
+
+        public async Task AddAsync(T entity)
         {
-            dbSet.Add(entity);
+            await dbSet.AddAsync(entity);
         }
 
-        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
         {
             IQueryable<T> query = dbSet;
             if (filter != null)
@@ -34,16 +36,16 @@ namespace OceansApp.DataAccess.Repository
                     query = query.Include(includeProp);
                 }
             }
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
-        public T GetFirstOrDefault(Expression<Func<T, bool>> filter)
+        public async Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> filter)
         {
             IQueryable<T> query = dbSet;
 
             query = query.Where(filter);
 
-            return query.FirstOrDefault();
+            return await query.FirstOrDefaultAsync();
         }
 
         public void Remove(T entity)

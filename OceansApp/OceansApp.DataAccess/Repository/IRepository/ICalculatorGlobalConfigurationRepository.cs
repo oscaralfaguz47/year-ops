@@ -5,7 +5,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface ICalculatorGlobalConfigurationRepository : IRepository<CalculatorGlobalConfiguration> 
     {
-        CalculatorGlobalConfiguration GetGlobalConfiguration();
+        Task<CalculatorGlobalConfiguration> GetGlobalConfiguration();
         void Update(CalculatorGlobalConfiguration obj);
 
     }

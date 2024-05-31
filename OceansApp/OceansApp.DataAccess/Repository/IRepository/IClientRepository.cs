@@ -13,6 +13,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<CreateUpdateClientVM> GetClientById(int clientId);
         Task<GetUsersSelectVM> GetSuccessManagerIdAndNameByClientId(int clientId);
         void Update(Client obj);
-        public bool UpdateIfExistAddIfNot(Client obj);
+        Task<bool> UpdateIfExistAddIfNot(Client obj);
     }
 }
