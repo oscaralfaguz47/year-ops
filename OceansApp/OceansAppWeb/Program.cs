@@ -13,6 +13,7 @@ using OceansApp.DataAccess.BackgroundServices;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using OceansApp.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,6 +111,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://oceansapp.azurewebsites.net/"));
 });
 
+// Add DatabaseService
+builder.Services.AddTransient<DatabaseService>(provider =>
+    new DatabaseService(connectionString));
+
 // Background services
 //builder.Services.AddHostedService<EveryOneDayServices>();
 
@@ -136,6 +141,10 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthorization();
+
+// Use the DatabaseExceptionMiddleware
+app.UseMiddleware<DatabaseExceptionMiddleware>();
+
 app.MapControllers();
 app.UseStaticFiles();
 
