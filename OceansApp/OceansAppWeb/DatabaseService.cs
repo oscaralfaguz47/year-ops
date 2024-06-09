@@ -18,8 +18,8 @@ namespace OceansApp.DataAccess
                 .WaitAndRetryAsync(new[]
                 {
                 TimeSpan.FromSeconds(2),
-                TimeSpan.FromSeconds(4),
-                TimeSpan.FromSeconds(14)
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(16)
                 });
         }
 
