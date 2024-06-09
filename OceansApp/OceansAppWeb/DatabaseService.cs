@@ -19,7 +19,7 @@ namespace OceansApp.DataAccess
                 {
                 TimeSpan.FromSeconds(2),
                 TimeSpan.FromSeconds(4),
-                TimeSpan.FromSeconds(8)
+                TimeSpan.FromSeconds(14)
                 });
         }
 
