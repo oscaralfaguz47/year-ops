@@ -334,7 +334,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
 
         [HttpPost("ActivateDeactivateConsultantFromProject")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId, DateTime actionDate)
+        public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId, [FromForm] DateTime actionDate)
         {
             try
             {
