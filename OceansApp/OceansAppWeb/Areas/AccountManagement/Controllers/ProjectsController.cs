@@ -231,6 +231,10 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         }
                         else
                         {
+                            if (res.MessageType == "Validation Error")
+                            {
+                                return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                            }
                             return BadRequest(new { MessageType = res.MessageType, error = res.Message, result = "ErrorSaving", detail = "The Project could be saved." });
                         }
                     }
@@ -245,6 +249,10 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                         }
                         else
                         {
+                            if (res.MessageType == "Validation Error")
+                            {
+                                return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                            }
                             return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Project could be updated." });
                         }
                     }

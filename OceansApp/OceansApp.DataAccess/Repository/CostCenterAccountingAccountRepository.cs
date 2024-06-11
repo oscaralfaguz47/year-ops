@@ -11,13 +11,13 @@ namespace OceansApp.DataAccess.Repository
         {
             _db = db;
         }
-        public bool AddCostCenterAccountingAccount(CostCenterAccountingAccount obj)
+        public async Task<bool> AddCostCenterAccountingAccount(CostCenterAccountingAccount obj)
         {
-            var existingCostCenterAccount = GetFirstOrDefaultAsync(u => u.CostCenterId == obj.CostCenterId && u.AccountingAccountId == obj.AccountingAccountId && u.CompanyId == obj.CompanyId);
+            var existingCostCenterAccount = await GetFirstOrDefaultAsync(u => u.CostCenterId == obj.CostCenterId && u.AccountingAccountId == obj.AccountingAccountId && u.CompanyId == obj.CompanyId);
             if (existingCostCenterAccount == null)
             {
-                _db.COSTS_CENTERS_ACCOUNTING_ACCOUNTS.Add(obj);
-                _db.SaveChanges();
+                await _db.COSTS_CENTERS_ACCOUNTING_ACCOUNTS.AddAsync(obj);
+                await _db.SaveChangesAsync();
                 return true;
             }
             else

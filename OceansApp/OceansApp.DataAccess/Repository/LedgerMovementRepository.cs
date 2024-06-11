@@ -116,15 +116,15 @@ ORDER BY AA.AccountingAccountCode";
         {
             _db.LEDGER_MOVEMENT.Update(obj);
         }
-        public bool AddIfNotExist(LedgerMovement obj)
+        public async Task<bool> AddIfNotExist(LedgerMovement obj)
         {
-            var existingLedgerMovement = GetFirstOrDefaultAsync(u => u.IdSeat == obj.IdSeat && u.CostCenterId == obj.CostCenterId &&
+            var existingLedgerMovement = await GetFirstOrDefaultAsync(u => u.IdSeat == obj.IdSeat && u.CostCenterId == obj.CostCenterId &&
             u.AccountingAccountId == obj.AccountingAccountId && u.LocalDebit == obj.LocalDebit &&
             u.LocalCredit == obj.LocalCredit && u.Consecutive == obj.Consecutive && u.CompanyId == obj.CompanyId);
 
             if (existingLedgerMovement == null)
             {
-                _db.LEDGER_MOVEMENT.Add(obj);
+                await _db.LEDGER_MOVEMENT.AddAsync(obj);
                 return true;
             }
             else

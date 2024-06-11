@@ -11,6 +11,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<IEnumerable<AccountingAccountWithBalanceVM>> GetAccountingAccountsReturnsAndDiscountsWithBalance(
             DateTime fechaInicial, DateTime fechaFinal, int ignoreAccountingAccounts);
         void Update(LedgerMovement obj);
-        bool AddIfNotExist(LedgerMovement obj);
+        Task<bool> AddIfNotExist(LedgerMovement obj);
     }
 }
