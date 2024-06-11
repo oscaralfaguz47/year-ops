@@ -10,6 +10,7 @@ using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using Microsoft.CodeAnalysis;
+using OceansApp.Utility.SharedMethods;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -384,7 +385,11 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
             }
             ValidateInputs validateInputs = new();
-
+            double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
+            if (totalQuantity == 0)
+            {
+                return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"You cannot add time equals to zero." } });
+            }
             validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", timeEntryData.Notes, 400, ModelState);
             validateInputs.ValidateRequiredAndStringLength("TimeFrom", "Time From", timeEntryData.TimeFrom, 5, ModelState);
             validateInputs.ValidateRequiredAndStringLength("TimeTo", "Time To", timeEntryData.TimeTo, 5, ModelState);

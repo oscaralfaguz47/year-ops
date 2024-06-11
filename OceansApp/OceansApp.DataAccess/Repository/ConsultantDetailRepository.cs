@@ -309,9 +309,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-
-
-
         public async Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId)
         {
             var connection = _db.Database.GetDbConnection();

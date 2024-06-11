@@ -86,6 +86,11 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
+                var existingproject = await _db.PROJECTS.FirstOrDefaultAsync(x => x.Name.Trim() == projectData.Name.Trim());
+                if (existingproject != null)
+                {
+                    return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a project with the name: {projectData.Name}" };
+                }
                 var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == projectData.CreatedBy);
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
@@ -130,7 +135,14 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
+                var duplicatedProject = await _db.PROJECTS.FirstOrDefaultAsync(x => x.Name.Trim() == projectData.Name.Trim());
                 var existingProject = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == projectData.ProjectId);
+
+                if (duplicatedProject != null && existingProject.ProjectId != duplicatedProject.ProjectId)
+                {
+                    return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a project with the name: {projectData.Name}" };
+                }
+
                 var userActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == projectData.CreatedBy);
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
@@ -156,7 +168,7 @@ namespace OceansApp.DataAccess.Repository
                                 defaultProject = true;
                             }
 
-                            if (projectAssignations.Count > 0)
+                            if (projectAssignations.Count > 0 && consultant.IsDefaultProject)
                             {
                                 foreach (var projectAss in projectAssignations)
                                 {
@@ -384,7 +396,7 @@ namespace OceansApp.DataAccess.Repository
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
-                if (existingConsultantAssignation.HourlySalary > 0 && consultantAssignationData.HourlySalary == 0 
+                if ((existingConsultantAssignation.HourlySalary > 0 || existingConsultantAssignation.MonthlySalaryThirdParty > 0) && consultantAssignationData.HourlySalary == 0 
                     && consultantAssignationData.MonthlySalary > 0)
                 {
                     var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant pricing method updated (Monthly)");
@@ -396,7 +408,7 @@ namespace OceansApp.DataAccess.Repository
                     newHistory.ActionId = action.ActionId;
                     historyToSaveList.Add(newHistory);
                 }
-                if (existingConsultantAssignation.MonthlySalary > 0 && consultantAssignationData.MonthlySalary == 0 
+                if ((existingConsultantAssignation.MonthlySalary > 0 || existingConsultantAssignation.MonthlySalaryThirdParty > 0) && consultantAssignationData.MonthlySalary == 0 
                     && consultantAssignationData.HourlySalary > 0)
                 {
                     var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Consultant pricing method updated (Hourly)");

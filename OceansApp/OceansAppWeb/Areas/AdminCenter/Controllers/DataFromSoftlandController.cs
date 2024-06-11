@@ -158,7 +158,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                         RecordDate = jsonMaster.RecordDate,
                                         CompanyId = companyId
                                     };
-                                    if (_unitOfWork.LedgerMovements.AddIfNotExist(ledgerMovement))
+                                    if (await _unitOfWork.LedgerMovements.AddIfNotExist(ledgerMovement))
                                     {
                                         affectedRecords = affectedRecords + 1;
                                         await _unitOfWork.SaveAsync();
@@ -457,7 +457,7 @@ namespace OceansApp.Areas.Admin.Controllers
                                         CreateDate = jsonMaster.CreateDate,
                                         CompanyId = companyId
                                     };
-                                    if (_unitOfWork.CostCenterAccountingAccount.AddCostCenterAccountingAccount(costCenterAccount))
+                                    if (await _unitOfWork.CostCenterAccountingAccount.AddCostCenterAccountingAccount(costCenterAccount))
                                     {
                                         affectedRecords = affectedRecords + 1;
                                         await _unitOfWork.SaveAsync();

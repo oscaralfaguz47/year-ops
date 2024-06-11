@@ -5,6 +5,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface ICostCenterAccountingAccountRepository : IRepository<CostCenterAccountingAccount> 
     {
-        public bool AddCostCenterAccountingAccount(CostCenterAccountingAccount obj);
+        Task<bool> AddCostCenterAccountingAccount(CostCenterAccountingAccount obj);
     }
 }

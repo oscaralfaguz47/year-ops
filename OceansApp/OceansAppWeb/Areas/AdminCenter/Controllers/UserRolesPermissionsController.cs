@@ -91,7 +91,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
         {
             try
             {
-                var permissionsList = _unitOfWork.ApplicationSystemClaim.GetAllPermissionsCustomData();
+                var permissionsList = await _unitOfWork.ApplicationSystemClaim.GetAllPermissionsCustomData();
                 var rolesPermissionsList = new GetRolesPermissionsVM()
                 {
                     RoleName = "",
