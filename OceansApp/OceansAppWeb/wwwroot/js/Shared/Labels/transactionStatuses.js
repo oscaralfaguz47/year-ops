@@ -14,7 +14,7 @@
         statusLabel = `<span class="cel-status orange-label"><i class="bi bi-journal-bookmark-fill"></i>${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Done') {
         statusLabel = `<span class="cel-status green-label"><i class="bi bi-check-circle-fill"></i>${transactionStatusName}</span>`;
-    } if (transactionStatusName === null) {
+    } if (transactionStatusName === 'Pending') {
         statusLabel = `<span class="cel-status red-label">Pending</span>`;
     }
     return statusLabel;

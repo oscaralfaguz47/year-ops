@@ -111,10 +111,12 @@ async function displayUpdateModal(modalId, id) {
     consultantsAssignedSection.style.display = 'none';
     document.getElementById("saved-project-message").style.display = "none";
     var billableInput = document.getElementById("IsBillable");
+    var clientHasTrackingToolInput = document.getElementById("ClientHasTrackingTool");
     billableInput.disabled = false;
     showModal(modalId);
     if (id !== null) {
         billableInput.disabled = true;
+        clientHasTrackingToolInput.disabled = true;
         document.getElementById('create-Project-modal-title').textContent = "UPDATE PROJECT";
         var url = "/AccountManagement/Projects/GetProjectDataById?projectId=" + encodeURIComponent(id);
         displaySpinner();

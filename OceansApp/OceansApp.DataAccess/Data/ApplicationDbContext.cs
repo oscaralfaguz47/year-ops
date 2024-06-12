@@ -73,6 +73,46 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(rq => rq.ConsultantSeniorityId)
                 .IsRequired();
 
+            // BANK ACCOUNTS
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+            });
+
+            modelBuilder.Entity<BankAccount>()
+                .HasKey(c => new { c.BankAccountId });
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(c => c.CostCenter)
+                .WithMany()
+                .HasForeignKey(c => c.CostCenterId)
+                .IsRequired();
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(c => c.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(c => c.AccountingAccountId)
+                .IsRequired();
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(c => c.BankAccountName)
+                .HasColumnType("varchar(40)");
+            });
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(c => c.BankAccountCode)
+                .HasColumnType("varchar(20)");
+            });
+            modelBuilder.Entity<BankAccount>(entity => 
+            {
+                entity.Property(c => c.IsActive)
+                .HasColumnType("varchar(1)");
+            });
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
+
             //COST CENTER ACCOUNTING ACCOUNT
             modelBuilder.Entity<CostCenterAccountingAccount>(entity =>
             {
@@ -233,6 +273,61 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<Client>()
                 .Property(p => p.LatePaymentFee)
                 .HasColumnType("decimal(18, 4)");
+
+            // CONSULTANT PAYMENTS
+            modelBuilder.Entity<ConsultantPayment>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantId, e.StartDatePeriod, e.EndDatePeriod });
+
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.UserCreatedBy);
+                entity.HasIndex(e => e.UserLastUpdatedBy);
+                entity.HasIndex(e => e.PaymentMethodId);
+                entity.HasIndex(e => e.BankAccountId);
+            });
+
+            modelBuilder.Entity<ConsultantPayment>()
+                .HasKey(c => new { c.ConsultantPaymentId });
+            modelBuilder.Entity<ConsultantPayment>()
+                .HasOne(cp => cp.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+               .HasOne(p => p.PaymentMethod)
+               .WithMany()
+               .HasForeignKey(p => p.PaymentMethodId)
+               .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+              .HasOne(p => p.ApplicationUserCreatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserCreatedBy)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPayment>()
+              .HasOne(p => p.ApplicationUserUpdatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserLastUpdatedBy)
+              .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPayment>()
+              .HasOne(p => p.BankAccount)
+              .WithMany()
+              .HasForeignKey(p => p.BankAccountId)
+              .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+                .Property(d => d.StartDatePeriod)                                                               
+                .HasColumnType("date")
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+                .Property(d => d.EndDatePeriod)
+                .HasColumnType("date")
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
 
             // CONSULTANT AND POSITIONS
             modelBuilder.Entity<ConsultantAndPosition>()
@@ -526,8 +621,6 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.TransactionStatusId);
-
-                // Índices en fechas
                 entity.HasIndex(e => e.SubmissionDate);
                 entity.HasIndex(e => e.LastSubmissionDate);
             });
@@ -732,6 +825,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ApplicationRoleClaim> ApplicationRoleClaims { get; set; }
         public DbSet<ApplicationUserClaim> ApplicationUserClaims { get; set; }
         public DbSet<ApplicationSystemClaim> APPLICATION_SYSTEM_CLAIMS { get; set; }
+        public DbSet<BankAccount> BANK_ACCOUNTS { get; set; }
         public DbSet<CalculatorGlobalConfiguration> CALCULATOR_GLOBAL_CONFIGURATIONS { get; set; }
         public DbSet<CalculatorCostCenterIncreaseConfiguration> CALCULATOR_COST_CENTER_INCREASE_CONFIGURATIONS { get; set; }
         public DbSet<CalculatorSearchHistory> CALCULATOR_SEARCH_HISTORY { get; set; }
@@ -745,6 +839,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
+        public DbSet<ConsultantPayment> CONSULTANT_PAYMENTS{ get; set; }
         public DbSet<ConsultantPosition> CONSULTANT_POSITIONS { get; set; }
         public DbSet<ConsultantAndPosition> CONSULTANTS_AND_POSITIONS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }

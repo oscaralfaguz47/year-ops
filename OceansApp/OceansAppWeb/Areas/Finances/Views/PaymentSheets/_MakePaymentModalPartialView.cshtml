@@ -1,0 +1,19 @@
+﻿<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+
+<div id="modal-make-payment" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="make-payment-modal-title"></h2>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-review-for-approval')" class="cancel-btn">Cancel</button>
+                    <button class="btn-reject" onclick="displayApproveRejectConfirmation('Rejected')">Reject</button>
+                    <button class="btn-approve" onclick="displayApproveRejectConfirmation('Approved')">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Finances/PaymentSheets/makePayment.js"></script>

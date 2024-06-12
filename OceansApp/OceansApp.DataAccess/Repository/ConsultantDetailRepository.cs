@@ -286,7 +286,7 @@ namespace OceansApp.DataAccess.Repository
                 parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
                 parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
                 parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
-                parameters.Add("@TransactionStatusId", filtersAndPagination.Filters.TransactionStatusId, DbType.Int32);
+                parameters.Add("@TransactionStatusName", filtersAndPagination.Filters.TransactionStatusName, DbType.String);
                 parameters.Add("@ProjectId", filtersAndPagination.Filters.ProjectId, DbType.Int32);
                 parameters.Add("@PaymentPeriod", filtersAndPagination.Filters.PaymentPeriod, DbType.Int32);
                 parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
