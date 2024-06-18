@@ -136,9 +136,20 @@
                                         @if (User.IsAuthorizedForAdminCenter())
                                         {
                                             <li class="nav-item dropdown">
-                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Administrator</a>
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-gear-fill"></i> Admin Center</a>
                                                 <div class="dropdown-menu">
-                                                    <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="Home" asp-action="Index">Admin Center</a>
+                                                    @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType && c.Value == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="DataFromSoftland" asp-action="Index">Update Data From Softland</a>
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimType && c.Value == AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="UserRolesPermissions" asp-action="Index">User Roles and Permissions</a>
+                                                    }
+                                                    @if (User.HasClaim(c => c.Type == ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType && c.Value == ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="AdminCenter" asp-controller="ConsultantPositions" asp-action="Index">Consultant Positions Accounting Config</a>
+                                                    }
                                                 </div>
                                             </li>
                                         }

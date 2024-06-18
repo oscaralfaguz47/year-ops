@@ -113,6 +113,19 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("varchar(8)");
             });
 
+            // COMPANIES
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.HasIndex(e => e.CompanyId);
+            });
+            modelBuilder.Entity<Company>()
+                .HasKey(c => new { c.CompanyId });
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
+
             //COST CENTER ACCOUNTING ACCOUNT
             modelBuilder.Entity<CostCenterAccountingAccount>(entity =>
             {
@@ -866,6 +879,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<CalculatorSearchHistory> CALCULATOR_SEARCH_HISTORY { get; set; }
         public DbSet<CalculatorAccountingAccountToIgnore> CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE { get; set; }
         public DbSet<Client> CLIENT { get; set; }
+        public DbSet<Company> COMPANIES { get; set; }
         public DbSet<ProviderCategory> PROVIDER_CATEGORY { get; set; }
         public DbSet<Provider> PROVIDER { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
-using OceansApp.Models.ViewModels.PaymentSheets;
+using OceansApp.Models.ViewModels.ConsultantPositions;
 using OceansApp.Utility.SharedMethods.InputValidations;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
@@ -62,17 +62,17 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                     }
                 }
 
-                PaymentSheetsPaginationFiltersVM paymentSheetsPaginationFilters = System.Text.Json.JsonSerializer.Deserialize<PaymentSheetsPaginationFiltersVM>(model);
+                ConsultantPositionsPaginationFiltersVM consultantPositionsPaginationFilters = System.Text.Json.JsonSerializer.Deserialize<ConsultantPositionsPaginationFiltersVM>(model);
 
-                PaymentSheetsPaginationFiltersVM paginationFilters = new();
-                paginationFilters.Filters = new PaymentSheetsFiltersGetAllVM();
+                ConsultantPositionsPaginationFiltersVM paginationFilters = new();
+                paginationFilters.Filters = new ConsultantPositionsFiltersGetAllVM();
 
                 int numAppliedFilters = 0;
-                if (paymentSheetsPaginationFilters.Filters != null)
+                if (consultantPositionsPaginationFilters.Filters != null)
                 {
-                    foreach (var prop in paymentSheetsPaginationFilters.Filters.GetType().GetProperties())
+                    foreach (var prop in consultantPositionsPaginationFilters.Filters.GetType().GetProperties())
                     {
-                        var value = prop.GetValue(paymentSheetsPaginationFilters.Filters, null);
+                        var value = prop.GetValue(consultantPositionsPaginationFilters.Filters, null);
                         if (value is not null and not "")
                         {
                             numAppliedFilters++;
@@ -80,22 +80,57 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                     }
                 }
                 var setPagination = new PaginationFiltersBehavior();
-                paginationFilters.PaginationWithoutFilters = setPagination.SetPagination(paymentSheetsPaginationFilters.PaginationWithoutFilters, numAppliedFilters);
+                paginationFilters.PaginationWithoutFilters = setPagination.SetPagination(consultantPositionsPaginationFilters.PaginationWithoutFilters, numAppliedFilters);
 
                 if (numAppliedFilters > 0)
                 {
-                    paginationFilters.Filters = paymentSheetsPaginationFilters.Filters;
+                    paginationFilters.Filters = consultantPositionsPaginationFilters.Filters;
                 }
 
-                var totalResults = await _unitOfWork.ConsultantDetail.GetAllConsultantsToPayWithFiltersAsync(paginationFilters);
+                var totalResults = await _unitOfWork.ConsultantPosition.GetAllConsultantPositionsWithFiltersAsync(paginationFilters);
                 paginationFilters.PaginationWithoutFilters.Pagination.TotalResults = totalResults.totalCount;
 
-                var data = new { consultantsToPayList = totalResults.consultantsToPay, PaginationFilters = paginationFilters };
+                var data = new { positionsList = totalResults.positions, PaginationFilters = paginationFilters };
                 return Ok(data);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { errors = new[] { $"There was an error fetching the list of consultants." }, success = false, result = "errorGet", detail = ex.Message });
+                return BadRequest(new { errors = new[] { $"There was an error fetching the list of positions." }, success = false, detail = ex.Message });
+            }
+        }
+
+        [HttpGet("GetPositionDataById")]
+        public async Task<IActionResult> GetPositionDataById(int? positionId)
+        {
+            try
+            {
+                var configData = await _unitOfWork.ConsultantPosition.GetCompanyMovementTypesByPositionIdAsync(positionId);
+                if (configData == null)
+                {
+                    return BadRequest(new { error = "Movement types do not exist in the database." });
+                }
+                string? positionName = null;
+                if (positionId != null)
+                {
+                    var existingPosition = await _unitOfWork.ConsultantPosition.GetFirstOrDefaultAsync(x => x.ConsultantPositionId == positionId);
+                    if (existingPosition == null)
+                    {
+                        return BadRequest(new { error = "The position is no longer in the database." });
+                    }
+                    positionName = existingPosition.Name;
+                }
+                CreateUpdateConsultantPositionVM modelToSend = new CreateUpdateConsultantPositionVM();
+                modelToSend.PositionConfiguration = configData;
+                modelToSend.PositionName = positionName;
+
+                return Ok(new
+                {
+                    positionConfigData = modelToSend
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
 

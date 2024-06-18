@@ -104,6 +104,27 @@ namespace OceansApp.DataAccess.DbInitializer
                     _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
                 }
 
+                //-----------------  COMPANIES  --------------------------------
+
+                List<Company> companiesList = new List<Company>();
+                companiesList.Add(new Company() { CompanyId = "OCE", Name = "Oceans Consulting Firm, S.A"});
+                companiesList.Add(new Company() { CompanyId = "LLC", Name = "OCE LLC" });
+
+                foreach (var company in companiesList)
+                {
+                    var existingCompany = _db.COMPANIES.FirstOrDefault(x => x.Name == company.Name);
+                    if (existingCompany == null)
+                    {
+                        Company companyToCreate = new()
+                        {
+                            CompanyId = company.CompanyId,
+                            Name = company.Name
+                        };
+                        _db.COMPANIES.Add(companyToCreate);
+                    }
+                }
+                _db.SaveChanges();
+
                 //-----------------  CONSULTANT BENEFITS  --------------------------------
 
                 List<ConsultantBenefit> consultantBenefitList = new List<ConsultantBenefit>();
@@ -395,7 +416,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Consultant Positions" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Consultant Positions Accounting Configuration" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Payment Sheets" });
@@ -574,6 +595,14 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue,
                     Description = "Acceso a ver y editar los roles y permisos de usuarios",
                     SystemSubAreaId = userRolesPermissionsSubAreaId.SystemSubAreaId
+                });
+                var consultantPositionsAcConSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Positions Accounting Configuration");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType,
+                    ClaimValue = ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue,
+                    Description = "Have access to manage the consultant positions accounting configuration",
+                    SystemSubAreaId = consultantPositionsAcConSubAreaId.SystemSubAreaId
                 });
                 // NOTES FOR ADMIN CENTER PERMISSIONS:
                 // Add every permission to the AnyOfPoliciesAdminCenterRequirementHandler

@@ -6,7 +6,7 @@ async function getListOfResults(firstTime, filters) {
     displaySpinner();
     var formData = recolectDataFromForm(filters, firstTime);
     var queryString = JSON.stringify(formData);
-    var url = "/AdminCenter/ConsultantPositions/GetConsultantsToPayList?model=" + encodeURIComponent(queryString);
+    var url = "/AdminCenter/ConsultantPositions/GetConsultantPositionsList?model=" + encodeURIComponent(queryString);
 
     fetch(url)
         .then(response => {
@@ -23,36 +23,36 @@ async function getListOfResults(firstTime, filters) {
             var tbody = $(".global-table-container table tbody");
             var tableRows = $(".global-table-container table");
             var noResultsMessage = $(".no-results");
+            tableRows.css("display", "block");
             noResultsMessage.empty();
             tbody.empty();
-
-            console.log(data);
             data.positionsList.forEach(function (obj) {
 
-                var editBtn = ``;
-                var menuBtn = `<i title="You are not able to edit, it already has status: ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
-                if (obj.transactionStatusName !== "Rejected" && (obj.transactionStatusName === "Approved" || obj.transactionStatusName === "Waiting to be approved")) {
-                    editBtn = `<li onclick="displayUpdateCreateInterviewModal('modal-update-create-interview', ${obj.interviewId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
-                    menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.interviewId}', 'menuIcon-${obj.interviewId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.interviewId}"></i>
-                              <div class="menu-options" id="menuOptions-${obj.interviewId}">
+                var editBtn = `<li onclick="displayUpdateCreatePositionModal('modal-update-create-position', ${obj.consultantPositionId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
+                var menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantPositionId}', 'menuIcon-${obj.consultantPositionId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantPositionId}"></i>
+                              <div class="menu-options" id="menuOptions-${obj.consultantPositionId}">
                                <ul>
                                  ${editBtn}
                                </ul>
                               </div>`;
-                }
 
                 var row = `<tr class="hover-group">
                   <td>
                       ${menuBtn}
-                      ${obj.consultantName}
+                      ${obj.positionName}
                   </td>
-                  <td>${obj.durationMinutes.toFixed(2)} minutes</td>
-                  <td>${((1 / 60) * obj.durationMinutes).toFixed(2)} hours</td>
+                  <td>${obj.isPositionAdministrative ? 'Administrative':'Consultant'}</td>
+                  <td>${obj.movementTypeName !== null ? obj.movementTypeName : ''}</td>
+                  <td>${obj.companyId !== null ? obj.companyId : ''}</td>
+                  <td>${obj.costCenterCode !== null ? obj.costCenterCode : ''}</td>
+                  <td>${obj.costCenterName !== null ? obj.costCenterName : ''}</td>
+                  <td>${obj.accountingAccountCode !== null ? obj.accountingAccountCode : ''}</td>
+                  <td>${obj.accountingAccountName !== null ? obj.accountingAccountName : ''}</td>
               </tr>`;
                 tbody.append(row);
             });
 
-            if (data.interviewsList.length === 0) {
+            if (data.positionsList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
             };
@@ -74,14 +74,9 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters, firstTime) {
     {
         var searchText = $('#search-input').val();
-        let startDateData = new Date(dateFromInput.value).toISOString();
-        let endDateData = new Date(dateToInput.value).toISOString();
 
         var filtersData = {
-            SearchText: searchText,
-            StartDate: startDateData,
-            EndDate: endDateData,
-            PaymentPeriod: Number(paymentPeriodSelect.value)
+            SearchText: searchText
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
