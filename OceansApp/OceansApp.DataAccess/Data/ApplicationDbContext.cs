@@ -542,6 +542,41 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("date")
                 .IsRequired();
 
+            // CONSULTANT POSITIONS ACCOUNTING CONFIGURATION
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.MovementTypeId);
+                entity.HasIndex(e => e.PositionId);
+            });
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasKey(r => new { r.Id });
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasOne(c => c.CostCenter)
+                .WithMany()
+                .HasForeignKey(c => c.CostCenterId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasOne(a => a.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(a => a.AccountingAccountId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasOne(r => r.ConsultantPosition)
+                .WithMany()
+                .HasForeignKey(r => r.PositionId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+               .HasOne(m => m.MovementType)
+               .WithMany()
+               .HasForeignKey(m => m.MovementTypeId)
+               .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .Property(d => d.CompanyId)
+                .HasColumnType("varchar")
+                .IsRequired();
+
             // REPORTING MY TIME MOVEMENTS
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
             {
@@ -850,6 +885,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantBenefitCompany> CONSULTANT_BENEFIT_COMPANIES { get; set; }
         public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
+        public DbSet<ConsultantPositionAccountingConfiguration> CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
         public DbSet<Partner> PARTNERS { get; set; }

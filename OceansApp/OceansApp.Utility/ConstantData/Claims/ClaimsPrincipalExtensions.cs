@@ -22,7 +22,8 @@ namespace OceansApp.Utility.ConstantData.Claims
             return user.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
                 user.HasClaim(c => c.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && c.Value == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue) ||
                  user.HasClaim(c => c.Type == HolidaysClaimsCD.Holidays_Page_ClaimType && c.Value == HolidaysClaimsCD.Holidays_Page_ClaimValue) ||
-                 user.HasClaim(c => c.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType && c.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue);
+                 user.HasClaim(c => c.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType && c.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue) ||
+                 user.HasClaim(c => c.Type == ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType && c.Value == ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue);
         }
         public static bool IsAuthorizedForConsultantsPage(this ClaimsPrincipal user)
         {

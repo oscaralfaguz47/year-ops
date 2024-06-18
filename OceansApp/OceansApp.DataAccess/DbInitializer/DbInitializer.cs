@@ -31,7 +31,7 @@ namespace OceansApp.DataAccess.DbInitializer
             _config = config;
         }
 
-        public void Initialize()
+        public async void Initialize()
         {
             bool isThereNewMigrationToUpdate = true; // False if no migration updates in the DB are needed
             if (isThereNewMigrationToUpdate)
@@ -311,50 +311,6 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
-                //-----------------  CONSULTANT POSITIONS  --------------------------------
-
-                List<ConsultantPosition> positionsList = new List<ConsultantPosition>();
-                positionsList.Add(new ConsultantPosition() { Name = "Success Manager", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "CEO", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "CFO", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Recruiting Manager", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Strategy Director", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Recruiter", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Marketing Manager", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "People and Culture", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Gifts Coordinator", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Sales Executive", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Payment Assistant", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Financial Assistant", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer IT Support", IsAdministrative = true });
-
-                positionsList.Add(new ConsultantPosition() { Name = "Senior Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Data Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Senior QA Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Mid Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Project Manager", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Team Lead", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "AWS Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "DevOps Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "SRE Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Mobile Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "QA Lead", IsAdministrative = false });
-
-                foreach (var conPosition in positionsList)
-                {
-                    if (_db.CONSULTANT_POSITIONS.FirstOrDefault(x => x.Name == conPosition.Name) == null)
-                    {
-                        ConsultantPosition consultantPosition = new()
-                        {
-                            Name = conPosition.Name,
-                            IsAdministrative = conPosition.IsAdministrative
-                        };
-                        _db.CONSULTANT_POSITIONS.Add(consultantPosition);
-                    }
-                }
-                _db.SaveChanges();
 
                 //-----------------  DEFAULT CLIENT FOR ADMINISTRATIVE CONSULTANTS  --------------------------------
 
@@ -439,6 +395,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Consultant Positions" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Payment Sheets" });

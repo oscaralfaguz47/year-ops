@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240617174635_createReportingMyTimeAccountingConfigurationTable")]
+    partial class createReportingMyTimeAccountingConfigurationTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1079,44 +1082,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("ConsultantPositionId");
 
                     b.ToTable("CONSULTANT_POSITIONS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantPositionAccountingConfiguration", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountingAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("varchar");
-
-                    b.Property<int>("CostCenterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MovementTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PositionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountingAccountId");
-
-                    b.HasIndex("CostCenterId");
-
-                    b.HasIndex("MovementTypeId");
-
-                    b.HasIndex("PositionId");
-
-                    b.ToTable("CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantQualityLevel", b =>
@@ -2240,6 +2205,46 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("PROVIDER_EVENT_DATES");
                 });
 
+            modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeAccountingConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountingAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CompanyId")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar");
+
+                    b.Property<int>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MovementTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountingAccountId");
+
+                    b.HasIndex("CostCenterId");
+
+                    b.HasIndex("MovementTypeId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("REPORTING_MY_TIME_ACCOUNTING_CONFIGURATION");
+                });
+
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeComments", b =>
                 {
                     b.Property<int>("CommentId")
@@ -2933,41 +2938,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("TransactionType");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantPositionAccountingConfiguration", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
-                        .WithMany()
-                        .HasForeignKey("AccountingAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.CostCenter", "CostCenter")
-                        .WithMany()
-                        .HasForeignKey("CostCenterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ReportingMyTimeMovementType", "MovementType")
-                        .WithMany()
-                        .HasForeignKey("MovementTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ConsultantPosition", "ConsultantPosition")
-                        .WithMany()
-                        .HasForeignKey("PositionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AccountingAccount");
-
-                    b.Navigation("ConsultantPosition");
-
-                    b.Navigation("CostCenter");
-
-                    b.Navigation("MovementType");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantReimbursedBenefit", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.ConsultantBenefitCategory", "ConsultantBenefitCategory")
@@ -3375,6 +3345,41 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("Provider");
 
                     b.Navigation("ProviderEvent");
+                });
+
+            modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeAccountingConfiguration", b =>
+                {
+                    b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
+                        .WithMany()
+                        .HasForeignKey("AccountingAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OceansApp.Models.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OceansApp.Models.Models.ReportingMyTimeMovementType", "MovementType")
+                        .WithMany()
+                        .HasForeignKey("MovementTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountingAccount");
+
+                    b.Navigation("CostCenter");
+
+                    b.Navigation("MovementType");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeComments", b =>

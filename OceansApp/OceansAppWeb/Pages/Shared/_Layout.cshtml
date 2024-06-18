@@ -55,7 +55,7 @@
                                          @if (User.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType && c.Value == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue))
                                         {
                                             <li class="nav-item">
-                                                <a class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index"><i class="bi bi-stopwatch"></i> Reporting My Time</a>
+                                                <a class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index"><i class="bi bi-stopwatch"></i> Timesheet</a>
                                             </li>
                                         }
                                         @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_ClaimValue))
