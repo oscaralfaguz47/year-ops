@@ -13,8 +13,8 @@
                 <h2 id="create-position-modal-title"></h2>
                 <form id="form-create-update">
                     <input type="hidden" name="positionId">
-                    <input type="text" placeholder="Enter the position name" class="form-control" />
-                    <label><strong>Make the accounting configuration for every Movement type in every company for this position:</strong></label>
+                    <input type="text" name="positionName" placeholder="Enter the position name" class="form-control" />
+                    <label class="config-message"><strong>Make the accounting configuration for every Movement type in every company for this position with the options below</strong></label>
                     <div id="form-elements"></div>
                  
                     <br />
@@ -36,3 +36,5 @@
 
 <script src="~/js/AdminCenter/ConsultantPositions/createUpdatePositionsModal.js"></script>
 <script src="~/js/Shared/inputValidations.js"></script>
+<script src="~/js/Finances/CostsCenters/costsCentersHttpRequests.js"></script>
+<script src="~/js/Finances/AccountingAccounts/accountingAccountsHttpRequests.js"></script>
