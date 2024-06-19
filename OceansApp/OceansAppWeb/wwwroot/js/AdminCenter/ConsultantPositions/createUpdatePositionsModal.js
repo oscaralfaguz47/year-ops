@@ -1,10 +1,11 @@
 ﻿let createUpdateForm = $('#form-create-update');
 let positionIdInput = createUpdateForm.find('[name="positionId"]');
 let positionNameInput = createUpdateForm.find('[name="positionName"]');
-//CREATE / UPDATE POSITION
+
+//DISPLAY CREATE / UPDATE POSITION
 async function displayUpdateCreatePositionModal(modalId, id) {
     let modalTitle = document.getElementById('create-position-modal-title');
-    modalTitle.textContent = "CREATE NEW POSITION";
+    id === null ? modalTitle.textContent = 'CREATE NEW POSITION' : modalTitle.textContent = 'EDIT POSITION';
     inicializeModalButtons(modalId);
     resetForm('form-create-update')
     positionIdInput.val("");
@@ -51,6 +52,32 @@ async function displayUpdateCreatePositionModal(modalId, id) {
                 movementLabel.textContent = `${item.movementTypeName}`;
                 row.appendChild(movementLabel);
 
+                //Hidden inputs
+                const idConfigInput = document.createElement('input');
+                idConfigInput.type = 'hidden';
+                idConfigInput.className = 'idConfigInput';
+                idConfigInput.value = item.id;
+
+                const companyInput = document.createElement('input');
+                companyInput.type = 'hidden';
+                companyInput.className = 'companyInput';
+                companyInput.value = item.companyId;
+
+                const costCenterInput = document.createElement('input');
+                costCenterInput.type = 'hidden';
+                costCenterInput.className = 'costCenterInput';
+                costCenterInput.value = item.costCenterId;
+
+                const accountingAccountInput = document.createElement('input');
+                accountingAccountInput.type = 'hidden';
+                accountingAccountInput.className = 'accountingAccountInput';
+                accountingAccountInput.value = item.accountingAccountId;
+
+                const movementTypeInput = document.createElement('input');
+                movementTypeInput.type = 'hidden';
+                movementTypeInput.className = 'movementTypeInput';
+                movementTypeInput.value = item.movementTypeId;
+
                 const costCenterSelect = document.createElement('select');
                 costCenterSelect.className = 'form-select position-selects';
                 const costCenterOption = document.createElement('option');
@@ -59,6 +86,11 @@ async function displayUpdateCreatePositionModal(modalId, id) {
                 costCenterSelect.addEventListener('click', function () {
                     fillCostCentersSelect(this, item.companyId, id === null ? false : true);
                 });
+                row.appendChild(idConfigInput);
+                row.appendChild(companyInput);
+                row.appendChild(costCenterInput);
+                row.appendChild(accountingAccountInput);
+                row.appendChild(movementTypeInput);
                 row.appendChild(costCenterSelect);
 
                 const accountingAccountSelect = document.createElement('select');
@@ -141,7 +173,6 @@ function fillCostCentersSelect(selectElement, companyId, isEditing) {
             console.error('Error fetching:', error);
         });
 }
-
 function fillAccountingAccountsSelect(selectElement, selectedValue, isEditing, isFromCostCenterSelect) {
     let previousValue = selectElement.value;
     if (selectElement.length > 1 && isEditing) {
@@ -172,4 +203,75 @@ function fillAccountingAccountsSelect(selectElement, selectedValue, isEditing, i
         .catch(error => {
             console.error('Error fetching:', error);
         });
+}
+
+// CREATE - UPDATE POSITION POST METHOD
+async function createUpdatePosition() {
+    waitingForPostMethod();
+    var token = $('[name="__RequestVerificationToken"]').val();
+    var positionConfigElements = document.querySelectorAll(".movement-row");
+    var positionName = createUpdateForm.find('[name="positionName"]').val();
+    var positionConfigurationData = [];
+    positionConfigurationData = Array.from(positionConfigElements).map(function (fila) {
+        var configId = fila.querySelector(".idConfigInput").value;
+        var companyId = fila.querySelector(".companyInput").value;
+        var costCenterId = fila.querySelector(".costCenterInput").value;
+        var accountingAccountId = fila.querySelector(".accountingAccountInput").value;
+        var movementTypeId = fila.querySelector(".movementTypeInput").value;
+        return {
+            Id: configId, CompanyId: companyId, CostCenterId: costCenterId, AccountingAccountId: accountingAccountId,
+            MovementTypeId: movementTypeId
+        };
+    });
+    var data = {
+        PositionName: positionName,
+        PositionConfiguration: positionConfigurationData
+    };
+
+    //try {
+    //    const response = await fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
+    //        method: 'POST',
+    //        headers: {
+    //            'Content-Type': 'application/json',
+    //            RequestVerificationToken: token
+    //        },
+    //        body: JSON.stringify(data)
+    //    });
+
+    //    if (!response.ok) {
+    //        const errorData = await response.json();
+    //        switch (errorData.messageType) {
+    //            case "Validation Error":
+    //                const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+    //                    return acc.concat(current);
+    //                }, []);
+    //                displayToasterWarningArray(allErrors);
+    //                break;
+    //            case "Not Found":
+    //                displayToasterError('Resource not found: ' + errorData.detail);
+    //                break;
+    //            default:
+    //                button.style.display = 'block';
+    //                displayToasterError('An unexpected error occurred: ' + errorData.error);
+    //        }
+    //        spinnerLabel.style.display = 'none';
+    //        checkSavedIcon.style.display = 'none';
+    //        button.style.display = 'block';
+    //        return null;
+    //    }
+
+    //    const dataFromApi = await response.json();
+    //    movementIdInput.value = dataFromApi.movementId;
+    //    spinnerLabel.style.display = 'none';
+    //    checkSavedIcon.style.display = 'block';
+    //    return dataFromApi;
+    //} catch (err) {
+    //    validateSessionExpiration(err.message);
+    //    console.error('Network or fetch error:', err);
+    //    displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+    //    spinnerLabel.style.display = 'none';
+    //    checkSavedIcon.style.display = 'none';
+    //    button.style.display = 'block';
+    //    return null; // Return null to signify an error that prevented a successful fetch
+    //}
 }

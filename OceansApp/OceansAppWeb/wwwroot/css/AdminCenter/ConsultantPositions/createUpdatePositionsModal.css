@@ -5,6 +5,14 @@
 label {
     margin-top: 10px;
 }
+.position-type-box {
+    margin-top: -5px;
+    display: flex;
+    align-items:center;
+}
+.position-type-box .radio-label{
+    margin-right: 15px;
+}
 .option-no-accept-data {
     font-weight: bold;
 }
@@ -12,6 +20,7 @@ label {
     margin-top: 18px;
     text-align:center;
     background-color: var(--clr-grayLight);
+    width: 100%;
     padding: 5px;
     border-radius: 15px;
 }

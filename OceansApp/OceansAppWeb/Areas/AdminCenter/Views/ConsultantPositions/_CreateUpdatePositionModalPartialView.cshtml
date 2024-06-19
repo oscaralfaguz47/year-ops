@@ -14,7 +14,22 @@
                 <form id="form-create-update">
                     <input type="hidden" name="positionId">
                     <input type="text" name="positionName" placeholder="Enter the position name" class="form-control" />
-                    <label class="config-message"><strong>Make the accounting configuration for every Movement type in every company for this position with the options below</strong></label>
+
+                    <label><strong>Position Type</strong></label>
+                    <div class="position-type-box">
+                        <label class="radio-label">
+                            <input name="positionTypeCb" type="radio" value="A" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Administrative
+                        </label>
+                        <label class="radio-label">
+                            <input name="positionTypeCb" type="radio" value="C" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Consultant
+                        </label>
+                    </div>
+
+                    <label class="config-message"><strong>Accounting configuration for movement types</strong></label>
                     <div id="form-elements"></div>
                  
                     <br />
@@ -22,7 +37,7 @@
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
                     <a id="btn-cancel" onclick="hideModal('modal-update-create-position')" class="cancel-btn">Cancel</a>&nbsp;
-                    <button id="btn-saving" onclick="createUpdateInterview('modal-update-create-position')" class="btn-primary-submit">
+                    <button id="btn-saving" onclick="createUpdatePosition('modal-update-create-position')" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
                             </div><span></span>
