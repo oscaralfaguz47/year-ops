@@ -110,6 +110,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                     return BadRequest(new { error = "Movement types do not exist in the database." });
                 }
                 string? positionName = null;
+                bool? isAdministrative = null;
                 if (positionId != null)
                 {
                     var existingPosition = await _unitOfWork.ConsultantPosition.GetFirstOrDefaultAsync(x => x.ConsultantPositionId == positionId);
@@ -118,10 +119,12 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                         return BadRequest(new { error = "The position is no longer in the database." });
                     }
                     positionName = existingPosition.Name;
+                    isAdministrative = existingPosition.IsAdministrative;
                 }
                 CreateUpdateConsultantPositionVM modelToSend = new CreateUpdateConsultantPositionVM();
                 modelToSend.PositionConfiguration = configData;
                 modelToSend.PositionName = positionName;
+                modelToSend.IsAdministrative = isAdministrative;
 
                 return Ok(new
                 {
@@ -150,6 +153,103 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("CreateUpdateConsultantPosition")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdateConsultantPosition([FromBody] CreateUpdateConsultantPositionVM positionConfitData)
+        {
+            try
+            {
+                if (positionConfitData == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredAndStringLength("PositionName", "Position Name", positionConfitData.PositionName, 100, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("PositionType", "Position Type", positionConfitData.IsAdministrative, ModelState);
+
+                foreach (var positionConfig in positionConfitData.PositionConfiguration)
+                {
+                    validateInputs.ValidateRequiredFieldIntType("CostCenterId", "Cost Center", positionConfig.CostCenterId, ModelState);
+                    validateInputs.ValidateRequiredFieldIntType("AccountingAccountId", "Accounting Account", positionConfig.AccountingAccountId, ModelState);
+                    validateInputs.ValidateRequiredFieldIntType("MovementTypeId", "Movement Type", positionConfig.MovementTypeId, ModelState);
+                    validateInputs.ValidateRequiredFieldStringValue("CompanyId", "Company", positionConfig.CompanyId, ModelState);
+                }
+
+                if (ModelState.IsValid)
+                {
+                    var resultMessage = "";
+
+                    //IF IS NOT ID THEN CREATE IT
+                    if (positionConfitData.PositionId == null)
+                    {
+                        var res = await _unitOfWork.ConsultantPosition.CreatePositionAsync(positionConfitData);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            if (res.MessageType != "Validation Error")
+                            {
+                                return BadRequest(new { MessageType = res.MessageType, error = res.Message });
+                            }
+                            else
+                            {
+                                return BadRequest(new
+                                {
+                                    MessageType = res.MessageType,
+                                    errors = new[] { res.Message }
+                                });
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        //IF IS ID THEN UPDATE THE DEBIT/CREDIT
+                        var res = await _unitOfWork.ConsultantPosition.UpdatePositionAsync(positionConfitData);
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            if (res.MessageType != "Validation Error")
+                            {
+                                return BadRequest(new { error = res.Message, MessageType = res.MessageType });
+                            }
+                            else
+                            {
+                                return BadRequest(new
+                                {
+                                    MessageType = res.MessageType,
+                                    errors = new[] { res.Message }
+                                });
+                            }
+                        }
+                    }
+                    return Ok(new
+                    {
+                        success = true,
+                        message = resultMessage
+                    });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message });
             }
         }
     }

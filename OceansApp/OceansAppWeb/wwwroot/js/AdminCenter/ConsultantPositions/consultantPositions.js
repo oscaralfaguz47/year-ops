@@ -20,42 +20,90 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
+            console.log(data);
             var tbody = $(".global-table-container table tbody");
             var tableRows = $(".global-table-container table");
             var noResultsMessage = $(".no-results");
             tableRows.css("display", "block");
             noResultsMessage.empty();
             tbody.empty();
-            data.positionsList.forEach(function (obj) {
 
-                var editBtn = `<li onclick="displayUpdateCreatePositionModal('modal-update-create-position', ${obj.consultantPositionId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
+            let previousName = null;
+            let nameCount = 0;
+            let rows = [];
+            let startIndex = 0;
+            let groupName = 0;
+
+            data.positionsList.forEach(function (obj, index) {
+                var editBtn = `<li onclick="displayUpdateCreatePositionModal('modal-update-create-position', ${obj.consultantPositionId}, ${false})"><i class="bi bi-pencil-square"></i> Edit Position</li>`;
+                var cloneBtn = `<li onclick="displayUpdateCreatePositionModal('modal-update-create-position', ${obj.consultantPositionId}, ${true})"><i class="fa-regular fa-clone"></i> Clone Position</li>`;
                 var menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantPositionId}', 'menuIcon-${obj.consultantPositionId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantPositionId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.consultantPositionId}">
                                <ul>
-                                 ${editBtn}
+                                 ${editBtn} ${cloneBtn}
                                </ul>
                               </div>`;
 
-                var row = `<tr class="hover-group">
-                  <td>
-                      ${menuBtn}
-                      ${obj.positionName}
-                  </td>
-                  <td>${obj.isPositionAdministrative ? 'Administrative':'Consultant'}</td>
-                  <td>${obj.movementTypeName !== null ? obj.movementTypeName : ''}</td>
-                  <td>${obj.companyId !== null ? obj.companyId : ''}</td>
-                  <td>${obj.costCenterCode !== null ? obj.costCenterCode : ''}</td>
-                  <td>${obj.costCenterName !== null ? obj.costCenterName : ''}</td>
-                  <td>${obj.accountingAccountCode !== null ? obj.accountingAccountCode : ''}</td>
-                  <td>${obj.accountingAccountName !== null ? obj.accountingAccountName : ''}</td>
-              </tr>`;
+                if (obj.positionName !== previousName) {
+                    if (previousName !== null) {
+                        rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
+                    }
+                    startIndex = rows.length;
+                    nameCount = 1;
+                    groupName++;
+                    rows.push(`<tr class="hover-group-${groupName}">
+                      <td class="first-cell" rowspan="1">
+                          ${menuBtn}
+                          ${obj.positionName}
+                      </td>
+                      <td>${obj.isPositionAdministrative ? 'Administrative' : 'Consultant'}</td>
+                      <td>${obj.movementTypeName !== null ? obj.movementTypeName : ''}</td>
+                      <td>${obj.companyId !== null ? obj.companyId : ''}</td>
+                      <td>${obj.costCenterCode !== null ? obj.costCenterCode : ''}</td>
+                      <td>${obj.costCenterName !== null ? obj.costCenterName : ''}</td>
+                      <td>${obj.accountingAccountCode !== null ? obj.accountingAccountCode : ''}</td>
+                      <td>${obj.accountingAccountName !== null ? obj.accountingAccountName : ''}</td>
+                  </tr>`);
+                } else {
+                    nameCount++;
+                    rows.push(`<tr class="hover-group-${groupName}">
+                      <td>${obj.isPositionAdministrative ? 'Administrative' : 'Consultant'}</td>
+                      <td>${obj.movementTypeName !== null ? obj.movementTypeName : ''}</td>
+                      <td>${obj.companyId !== null ? obj.companyId : ''}</td>
+                      <td>${obj.costCenterCode !== null ? obj.costCenterCode : ''}</td>
+                      <td>${obj.costCenterName !== null ? obj.costCenterName : ''}</td>
+                      <td>${obj.accountingAccountCode !== null ? obj.accountingAccountCode : ''}</td>
+                      <td>${obj.accountingAccountName !== null ? obj.accountingAccountName : ''}</td>
+                  </tr>`);
+                }
+                previousName = obj.positionName;
+
+                if (index === data.positionsList.length - 1) {
+                    rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
+                }
+            });
+
+            tbody.html('');
+            rows.forEach(row => {
                 tbody.append(row);
             });
+
+            // Handle hover to change combined cell background color
+            $('[class^="hover-group"]').hover(
+                function () { // Mouse-in function
+                    var groupClass = $(this).attr('class').match(/hover-group-\d+/)[0];
+                    $('.' + groupClass + ' .first-cell').css('background-color', 'rgb(155, 168, 184, 0.2)');
+                },
+                function () { // Mouse exit function
+                    var groupClass = $(this).attr('class').match(/hover-group-\d+/)[0];
+                    $('.' + groupClass + ' .first-cell').css('background-color', '');
+                }
+            );
 
             if (data.positionsList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
-            };
+            }
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
         })
         .catch(error => {
@@ -65,6 +113,7 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
+
 
 
 //Pagination and Filters

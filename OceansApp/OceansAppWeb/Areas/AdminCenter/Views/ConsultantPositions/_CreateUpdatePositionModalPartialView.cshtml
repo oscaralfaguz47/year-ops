@@ -18,12 +18,12 @@
                     <label><strong>Position Type</strong></label>
                     <div class="position-type-box">
                         <label class="radio-label">
-                            <input name="positionTypeCb" type="radio" value="A" class="radio-input">
+                            <input name="positionTypeCb" type="radio" value="true" class="radio-input">
                             <span class="radio-custom"></span>
                             &nbsp; Administrative
                         </label>
                         <label class="radio-label">
-                            <input name="positionTypeCb" type="radio" value="C" class="radio-input">
+                            <input name="positionTypeCb" type="radio" value="false" class="radio-input">
                             <span class="radio-custom"></span>
                             &nbsp; Consultant
                         </label>
@@ -37,7 +37,7 @@
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
                     <a id="btn-cancel" onclick="hideModal('modal-update-create-position')" class="cancel-btn">Cancel</a>&nbsp;
-                    <button id="btn-saving" onclick="createUpdatePosition('modal-update-create-position')" class="btn-primary-submit">
+                    <button id="btn-saving" onclick="createUpdatePosition('modal-update-create-position', null, false)" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
                             </div><span></span>

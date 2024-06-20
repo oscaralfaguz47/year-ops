@@ -5,7 +5,6 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPositions;
-using OceansApp.Models.ViewModels.Interviews;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository
@@ -53,44 +52,109 @@ namespace OceansApp.DataAccess.Repository
             return results.ToList();
         }
 
-        public async Task<MethodResponse> CreatePosition(string userIdCreatedBy,
-           CreateUpdateInterviewVM interviewData)
+        public async Task<MethodResponse> CreatePositionAsync(CreateUpdateConsultantPositionVM positionConfigData)
         {
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
-                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Approved");
-                    if (transactionStatus == null)
+                    var existingPosition = await _db.CONSULTANT_POSITIONS.FirstOrDefaultAsync(x => x.Name.Trim() == positionConfigData.PositionName.Trim());
+                    if (existingPosition != null)
                     {
-                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction status 'Approved' was not found." };
+                        return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a position with the name: {positionConfigData.PositionName}" };
                     }
-                    Interview interviewToCreate = new()
+
+                    ConsultantPosition positionToCreate = new ConsultantPosition()
                     {
-                        ConsultantId = (int)interviewData.ConsultantId,
-                        DurationMinutes = (decimal)interviewData.DurationMinutes,
-                        Date = (DateTime)interviewData.Date,
-                        TransactionStatusId = transactionStatus.TransactionStatusId,
-                        CreationDate = DateTime.UtcNow,
-                        ConsultantIdCreatedBy = currentUser.ConsultantId
+                        Name = positionConfigData.PositionName.Trim(),
+                        IsAdministrative = (bool)positionConfigData.IsAdministrative
                     };
-                    var createdInterview = await _db.INTERVIEWS.AddAsync(interviewToCreate);
+                    await _db.CONSULTANT_POSITIONS.AddAsync(positionToCreate);
                     await _db.SaveChangesAsync();
-                    if (createdInterview.Entity.InterviewId > 0)
+
+                    foreach (var positionConfig in positionConfigData.PositionConfiguration)
                     {
-                        await transaction.CommitAsync();
-                        return new MethodResponse
+                        ConsultantPositionAccountingConfiguration accountingConfigToCreate = new ConsultantPositionAccountingConfiguration()
                         {
-                            Success = true,
-                            Message = $"The Interview was created successfully."
+                            CompanyId = positionConfig.CompanyId,
+                            CostCenterId = (int)positionConfig.CostCenterId,
+                            AccountingAccountId = (int)positionConfig.AccountingAccountId,
+                            MovementTypeId = positionConfig.MovementTypeId,
+                            PositionId = positionToCreate.ConsultantPositionId
                         };
+                        await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.AddAsync(accountingConfigToCreate);
                     }
-                    else
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return new MethodResponse
                     {
-                        await transaction.RollbackAsync();
-                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"Something went wrong creating the Interview, please try again." };
+                        Success = true,
+                        Message = $"The Position was created successfully."
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+                }
+            }
+        }
+
+        public async Task<MethodResponse> UpdatePositionAsync(CreateUpdateConsultantPositionVM positionConfigData)
+        {
+            using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingPositionGetFromName = await _db.CONSULTANT_POSITIONS.FirstOrDefaultAsync(x => x.Name.Trim() == positionConfigData.PositionName.Trim());
+                    var existingPositionGetFromId = await _db.CONSULTANT_POSITIONS.FirstOrDefaultAsync(x => x.ConsultantPositionId == positionConfigData.PositionId);
+                    if (existingPositionGetFromId == null)
+                    {
+                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The position is no longer in the database" };
                     }
+
+                    if (existingPositionGetFromName != null && (existingPositionGetFromName.ConsultantPositionId
+                        != existingPositionGetFromId.ConsultantPositionId))
+                    {
+                        return new MethodResponse { MessageType = "Validation Error", Success = false, Message = $"There is already a position with the name: {positionConfigData.PositionName}" };
+                    }
+
+                    existingPositionGetFromId.Name = positionConfigData.PositionName.Trim();
+                    existingPositionGetFromId.IsAdministrative = (bool)positionConfigData.IsAdministrative;
+
+                    foreach (var positionConfig in positionConfigData.PositionConfiguration)
+                    {
+                        if (positionConfig.Id != null)
+                        {
+                            var existingPositionAccountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION
+                                .FirstOrDefaultAsync(x => x.Id == positionConfig.Id);
+                            if (existingPositionAccountingConfig == null)
+                            {
+                                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The configuration is no longer in the database" };
+                            }
+                            existingPositionAccountingConfig.CostCenterId = (int)positionConfig.CostCenterId;
+                            existingPositionAccountingConfig.AccountingAccountId = (int)positionConfig.AccountingAccountId;
+                        }
+                        else
+                        {
+                            ConsultantPositionAccountingConfiguration accountingConfigToCreate = new ConsultantPositionAccountingConfiguration()
+                            {
+                                CompanyId = positionConfig.CompanyId,
+                                CostCenterId = (int)positionConfig.CostCenterId,
+                                AccountingAccountId = (int)positionConfig.AccountingAccountId,
+                                MovementTypeId = positionConfig.MovementTypeId,
+                                PositionId = (int)positionConfigData.PositionId
+                            };
+                            await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.AddAsync(accountingConfigToCreate);
+                        }
+                    }
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return new MethodResponse
+                    {
+                        Success = true,
+                        Message = $"The Position was updated successfully."
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -108,7 +172,7 @@ namespace OceansApp.DataAccess.Repository
                 positionsToReturn.Add(new GetDataForSelectVM
                 {
                     Value = position.ConsultantPositionId,
-                    Text = position.Name 
+                    Text = position.Name
                 });
             }
             return positionsToReturn;

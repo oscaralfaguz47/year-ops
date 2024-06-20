@@ -504,6 +504,10 @@ namespace OceansApp.DataAccess.DbInitializer
                 movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Normal Hours" });
                 movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Flate Rate" });
                 movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Time Worked" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Balance Program" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Oceans Challenge" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Bonusly Rewards" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Interviews" });
 
                 foreach (var movementType in movTypesList)
                 {

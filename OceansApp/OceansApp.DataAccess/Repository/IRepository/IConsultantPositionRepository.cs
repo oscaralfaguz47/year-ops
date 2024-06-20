@@ -9,6 +9,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<(List<ConsultantPositionsGetAllWithFiltersVM> positions, int totalCount)>
             GetAllConsultantPositionsWithFiltersAsync(ConsultantPositionsPaginationFiltersVM filtersAndPagination);
         Task<List<GetConsultantPositionConfigurationsVM>> GetCompanyMovementTypesByPositionIdAsync(int? positionId);
+        Task<MethodResponse> CreatePositionAsync(CreateUpdateConsultantPositionVM positionConfigData);
+        Task<MethodResponse> UpdatePositionAsync(CreateUpdateConsultantPositionVM positionConfigData);
         Task<List<GetDataForSelectVM>> GetPositionsByIsAdministrative(bool isAdministrative);
         void Update(ConsultantPosition obj);
     }
