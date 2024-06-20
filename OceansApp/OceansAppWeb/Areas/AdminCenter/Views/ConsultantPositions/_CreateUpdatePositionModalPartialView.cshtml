@@ -1,0 +1,55 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/AdminCenter/ConsultantPositions/createUpdatePositionsModal.css" />
+
+
+<!--MODAL UPDATE CREATE REIMBURSEMENT-->
+<div id="modal-update-create-position" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-position-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="positionId">
+                    <input type="text" name="positionName" placeholder="Enter the position name" class="form-control" />
+
+                    <label><strong>Position Type</strong></label>
+                    <div class="position-type-box">
+                        <label class="radio-label">
+                            <input name="positionTypeCb" type="radio" value="true" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Administrative
+                        </label>
+                        <label class="radio-label">
+                            <input name="positionTypeCb" type="radio" value="false" class="radio-input">
+                            <span class="radio-custom"></span>
+                            &nbsp; Consultant
+                        </label>
+                    </div>
+
+                    <label class="config-message"><strong>Accounting configuration for movement types</strong></label>
+                    <div id="form-elements"></div>
+                 
+                    <br />
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-position')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdatePosition('modal-update-create-position', null, false)" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/AdminCenter/ConsultantPositions/createUpdatePositionsModal.js"></script>
+<script src="~/js/Shared/inputValidations.js"></script>
+<script src="~/js/Finances/CostsCenters/costsCentersHttpRequests.js"></script>
+<script src="~/js/Finances/AccountingAccounts/accountingAccountsHttpRequests.js"></script>

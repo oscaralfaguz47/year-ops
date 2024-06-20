@@ -23,7 +23,8 @@ namespace OceansApp.Utility.Configuration.AuthorizationRequirement.AdminCenter
             {
                 "AccessToUpdateDataFromSoftlandSection",
                 "AccessToUserAdministration",
-                "AccessToUserRolesAndPermissions"
+                "AccessToUserRolesAndPermissions",
+                "AccessToConsultantPositions"
             };
 
                 foreach (var policy in policies)

@@ -151,7 +151,6 @@ namespace OceansApp.DataAccess.Repository
                 existingProject.StartDate = DateTime.Parse(projectData.StartDate);
                 existingProject.IsActive = (bool)projectData.IsActive;
                 existingProject.SuccessManagerId = (int)projectData.SuccessManagerId;
-                existingProject.ClientHasTrackingTool = (bool)projectData.ClientHasTrackingTool;
                 existingProject.UpdatedBy = projectData.CreatedBy;
                 existingProject.DateLastUpdate = DateTime.UtcNow;
 

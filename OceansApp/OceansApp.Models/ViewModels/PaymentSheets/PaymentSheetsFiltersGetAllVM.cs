@@ -6,7 +6,7 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public string? SearchText { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public int? TransactionStatusId { get; set; }
+        public string? TransactionStatusName { get; set; }
         public int? ProjectId { get; set; }
         public int? PaymentPeriod { get; set; }
     }

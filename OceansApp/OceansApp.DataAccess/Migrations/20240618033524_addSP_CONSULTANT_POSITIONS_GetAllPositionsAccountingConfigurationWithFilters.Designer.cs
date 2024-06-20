@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240618033524_addSP_CONSULTANT_POSITIONS_GetAllPositionsAccountingConfigurationWithFilters")]
+    partial class addSP_CONSULTANT_POSITIONS_GetAllPositionsAccountingConfigurationWithFilters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -618,24 +621,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("SuccessManager");
 
                     b.ToTable("CLIENT");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.Company", b =>
-                {
-                    b.Property<string>("CompanyId")
-                        .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("CompanyId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.ToTable("COMPANIES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantAndPosition", b =>

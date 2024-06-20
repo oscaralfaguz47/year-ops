@@ -50,7 +50,6 @@ async function getListOfResults(firstTime, filters) {
                 var submissionformattedDate = "Not submitted yet";
                 let makePaymentBtn = '';
                 let setAsAccountsPayableBtn = '';
-                let sendPaymentDetails = '';
                 let menuBtn = '';
 
                 if (obj.submissionDate !== null) {
@@ -73,12 +72,11 @@ async function getListOfResults(firstTime, filters) {
 
                 if (obj.numApprovedSubmissions === obj.numProjectsIsActive) {
                     makePaymentBtn = `<li>Make Payment</li>`;
-                    setAsAccountsPayableBtn = `<li>Set as accounts payable</li>`;
                     sendPaymentDetails = `<li>Send payment details</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.consultantId}">
                                <ul>
-                                 ${makePaymentBtn + setAsAccountsPayableBtn + sendPaymentDetails}
+                                 ${makePaymentBtn + setAsAccountsPayableBtn}
                                </ul>
                               </div>`;
                 }

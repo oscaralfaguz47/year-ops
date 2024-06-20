@@ -1,0 +1,88 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
+
+<div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+    <div class="filters-container">
+        <div class="row">
+            <div class="search-header-container">
+                <div>
+                    <h2>CONSULTANT POSITIONS ACCOUNTING CONFIG</h2>
+                    <div class="input-container">
+                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                        <i class="bi bi-search placeholder-image"></i>
+                    </div>
+                    <div class="action-buttons">
+                        <a onclick="displayUpdateCreatePositionModal('modal-update-create-position', null)">Create New Position</a>
+                    </div>
+                </div>
+                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
+            </div>
+            <div class="more-filters-cont">
+                <div id="more-filters">
+                    <div class="row">
+                    </div>
+                    <div class="principal-buttons">
+                        <a asp-area="AdminCenter" asp-controller="ConsultantPositions" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
+                    </div>
+                </div>
+            </div>
+            <partial name="_Pagination" />
+        </div>
+    </div>
+    <div class="global-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="orderByTableList('PositionName', 'PositionNameTableHeader', 'sortArrowPositionName')" data-sort="ANY" name="PositionNameTableHeader" class="sortable-col">
+                        Position Name
+                        <span class="sort-arrow" id="sortArrowPositionName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('IsPositionAdministrative', 'IsPositionAdministrativeTableHeader', 'sortArrowIsPositionAdministrative')" data-sort="ANY" name="IsPositionAdministrativeTableHeader" class="sortable-col">
+                        Position Type
+                        <span class="sort-arrow" id="sortArrowIsPositionAdministrative"></span>
+                    </th>
+                    <th onclick="orderByTableList('MovementTypeName', 'MovementTypeNameTableHeader', 'sortArrowMovementTypeName')" data-sort="ANY" name="MovementTypeNameTableHeader" class="sortable-col">
+                        Movement Type
+                        <span class="sort-arrow" id="sortArrowMovementTypeName"></span>
+                    </th>
+                    <th onclick="orderByTableList('CompanyId', 'CompanyIdTableHeader', 'sortArrowCompanyId')" data-sort="ANY" name="CompanyIdTableHeader" class="sortable-col">
+                        Company
+                        <span class="sort-arrow" id="sortArrowCompanyId"></span>
+                    </th>
+                    <th onclick="orderByTableList('CostCenterCode', 'CostCenterCodeTableHeader', 'sortArrowCostCenterCode')" data-sort="ANY" name="CostCenterCodeTableHeader" class="sortable-col">
+                        Cost Center Code
+                        <span class="sort-arrow" id="sortArrowCostCenterCode"></span>
+                    </th>
+                    <th onclick="orderByTableList('CostCenterName', 'CostCenterNameTableHeader', 'sortArrowCostCenterName')" data-sort="ANY" name="CostCenterNameTableHeader" class="sortable-col">
+                        Cost Center Name
+                        <span class="sort-arrow" id="sortArrowCostCenterName"></span>
+                    </th>
+                    <th onclick="orderByTableList('AccountingAccountCode', 'AccountingAccountCodeTableHeader', 'sortArrowAccountingAccountCode')" data-sort="ANY" name="AccountingAccountCodeTableHeader" class="sortable-col">
+                        Accounting Account Code
+                        <span class="sort-arrow" id="sortArrowAccountingAccountCode"></span>
+                    </th>
+                    <th onclick="orderByTableList('AccountingAccountName', 'AccountingAccountNameTableHeader', 'sortArrowAccountingAccountName')" data-sort="ANY" name="AccountingAccountNameTableHeader" class="sortable-col">
+                        Accounting Account Name
+                        <span class="sort-arrow" id="sortArrowAccountingAccountName"></span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="no-results"></div>
+    </div>
+</div>
+
+<!--CREATE UPDATE POSITION-->
+<div>
+    <partial name="_CreateUpdatePositionModalPartialView" />
+</div> 
+
+<script src="~/js/AdminCenter/ConsultantPositions/consultantPositions.js"></script>
+<script src="~/js/Shared/pagination.js"></script>
+<script src="~/js/Shared/sharedComponents.js"></script>

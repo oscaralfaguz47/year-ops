@@ -45,6 +45,14 @@ namespace OceansApp.Utility.Configuration
                     policy.RequireClaim(AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimType, AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue));
             });
 
+            //ADMIN CENTER - CONSULTANT POSITIONS
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToConsultantPositions", policy =>
+                    policy.RequireClaim(ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType,
+                    ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue));
+            });
+
             //FINANCES
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesFinancesRequirementHandler>();
             services.AddAuthorization(options =>

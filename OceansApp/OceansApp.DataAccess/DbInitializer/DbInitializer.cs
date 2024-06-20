@@ -31,7 +31,7 @@ namespace OceansApp.DataAccess.DbInitializer
             _config = config;
         }
 
-        public void Initialize()
+        public async void Initialize()
         {
             bool isThereNewMigrationToUpdate = false; // False if no migration updates in the DB are needed
             if (isThereNewMigrationToUpdate)
@@ -103,6 +103,27 @@ namespace OceansApp.DataAccess.DbInitializer
 
                     _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
                 }
+
+                //-----------------  COMPANIES  --------------------------------
+
+                List<Company> companiesList = new List<Company>();
+                companiesList.Add(new Company() { CompanyId = "OCE", Name = "Oceans Consulting Firm, S.A"});
+                companiesList.Add(new Company() { CompanyId = "LLC", Name = "OCE LLC" });
+
+                foreach (var company in companiesList)
+                {
+                    var existingCompany = _db.COMPANIES.FirstOrDefault(x => x.Name == company.Name);
+                    if (existingCompany == null)
+                    {
+                        Company companyToCreate = new()
+                        {
+                            CompanyId = company.CompanyId,
+                            Name = company.Name
+                        };
+                        _db.COMPANIES.Add(companyToCreate);
+                    }
+                }
+                _db.SaveChanges();
 
                 //-----------------  CONSULTANT BENEFITS  --------------------------------
 
@@ -311,50 +332,6 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 _db.SaveChanges();
 
-                //-----------------  CONSULTANT POSITIONS  --------------------------------
-
-                List<ConsultantPosition> positionsList = new List<ConsultantPosition>();
-                positionsList.Add(new ConsultantPosition() { Name = "Success Manager", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "CEO", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "CFO", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Recruiting Manager", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Strategy Director", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Recruiter", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Marketing Manager", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "People and Culture", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Gifts Coordinator", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Junior Sales Executive", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Sales Executive", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Payment Assistant", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Financial Assistant", IsAdministrative = true });
-                positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer IT Support", IsAdministrative = true });
-
-                positionsList.Add(new ConsultantPosition() { Name = "Senior Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Full Stack Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Data Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Senior QA Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Mid Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Project Manager", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Team Lead", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "AWS Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "DevOps Engineer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "SRE Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "Mobile Developer", IsAdministrative = false });
-                positionsList.Add(new ConsultantPosition() { Name = "QA Lead", IsAdministrative = false });
-
-                foreach (var conPosition in positionsList)
-                {
-                    if (_db.CONSULTANT_POSITIONS.FirstOrDefault(x => x.Name == conPosition.Name) == null)
-                    {
-                        ConsultantPosition consultantPosition = new()
-                        {
-                            Name = conPosition.Name,
-                            IsAdministrative = conPosition.IsAdministrative
-                        };
-                        _db.CONSULTANT_POSITIONS.Add(consultantPosition);
-                    }
-                }
-                _db.SaveChanges();
 
                 //-----------------  DEFAULT CLIENT FOR ADMINISTRATIVE CONSULTANTS  --------------------------------
 
@@ -439,6 +416,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
+                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Consultant Positions Accounting Configuration" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" });
                 systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Payment Sheets" });
@@ -526,6 +504,10 @@ namespace OceansApp.DataAccess.DbInitializer
                 movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Normal Hours" });
                 movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Flate Rate" });
                 movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Time Worked" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Balance Program" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Oceans Challenge" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Bonusly Rewards" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Interviews" });
 
                 foreach (var movementType in movTypesList)
                 {
@@ -617,6 +599,14 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue,
                     Description = "Acceso a ver y editar los roles y permisos de usuarios",
                     SystemSubAreaId = userRolesPermissionsSubAreaId.SystemSubAreaId
+                });
+                var consultantPositionsAcConSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Positions Accounting Configuration");
+                systemClaimsList.Add(new ApplicationSystemClaim()
+                {
+                    ClaimType = ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType,
+                    ClaimValue = ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue,
+                    Description = "Have access to manage the consultant positions accounting configuration",
+                    SystemSubAreaId = consultantPositionsAcConSubAreaId.SystemSubAreaId
                 });
                 // NOTES FOR ADMIN CENTER PERMISSIONS:
                 // Add every permission to the AnyOfPoliciesAdminCenterRequirementHandler

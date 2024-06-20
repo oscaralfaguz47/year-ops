@@ -45,7 +45,10 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
             else
             {
-                modelState.AddModelError(field, $"The {fieldName} is required.");
+                if (stringToValidate == null)
+                {
+                    modelState.AddModelError(field, $"The {fieldName} is required.");
+                }
             }
         }
         public void ValidateRequiredFieldAnyValue(string field, string fieldName, object valueToValidate, ModelStateDictionary modelState)

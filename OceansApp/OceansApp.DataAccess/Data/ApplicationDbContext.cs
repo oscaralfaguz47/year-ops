@@ -73,6 +73,59 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(rq => rq.ConsultantSeniorityId)
                 .IsRequired();
 
+            // BANK ACCOUNTS
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+            });
+
+            modelBuilder.Entity<BankAccount>()
+                .HasKey(c => new { c.BankAccountId });
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(c => c.CostCenter)
+                .WithMany()
+                .HasForeignKey(c => c.CostCenterId)
+                .IsRequired();
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(c => c.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(c => c.AccountingAccountId)
+                .IsRequired();
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(c => c.BankAccountName)
+                .HasColumnType("varchar(40)");
+            });
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(c => c.BankAccountCode)
+                .HasColumnType("varchar(20)");
+            });
+            modelBuilder.Entity<BankAccount>(entity => 
+            {
+                entity.Property(c => c.IsActive)
+                .HasColumnType("varchar(1)");
+            });
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
+
+            // COMPANIES
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.HasIndex(e => e.CompanyId);
+            });
+            modelBuilder.Entity<Company>()
+                .HasKey(c => new { c.CompanyId });
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
+
             //COST CENTER ACCOUNTING ACCOUNT
             modelBuilder.Entity<CostCenterAccountingAccount>(entity =>
             {
@@ -233,6 +286,61 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<Client>()
                 .Property(p => p.LatePaymentFee)
                 .HasColumnType("decimal(18, 4)");
+
+            // CONSULTANT PAYMENTS
+            modelBuilder.Entity<ConsultantPayment>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantId, e.StartDatePeriod, e.EndDatePeriod });
+
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.UserCreatedBy);
+                entity.HasIndex(e => e.UserLastUpdatedBy);
+                entity.HasIndex(e => e.PaymentMethodId);
+                entity.HasIndex(e => e.BankAccountId);
+            });
+
+            modelBuilder.Entity<ConsultantPayment>()
+                .HasKey(c => new { c.ConsultantPaymentId });
+            modelBuilder.Entity<ConsultantPayment>()
+                .HasOne(cp => cp.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+               .HasOne(p => p.PaymentMethod)
+               .WithMany()
+               .HasForeignKey(p => p.PaymentMethodId)
+               .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+              .HasOne(p => p.ApplicationUserCreatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserCreatedBy)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPayment>()
+              .HasOne(p => p.ApplicationUserUpdatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserLastUpdatedBy)
+              .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConsultantPayment>()
+              .HasOne(p => p.BankAccount)
+              .WithMany()
+              .HasForeignKey(p => p.BankAccountId)
+              .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+                .Property(d => d.StartDatePeriod)                                                               
+                .HasColumnType("date")
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>()
+                .Property(d => d.EndDatePeriod)
+                .HasColumnType("date")
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPayment>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
 
             // CONSULTANT AND POSITIONS
             modelBuilder.Entity<ConsultantAndPosition>()
@@ -447,6 +555,41 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("date")
                 .IsRequired();
 
+            // CONSULTANT POSITIONS ACCOUNTING CONFIGURATION
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.MovementTypeId);
+                entity.HasIndex(e => e.PositionId);
+            });
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasKey(r => new { r.Id });
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasOne(c => c.CostCenter)
+                .WithMany()
+                .HasForeignKey(c => c.CostCenterId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasOne(a => a.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(a => a.AccountingAccountId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .HasOne(r => r.ConsultantPosition)
+                .WithMany()
+                .HasForeignKey(r => r.PositionId)
+                .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+               .HasOne(m => m.MovementType)
+               .WithMany()
+               .HasForeignKey(m => m.MovementTypeId)
+               .IsRequired();
+            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
+                .Property(d => d.CompanyId)
+                .HasColumnType("varchar")
+                .IsRequired();
+
             // REPORTING MY TIME MOVEMENTS
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
             {
@@ -526,8 +669,6 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.TransactionStatusId);
-
-                // Índices en fechas
                 entity.HasIndex(e => e.SubmissionDate);
                 entity.HasIndex(e => e.LastSubmissionDate);
             });
@@ -732,11 +873,13 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ApplicationRoleClaim> ApplicationRoleClaims { get; set; }
         public DbSet<ApplicationUserClaim> ApplicationUserClaims { get; set; }
         public DbSet<ApplicationSystemClaim> APPLICATION_SYSTEM_CLAIMS { get; set; }
+        public DbSet<BankAccount> BANK_ACCOUNTS { get; set; }
         public DbSet<CalculatorGlobalConfiguration> CALCULATOR_GLOBAL_CONFIGURATIONS { get; set; }
         public DbSet<CalculatorCostCenterIncreaseConfiguration> CALCULATOR_COST_CENTER_INCREASE_CONFIGURATIONS { get; set; }
         public DbSet<CalculatorSearchHistory> CALCULATOR_SEARCH_HISTORY { get; set; }
         public DbSet<CalculatorAccountingAccountToIgnore> CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE { get; set; }
         public DbSet<Client> CLIENT { get; set; }
+        public DbSet<Company> COMPANIES { get; set; }
         public DbSet<ProviderCategory> PROVIDER_CATEGORY { get; set; }
         public DbSet<Provider> PROVIDER { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
@@ -745,6 +888,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
+        public DbSet<ConsultantPayment> CONSULTANT_PAYMENTS{ get; set; }
         public DbSet<ConsultantPosition> CONSULTANT_POSITIONS { get; set; }
         public DbSet<ConsultantAndPosition> CONSULTANTS_AND_POSITIONS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
@@ -755,6 +899,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantBenefitCompany> CONSULTANT_BENEFIT_COMPANIES { get; set; }
         public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
+        public DbSet<ConsultantPositionAccountingConfiguration> CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
         public DbSet<Partner> PARTNERS { get; set; }
