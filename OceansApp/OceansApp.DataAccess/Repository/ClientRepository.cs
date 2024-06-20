@@ -7,7 +7,6 @@ using OceansApp.Models.ViewModels.Clients;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using System.Data;
-using System.Linq;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -49,6 +48,23 @@ namespace OceansApp.DataAccess.Repository
             var connection = _db.Database.GetDbConnection();
             var results = await connection.QueryAsync<GetDataForSelectVM>("SP_GetAllClientsForSelect", commandType: CommandType.StoredProcedure);
             return results.ToList();
+        }
+
+        public async Task<List<GetDataForSelectVM>> GetAllActiveClientsForSelectAsync()
+        {
+            var results = await _db.CLIENT.Where(x => x.IsActive == "S").ToListAsync();
+            List<GetDataForSelectVM> clientsList = new List<GetDataForSelectVM>();
+
+            foreach(var client in results)
+            {
+                GetDataForSelectVM clientToAdd = new GetDataForSelectVM()
+                {
+                    Text = client.Name,
+                    Value = client.ClientId
+                };
+                clientsList.Add(clientToAdd);
+            }
+            return clientsList;
         }
         public async Task<CreateUpdateClientVM> GetClientById(int clientId)
         {

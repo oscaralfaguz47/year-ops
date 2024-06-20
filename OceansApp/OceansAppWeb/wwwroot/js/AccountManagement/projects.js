@@ -323,7 +323,7 @@ async function createUpdateProject(modalId) {
         });
 }
 async function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
-    fillClientsSelectForFilters(selectElement, firstOption);
+    fillActiveClientsSelectForFilters(selectElement, firstOption);
     selectElement.onchange = function () {
         displaySpinner();
         let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;

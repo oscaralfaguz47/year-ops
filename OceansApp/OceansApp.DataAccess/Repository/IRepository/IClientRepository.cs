@@ -10,6 +10,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<(List<ClientsGetAllWithFiltersVM> clients, int totalCount)> GetAllClientsWithFiltersAsync(ClientsPaginationFiltersVM filtersAndPagination);
         Task<List<GetDataForSelectVM>> GetAllClientsForSelectAsync();
+        Task<List<GetDataForSelectVM>> GetAllActiveClientsForSelectAsync();
         Task<CreateUpdateClientVM> GetClientById(int clientId);
         Task<GetUsersSelectVM> GetSuccessManagerIdAndNameByClientId(int clientId);
         void Update(Client obj);

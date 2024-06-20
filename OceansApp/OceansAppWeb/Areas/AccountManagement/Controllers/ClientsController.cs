@@ -120,6 +120,24 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToClientsListForSelect")]
+        [HttpGet("GetAllActiveClientsListForSelect")]
+        public async Task<IActionResult> GetAllActiveClientsListForSelect()
+        {
+            try
+            {
+                var clients = await _unitOfWork.Client.GetAllActiveClientsForSelectAsync();
+                return Ok(new
+                {
+                    Clients = clients
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
         [Authorize(Policy = "AccessToClientsPage")]
         [HttpGet("GetClientDataById")]
         public async Task<IActionResult> GetClientDataById(int clientId)

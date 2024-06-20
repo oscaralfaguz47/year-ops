@@ -14,12 +14,46 @@
             validateSessionExpiration(error.message);
         });
 }
+
+async function getActiveClientsList() {
+    var url = "/AccountManagement/Clients/GetAllActiveClientsListForSelect";
+    return fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    displayToasterError(errorData.error);
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                });
+            }
+        }).catch(error => {
+            validateSessionExpiration(error.message);
+        });
+}
 function fillClientsSelectForFilters(selectElement, firstOption) {
     if (selectElement.length > 1) {
         return;
     }
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     getClientsList()
+        .then(data => {
+            selectElement.innerHTML = '<option value="null">-' + firstOption + '-</option>';
+            data.clients.forEach(obj => {
+                selectElement.add(new Option(obj.text, obj.value));
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching clients:', error);
+        });
+}
+
+function fillActiveClientsSelectForFilters(selectElement, firstOption) {
+    if (selectElement.length > 1) {
+        return;
+    }
+    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
+    getActiveClientsList()
         .then(data => {
             selectElement.innerHTML = '<option value="null">-' + firstOption + '-</option>';
             data.clients.forEach(obj => {
