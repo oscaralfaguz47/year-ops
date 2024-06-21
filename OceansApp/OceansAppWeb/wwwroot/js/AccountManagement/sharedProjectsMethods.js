@@ -399,7 +399,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
                 if (count === 0) {
                     firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${clientRateLabel}`;
                 } else if (count === 1) {
-                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
+                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>`;
                 } else if (count === 2) {
                     firstRow += `, ${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Third Party Salary: ' + obj.newValue : ''}`;
                 }
