@@ -13,6 +13,7 @@
 .no-actions-div {
     padding: 2px 8px;
     font-weight: bold;
+    color: #01bfb7;
 }
 .action-btns-box button {
     border: none;
@@ -33,5 +34,5 @@
     background-color: red;
 }
 .review-btn {
-    background-color: #2aa7ff;
+    background-color: #eeb30f;
 }

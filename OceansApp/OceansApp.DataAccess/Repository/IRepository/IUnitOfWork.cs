@@ -24,6 +24,7 @@
         IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; }
         IConsultantDetailRepository ConsultantDetail { get; }
         IConsultantHolidayRepository ConsultantHoliday { get; }
+        IConsultantPaymentRepository ConsultantPayment { get; }
         IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; }
         IConsultantPositionRepository ConsultantPosition { get; }
         IConsultantRoleRepository ConsultantRole { get; }

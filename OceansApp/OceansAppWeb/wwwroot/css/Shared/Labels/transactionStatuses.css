@@ -1,16 +1,36 @@
-﻿/* LABELS */
+﻿.status-img {
+    width: 20px;
+    margin-right: 5px;
+}
+.cel-status{
+    font-weight: bold;
+}
+.rejected-label {
+    color: #970f15;
+}
+.approved-label{
+    color: #01bfb7;
+}
+.sending-to-paid-label{
+    color: #058993;
+}
 .blueLight-lable {
     color: #2aa7ff;
 }
-
-.gray-lable {
-    color: #9ba8b8;
+.waiting-label {
+    color: #eeb30f;
 }
 
 .paid-label {
-    color: #076862;
+    color: #232323;
 }
 
-.orange-label {
-    color: #F19209;
+.accounted-label {
+    color: #9ba8b8;
+}
+.done-label{
+    color: #a5d92c;
+}
+.pending-label{
+    color: #d70b00;
 }
