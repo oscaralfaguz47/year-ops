@@ -156,6 +156,25 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToAllConsultantPositionsList")]
+        [HttpGet("GetConsultantPositionsByConsultantId")]
+        public async Task<IActionResult> GetConsultantPositionsByConsultantId(int consultantId)
+        {
+            try
+            {
+                var positionsList = await _unitOfWork.ConsultantPosition.GetPositionsByConsultantIdAsync(consultantId);
+
+                return Ok(new
+                {
+                    Positions = positionsList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
         [HttpPost("CreateUpdateConsultantPosition")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateConsultantPosition([FromBody] CreateUpdateConsultantPositionVM positionConfitData)

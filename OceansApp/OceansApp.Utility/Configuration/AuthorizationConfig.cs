@@ -248,7 +248,9 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
                         && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
-                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ProjectsClaimsCD.Projects_Page_ClaimType && claim.Value ==
+                        ProjectsClaimsCD.Projects_Page_ClaimValue)));
             });
             services.AddAuthorization(options =>
             {

@@ -76,6 +76,7 @@ async function displayAddUpdateConsultant(modalId, id) {
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     createUpdateForm.find('[name="isDefaultProject"]').prop('disabled', false);
     validateRatesInputs();
+    
     document.getElementById('search-input-cont').style.display = 'block';
     var clientRateSection = document.getElementById("client-rate-section");
     var clientRateInputs = document.getElementById("client-rate-inputs");
@@ -85,6 +86,10 @@ async function displayAddUpdateConsultant(modalId, id) {
     } else {
         clientRateSection.style.display = 'none';
         clientRateInputs.style.display = 'none';
+    }
+
+    if (id == null) {
+        createUpdateForm.find('[name="position"]').prop('disabled', true);
     }
 
     if (id !== null) {
@@ -106,9 +111,11 @@ async function displayAddUpdateConsultant(modalId, id) {
                 }
             })
             .then(data => {
+                console.log(data);
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.consultantAssignation.consultantName);
                 document.getElementById('consultantEmailInput').value = data.consultantAssignation.email;
-                createUpdateForm.find('[name="positionDetail"]').val(data.consultantAssignation.positionDetail);
+                let positionSelect = document.getElementById('positionSelect');
+                fillPositionsSelect(positionSelect, data.consultantAssignation.consultantId, data.consultantAssignation.positionId);
 
                 if (data.consultantAssignation.hourlyClientRate !== 0) document.getElementsByName('client-rate-model')[0].checked = true;
                 if (data.consultantAssignation.monthlyClientRate !== 0) document.getElementsByName('client-rate-model')[1].checked = true;
@@ -120,7 +127,6 @@ async function displayAddUpdateConsultant(modalId, id) {
                     data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[1].checked = true;
                 if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary === 0 &&
                     data.consultantAssignation.hourlySalary === 0)) document.getElementsByName('consultant-payment-model')[2].checked = true;
-                console.log(data);
                 validateRatesInputs();
                 createUpdateForm.find('[name="monthlyClientRate"]').val(data.consultantAssignation.monthlyClientRate);
                 createUpdateForm.find('[name="hourlyClientRate"]').val(data.consultantAssignation.hourlyClientRate);
@@ -144,23 +150,45 @@ async function displayAddUpdateConsultant(modalId, id) {
         showModal(modalId);
     }
 }
+
+// FILL POSITIONS LIST
+async function fillPositionsSelect(selectElement, consultantId, selectedValue) {
+    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
+    getPositionsByConsultantIdList(consultantId)
+        .then(data => {
+            selectElement.innerHTML = '';
+            selectElement.innerHTML = '<option value="">-Select a Position-</option>';
+            data.positions.forEach(obj => {
+                var option = new Option(obj.positionName, obj.consultantPositionId);
+                selectElement.add(option);
+                selectElement.disabled = false;
+            });
+            if (selectedValue !== null) {
+                selectElement.value = selectedValue;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching:', error);
+        });
+}
+
 //ADD CONSULTANT TO PROJECT 
 function addConsultantToProject(modalId) {
-    var projectConsultantAssignedValue = createUpdateForm.find('[name="proConsAssignedId"]').val();
-    var hourlyClientRateValue = createUpdateForm.find('[name="hourlyClientRate"]').val();
-    var monthlyClientRateValue = createUpdateForm.find('[name="monthlyClientRate"]').val();
-    var hourlyConsultantRateValue = createUpdateForm.find('[name="hourlySalary"]').val();
-    var monthlyConsultantRateValue = createUpdateForm.find('[name="monthlySalary"]').val();
-    var thirdPartyConsultantSalaryValue = createUpdateForm.find('[name="thirdPartySalary"]').val();
-    var clientRateMethodRb = document.querySelector('input[name="client-rate-model"]:checked').value;
-    var consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
-    var positionDetailValue = createUpdateForm.find('[name="positionDetail"]').val();
-    var actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
-    var isBillableValue = document.getElementById("IsBillable").value;
-    var isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
-    var accessToTrackingToolVal = createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked');
-    var isDefaultProjectVal = createUpdateForm.find('[name="isDefaultProject"]').prop('checked');
-    var consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
+    let projectConsultantAssignedValue = createUpdateForm.find('[name="proConsAssignedId"]').val();
+    let hourlyClientRateValue = createUpdateForm.find('[name="hourlyClientRate"]').val();
+    let monthlyClientRateValue = createUpdateForm.find('[name="monthlyClientRate"]').val();
+    let hourlyConsultantRateValue = createUpdateForm.find('[name="hourlySalary"]').val();
+    let monthlyConsultantRateValue = createUpdateForm.find('[name="monthlySalary"]').val();
+    let thirdPartyConsultantSalaryValue = createUpdateForm.find('[name="thirdPartySalary"]').val();
+    let clientRateMethodRb = document.querySelector('input[name="client-rate-model"]:checked').value;
+    let consultantRateMethodRb = document.querySelector('input[name="consultant-rate-model"]:checked').value;
+    let positionIdValue = createUpdateForm.find('[name="position"]').val();
+    let actionDateValue = createUpdateForm.find('[name="actionDate"]').val();
+    let isBillableValue = document.getElementById("IsBillable").value;
+    let isMonthlySalaryCalculatedPerHourVal = createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
+    let accessToTrackingToolVal = createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked');
+    let isDefaultProjectVal = createUpdateForm.find('[name="isDefaultProject"]').prop('checked');
+    let consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
     
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
@@ -168,9 +196,10 @@ function addConsultantToProject(modalId) {
         modelState = false;
         displayToasterWarning('You must search and select a Consultant.');
     }
-    if (positionDetailValue.length === 0) {
+
+    if (positionIdValue === null || positionIdValue === '') {
         modelState = false;
-        displayToasterWarning('The Position Description is required.');
+        displayToasterWarning('The Position is required.');
     }
 
     if (isBillableValue === "true" && (Number(hourlyClientRateValue) === 0 && clientRateMethodRb === 'H')) {
@@ -216,7 +245,7 @@ function addConsultantToProject(modalId) {
                 MonthlyClientRate: Number(monthlyClientRateValue),
                 MonthlySalary: Number(monthlyConsultantRateValue),
                 MonthlySalaryThirdParty: Number(thirdPartyConsultantSalaryValue),
-                PositionDetail: positionDetailValue,
+                PositionId: positionIdValue,
                 ActionDate: actionDateValue ? actionDateValue.toString() : null,
                 IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal),
                 AccessToTrackingTool: Boolean(accessToTrackingToolVal),
@@ -261,12 +290,6 @@ function addConsultantToProject(modalId) {
         }
     }
 }
-// INPUT VALIDATIONS
-document.getElementById('positionDetail').addEventListener('input', function (e) {
-    if (this.value.length > 130) {
-        this.value = this.value.slice(0, 130);
-    }
-});
 
 document.addEventListener("DOMContentLoaded", function () {
     validateInputTypeNumber('monthlyClientRate');
@@ -345,7 +368,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
             if (obj.action === 'Consultant Assigned First Time') {
                 actionIcon = '<i class="bi bi-plus-square green-label"></i>';
                 titleLabelClass = 'consultant-added';
-            } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated' || obj.action === 'Position Details updated'
+            } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated'
                 || obj.action === 'Consultant pricing method updated (Hourly)' || obj.action === 'Client pricing method updated (Monthly)'
                 || obj.action === 'Monthly Client Rate updated' || obj.action === 'Hourly Salary updated' || obj.action === 'Consultant pricing method updated (Monthly)'
                 || obj.action === 'Client pricing method updated (Hourly)' || obj.action === 'Third Party Salary updated') {
@@ -374,7 +397,7 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
                 } else if (count === 1) {
                     firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>, `;
                 } else if (count === 2) {
-                    firstRow += `Position: <strong>${obj.newValueDetail}</strong>, ${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Third Party Salary: ' + obj.newValue : ''}`;
+                    firstRow += `, ${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Third Party Salary: ' + obj.newValue : ''}`;
                 }
                 else if (count === 3) {
                     firstRow += `${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Third Party Salary: ' + '<strong>$' + obj.newValue + '</strong>,' : ''}`;
@@ -386,10 +409,8 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
             } else {
                 if (obj.action !== "Consultant pricing method updated (Hourly)" && obj.action !== "Consultant pricing method updated (Monthly)"
                     && obj.action !== "Client pricing method updated (Monthly)" && obj.action !== "Client pricing method updated (Hourly)"
-                    && obj.action !== "Position Details updated" && obj.action !== "Consultant Deactivated" && obj.action !== "Consultant Activated") {
+                    && obj.action !== "Consultant Deactivated" && obj.action !== "Consultant Activated") {
                     row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): Old Value: <strong>$${obj.oldValue}</strong>, New value: <strong>$${obj.newValue}</strong>. Updated by: ${obj.userActionedBy}.</li>`;
-                } else if (obj.action === "Position Details updated") {
-                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): Old Value: <strong>${obj.oldValueDetail}</strong>, New value: <strong>${obj.newValueDetail}</strong>. Updated by: ${obj.userActionedBy}.</li>`;
                 } else {
                     row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}). Updated by: ${obj.userActionedBy}.</li>`;
                 }
@@ -508,6 +529,8 @@ async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, 
                     document.getElementById(consultantNameInput).value = item.consultantName;
                     document.getElementById(consultantEmailInput).value = item.email;
                     hideConsultantResultsD();
+                    let positionSelect = document.getElementById('positionSelect');
+                    fillPositionsSelect(positionSelect, item.consultantId, null);
                 };
                 resultList.appendChild(listItem);
             }

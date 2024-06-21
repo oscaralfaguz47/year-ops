@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace OceansApp.Models.Models
@@ -13,5 +14,6 @@ namespace OceansApp.Models.Models
         public string Name { get; set; }
         [Required]
         public bool IsAdministrative { get; set; }
+
     }
 }

@@ -7,6 +7,7 @@ using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPositions;
 using System.Data;
 
+
 namespace OceansApp.DataAccess.Repository
 {
     public class ConsultantPositionRepository : Repository<ConsultantPosition>, IConsultantPositionRepository
@@ -178,10 +179,17 @@ namespace OceansApp.DataAccess.Repository
             return positionsToReturn;
         }
 
-        public void Update(ConsultantPosition obj)
+        public async Task<List<GetConsultantPostionsForSelectVM>> GetPositionsByConsultantIdAsync(int consultantId)
         {
-            _db.CONSULTANT_POSITIONS.Update(obj);
-        }
+            var connection = _db.Database.GetDbConnection();
 
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId, DbType.Int32);
+
+            var results = await connection.QueryAsync<GetConsultantPostionsForSelectVM>("SP_CONSULTANT_POSITIONS_GetPositionsByConsultantId", parameters, commandType: CommandType.StoredProcedure);
+            var positions = results.ToList();
+
+            return positions;
+        }
     }
 }

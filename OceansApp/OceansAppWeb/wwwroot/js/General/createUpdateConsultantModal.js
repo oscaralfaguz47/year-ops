@@ -2,9 +2,7 @@
     if (select.length > 1) {
         return;
     }
-    const nullOption = document.createElement('option');
-    nullOption.textContent = '-Select a year-';
-    select.appendChild(nullOption);
+
     for (let year = 2024; year <= 2040; year++) {
         const option = document.createElement('option');
         option.value = year;
@@ -92,7 +90,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 var partnerSelect = otherConfigForm.find('[name="idPartner"]');
                 partnerSelect.html('<option value="' + (data.consultantData.partnerId === null ? '' : data.consultantData.partnerId)
                     + '">' + (data.consultantData.partnerName === null ? '-Select a partner-' : data.consultantData.partnerName) + '</option>');
-                console.log(data.consultantData);
                 showModal(modalId);
             })
             .catch(error => {
@@ -169,7 +166,7 @@ async function createUpdateConsultant(modalId) {
         UserRole: userRoleData,
         Positions: positionsData
     };
-    console.log(data);
+
     fetch('/General/Consultants/CreateUpdateConsultant', {
         method: 'POST',
         headers: {

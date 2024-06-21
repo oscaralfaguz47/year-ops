@@ -19,24 +19,25 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-6">
-                            <label>Consultant Name</label>
+                            <label>Consultant Name <span class="required-asterisk">*</span></label>
                             <div class="input-container">
                                 <input disabled type="text" class="form-control" name="consultantNameInput" id="consultantNameInput">
                             </div>
                         </div>
                         <div class="col-lg-6">
-                            <label>Consultant Email</label>
+                            <label>Consultant Email <span class="required-asterisk">*</span></label>
                             <div class="input-container">
                                 <input disabled type="text" class="form-control" id="consultantEmailInput">
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <label>Position description</label>
-                            <div class="input-container">
-                                <input placeholder="Enter a position description (Full Stack Developer)" type="text" class="form-control" name="positionDetail" id="positionDetail">
-                            </div>
+                    <div class="row mb-2">
+                        <div class="col-lg-6">
+                            <label>Position <span class="required-asterisk">*</span></label>
+                            <span class="arrow-down"></span>
+                            <select class="form-select" name="position" id="positionSelect">
+                                <option value="">-First select a Consultant-</option>
+                            </select>
                         </div>
                     </div>
 
@@ -56,13 +57,13 @@
                     <div class="row">
                         <div id="client-rate-inputs">
                             <div class="col-md-6" id="monthlyClientRateEl">
-                                <label for="PaymentCondition">Monthly Client Rate</label>
+                                <label for="PaymentCondition">Monthly Client Rate <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
                                     <input placeholder="$$$" type="number" class="form-control" step="0.01" name="monthlyClientRate" id="monthlyClientRate">
                                 </div>
                             </div>
                             <div class="col-md-6" id="hourlyClientRateEl">
-                                <label for="PaymentCondition">Hourly Client Rate</label>
+                                <label for="PaymentCondition">Hourly Client Rate <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
                                     <input placeholder="$$$" type="number" class="form-control" step="0.01" name="hourlyClientRate" id="hourlyClientRate">
                                 </div>
@@ -103,7 +104,7 @@
                     <div class="row">
                         <div style="display: flex" id="oceans-payment-section">
                             <div class="col-md-6" id="monthlyConsultantSalaryEl">
-                                <label for="PaymentCondition">Monthly Consultant Salary - Oceans</label>
+                                <label for="PaymentCondition">Monthly Consultant Salary - Oceans <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
                                     <input placeholder="$$$" type="number" class="form-control" step="0.01" name="monthlySalary" id="monthlySalary">
                                 </div>
@@ -123,7 +124,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6" id="hourlyConsultantSalaryEl">
-                                <label for="PaymentCondition">Hourly Consultant Salary - Oceans</label>
+                                <label for="PaymentCondition">Hourly Consultant Salary - Oceans <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
                                     <input placeholder="$$$" type="number" class="form-control" step="0.01" name="hourlySalary" id="hourlySalary">
                                 </div>
@@ -131,7 +132,7 @@
                         </div>
                         <div style="display:flex">
                             <div class="col-md-6" id="thirdPartyConsultantSalaryEl">
-                                <label for="PaymentCondition">Consultant Monthly Salary - Third Party</label>
+                                <label for="PaymentCondition">Consultant Monthly Salary - Third Party <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
                                     <input placeholder="$$$" type="number" class="form-control" step="0.01" name="thirdPartySalary" id="thirdPartySalary">
                                 </div>
@@ -158,7 +159,7 @@
                         </div>
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="StartDate">Action Date</label> <div class="tooltip-container ">
+                                <label for="StartDate">Action Date</label> <span class="required-asterisk">*</span> <div class="tooltip-container ">
                                     <i class="bi bi-question-circle tooltip-target"></i>
                                     <div class="tooltip-content">
                                         <div class="tooltip-arrow"></div>
@@ -189,3 +190,4 @@
 
 <script src="~/js/AccountManagement/sharedProjectsMethods.js"></script>
 <script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
+<script src="~/js/AdminCenter/ConsultantPositions/consultantPositionsFillDropdowns.js"></script>

@@ -135,6 +135,7 @@ async function displayUpdateModal(modalId, id) {
                 }
             })
             .then(data => {
+                console.log(data);
                 consultantsAssignedSection.style.display = 'block';
                 createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
                 createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
@@ -176,7 +177,7 @@ async function displayUpdateModal(modalId, id) {
                 createUpdateForm.find('[name="clientHasTrackingTool"]').prop('checked', data.projectData.clientHasTrackingTool);
 
                 data.projectData.assignedConsultants.forEach(function (item, index, arr) {
-                    addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionDetail,
+                    addNewConsultantRow(item.consultantName, item.projectConsultantAssignedId, item.consultantId, item.positionId,
                         item.hourlyClientRate, item.monthlyClientRate, item.hourlySalary, item.monthlySalary, item.statusAction, null,
                         null, data.allowedManageAdminConsultants, item.userCategoryName, data.projectData.projectId, item.MonthlySalaryThirdParty);
                 });
@@ -232,7 +233,7 @@ async function createUpdateProject(modalId) {
     consultantsData = Array.from(consultantsElements).map(function (fila) {
         var projectConsultantAssignedId = fila.querySelector('[name="projectConsultantAssignedId"]').value ? fila.querySelector('[name="projectConsultantAssignedId"]').value : null;
         var consultantId = fila.querySelector('[name="consultantIdCreateProject"]').value;
-        var positionDetail = fila.querySelector('[name="positionDetailCreateProject"]').value;
+        var positionId = fila.querySelector('[name="positionIdCreateProject"]').value === '' ? null : Number(fila.querySelector('[name="positionIdCreateProject"]').value);
         var hourlyClientRateCreateProject = fila.querySelector('[name="hourlyClientRateCreateProject"]').value;
         var monthlyClientRateCreateProject = fila.querySelector('[name="monthlyClientRateCreateProject"]').value;
         var hourlySalaryCreateProject = fila.querySelector('[name="hourlySalaryCreateProject"]').value;
@@ -253,7 +254,7 @@ async function createUpdateProject(modalId) {
             IsMonthlySalaryCalculatedPerHour: Boolean(monthlySalaryCalculatedPerHourInput.value === "true"),
             AccessToTrackingTool: Boolean(accessToTrackingToolInput.value === "true"),
             IsDefaultProject: Boolean(isDefaultProjectInput.value === "true"),
-            PositionDetail: positionDetail,
+            PositionId: positionId,
             ActionDate: actionDateCreateProject ? actionDateCreateProject.toString() : null
         };
     });
@@ -272,6 +273,7 @@ async function createUpdateProject(modalId) {
         AssignedConsultants: consultantsData,
         ProjectType: projectTypeValue
     };
+    console.log(data);
     fetch('/AccountManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
@@ -359,7 +361,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var consultantProjectAssignedId = createUpdateConsultantForm.find('[name="proConsAssignedId"]').val();
     var consultantIdValue = createUpdateConsultantForm.find('[name="consultantIdFromSearch"]').val();
     var consultantNameValue = createUpdateConsultantForm.find('[name="consultantNameInput"]').val();
-    var positionDetailValue = createUpdateConsultantForm.find('[name="positionDetail"]').val();
+    var positionIdValue = createUpdateConsultantForm.find('[name="position"]').val();
     var hourlyClientRateValue = createUpdateConsultantForm.find('[name="hourlyClientRate"]').val();
     var monthlyClientRateValue = createUpdateConsultantForm.find('[name="monthlyClientRate"]').val();
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
@@ -371,12 +373,12 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var monthlySalaryCalculatedPerHourValue = createUpdateConsultantForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked');
 
     if (consultantProjectAssignedId === "") {
-        addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionDetailValue,
+        addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionIdValue,
             hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null,
             actionDateValue, monthlySalaryCalculatedPerHourValue, null, null, null, monthlyConsultantThirdPartyValue,
             accessToTrackingToolValue, isDefaultProjectValue)
     } else {
-        document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionDetailValue;
+        document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionIdValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
         document.getElementById('monthlyClientRate-' + consultantProjectAssignedId).value = monthlyClientRateValue;
         document.getElementById('hourlySalary-' + consultantProjectAssignedId).value = hourlyConsultantRateValue;
@@ -384,7 +386,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     }
     hideModal(modalId);
 }
-function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionDetail, hourlyClientRate, monthlyClientRate,
+function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionId, hourlyClientRate, monthlyClientRate,
     hourlyConsultantSalary, monthlyConsultantSalary, statusAction, actionDate, monthlySalaryCalculatedPerHour, allowedMAdminConsultants,
     userCategoryName, projectId, monthlySalaryThirdParty, accessToTrackingToolValue, isDefaultProject) {
     // Create new row
@@ -483,9 +485,9 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     row.appendChild(spanElement);
 
     var positionDetailInput = document.createElement("input");
-    positionDetailInput.value = positionDetail;
+    positionDetailInput.value = positionId;
     positionDetailInput.id = `positionDetail-${consProjAssId}`;
-    positionDetailInput.name = "positionDetailCreateProject";
+    positionDetailInput.name = "positionIdCreateProject";
     positionDetailInput.type = "hidden";
     row.appendChild(positionDetailInput);
 

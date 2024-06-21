@@ -207,7 +207,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                             validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultant.ActionDate, ModelState);
                         }
                         validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", consultant.ConsultantId, ModelState);
-                        validateInputs.ValidateRequiredAndStringLength("PositionDetail", "Position Description", consultant.PositionDetail, 130, ModelState);
+                        validateInputs.ValidateRequiredFieldIntType("PositionId", "Position", consultant.PositionId, ModelState);
                     }
                 }
 
@@ -293,7 +293,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
 
                 validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultantParametersData.ActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("ProjectConsultantAssignedId", "Project Consultant Assigned Id", consultantParametersData.ProjectConsultantAssignedId, ModelState);
-                validateInputs.ValidateNotRequiredAndStringLength("PositionDetail", "Position Description", consultantParametersData.PositionDetail, 130, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("PositionId", "Position", consultantParametersData.PositionId, ModelState);
 
                 if (ModelState.IsValid)
                 {

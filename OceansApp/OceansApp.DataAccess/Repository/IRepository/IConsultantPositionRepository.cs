@@ -12,6 +12,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> CreatePositionAsync(CreateUpdateConsultantPositionVM positionConfigData);
         Task<MethodResponse> UpdatePositionAsync(CreateUpdateConsultantPositionVM positionConfigData);
         Task<List<GetDataForSelectVM>> GetPositionsByIsAdministrative(bool isAdministrative);
-        void Update(ConsultantPosition obj);
+        Task<List<GetConsultantPostionsForSelectVM>> GetPositionsByConsultantIdAsync(int consultantId);
     }
 }

@@ -6,8 +6,6 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Projects;
 using System.Data;
-using System.Reflection.Metadata;
-
 namespace OceansApp.DataAccess.Repository
 {
     public class ProjectRepository : Repository<Project>, IProjectRepository
@@ -185,7 +183,7 @@ namespace OceansApp.DataAccess.Repository
                                 MonthlyClientRate = consultant.MonthlyClientRate,
                                 MonthlySalary = consultant.MonthlySalary,
                                 MonthlySalaryThirdParty = consultant.MonthlySalaryThirdParty,
-                                PositionDetail = consultant.PositionDetail,
+                                PositionId = consultant.PositionId,
                                 IsMonthlySalaryCalculatedPerHour = consultant.IsMonthlySalaryCalculatedPerHour,
                                 AccessToTrackingTool = consultant.AccessToTrackingTool,
                                 IsDefaultProject = defaultProject
@@ -243,8 +241,7 @@ namespace OceansApp.DataAccess.Repository
                                     ActionId = action.ActionId,
                                     ActionDate = DateTime.Parse(consultant.ActionDate),
                                     CreationDate = DateTime.UtcNow,
-                                    UserActionedBy = userActionedBy.ConsultantId,
-                                    NewValueDetail = consultant.PositionDetail
+                                    UserActionedBy = userActionedBy.ConsultantId
                                 };
                                 await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyDetail);
                                 if (consultant.MonthlySalaryThirdParty > 0)
@@ -295,19 +292,6 @@ namespace OceansApp.DataAccess.Repository
 
                 var historyToSaveList = new List<ProjectConsultantAssignedHistory>();
 
-                if (existingConsultantAssignation.PositionDetail != consultantAssignationData.PositionDetail)
-                {
-                    var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Position Details updated");
-                    var newHistory = new ProjectConsultantAssignedHistory();
-                    newHistory.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
-                    newHistory.ActionDate = DateTime.Parse(consultantAssignationData.ActionDate);
-                    newHistory.CreationDate = DateTime.UtcNow;
-                    newHistory.UserActionedBy = userActionedBy.ConsultantId;
-                    newHistory.ActionId = action.ActionId;
-                    newHistory.NewValueDetail = consultantAssignationData.PositionDetail;
-                    newHistory.OldValueDetail = existingConsultantAssignation.PositionDetail;
-                    historyToSaveList.Add(newHistory);
-                }
                 if (existingConsultantAssignation.HourlyClientRate != consultantAssignationData.HourlyClientRate)
                 {
                     var action = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.FirstOrDefaultAsync(x => x.Name == "Hourly Client Rate updated");
@@ -431,7 +415,7 @@ namespace OceansApp.DataAccess.Repository
                     existingConsultantAssignation.IsDefaultProject = true;
                 }
 
-                existingConsultantAssignation.PositionDetail = consultantAssignationData.PositionDetail;
+                existingConsultantAssignation.PositionId = consultantAssignationData.PositionId;
                 existingConsultantAssignation.MonthlyClientRate = consultantAssignationData.MonthlyClientRate;
                 existingConsultantAssignation.HourlyClientRate = consultantAssignationData.HourlyClientRate;
                 existingConsultantAssignation.MonthlySalary = consultantAssignationData.MonthlySalary;

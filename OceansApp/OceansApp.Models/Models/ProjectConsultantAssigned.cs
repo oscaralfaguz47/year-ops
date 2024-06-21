@@ -25,13 +25,14 @@ namespace OceansApp.Models.Models
         public bool? IsMonthlySalaryCalculatedPerHour { get; set; }
         public bool? AccessToTrackingTool { get; set; }
         public bool IsDefaultProject { get; set; }
-        [Required]
-        [MaxLength(130)]
-        public string PositionDetail { get; set; }
+        public int? PositionId { get; set; }
+
 
         [ValidateNever]
         public ConsultantDetail ConsultantDetail { get; set; }
         [ValidateNever]
         public Project Project { get; set; }
+        [ValidateNever]
+        public ConsultantPosition ConsultantPosition { get; set; }
     }
 }

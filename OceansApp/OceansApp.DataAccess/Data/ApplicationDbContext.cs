@@ -383,6 +383,7 @@ namespace OceansApp.DataAccess.Data
                 .Property(d => d.Date)
                 .HasColumnType("date")
                 .IsRequired();
+
             // LEDGER MOVEMENT
             modelBuilder.Entity<LedgerMovement>(entity =>
             {
@@ -440,6 +441,7 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(p => p.SuccessManagerId)
                 .IsRequired();
+
             // PROJECTS CONSULTANTS ASSIGNED
             modelBuilder.Entity<ProjectConsultantAssigned>(entity =>
             {
@@ -449,6 +451,7 @@ namespace OceansApp.DataAccess.Data
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.PositionId);
 
                 // Indexes for columns
                 entity.HasIndex(e => e.IsMonthlySalaryCalculatedPerHour);
@@ -470,6 +473,11 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(cd => cd.ConsultantId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ProjectConsultantAssigned>()
+               .HasOne(p => p.ConsultantPosition)
+               .WithMany()
+               .HasForeignKey(p => p.PositionId);
+
             // PROJECTS CONSULTANTS ASSIGNED HISTORY
             modelBuilder.Entity<ProjectConsultantAssignedHistory>(entity =>
             {
