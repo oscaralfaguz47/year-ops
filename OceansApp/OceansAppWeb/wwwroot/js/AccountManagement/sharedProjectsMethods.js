@@ -87,9 +87,13 @@ async function displayAddUpdateConsultant(modalId, id) {
         clientRateSection.style.display = 'none';
         clientRateInputs.style.display = 'none';
     }
+    let positionIdSelect = createUpdateForm.find('[name="position"]');
+    positionIdSelect.empty();
+    let newOption = new Option('-First select a Consultant-', '');
+    positionIdSelect.append(newOption);
 
     if (id == null) {
-        createUpdateForm.find('[name="position"]').prop('disabled', true);
+        positionIdSelect.prop('disabled', true);
     }
 
     if (id !== null) {
