@@ -171,7 +171,7 @@
                         <div class="col-md-6">
                             <label for="PaymentCondition">Payment Condition (Days)</label>
                             <div class="input-container">
-                                <input type="number" class="form-control" name="paymentCondition">
+                                <input type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="paymentCondition">
                             </div>
                         </div>
                     </div>
@@ -179,7 +179,7 @@
                         <div class="col-md-6">
                             <label for="LatePaymentFee">% Late Payment Fee</label>
                             <div class="input-container">
-                                <input type="number" class="form-control" name="latePaymentFee">
+                                <input type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="latePaymentFee">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -239,8 +239,8 @@
     </div>
 </div>
 
-@section Scripts{
 <script src="~/js/Shared/pagination.js"></script>
 <script src="~/js/AccountManagement/clients.js"></script>
 <script src="~/js/General/generalSectionFillDropdowns.js"></script>
-    }
+<script src="~/js/Shared/inputValidations.js"></script>
+

@@ -58,13 +58,13 @@
                             <div class="col-md-6" id="monthlyClientRateEl">
                                 <label for="PaymentCondition">Monthly Client Rate <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
-                                    <input placeholder="$$$" type="number" class="form-control" step="0.01" name="monthlyClientRate" id="monthlyClientRate">
+                                    <input placeholder="$$$" oninput="limitDigitsAndDecimals(this)" type="number" class="form-control" name="monthlyClientRate" id="monthlyClientRate">
                                 </div>
                             </div>
                             <div class="col-md-6" id="hourlyClientRateEl">
                                 <label for="PaymentCondition">Hourly Client Rate <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
-                                    <input placeholder="$$$" type="number" class="form-control" step="0.01" name="hourlyClientRate" id="hourlyClientRate">
+                                    <input placeholder="$$$" type="number" class="form-control" oninput="limitDigitsAndDecimals(this)" name="hourlyClientRate" id="hourlyClientRate">
                                 </div>
                             </div>
                         </div>
@@ -105,7 +105,7 @@
                             <div class="col-md-6" id="monthlyConsultantSalaryEl">
                                 <label for="PaymentCondition">Monthly Consultant Salary - Oceans <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
-                                    <input placeholder="$$$" type="number" class="form-control" step="0.01" name="monthlySalary" id="monthlySalary">
+                                    <input placeholder="$$$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="monthlySalary" id="monthlySalary">
                                 </div>
                             </div>
                             <div style="text-align: center" class="col-md-6" id="isMonthlySalaryCalculatedPerHour">
@@ -125,7 +125,7 @@
                             <div class="col-md-6" id="hourlyConsultantSalaryEl">
                                 <label for="PaymentCondition">Hourly Consultant Salary - Oceans <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
-                                    <input placeholder="$$$" type="number" class="form-control" step="0.01" name="hourlySalary" id="hourlySalary">
+                                    <input placeholder="$$$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="hourlySalary" id="hourlySalary">
                                 </div>
                             </div>
                         </div>
@@ -133,7 +133,7 @@
                             <div class="col-md-6" id="thirdPartyConsultantSalaryEl">
                                 <label for="PaymentCondition">Consultant Monthly Salary - Third Party <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
-                                    <input placeholder="$$$" type="number" class="form-control" step="0.01" name="thirdPartySalary" id="thirdPartySalary">
+                                    <input placeholder="$$$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="thirdPartySalary" id="thirdPartySalary">
                                 </div>
                             </div>
                         </div>
@@ -190,3 +190,4 @@
 <script src="~/js/AccountManagement/sharedProjectsMethods.js"></script>
 <script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
 <script src="~/js/AdminCenter/ConsultantPositions/consultantPositionsFillDropdowns.js"></script>
+<script src="~/js/Shared/inputValidations.js"></script>

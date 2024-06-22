@@ -42,13 +42,13 @@
                         <div class="col-md-4">
                             <label for="DurationMinutesInput">Duration in Minutes <span class="required-asterisk">*</span></label>
                             <div class="input-container">
-                                <input placeholder="0.00" oninput="updateHours()" type="number" class="form-control" step="0.01" name="durationMinutes" id="DurationMinutesInput">
+                                <input placeholder="0.00" oninput="updateHours(this)" type="number" class="form-control" name="durationMinutes" id="DurationMinutesInput">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label for="DurationHours">Duration in Hours <span class="required-asterisk">*</span></label>
                             <div class="input-container">
-                                <input placeholder="0.00" oninput="updateMinutes()" type="number" class="form-control" step="0.01" name="durationHours" id="DurationHoursInput">
+                                <input placeholder="0.00" oninput="updateMinutes(this)" type="number" class="form-control" name="durationHours" id="DurationHoursInput">
                             </div>
                         </div>
                         <div class="col-md-4">

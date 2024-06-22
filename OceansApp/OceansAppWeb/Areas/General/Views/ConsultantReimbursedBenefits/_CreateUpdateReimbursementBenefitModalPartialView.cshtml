@@ -60,7 +60,7 @@
                         <div class="col-md-6" id="hourlyClientRateEl">
                             <label for="AmountReimbursed">Amount to Reimburse <span class="required-asterisk">*</span></label>
                             <div class="input-container">
-                                <input placeholder="$" type="number" class="form-control" step="0.01" name="amountReimbursed" id="AmountReimbursed">
+                                <input placeholder="$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="amountReimbursed" id="AmountReimbursed">
                             </div>
                         </div>
                         <div class="col-md-6">

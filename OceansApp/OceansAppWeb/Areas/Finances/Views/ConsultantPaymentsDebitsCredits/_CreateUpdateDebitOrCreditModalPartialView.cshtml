@@ -68,19 +68,19 @@
                         <div class="col-md-4">
                             <label for="QuantityInput">Quantity <span class="required-asterisk">*</span></label>
                             <div class="input-container">
-                                <input placeholder="#" type="number" value="1" class="form-control" step="0.01" name="quantity" id="QuantityInput">
+                                <input placeholder="#" type="number" oninput="limitDigitsAndDecimals(this)" value="1" class="form-control" name="quantity" id="QuantityInput">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label for="Amount">Unit Amount $ <span class="required-asterisk">*</span></label>
                             <div class="input-container">
-                                <input placeholder="$" type="number" class="form-control" step="0.01" name="amount" id="Amount">
+                                <input placeholder="$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="amount" id="Amount">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label for="TotalAmount">Total Amount $ <span class="required-asterisk"></span></label>
                             <div class="input-container">
-                                <input placeholder="0.00" type="number" disabled class="form-control" step="0.01" name="amount" id="TotalAmount">
+                                <input placeholder="0.00" type="number" disabled class="form-control" name="amount" id="TotalAmount">
                             </div>
                         </div>
                     </div>

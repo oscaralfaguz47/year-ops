@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 //UPDATE HOURS 
-function updateHours() {
+function updateHours(inputElement) {
     var durationHoursInput = document.getElementById('DurationHoursInput');
     var durationMinutesInput = document.getElementById('DurationMinutesInput');
     var durationHours = (1/60) * parseFloat(durationMinutesInput.value);
@@ -132,9 +132,10 @@ function updateHours() {
     var total = durationHours || 0;
 
     durationHoursInput.value = total.toFixed(2);
+    limitDigitsAndDecimals(inputElement);
 }
 //UPDATE MINUTES
-function updateMinutes() {
+function updateMinutes(inputElement) {
     var durationHoursInput = document.getElementById('DurationHoursInput');
     var durationMinutesInput = document.getElementById('DurationMinutesInput');
     var durationHours = parseFloat(durationHoursInput.value) / (1 / 60);
@@ -142,6 +143,7 @@ function updateMinutes() {
     var total = durationHours || 0;
 
     durationMinutesInput.value = total.toFixed(2);
+    limitDigitsAndDecimals(inputElement);
 }
 
 updateHours();

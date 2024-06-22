@@ -295,13 +295,6 @@ function addConsultantToProject(modalId) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('monthlyClientRate');
-    validateInputTypeNumber('hourlyClientRate');
-    validateInputTypeNumber('monthlySalary');
-    validateInputTypeNumber('hourlySalary');
-});
-
 //Activate and deactivate Consultant from project
 async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
     var title = status ? "Deactivate Consultant" : "Activate Consultant";
@@ -506,10 +499,7 @@ async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
     }
 }
 
-
-
 let selectedIndexA = -1;
-
 async function searchConsultantsBySearchText(searchTextInput, hiddenInputForId, consultantNameInput, consultantEmailInput, userCategoryName) {
     if (searchTextInput.value.length > 100) {
         searchTextInput.value = searchTextInput.value.slice(0, 100);

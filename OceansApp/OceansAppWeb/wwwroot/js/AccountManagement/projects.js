@@ -273,7 +273,7 @@ async function createUpdateProject(modalId) {
         AssignedConsultants: consultantsData,
         ProjectType: projectTypeValue
     };
-    console.log(data);
+
     fetch('/AccountManagement/Projects/CreateUpdateProject', {
         method: 'POST',
         headers: {
@@ -355,7 +355,6 @@ async function fillClientsSelectForCreateProjectModal(selectElement, firstOption
 }
 
 //ADD / UPDATE CONSULTANT
-
 function addConsultantToModalCreateUpdateProject(modalId) {
     var createUpdateConsultantForm = $('#form-add-update-consultant');
     var consultantProjectAssignedId = createUpdateConsultantForm.find('[name="proConsAssignedId"]').val();
