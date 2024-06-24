@@ -518,6 +518,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ProjectConsultantAssignedHistoryAction>(entity =>
             {
                 // Indexes for columns
+                entity.HasIndex(e => e.ActionId);
                 entity.HasIndex(e => e.Name);
             });
 
