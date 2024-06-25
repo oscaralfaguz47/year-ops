@@ -51,7 +51,6 @@ async function getProjectInfo() {
     try {
         const response = await getSelectedProjectInfo();
         const projectInfo = response.projectInfoData;
-        console.log(projectInfo);
 
         if (projectInfo !== null) {
             if (projectInfo.numAssignedProjects > 1 || projectInfo.accessToTrackingTool) {

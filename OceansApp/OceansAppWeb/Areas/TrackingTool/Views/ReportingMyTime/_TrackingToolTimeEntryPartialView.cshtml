@@ -1,8 +1,11 @@
-﻿<link rel="stylesheet" href="~/css/TrackingTool/trackingToolTimeEntry.css" />
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/TrackingTool/trackingToolTimeEntry.css" />
 
     <div id="tracking-tool-sec" style="display: none">
         <div id="dateList">
         </div>
     </div>
+
+<partial name="_TrackingToolTimeEntryAddTimeModalPartialView" />
 
 <script src="~/js/TrackingTool/trackingToolTimeEntry.js"></script>

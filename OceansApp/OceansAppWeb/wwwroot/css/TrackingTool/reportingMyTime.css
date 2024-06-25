@@ -1,5 +1,4 @@
 ﻿#rmt-background {
-    background-color: #FFFAF0;
     padding: 10px;
     margin: 10px;
     margin-top: -14px;
@@ -186,7 +185,6 @@
 }
 #questions {
     text-align: center;
-    background-color: var(--clr-grayLight);
     padding: 10px;
     border-radius: 10px;
     width: 100%;
@@ -195,7 +193,7 @@
     border-radius: 15px;
     padding: 15px;
     margin: 0px;
-    background-color: var(--clr-grayLight);
+    background-color: #fff;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
     margin-top: 10px;
 }

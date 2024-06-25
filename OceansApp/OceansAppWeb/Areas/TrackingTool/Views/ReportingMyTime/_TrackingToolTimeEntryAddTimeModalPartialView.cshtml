@@ -1,0 +1,29 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+
+<div id="modal-update-create-time" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <h2 id="create-update-time-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="movementId">
+
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-time')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateTime('modal-update-create-time')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/TrackingTool/addTimeTrackingToolModal.js"></script>

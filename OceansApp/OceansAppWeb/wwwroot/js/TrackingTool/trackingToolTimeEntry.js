@@ -42,19 +42,34 @@ function generateDateList(startDateString, endDateString, movements) {
     hoursCountDiv.id = 'total-hours-label';
     hoursCountDiv.innerHTML = '<span class="total">TOTAL TIME: <span class="hours-minutes">0 hours - 0 minutes</span></span>';
     dateListContainer.insertBefore(hoursCountDiv, dateListContainer.firstChild);
+
+    const dateListBox = document.createElement('div');
+    dateListBox.className = 'date-list-box';
+    dateListContainer.append(dateListBox);
+
     while (currentDate <= endDate) {
         const dayItem = document.createElement('div');
         dayItem.className = 'day-item';
 
-        const formattedDate = currentDate.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+        const formattedDate = currentDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long' });
         const dateLabel = document.createElement('label');
         dateLabel.className = 'day-label';
-        dateLabel.textContent = formattedDate;
+        const highlightedText = `<span class="highlight">${formattedDate.slice(0, 3)}</span>${formattedDate.slice(3)}`;
+        dateLabel.innerHTML = highlightedText;
+        dayItem.appendChild(dateLabel);
+
+        const dayItemBox = document.createElement('div');
+        dayItemBox.className = 'day-item-box';
+        dayItem.appendChild(dayItemBox);
 
         const addButton = document.createElement('button');
         addButton.className = 'btn-add-time';
-        addButton.textContent = '+ Add Time';
-        attachOnClick(addButton, currentDate.toISOString().split('T')[0]); 
+        addButton.textContent = '+ Add';
+        addButton.addEventListener('click', function () {
+            displayCreateUpdateTime('modal-update-create-time', formattedDate, null, null);
+        });
+
+        //attachOnClick(addButton, currentDate.toISOString().split('T')[0]); 
 
         const arrowSpan = document.createElement('span');
         arrowSpan.textContent = '→';
@@ -70,25 +85,24 @@ function generateDateList(startDateString, endDateString, movements) {
         nonReportNeededLabel.className = 'non-rep-label';
         nonReportNeededLabel.textContent = weekday === 'Sunday' || weekday === 'Saturday' ? '- Generally Non-reportable day' : '';
 
-        dayItem.appendChild(dateLabel);
-        dayItem.appendChild(addButton);
-        dayItem.appendChild(arrowSpan);
+        dayItemBox.appendChild(addButton);
+        //dayItemBox.appendChild(arrowSpan);
         dayItem.appendChild(countLabel);
-        dayItem.appendChild(nonReportNeededLabel);
-        dateListContainer.appendChild(dayItem);
+        //dayItem.appendChild(nonReportNeededLabel);
+        dateListBox.appendChild(dayItem);
         submissionInfo.innerHTML = `<strong>Have you reported all your hours accurately?</strong> <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>`;
-        movements.forEach(function (movement) {
-            const movementDate = new Date(movement.actionDate);
-            if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
-                submissionInfo.innerHTML = `<div style="margin-bottom:10px"> You have already submitted your report, and the current status is:</div > <span class="status-span">${getStatusLabel(movement.transactionStatusName)}</span>`;
-                addButton.style.display = 'none';
-                arrowSpan.style.display = 'unset';
-            }
-            if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
-                addTimeEntry(addButton, currentDate.toISOString().split('T')[0], movement.movementId, movement.timeFrom, movement.timeTo,
-                    movement.notes, movement.transactionStatusName);
-            }
-        });
+        //movements.forEach(function (movement) {
+        //    const movementDate = new Date(movement.actionDate);
+        //    if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
+        //        submissionInfo.innerHTML = `<div style="margin-bottom:10px"> You have already submitted your report, and the current status is:</div > <span class="status-span">${getStatusLabel(movement.transactionStatusName)}</span>`;
+        //        addButton.style.display = 'none';
+        //        arrowSpan.style.display = 'unset';
+        //    }
+        //    if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
+        //        addTimeEntry(addButton, currentDate.toISOString().split('T')[0], movement.movementId, movement.timeFrom, movement.timeTo,
+        //            movement.notes, movement.transactionStatusName);
+        //    }
+        //});
         currentDate.setDate(currentDate.getDate() + 1);
     }
 }
@@ -112,6 +126,7 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transac
         <i class="fa-solid fa-check uploaded-check-icon green-label check-saved-icon" ${movementId === null ? 'style="display:none"' : 'style="display:block"'}></i>
         <button class="btn-save-time" ${movementId !== null ? 'style="display:none"' : 'style="display:block"'} onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
     `;
+
     button.parentElement.appendChild(timeEntryDiv);
 
     const btnSaveTime = timeEntryDiv.querySelector('.btn-save-time');
@@ -197,8 +212,6 @@ function deleteTimeEntry(deleteBtn, movementId) {
         updateTotalHours();
     }
 }
-
-
 function saveTimeEntry(button, date) {
     var spinnerLabel = button.parentElement.querySelector('.spinner-time-actions');
     const deleteBtn = button.parentElement.querySelector('.btn-delete-time');

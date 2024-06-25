@@ -19,21 +19,44 @@
     margin: 3% auto;
     padding: 16px;
     border: 1px solid #888;
-    width: max-content; 
+    width: max-content;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     animation-name: scaleIn;
     animation-duration: 0.2s;
     transform-origin: center;
+    border-radius: 20px;
 }
-.modal-scroll-container {
-    text-align: left;
-    color: #000;
-    overflow-y: scroll;
-    height: 350px;
-    padding: 5px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-}
+    .global-modal-content::before,
+    .global-modal-content::after {
+        content: '';
+        position: absolute;
+        background-color: white;
+    }
+    .global-modal-content::before {
+        top: 0;
+        left: 0;
+        border-top-left-radius: 20px;
+    }
+
+    .global-modal-content::after {
+        bottom: 0;
+        right: 0;
+        border-bottom-right-radius: 20px;
+    }
+    .global-modal-content h2{
+        color: #000;
+        border-bottom: solid 3px var(--clr-grayLight);
+        padding-bottom: 6px;
+    }
+    .modal-scroll-container {
+        text-align: left;
+        color: #000;
+        overflow-y: scroll;
+        height: 350px;
+        padding: 5px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+    }
 /*Inputs*/
 #form-create-update .input-container input {
     padding-left: 10px;
