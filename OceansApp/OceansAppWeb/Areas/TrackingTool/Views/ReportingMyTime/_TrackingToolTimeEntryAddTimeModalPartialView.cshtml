@@ -1,20 +1,33 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-<link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css" />
+<link rel="stylesheet" href="~/css/TrackingTool/addTimetrackingToolModal.css" />
 <link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
 
 <div id="modal-update-create-time" class="global-modal" style="display:none">
     <div class="global-modal-content">
         <div class="container">
             <div>
+                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-update-create-time')">x</button></div>
                 <h2 id="create-update-time-modal-title"></h2>
                 <form id="form-create-update">
-                    <input type="hidden" name="movementId">
-
+                    <input type="hidden" id="movementIdInput">
+                    <input type="hidden" id="actionDateInput" />
+                   <div class="time-inputs-container">
+                        <div>
+                            <label>From</label>
+                            <input id="timeFromInput" type="time" class="time-from input-time" />
+                        </div>
+                        <div>
+                            <label>To</label>
+                            <input id="timeToInput" type="time" class="time-to input-time" />
+                        </div>
+                   </div>
+                   <label>Additional Notes</label>
+                    <textarea id="addNotesInput" class="time-detail input-time"></textarea>
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                    <a id="btn-cancel" onclick="hideModal('modal-update-create-time')" class="cancel-btn">Cancel</a>&nbsp;
-                    <button id="btn-saving" onclick="createUpdateTime('modal-update-create-time')" class="btn-primary-submit">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-time')" class="cancel-btn">Delete</a>&nbsp;
+                    <button id="btn-saving" onclick="createUpdateTimeEntryTrackingTool('modal-update-create-time')" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
                             </div><span></span>

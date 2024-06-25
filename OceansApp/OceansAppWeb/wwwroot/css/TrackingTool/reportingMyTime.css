@@ -189,6 +189,20 @@
     border-radius: 10px;
     width: 100%;
 }
+.envelope-container{
+    background-color: var(--clr-blueLight);
+    width: fit-content;
+    padding: 3px 6px;
+    border-radius: 50%;
+}
+.envelope-container img{
+    width: 26px;
+}
+.gray-bold-span {
+    display: block;
+    font-size: 26px;
+    color: gray;
+}
 .track-col {
     border-radius: 15px;
     padding: 15px;

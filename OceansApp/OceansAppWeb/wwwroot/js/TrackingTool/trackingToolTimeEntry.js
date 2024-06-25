@@ -38,10 +38,8 @@ function generateDateList(startDateString, endDateString, movements) {
     dateListContainer.innerHTML = '';
     let currentDate = new Date(startDate.getTime());
 
-    const hoursCountDiv = document.createElement('div');
-    hoursCountDiv.id = 'total-hours-label';
-    hoursCountDiv.innerHTML = '<span class="total">TOTAL TIME: <span class="hours-minutes">0 hours - 0 minutes</span></span>';
-    dateListContainer.insertBefore(hoursCountDiv, dateListContainer.firstChild);
+    const hoursCountDiv = document.getElementById('total-hours-label');
+    hoursCountDiv.innerHTML = `<span class="strong-label">Total Time Reported</span> <span class="gray-bold-span mb-2">0 Hours, 0 Minutes</span>`;
 
     const dateListBox = document.createElement('div');
     dateListBox.className = 'date-list-box';
@@ -69,65 +67,56 @@ function generateDateList(startDateString, endDateString, movements) {
             displayCreateUpdateTime('modal-update-create-time', formattedDate, null, null);
         });
 
-        //attachOnClick(addButton, currentDate.toISOString().split('T')[0]); 
-
-        const arrowSpan = document.createElement('span');
-        arrowSpan.textContent = '→';
-        arrowSpan.style.display = 'none';
-
         const countLabel = document.createElement('label');
         countLabel.className = 'count-day-label';
         countLabel.setAttribute('data-value', '0');
         countLabel.textContent = '0 h - 0 m';
 
         const weekday = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-        const nonReportNeededLabel = document.createElement('label');
-        nonReportNeededLabel.className = 'non-rep-label';
-        nonReportNeededLabel.textContent = weekday === 'Sunday' || weekday === 'Saturday' ? '- Generally Non-reportable day' : '';
+        if (weekday === 'Sunday' || weekday === 'Saturday') {
+            addButton.style.backgroundColor = 'gray';
+        }
 
         dayItemBox.appendChild(addButton);
-        //dayItemBox.appendChild(arrowSpan);
         dayItem.appendChild(countLabel);
-        //dayItem.appendChild(nonReportNeededLabel);
         dateListBox.appendChild(dayItem);
         submissionInfo.innerHTML = `<strong>Have you reported all your hours accurately?</strong> <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>`;
-        //movements.forEach(function (movement) {
-        //    const movementDate = new Date(movement.actionDate);
-        //    if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
-        //        submissionInfo.innerHTML = `<div style="margin-bottom:10px"> You have already submitted your report, and the current status is:</div > <span class="status-span">${getStatusLabel(movement.transactionStatusName)}</span>`;
-        //        addButton.style.display = 'none';
-        //        arrowSpan.style.display = 'unset';
-        //    }
-        //    if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
-        //        addTimeEntry(addButton, currentDate.toISOString().split('T')[0], movement.movementId, movement.timeFrom, movement.timeTo,
-        //            movement.notes, movement.transactionStatusName);
-        //    }
-        //});
+        movements.forEach(function (movement) {
+            const movementDate = new Date(movement.actionDate);
+            if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
+                submissionInfo.innerHTML = `<div style="margin-bottom:10px"> You have already submitted your report, and the current status is:</div > <span class="status-span">${getStatusLabel(movement.transactionStatusName)}</span>`;
+                addButton.disabled = true;
+            }
+            if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
+                addTimeEntry(addButton, currentDate.toISOString().split('T')[0], movement.movementId, movement.timeFrom, movement.timeTo,
+                    movement.notes, movement.transactionStatusName);
+            }
+        });
         currentDate.setDate(currentDate.getDate() + 1);
     }
 }
-function attachOnClick(button, date) {
-    button.onclick = function () {
-        addTimeEntry(this, date, null, null, null, null, 'No actions');
-    };
-}
 
 function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transactionStatus) {
+    const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
+    const reportedTimeLabel = document.createElement('span');
+    reportedTimeLabel.className = 'reported-time-span';
+    reportedTimeLabel.innerHTML = `<span>${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-time-btn';
+    editBtn.innerHTML = `<i class="fa-solid fa-pencil"></i>`;
     const timeEntryDiv = document.createElement('div');
     timeEntryDiv.className = 'time-entry';
     timeEntryDiv.innerHTML = `
-        <span>From</span><input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="time" class="time-from input-time" value="${timeFrom === null ? '08:00' : timeFrom}"/><span>To</span>
+        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="hidden" class="time-from" value="${timeFrom === null ? '08:00' : timeFrom}"/>
         <input type="hidden" class="movement-id" ${movementId === null ? 'value' : 'value="' + movementId + '"'}"/>
-        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="time" class="time-to input-time" value="${timeTo === null ? '16:00' : timeTo}"/>
-        <label class="count-time"></label>
-        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="text" placeholder="Detail" class="time-detail input-time" maxlength="400" value="${notes === null ? '' : notes}"/>
-        <button class="btn-delete-time ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'hidden' : ''}" onclick="deleteTimeEntry(this, ${movementId})"><i class="fa-solid fa-trash-can"></i></button>
-        <i class="fa-solid fa-spinner spinner-time-actions"></i>
-        <i class="fa-solid fa-check uploaded-check-icon green-label check-saved-icon" ${movementId === null ? 'style="display:none"' : 'style="display:block"'}></i>
-        <button class="btn-save-time" ${movementId !== null ? 'style="display:none"' : 'style="display:block"'} onclick="saveTimeEntry(this, '${date}')"><i class="fa-solid fa-floppy-disk"></i></button>
+        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="hidden" class="time-to" value="${timeTo === null ? '16:00' : timeTo}"/>
     `;
 
     button.parentElement.appendChild(timeEntryDiv);
+    button.parentElement.appendChild(reportedTimeLabel);
+    reportedTimeLabel.appendChild(editBtn);
+
 
     const btnSaveTime = timeEntryDiv.querySelector('.btn-save-time');
     const checkSavedIcon = timeEntryDiv.querySelector('.check-saved-icon');
@@ -147,7 +136,6 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transac
         }
         if (input.type === 'time') {
             input.addEventListener('keydown', (event) => {
-                // Previene la eliminación usando Backspace y Delete
                 if (event.key === 'Backspace' || event.key === 'Delete') {
                     event.preventDefault();
                 }
@@ -157,7 +145,6 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transac
 
     const timeFromInput = timeEntryDiv.querySelector('.time-from');
     const timeToInput = timeEntryDiv.querySelector('.time-to');
-    const timeLabel = timeEntryDiv.querySelector('.count-time');
 
     const updateTimeDifference = () => {
         const fromTime = timeFromInput.value;
@@ -166,11 +153,7 @@ function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transac
         const validToTime = toTime === '' ? '00:00' : toTime;
 
         const difference = calculateTimeDifference(validFromTime, validToTime);
-        if (difference.hours >= 0 && difference.minutes >= 0) {
-            timeLabel.textContent = `${difference.hours} h - ${difference.minutes} m`;
-        } else {
-            timeLabel.textContent = '0 h - 0 m';
-        }
+
         const dayItem = button.closest('.day-item');
         updateDayTotal(dayItem);
         updateTotalHours();
@@ -232,75 +215,6 @@ function saveTimeEntry(button, date) {
         }).catch(error => {
             console.error("Error in saveTimeEntry:", error);
         });
-}
-
-
-
-
-//CREATE, UPDATE TIME ENTRY
-async function createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, movementIdInput, spinnerLabel, button, checkSavedIcon) {
-    submissionError.innerHTML = '';
-    button.style.display = 'none';
-    spinnerLabel.style.display = 'block';
-    let actionDateData = new Date(date).toISOString();
-
-    var token = $('[name="__RequestVerificationToken"]').val();
-
-    var data = {
-        MovementId: movementId,
-        ProjectId: Number(projectIdInput.value),
-        ActionDate: actionDateData,
-        Notes: notes,
-        TimeFrom: timeFrom,
-        TimeTo: timeTo
-    };
-
-    try {
-        const response = await fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                RequestVerificationToken: token
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            switch (errorData.messageType) {
-                case "Validation Error":
-                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
-                        return acc.concat(current); 
-                    }, []);
-                    displayToasterWarningArray(allErrors);
-                    break;
-                case "Not Found":
-                    displayToasterError('Resource not found: ' + errorData.detail);
-                    break;
-                default:
-                    button.style.display = 'block';
-                    displayToasterError('An unexpected error occurred: ' + errorData.error);
-            }
-            spinnerLabel.style.display = 'none';
-            checkSavedIcon.style.display = 'none';
-            button.style.display = 'block';
-            return null; 
-        }
-
-        const dataFromApi = await response.json();
-        movementIdInput.value = dataFromApi.movementId;
-        spinnerLabel.style.display = 'none';
-        checkSavedIcon.style.display = 'block';
-        return dataFromApi;
-    } catch (err) {
-        validateSessionExpiration(err.message);
-        console.error('Network or fetch error:', err);
-        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
-        spinnerLabel.style.display = 'none';
-        checkSavedIcon.style.display = 'none';
-        button.style.display = 'block';
-        return null; // Return null to signify an error that prevented a successful fetch
-    }
 }
 
 
@@ -392,6 +306,6 @@ function updateTotalHours() {
     const totalMinutesLeft = totalMinutes % 60;
     const totalHoursLabel = document.getElementById('total-hours-label');
     if (totalHoursLabel) {
-        totalHoursLabel.innerHTML = `<span class="total">TOTAL TIME: <span class="hours-minutes">${totalHours} hours - ${totalMinutesLeft} minutes</span></span>`;
+        totalHoursLabel.innerHTML = `<span class="strong-label">Total Time Reported</span> <span class="gray-bold-span mb-2">${totalHours} Hours, ${totalMinutesLeft} Minutes</span>`;
     }
 }

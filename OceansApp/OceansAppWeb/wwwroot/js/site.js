@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 spinner.style.display = "block";
                 form.submit();
             } else {
-                // Si deseas mostrar un mensaje personalizado cuando el formulario no es válido, puedes hacerlo aquí
+                
             }
         });
     });
@@ -129,20 +129,32 @@ function waitingForPostMethod() {
     btnCancel.style.cursor = 'not-allowed';
     var spanInsideBtnSaving = $('#btn-saving span');
     spanInsideBtnSaving.text('Wait...');
+
+    const btnXCloseModal = document.getElementById('close-modal-x-btn');
+    if (btnXCloseModal) {
+        btnXCloseModal.onclick = null;
+        btnXCloseModal.style.cursor = 'not-allowed';
+    }
 }
-function inicializeModalButtons(modalId) {
-    var spanInsideBtnSaving = $('#btn-saving span');
-    spanInsideBtnSaving.text('Save');
-    var spinnerSaving = $('#spinner-saving');
+function inicializeModalButtons(modalId, confirmBtnText) {
+    const spanInsideBtnSaving = $('#btn-saving span');
+    spanInsideBtnSaving.text(confirmBtnText === null || confirmBtnText === undefined ? 'Save' : confirmBtnText);
+    const spinnerSaving = $('#spinner-saving');
     spinnerSaving.hide();
-    var btnSaving = $('#btn-saving');
+    const btnSaving = $('#btn-saving');
     btnSaving.prop('disabled', false);
-    var originalClickHandler = function () {
+    let originalClickHandler = function () {
         hideModal(modalId);
     };
-    var btnCancel = document.getElementById('btn-cancel');
+    const btnCancel = document.getElementById('btn-cancel');
     btnCancel.onclick = originalClickHandler;
     btnCancel.style.cursor = 'pointer';
+
+    const btnXCloseModal = document.getElementById('close-modal-x-btn');
+    if (btnXCloseModal) {
+        btnXCloseModal.onclick = originalClickHandler;
+        btnXCloseModal.style.cursor = 'pointer';
+    }
 }
 function inicializeSecondModalButtons(modalId) {
     var spanInsideBtnSaving = $('#second-btn-saving span');

@@ -26,6 +26,19 @@
     transform-origin: center;
     border-radius: 20px;
 }
+    .global-modal-content .close-btn-container {
+        text-align: right;
+    }
+    .global-modal-content .close-btn-container button{
+        font-weight: bold;
+        font-size: 22px;
+        color: var(--clr-grayDark);
+        border: none;
+        background-color: transparent;
+    }
+        .global-modal-content .close-btn-container button:hover {
+            color: rgb(232, 180, 180);
+        }
     .global-modal-content::before,
     .global-modal-content::after {
         content: '';
@@ -43,10 +56,12 @@
         right: 0;
         border-bottom-right-radius: 20px;
     }
-    .global-modal-content h2{
+    .global-modal-content h2 {
         color: #000;
         border-bottom: solid 3px var(--clr-grayLight);
         padding-bottom: 6px;
+        font-weight: 700;
+        font-family: 'Roboto', sans-serif;
     }
     .modal-scroll-container {
         text-align: left;

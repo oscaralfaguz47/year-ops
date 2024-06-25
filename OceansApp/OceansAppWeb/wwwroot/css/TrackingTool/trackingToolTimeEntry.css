@@ -1,33 +1,21 @@
-﻿.date-list-box{
-    display:flex;
-    overflow-x: auto;
+﻿.date-list-box {
+    display: flex;
     white-space: nowrap;
     height: 300px;
+    overflow-x: auto;
+    overflow-y: hidden; 
 }
 
-#total-hours-label {
-    margin-bottom: 10px;
-    text-align: right;
-    font-weight: bold;
-}
-    #total-hours-label .total {
-        background-color: var(--clr-grayDark);
-        padding: 5px 10px;
-        border-start-end-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
-        display: inline-block;
-        color: #fff;
-    }
-    #total-hours-label .hours-minutes {
-        font-weight: normal;
-    }
 .day-item {
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
     text-align: center;
     align-items: center;
     align-content: center;
+    border-left: 1px solid var(--clr-grayLight);
+    border-right: 1px solid var(--clr-grayLight);
 }
 .day-item-box {
     display: flex;
@@ -38,35 +26,16 @@
     text-align: center;
     align-items: center;
     align-content: center;
+    flex-direction: column-reverse;
 }
 
-.time-entry {
-    margin-top: 5px;
-    display: flex;
-    height: 30px;
-    align-items:center;
-}
-    .time-entry span {
-        font-weight: bold;
-        padding: 0 4px 0 4px;
-        color: var(--clr-grayDark);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 15px;
-    }
-.spinner-time-actions {
-    display: none;
-    animation: spin 1s linear infinite;
-    margin: 5px;
-}
 .time-label {
     margin-left: 10px;
 }
 .day-label {
     font-weight: bold;
     background-color: var(--clr-grayLight);
-    padding: 5px 15px;
+    padding: 10px 15px;
 }
     .day-label .highlight {
         color: var(--clr-blueLight);
@@ -82,67 +51,28 @@
     width: 70px;
     margin-top: 8px
 }
-.time-from{
-    width: 216px;
-    cursor: pointer;
-}
-.time-to {
-    width: 216px;
-    cursor: pointer;
-}
-.time-detail{
-    width:100%;
-}
-.btn-delete-time{
-    border:none;
-    width:auto;
-    background-color: transparent;
-    color: red;
-}
-.btn-save-time {
-    border: none;
-    width: auto;
-    background-color: transparent;
-    color: var(--clr-blueDark);
-}
-.non-rep-label {
-    color: var(--clr-grayDark);
-    font-weight: bold;
-    display: inline-table;
-    margin-left: 15px;
-}
-.count-time {
-    width: 175px;
-    font-weight: bold;
-    text-align: center;
-    color: var(--clr-grayDark);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 15px;
-}
+
 .count-day-label {
     font-weight: bold;
     margin-top: 10px;
-    border-top: solid 1px rgb(1, 192, 183, 0.2);
+    border-top: solid 1px var(--clr-grayLight);
     width: 100%;
+    position: absolute;
+    bottom: 0;
 }
-.input-time {
-    padding: 2px 7px;
-    border: 1px solid #CCCCCC;
-    border-radius: 5px;
-    background-color: #FFFFFF;
-    color: #333333;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+.reported-time-span {
+    background-color: var(--clr-grayLight);
+    padding: 4px 8px;
+    border-radius: 15px;
     font-size: 14px;
+    font-weight: bold;
+    color: gray;
+    padding: 1px 7px;
+    margin-top: 8px
 }
-
-    .time-from:focus {
-        border-color: #007BFF; 
-        box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-        outline: none;
-    }
-
-
+.edit-time-btn{
+    border: none;
+    background-color: transparent;
+    color: gray;
+}
 

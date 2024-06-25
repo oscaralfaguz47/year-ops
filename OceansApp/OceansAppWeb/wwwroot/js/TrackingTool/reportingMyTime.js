@@ -66,12 +66,12 @@ async function getProjectInfo() {
                 trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
                 trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
                 paymentPeriod = projectInfo.paymentPeriod;
-                document.getElementById('payment-period-container').innerHTML = `<span>Your payment period is <strong>${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}.</strong></span>`;
+                document.getElementById('payment-period-container').innerHTML = `<div><span class="strong-label">Your payment period is</span> <span class="gray-bold-span">${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}</span></div>`;
                 let currentDateNoChange = new Date();
                 calculatePeriod(currentDateNoChange, paymentPeriod);
-                document.getElementById('questions').innerHTML = `<span>Questions on reporting? Contact the Success Manager,
-            <strong>${projectInfo.sucessManagerName}</strong> at <a href="mailto:${projectInfo.successManagerEmail}">
-            ${projectInfo.successManagerEmail}</a> or via Slack.</span>`;
+                document.getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span style="text-alig:center">Please reach out to your Success Manager,
+            <strong style="color:var(--clr-blueLight)">${projectInfo.sucessManagerName}</strong></span> <a href="mailto:${projectInfo.successManagerEmail}">
+            <div class="envelope-container"><img src="/img/globalIcons/envelope.webp"></div></a>`;
                 header.style.display = 'flex';
                 loadingBox.style.display = 'none';
                 contentBox.style.display = 'block';

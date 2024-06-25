@@ -115,14 +115,6 @@ async function createUpdateInterview(modalId) {
         });
 }
 
-// INPUT VALIDATIONS
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('DurationMinutesInput');
-});
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('DurationHoursInput');
-});
-
 //UPDATE HOURS 
 function updateHours(inputElement) {
     var durationHoursInput = document.getElementById('DurationHoursInput');
@@ -132,7 +124,7 @@ function updateHours(inputElement) {
     var total = durationHours || 0;
 
     durationHoursInput.value = total.toFixed(2);
-    limitDigitsAndDecimals(inputElement);
+   // limitDigitsAndDecimals(inputElement);
 }
 //UPDATE MINUTES
 function updateMinutes(inputElement) {
@@ -143,7 +135,7 @@ function updateMinutes(inputElement) {
     var total = durationHours || 0;
 
     durationMinutesInput.value = total.toFixed(2);
-    limitDigitsAndDecimals(inputElement);
+    //limitDigitsAndDecimals(inputElement);
 }
 
 updateHours();
