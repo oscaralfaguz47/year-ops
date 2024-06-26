@@ -176,10 +176,12 @@ function navitateBetweenDates(startDate, endDate, button) {
     submissionError.innerHTML = '';
     submissionInfo.innerHTML = `<div class="spinner"></div>`;
     if (clientHasTrackingToolValue) {
+        document.getElementById('total-hours-label').style.display = 'none';
         getProjectMovementsClientHasTrackTool().then(() => {
             if (button) button.disabled = false;
         });
     } else {
+        document.getElementById('total-hours-label').style.display = 'block';
         getTrackingToolProjectMovements().then(movements => {
             generateDateList(startDate, endDate, movements.movementsList);
             if (button) button.disabled = false;

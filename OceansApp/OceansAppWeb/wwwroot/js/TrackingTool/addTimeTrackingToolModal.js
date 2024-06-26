@@ -17,6 +17,11 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId) {
 
 //CREATE, UPDATE TIME ENTRY
 async function createUpdateTimeEntryTrackingTool() {
+    let hoursMinutes = calculateTimeDifference(timeFromInput.value, timeToInput.value);
+    if (hoursMinutes.hours === 0 && hoursMinutes.minutes === 0) {
+        console.log("NO TIME");
+        return;
+    }
     waitingForPostMethod();
     let actionDateData = new Date(actionDateInput.value).toISOString();
 
