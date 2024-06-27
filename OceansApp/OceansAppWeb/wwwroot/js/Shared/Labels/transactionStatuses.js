@@ -19,3 +19,34 @@
     }
     return statusLabel;
 }
+
+function getStatusColor(statusName) {
+    switch (statusName) {
+        case 'Approved':
+            return '#01bfb7';
+            break;
+        case 'Waiting to be approved':
+            return '#eeb30f';
+            break;
+        case 'Paid':
+            return '#232323';
+            break;
+        default:
+            return 'var(--clr-blueLight)';
+    }
+}
+function getStatusWhiteIcon(statusName) {
+    switch (statusName) {
+        case 'Approved':
+            return '<i class="fa-solid fa-check"></i>';
+            break;
+        case 'Waiting to be approved':
+            return '<i class="fa-solid fa-hourglass-start"></i>';
+            break;
+        case 'Paid':
+            return '<i class="fa-regular fa-credit-card"></i>';
+            break;
+        default:
+            return '<img class="status-img" src="/img/globalIcons/send.webp">';
+    }
+}

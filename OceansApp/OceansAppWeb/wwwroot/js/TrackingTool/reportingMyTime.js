@@ -70,7 +70,7 @@ async function getProjectInfo() {
                 let currentDateNoChange = new Date();
                 calculatePeriod(currentDateNoChange, paymentPeriod);
                 document.getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span style="text-alig:center">Please reach out to your Success Manager,
-            <strong style="color:var(--clr-blueLight)">${projectInfo.sucessManagerName}</strong></span> <a href="mailto:${projectInfo.successManagerEmail}">
+            <strong style="color:var(--clr-blueLight)">${projectInfo.sucessManagerName}</strong></span> <a class="envelope-link" href="mailto:${projectInfo.successManagerEmail}">
             <div class="envelope-container"><img src="/img/globalIcons/envelope.webp"></div></a>`;
                 header.style.display = 'flex';
                 loadingBox.style.display = 'none';
@@ -172,19 +172,27 @@ async function selectProject(projectId) {
     }
 }
 //Navitate between dates
-function navitateBetweenDates(startDate, endDate, button) {
+function navitateBetweenDates(startDate, endDate, buttons) {
     submissionError.innerHTML = '';
     submissionInfo.innerHTML = `<div class="spinner"></div>`;
     if (clientHasTrackingToolValue) {
         document.getElementById('total-hours-label').style.display = 'none';
         getProjectMovementsClientHasTrackTool().then(() => {
-            if (button) button.disabled = false;
+            if (buttons) {
+                buttons.forEach(btn => {
+                    if (btn) btn.disabled = false;
+                });
+            }
         });
     } else {
         document.getElementById('total-hours-label').style.display = 'block';
         getTrackingToolProjectMovements().then(movements => {
             generateDateList(startDate, endDate, movements.movementsList);
-            if (button) button.disabled = false;
+            if (buttons) {
+                buttons.forEach(btn => {
+                    if (btn) btn.disabled = false;
+                });
+            }
         });
     }
 }

@@ -80,12 +80,16 @@ function generateDateList(startDateString, endDateString, movements) {
         dayItemBox.appendChild(addButton);
         dayItem.appendChild(countLabel);
         dateListBox.appendChild(dayItem);
-        submissionInfo.innerHTML = `<strong>Have you reported all your hours accurately?</strong> <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>`;
+        submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor('No Actions')}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon('No Actions')} Submit your time</button>`;
         movements.forEach(function (movement) {
             const movementDate = new Date(movement.actionDate);
             if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
-                submissionInfo.innerHTML = `<div style="margin-bottom:10px"> You have already submitted your report, and the current status is:</div > <span class="status-span">${getStatusLabel(movement.transactionStatusName)}</span>`;
-                addButton.disabled = true;
+                submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor(movement.transactionStatusName)}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon(movement.transactionStatusName)} 
+                ${movement.transactionStatusName === 'Waiting to be approved' ? 'Pending approval' : movement.transactionStatusName === 'Approved' ? 'Timesheet approved' : movement.transactionStatusName}</button>`;
+                addButton.style.display = 'none';
+                let submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.className = 'submit-button-disabled';
             }
             if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
                 addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName);
@@ -95,7 +99,7 @@ function generateDateList(startDateString, endDateString, movements) {
     }
 }
 
-function addTimeEntry(button, movementId, timeFrom, timeTo) {
+function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('span');
     reportedTimeLabel.className = 'reported-time-span';
@@ -118,18 +122,14 @@ function addTimeEntry(button, movementId, timeFrom, timeTo) {
 
     button.parentElement.appendChild(timeEntryDiv);
     timeEntryDiv.appendChild(reportedTimeLabel);
-    reportedTimeLabel.appendChild(editBtn);
+    if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
+        reportedTimeLabel.appendChild(editBtn);
+    }
 
     const timeFromInput = timeEntryDiv.querySelector('.time-from');
     const timeToInput = timeEntryDiv.querySelector('.time-to');
 
     const updateTimeDifference = () => {
-        const fromTime = timeFromInput.value;
-        const toTime = timeToInput.value;
-        const validFromTime = fromTime === '' ? '00:00' : fromTime;
-        const validToTime = toTime === '' ? '00:00' : toTime;
-
-        const difference = calculateTimeDifference(validFromTime, validToTime);
 
         const dayItem = button.closest('.day-item');
         updateDayTotal(dayItem);

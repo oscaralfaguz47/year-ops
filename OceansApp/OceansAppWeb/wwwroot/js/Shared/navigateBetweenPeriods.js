@@ -32,13 +32,16 @@ function formatDateYyyyMmDd(date) {
     return `${year}-${month}-${day}`;
 }
 // Calculates and displays start and end dates based on the click direction.
-const handleButtonClick = (button, direction) => {
-    button.disabled = true;
+const handleButtonClick = (direction) => {
     adjustDate(direction, paymentPeriod, null);
-    let { startDate, endDate } = calculatePeriod(currentDate, paymentPeriod, button);
+    let buttons = [document.getElementById('previousBtn'), document.getElementById('nextBtn')];
+    buttons.forEach(btn => {
+        if (btn) btn.disabled = true;
+    });
+    let { startDate, endDate } = calculatePeriod(currentDate, paymentPeriod, buttons);
 };
 
-const calculatePeriod = (date, mode, button) => {
+const calculatePeriod = (date, mode, buttons) => {
     let startDate, endDate;
     if (mode === 1) { // Biweekly
         // Adjusts to the nearest fortnight before the current date
@@ -55,10 +58,10 @@ const calculatePeriod = (date, mode, button) => {
         endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }
 
-    document.getElementById('previous-date').innerHTML = `<span>${formatDate(startDate)}</span>`;
-    document.getElementById('next-date').innerHTML = `<span>${formatDate(endDate)}</span>`;
+    document.getElementById('previous-date').innerHTML = `<span> ${getMonthName(startDate.getMonth())} ${startDate.getDate()}</span>`;
+    document.getElementById('next-date').innerHTML = `<span>${getMonthName(endDate.getMonth())} ${endDate.getDate()}</span>`;
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
-    navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), button);
+    navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), buttons);
     return { startDate, endDate };
 };

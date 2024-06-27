@@ -189,7 +189,11 @@
     border-radius: 10px;
     width: 100%;
 }
-.envelope-container{
+.envelope-link {
+    display: block;
+    width: fit-content;
+}
+.envelope-container {
     background-color: var(--clr-blueLight);
     width: fit-content;
     padding: 3px 6px;
@@ -211,23 +215,38 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
     margin-top: 10px;
 }
-
-
+.right-side-reporting{
+    position: relative;
+}
 /* SUBMIT REPORT */
-.submit-report{
+.submit-report {
     text-align: center;
-    margin-left: 15px;
-    font-weight:bold;
+    font-weight: bold;
     display: ruby-text;
+    width: -webkit-fill-available;
+    margin-top: 30px;
 }
     .submit-report button {
         border: none;
-        margin-top: 8px;
+        margin-top: 8px 8px 0 8px;
         padding: 7px 12px;
-        background-color: var(--clr-yellow);
+        background-color: var(--clr-blueLight);
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        width: -webkit-fill-available;
+        font-weight: bold;
+        color: #fff !important;
     }
+.submit-button-disabled {
+    box-shadow: none !important;
+    opacity: 0.8;
+}
+.submit-button-disabled:hover {
+    box-shadow: none !important;
+}
+        .submit-report button:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
 .swal2-actions {
     display: flex;
     flex-direction: row-reverse; 

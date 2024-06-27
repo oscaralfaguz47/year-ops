@@ -187,7 +187,7 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
             updateDayTotal(dayItem);
             updateTotalHours();
         } else {
-            addTimeEntry(addBtn, dataFromApi.movementId, timeFromInput.value, timeToInput.value);
+            addTimeEntry(addBtn, dataFromApi.movementId, timeFromInput.value, timeToInput.value, 'No actions');
         }
         return dataFromApi;
     } catch (err) {

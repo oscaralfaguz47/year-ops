@@ -44,23 +44,22 @@
 
 
     <div id="content-box">
-        <div class="container">
+        <div>
             <!-- Date Navegation buttons -->
             <div class="row justify-content-center">
-                <div class="col-md-8" style="display: flex">
-                    <div>
-                        <div class="text-center mb-2"> <i class="fa-regular fa-calendar"></i> <strong>SELECT THE PERIOD</strong></div>
-                        <div class="navegation-box">
-                            <button class="btn-arrow" onclick="handleButtonClick(this, 'left')">< Previous</button>
-                            <label id="previous-date"></label> - <label id="next-date"></label>
-                            <button class="btn-arrow" onclick="handleButtonClick(this, 'right')">Next ></button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-9">
                         <div class="track-col">
+                            <div class="mb-2" style="display: flex; justify-content: center;">
+                                <div>
+                                    <div class="text-center strong-label"><strong>Select Period</strong></div>
+                                    <div class="navegation-box">
+                                        <button id="previousBtn" class="btn-arrow" onclick="handleButtonClick('left')"><</button>
+                                        <label><label id="previous-date"></label> - <label id="next-date"></label></label>
+                                        <button id="nextBtn" class="btn-arrow" onclick="handleButtonClick('right')">></button>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="tracking-tool-time-entry" style="display:none">
                                 <partial name="_TrackingToolTimeEntryPartialView" />
                             </div>
@@ -86,7 +85,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3 right-side-reporting">
                         <div class="track-col">
                             <div id="total-hours-label">
                             </div>
@@ -97,7 +96,7 @@
                             <div id="questions">
                             </div>
                         </div>
-                        <div class="track-col">
+                        <div>
                             <div id="submission-info" class="submit-report">
                             </div>
                             <div id="submission-errors">
@@ -113,5 +112,6 @@
 
 <script src="~/js/Shared/navigateBetweenPeriods.js"></script>
 <script src="~/js/Shared/Labels/transactionStatuses.js"></script>
+<script src="~/js/Shared/Dates/datesMethods.js"></script>
 <script src="~/js/TrackingTool/reportingMyTime.js"></script>
 <script src="~/js/AccountManagement/Projects/projectsConsultantAssigned.js"></script>

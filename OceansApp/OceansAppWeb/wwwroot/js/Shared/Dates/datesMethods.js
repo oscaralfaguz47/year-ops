@@ -22,3 +22,12 @@ function formatUtcToLocalMmDdYyyyTime(dateToFormat) {
         return dateToReturn;
     }
 }
+function getMonthName(monthNumber) {
+    console.log("TEST");
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    const monthName = monthNames[monthNumber];
+    return monthName;
+}

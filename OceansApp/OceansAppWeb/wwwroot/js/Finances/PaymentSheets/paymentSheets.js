@@ -150,9 +150,13 @@ async function getListOfResults(firstTime, filters) {
 
 
 //Navitate between dates
-function navitateBetweenDates(startDate, endDate, button) {
+function navitateBetweenDates(startDate, endDate, buttons) {
     getListOfResults(false, true).then(() => {
-        if (button) button.disabled = false;
+        if (buttons) {
+            buttons.forEach(btn => {
+                if (btn) btn.disabled = false;
+            });
+        }
     });
 }
 
