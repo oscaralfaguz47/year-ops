@@ -707,6 +707,12 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("date")
                 .IsRequired();
 
+            // TRANSACTION STATUSES
+            modelBuilder.Entity<TransactionStatus>(entity =>
+            {
+                entity.HasIndex(e => e.TransactionStatusId);
+            });
+
             // CONSULTANTS BENEFITS
             // REPORTING MY TIME SUBMISSIONS
             modelBuilder.Entity<ConsultantBenefit>(entity =>

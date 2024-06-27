@@ -499,6 +499,10 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.DeleteTrackingTooTimeEntry(userActionedBy, movementId);
                 if (!response.Success)
                 {
+                    if (response.MessageType == "Not Found")
+                    {
+                        return NotFound(new { error = response.Message, messageType = response.MessageType });
+                    }
                     return BadRequest(new { error = response.Message, messageType = response.MessageType });
                 }
                 return Ok(new { success = true, message = response.Message });
@@ -566,6 +570,32 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
+            }
+        }
+
+        [HttpGet("GetTrackingToolMovementDataById")]
+        public async Task<IActionResult> GetTrackingToolMovementDataById(int movementId)
+        {
+            try
+            {
+                var existingMovement = await _unitOfWork.ReportingMyTimeMovement.GetFirstOrDefaultAsync(x => x.MovementId == movementId);
+                if (existingMovement == null)
+                {
+                    return NotFound(new { error = "Movement does not exist.", messageType = "Not Found" });
+                }
+                GetTrackingToolMovementDataVM vm = new()
+                {
+                    ActionDate = existingMovement.ActionDate,
+                    Notes = existingMovement.Notes,
+                    TimeFrom = existingMovement.TimeFrom,
+                    TimeTo = existingMovement.TimeTo
+                };
+                var data = new { movementData = vm };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error fetching the data.", success = false, detail = ex.Message });
             }
         }
     }

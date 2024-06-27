@@ -256,4 +256,9 @@
         background: #555; /* Color de fondo del thumb al pasar el mouse */
     }
 
-
+    /* VALIDATION MESSAGES */
+.validation-message{
+    color: red;
+    font-size: 14px;
+    display: none;
+}

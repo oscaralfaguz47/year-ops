@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240626211700_oneUpdateSP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool")]
+    partial class oneUpdateSP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2538,8 +2541,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(80)");
 
                     b.HasKey("TransactionStatusId");
-
-                    b.HasIndex("TransactionStatusId");
 
                     b.ToTable("TRANSACTION_STATUSES");
                 });

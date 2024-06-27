@@ -45,4 +45,6 @@ document.addEventListener('keydown', function (event) {
     }
 });
 
-
+function hideValidationMessage(idValidationMessageElement) {
+    idValidationMessageElement.style.display = 'none';
+}

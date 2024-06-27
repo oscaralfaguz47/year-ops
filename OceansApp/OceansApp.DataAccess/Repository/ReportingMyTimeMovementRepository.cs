@@ -423,15 +423,16 @@ namespace OceansApp.DataAccess.Repository
         public async Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
            CreateUpdateMovementTrackingToolVM timeEntryData)
         {
+            var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == timeEntryData.MovementId);
+            if (existingTimeMovement == null)
+            {
+                var result = await CreateTimeEntryTrackingTool(userActionedBy, timeEntryData);
+                return MethodResponse.CreateSuccessResponse("New time entry created!", result.IdCreatedElement);
+            }
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.MovementId == timeEntryData.MovementId);
-                    if (existingTimeMovement == null)
-                    {
-                        return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
-                    }
                     var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                     if (existingTimeMovement.ConsultantId != currentUser.ConsultantId || existingTimeMovement.ProjectId != timeEntryData.ProjectId)
                     {

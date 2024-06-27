@@ -136,6 +136,42 @@ function waitingForPostMethod() {
         btnXCloseModal.style.cursor = 'not-allowed';
     }
 }
+function enableModalButtons(submitBtns, otherBtns, spinnersClass) {
+    otherBtns.forEach(btnId => {
+        let btnToEnable = document.getElementById(btnId);
+        btnToEnable.disabled = false;
+        btnToEnable.style.cursor = 'pointer';
+    });
+
+    submitBtns.forEach(submitBtn => {
+        let btnToEnable = document.getElementById(submitBtn.id);
+        btnToEnable.disabled = false;
+        btnToEnable.style.cursor = 'pointer';
+        const spanInsideBtnSaving = btnToEnable.querySelector('span');
+        spanInsideBtnSaving.textContent = submitBtn.text === null || submitBtn.text === undefined ? 'Save' : submitBtn.text;
+    });
+    const spinnersSaving = document.querySelectorAll('.' + spinnersClass);
+    spinnersSaving.forEach(function (element) {
+        element.style.display = 'none';
+    });
+}
+function disableButtonsWaitingForPostMethod(submitBtnId, otherBtns, spinnerClass) {
+    otherBtns.forEach(btnId => {
+        let btnToDisable = document.getElementById(btnId);
+        btnToDisable.disabled = true;
+        btnToDisable.style.cursor = 'not-allowed';
+    });
+    const submitBtn = document.getElementById(submitBtnId);
+    submitBtn.ariaDisabled = true;
+
+    const spinnerSaving = submitBtn.querySelectorAll('.' + spinnerClass);
+    spinnerSaving.forEach(function (element) {
+        element.style.display = 'block';
+    });
+
+    var spanInsideBtnSaving = submitBtn.querySelector('span');
+    spanInsideBtnSaving.textContent = 'Wait...';
+}
 function inicializeModalButtons(modalId, confirmBtnText) {
     const spanInsideBtnSaving = $('#btn-saving span');
     spanInsideBtnSaving.text(confirmBtnText === null || confirmBtnText === undefined ? 'Save' : confirmBtnText);

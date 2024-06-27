@@ -64,7 +64,7 @@ function generateDateList(startDateString, endDateString, movements) {
         addButton.className = 'btn-add-time';
         addButton.textContent = '+ Add';
         addButton.addEventListener('click', function () {
-            displayCreateUpdateTime('modal-update-create-time', formattedDate, null, null);
+            displayCreateUpdateTime('modal-update-create-time', formattedDate, null, addButton, null);
         });
 
         const countLabel = document.createElement('label');
@@ -88,60 +88,37 @@ function generateDateList(startDateString, endDateString, movements) {
                 addButton.disabled = true;
             }
             if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
-                addTimeEntry(addButton, currentDate.toISOString().split('T')[0], movement.movementId, movement.timeFrom, movement.timeTo,
-                    movement.notes, movement.transactionStatusName);
+                addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName);
             }
         });
         currentDate.setDate(currentDate.getDate() + 1);
     }
 }
 
-function addTimeEntry(button, date, movementId, timeFrom, timeTo, notes, transactionStatus) {
+function addTimeEntry(button, movementId, timeFrom, timeTo) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('span');
     reportedTimeLabel.className = 'reported-time-span';
-    reportedTimeLabel.innerHTML = `<span>${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
+    reportedTimeLabel.innerHTML = `<span id="reportedTimeSpan-${ movementId }">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
 
-    const editBtn = document.createElement('button');
-    editBtn.className = 'edit-time-btn';
-    editBtn.innerHTML = `<i class="fa-solid fa-pencil"></i>`;
     const timeEntryDiv = document.createElement('div');
     timeEntryDiv.className = 'time-entry';
     timeEntryDiv.innerHTML = `
-        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="hidden" class="time-from" value="${timeFrom === null ? '08:00' : timeFrom}"/>
-        <input type="hidden" class="movement-id" ${movementId === null ? 'value' : 'value="' + movementId + '"'}"/>
-        <input ${transactionStatus !== 'No actions' && transactionStatus !== 'Rejected' ? 'disabled' : ''} type="hidden" class="time-to" value="${timeTo === null ? '16:00' : timeTo}"/>
+        <input type="hidden" class="time-from" value="${timeFrom}"/>
+        <input type="hidden" class="movement-id" value="${movementId}"/>
+        <input type="hidden" class="time-to" value="${timeTo}"/>
     `;
 
-    button.parentElement.appendChild(timeEntryDiv);
-    button.parentElement.appendChild(reportedTimeLabel);
-    reportedTimeLabel.appendChild(editBtn);
-
-
-    const btnSaveTime = timeEntryDiv.querySelector('.btn-save-time');
-    const checkSavedIcon = timeEntryDiv.querySelector('.check-saved-icon');
-    const inputs = timeEntryDiv.querySelectorAll('.input-time, .movement-id');
-
-    inputs.forEach(input => {
-        if (input.type === 'text') {
-            input.addEventListener('input', () => {
-                btnSaveTime.style.display = 'block';
-                checkSavedIcon.style.display = 'none';
-            });
-        } else {
-            input.addEventListener('change', () => {
-                btnSaveTime.style.display = 'block';
-                checkSavedIcon.style.display = 'none';
-            });
-        }
-        if (input.type === 'time') {
-            input.addEventListener('keydown', (event) => {
-                if (event.key === 'Backspace' || event.key === 'Delete') {
-                    event.preventDefault();
-                }
-            });
-        }
+    const editBtn = document.createElement('button');
+    editBtn.addEventListener('click', function () {
+        displayCreateUpdateTime('modal-update-create-time', null, movementId, button, timeEntryDiv);
     });
+    editBtn.className = 'edit-time-btn';
+    editBtn.innerHTML = `<i class="fa-solid fa-pencil"></i>`;
+
+    button.parentElement.appendChild(timeEntryDiv);
+    timeEntryDiv.appendChild(reportedTimeLabel);
+    reportedTimeLabel.appendChild(editBtn);
 
     const timeFromInput = timeEntryDiv.querySelector('.time-from');
     const timeToInput = timeEntryDiv.querySelector('.time-to');
@@ -176,25 +153,6 @@ function calculateTimeDifference(startTime, endTime) {
     return { hours, minutes };
 }
 
-function deleteTimeEntry(deleteBtn, movementId) {
-    if (movementId !== null) {
-        var spinnerLabel = deleteBtn.parentElement.querySelector('.spinner-time-actions');
-        const checkSavedIcon = deleteBtn.parentElement.querySelector('.check-saved-icon');
-        deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel, checkSavedIcon).then(success => {
-            if (success) {
-                const dayItem = deleteBtn.closest('.day-item');
-                deleteBtn.parentElement.remove();
-                updateDayTotal(dayItem);
-                updateTotalHours();
-            }
-        });
-    } else {
-        const dayItem = deleteBtn.closest('.day-item');
-        deleteBtn.parentElement.remove();
-        updateDayTotal(dayItem);
-        updateTotalHours();
-    }
-}
 function saveTimeEntry(button, date) {
     var spinnerLabel = button.parentElement.querySelector('.spinner-time-actions');
     const deleteBtn = button.parentElement.querySelector('.btn-delete-time');
@@ -217,60 +175,6 @@ function saveTimeEntry(button, date) {
         });
 }
 
-
-// DELETE TRACKING TOOL TIME ENTRY
-async function deleteTrackingToolTimeEntry(movementId, deleteBtn, spinnerLabel, checkSavedIcon) {
-    if (!movementId) {
-        return false;
-    }
-    deleteBtn.style.display = 'none';
-    spinnerLabel.style.display = 'block';
-    const token = $('[name="__RequestVerificationToken"]').val();
-    const formData = new FormData();
-    formData.append('movementId', movementId);
-
-    try {
-        const response = await fetch("/TrackingTool/ReportingMyTime/DeleteTrackingToolTimeEntry", {
-            method: 'POST',
-            headers: {
-                'RequestVerificationToken': token
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            // If the response is not successful, we extract the JSON containing the error message
-            const err = await response.json();
-            console.error('There has been a problem with your fetch operation:', err.error);
-            switch (err.messageType) {
-                case 'Validation Error':
-                    displayToasterWarning('Validation Error: ' + err.error);
-                    break;
-                case 'Not Found':
-                    return true;
-                    break;
-                default:
-                    displayToasterError('Error: ' + err.error);
-            }
-            deleteBtn.style.display = 'block';
-            checkSavedIcon.style.display = 'block';
-            spinnerLabel.style.display = 'none';
-            return false;
-        }
-        //If the answer is successful
-        const data = await response.json();
-        return true;
-    } catch (err) {
-        // Handling network errors or fetch failures
-        validateSessionExpiration(err.message);
-        displayToasterError('There has been a problem with your fetch operation:', err);
-        console.error('There has been a problem with your fetch operation:', err);
-        deleteBtn.style.display = 'block';
-        checkSavedIcon.style.display = 'block';
-        spinnerLabel.style.display = 'none';
-        return false;
-    }
-}
 function updateDayTotal(dayElement) {
     const timeEntries = dayElement.querySelectorAll('.time-entry');
     let totalMinutes = 0;

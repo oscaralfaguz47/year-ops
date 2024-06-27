@@ -21,16 +21,21 @@
                             <input id="timeToInput" type="time" class="time-to input-time" />
                         </div>
                    </div>
-                   <span id="time-zero-val-message" class="red-label">You cannot add time equals to zero</span>
+                   <span id="time-zero-val-message" class="validation-message">You cannot add time equals to zero</span>
                    <label>Additional Notes</label>
                     <textarea id="addNotesInput" class="time-detail input-time"></textarea>
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                    <a id="btn-cancel" onclick="hideModal('modal-update-create-time')" class="cancel-btn">Delete</a>&nbsp;
+                    <button id="btn-cancel" onclick="deleteTrackingToolTimeEntry('modal-update-create-time')" class="cancel-btn">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>&nbsp;
                     <button id="btn-saving" onclick="createUpdateTimeEntryTrackingTool('modal-update-create-time')" class="btn-primary-submit">
                         <div style="display:flex;align-items:center;">
-                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            <div style="display:none; margin-right:5px" class="spinner-border" role="status">
                             </div><span></span>
                         </div>
                     </button>
@@ -41,3 +46,4 @@
 </div>
 
 <script src="~/js/TrackingTool/addTimeTrackingToolModal.js"></script>
+<script src="~/js/Shared/sharedComponents.js"></script>
