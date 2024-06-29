@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240629190937_CreateIsPayableAndCreateIndexesToMovementTypesTable")]
+    partial class CreateIsPayableAndCreateIndexesToMovementTypesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2366,8 +2369,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionStatusId");
 
-                    b.HasIndex("ProjectId", "ConsultantId", "ActionDate");
-
                     b.ToTable("REPORTING_MY_TIME_MOVEMENTS");
                 });
 
@@ -2490,8 +2491,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("MovementTypeId");
 
                     b.HasIndex("Name");
-
-                    b.HasIndex("MovementTypeId", "IsPayable");
 
                     b.ToTable("REPORTING_MY_TIME_MOVEMENT_TYPES");
                 });

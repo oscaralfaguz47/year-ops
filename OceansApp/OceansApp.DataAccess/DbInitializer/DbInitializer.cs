@@ -501,13 +501,14 @@ namespace OceansApp.DataAccess.DbInitializer
                 //-----------------  REPORTING MY TIME MOVEMENT TYPES --------------------------------
 
                 List<ReportingMyTimeMovementType> movTypesList = new List<ReportingMyTimeMovementType>();
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Normal Hours" });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Flate Rate" });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Time Worked" });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Balance Program" });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Oceans Challenge" });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Bonusly Rewards" });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Interviews" });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Normal Hours", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Flate Rate", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Time Worked", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Balance Program", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Oceans Challenge", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Bonusly Rewards", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Interviews", IsPayable = true });
+                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Time Off (Non-payable)", IsPayable = true });
 
                 foreach (var movementType in movTypesList)
                 {

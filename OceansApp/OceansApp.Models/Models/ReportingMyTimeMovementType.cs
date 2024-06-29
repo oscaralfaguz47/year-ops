@@ -11,5 +11,7 @@ namespace OceansApp.Models.Models
         [Required]
         [MaxLength(80)]
         public string Name { get; set; }
+        [Required]
+        public bool IsPayable { get; set; }
     }
 }

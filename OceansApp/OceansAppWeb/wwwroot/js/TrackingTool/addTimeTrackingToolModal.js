@@ -5,6 +5,7 @@ let additionalNotesInput = document.getElementById('addNotesInput');
 let actionDateInput = document.getElementById('actionDateInput');
 let movementIdInput = document.getElementById('movementIdInput');
 let validationMessageTimeZero = document.getElementById('time-zero-val-message');
+let timeClassificationSelect = document.getElementById('timeClassification');
 let addBtn = null;
 let htmlReportedTimeElement = null;
 
@@ -51,8 +52,9 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     const submitBtns = [{ id: 'btn-cancel', text: 'Delete' }, { id: 'btn-saving', text: 'Confirm' }];
     const otherBtns = ['close-modal-x-btn'];
     enableModalButtons(submitBtns, otherBtns, 'spinner-border');
-    resetForm('form-create-update')
+    resetForm('form-create-update');
     if (movementId === null) {
+        timeClassificationSelect.innerHTML = `<option value="Normal Hours">Hours Worked (Payable)</option>`;
         movementIdInput.value = movementId;
         modalTitle.textContent = selectedDate;
         timeFromInput.value = '08:00';
@@ -95,6 +97,9 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
                 timeFromInput.value = data.movementData.timeFrom;
                 timeToInput.value = data.movementData.timeTo;
                 actionDateInput.value = data.movementData.actionDate;
+                const timeClassificationOptionText = data.movementData.movementTypeName === 'Normal Hours' ? 'Hours Worked (Payable)' : data.movementData.movementTypeName;
+                const timeClassificationOptionValue = data.movementData.movementTypeName === 'Normal Hours' ? 'Normal Hours' : data.movementData.movementTypeId;
+                timeClassificationSelect.innerHTML = `<option value="${timeClassificationOptionValue}">${timeClassificationOptionText}</option>`;
                 additionalNotesInput.value = data.movementData.notes;
                 showModal(modalId);
                 return data;
@@ -106,6 +111,30 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
                 hideSpinner();
             });
     }
+}
+
+//GET MOVEMENT TYPES
+function fillMovementTypesSelect(selectElement) {
+    let previousValue = selectElement.value;
+    if (selectElement.length > 1) {
+        return;
+    }
+    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
+    getMovementTypesList()
+        .then(data => {
+            selectElement.innerHTML = '';
+            selectElement.disabled = false;
+            data.movementTypes.forEach(obj => {
+                let optionText = obj.text === 'Normal Hours' ? 'Hours Worked (Payable)' : obj.text;
+                let optionValue = obj.text === 'Normal Hours' ? obj.text : obj.value;
+                var option = new Option(optionText, optionValue);
+                selectElement.add(option);
+            });
+                selectElement.value = previousValue;
+        })
+        .catch(error => {
+            console.error('Error fetching:', error);
+        });
 }
 
 //CREATE, UPDATE TIME ENTRY
@@ -129,7 +158,8 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
         ActionDate: actionDateData,
         Notes: additionalNotesInput.value,
         TimeFrom: timeFromInput.value,
-        TimeTo: timeToInput.value
+        TimeTo: timeToInput.value,
+        MovementTypeId: timeClassificationSelect.value === 'Normal Hours' ? null : Number(timeClassificationSelect.value)
     };
 
     try {
@@ -182,12 +212,18 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
             movementIdInputFromDiv.value = dataFromApi.movementId;
 
             const hoursMinutes = calculateTimeDifference(timeFromInput.value, timeToInput.value);
-            document.getElementById('reportedTimeSpan-' + movementIdInput.value).innerHTML = `<span id="reportedTimeSpan-${movementIdInput.value}">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
+            const reportedTimeSpanById = document.getElementById('reportedTimeSpan-' + movementIdInput.value);
+            reportedTimeSpanById.innerHTML = `<span id="reportedTimeSpan-${movementIdInput.value}">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
+            if (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)')) {
+                reportedTimeSpanById.parentElement.classList.add('non-payable');
+            } else {
+                reportedTimeSpanById.parentElement.classList.remove('non-payable');
+            }
             const dayItem = addBtn.closest('.day-item');
             updateDayTotal(dayItem);
             updateTotalHours();
         } else {
-            addTimeEntry(addBtn, dataFromApi.movementId, timeFromInput.value, timeToInput.value, 'No actions');
+            addTimeEntry(addBtn, dataFromApi.movementId, timeFromInput.value, timeToInput.value, 'No actions', timeClassificationSelect.selectedOptions[0].text);
         }
         return dataFromApi;
     } catch (err) {

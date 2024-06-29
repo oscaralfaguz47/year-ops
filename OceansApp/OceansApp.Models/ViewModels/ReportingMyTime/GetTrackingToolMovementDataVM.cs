@@ -7,5 +7,7 @@ namespace OceansApp.Models.ViewModels.ReportingMyTime
         public string TimeFrom { get; set; }
         public string TimeTo { get; set; }
         public string Notes { get; set; }
+        public int MovementTypeId { get; set; }
+        public string MovementTypeName { get; set; }
     }
 }

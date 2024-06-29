@@ -1,88 +1,88 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 <link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css" />
 
-    <div id="no-tracking-tool-sec" style="display: none">
-        <div class="row mt-3">
-            <input type="hidden" id="movementIdNormalHoursInput" />
-            <div class="col-md-6">
-                <div class="file-upload-container">
-                    <div class="file-upload-wrapper">
-                        <input type="file" name="file-upload" id="file-upload" class="file-upload-input" multiple hidden />
-                        <label id="upload-btn" for="file-upload" class="file-upload-label">
-                            <i class="fa fa-cloud-upload"></i> Upload your report here
-                        </label>
-                        <div class="uploaded-files-section">
-                            <div>
-                                <span id="file-upload-name" class="file-upload-name"></span>
-                                <p class="file-upload-instructions" id="info-text">
-                                    <strong>No files selected...</strong><br />
-                                    <span>Drag and Drop, Select files or Copy and Paste screenshots here...</span>
-                                </p>
-                            </div>
+<div id="no-tracking-tool-sec" style="display: none">
+    <div class="row mt-3">
+        <input type="hidden" id="movementIdNormalHoursInput" />
+        <div class="col-md-6">
+            <div class="file-upload-container">
+                <div class="file-upload-wrapper">
+                    <input type="file" name="file-upload" id="file-upload" class="file-upload-input" multiple hidden />
+                    <label id="upload-btn" for="file-upload" class="file-upload-label">
+                        <i class="fa fa-cloud-upload"></i> Upload your report here
+                    </label>
+                    <div class="uploaded-files-section">
+                        <div>
+                            <span id="file-upload-name" class="file-upload-name"></span>
+                            <p class="file-upload-instructions" id="info-text">
+                                <strong>No files selected...</strong><br />
+                                <span>Drag and Drop, Select files or Copy and Paste screenshots here...</span>
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 report-input-cont">
-                <div>
+        </div>
+        <div class="col-md-6 report-input-cont">
+            <div>
+                <div class="fields-backg">
+                    <div class="col-7">
+                        <label>Total Hours Worked <span class="red-label">*</span></label>
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info tooltip-target"></i>
+                            <div class="tooltip-content">
+                                <div class="tooltip-arrow"></div>
+                                Enter only worked hours. Do not include days off you didn't work.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <input type="number" placeholder="0.00" oninput="limitDigitsAndDecimals(this); handleChangeData()" class="input-time" id="quantityInput" value="0" />
+                    </div>
+                </div>
+                <div id="on-call-section">
                     <div class="fields-backg">
                         <div class="col-7">
-                            <label>Total Hours Worked <span class="red-label">*</span></label>
-                            <div class="tooltip-container">
-                                <i class="fa-solid fa-circle-info tooltip-target"></i>
-                                <div class="tooltip-content">
-                                    <div class="tooltip-arrow"></div>
-                                    Enter only worked hours. Do not include days off you didn't work.
-                                </div>
-                            </div>
+                            <label>On-Call Flate Rate</label>
                         </div>
                         <div class="col-5">
-                        <input type="number" placeholder="0.00" oninput="limitDigitsAndDecimals(this); handleChangeData()" class="input-time" id="quantityInput" value="0" />
-                        </div>
-                    </div>
-                    <div id="on-call-section">
-                        <div class="fields-backg">
-                            <div class="col-7">
-                                <label>On-Call Flate Rate</label>
-                            </div>
-                            <div class="col-5">
-                                <div>
-                                    <span class="arrow-down"></span>
+                            <div>
+                                <span class="arrow-down"></span>
                                 <select onchange="handleChangeData()" class="form-select" id="onCallFlateRateSelect">
-                                        <option selected value="0">-No On-Calls-</option>
-                                        <option value="1">1 On-Call</option>
-                                        <option value="2">2 On-Calls</option>
-                                        <option value="3">3 On-Calls</option>
-                                        <option value="4">4 On-Calls</option>
-                                        <option value="5">5 On-Calls</option>
-                                        <option value="6">6 On-Calls</option>
-                                    </select>
-                                </div>
+                                    <option selected value="0">-No On-Calls-</option>
+                                    <option value="1">1 On-Call</option>
+                                    <option value="2">2 On-Calls</option>
+                                    <option value="3">3 On-Calls</option>
+                                    <option value="4">4 On-Calls</option>
+                                    <option value="5">5 On-Calls</option>
+                                    <option value="6">6 On-Calls</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="fields-backg">
-                            <div class="col-7">
-                                <label>On-Call Time Worked</label>
-                            </div>
-                            <div class="col-5">
+                    </div>
+                    <div class="fields-backg">
+                        <div class="col-7">
+                            <label>On-Call Time Worked</label>
+                        </div>
+                        <div class="col-5">
                             <input type="number" placeholder="0.00" class="input-time" oninput="limitDigitsAndDecimals(this); handleChangeData()" id="onCallTimeWorkedInput" value="0" />
-                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label for="notesInput">Additional Notes (Optional)</label>
-                        <div>
-                        <textarea oninput="handleChangeData()" id="notesInput" class="input-time"></textarea>
-                        </div>
-                    </div>
-                    <div class="save-report-cont">
-                    <button id="save-btn" onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Please save your changes</button>
                     </div>
                 </div>
+                <div>
+                    <label for="notesInput">Additional Notes (Optional)</label>
+                    <div>
+                        <textarea oninput="handleChangeData()" id="notesInput" class="input-time"></textarea>
+                    </div>
+                </div>
+                <div class="save-report-cont">
+                    <button id="save-btn" onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Please save your changes</button>
+                </div>
             </div>
-
         </div>
+
     </div>
+</div>
 
 <script src="~/js/TrackingTool/trackingToolReportEntry.js"></script>
 <script src="~/js/Shared/inputValidations.js"></script>

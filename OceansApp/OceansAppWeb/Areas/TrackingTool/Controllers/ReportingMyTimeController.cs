@@ -11,6 +11,7 @@ using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using Microsoft.CodeAnalysis;
 using OceansApp.Utility.SharedMethods;
+using Microsoft.EntityFrameworkCore;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -578,7 +579,8 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         {
             try
             {
-                var existingMovement = await _unitOfWork.ReportingMyTimeMovement.GetFirstOrDefaultAsync(x => x.MovementId == movementId);
+                var existingMovement = await _unitOfWork.ReportingMyTimeMovement.GetFirstOrDefaultAsync(x => x.MovementId == movementId,
+                    include: x => x.Include(y => y.ReportingMyTimeMovementType));
                 if (existingMovement == null)
                 {
                     return NotFound(new { error = "Movement does not exist.", messageType = "Not Found" });
@@ -588,7 +590,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     ActionDate = existingMovement.ActionDate,
                     Notes = existingMovement.Notes,
                     TimeFrom = existingMovement.TimeFrom,
-                    TimeTo = existingMovement.TimeTo
+                    TimeTo = existingMovement.TimeTo,
+                    MovementTypeId = existingMovement.MovementTypeId,
+                    MovementTypeName = existingMovement.ReportingMyTimeMovementType.Name
                 };
                 var data = new { movementData = vm };
                 return Ok(data);

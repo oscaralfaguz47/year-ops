@@ -602,6 +602,8 @@ namespace OceansApp.DataAccess.Data
             // REPORTING MY TIME MOVEMENTS
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
             {
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.ActionDate });
+
                 entity.HasIndex(e => e.ActionDate);
                 entity.HasIndex(e => e.Quantity);
                 entity.HasIndex(e => e.ProjectId);
@@ -706,6 +708,16 @@ namespace OceansApp.DataAccess.Data
                 .Property(d => d.EndPeriodDate)
                 .HasColumnType("date")
                 .IsRequired();
+
+            // REPORTING MY TIME MOVEMENTS TYPES
+            modelBuilder.Entity<ReportingMyTimeMovementType>(entity =>
+            {
+                entity.HasIndex(e => new { e.MovementTypeId, e.IsPayable });
+
+                entity.HasIndex(e => e.MovementTypeId);
+                entity.HasIndex(e => e.IsPayable);
+                entity.HasIndex(e => e.Name);
+            });
 
             // TRANSACTION STATUSES
             modelBuilder.Entity<TransactionStatus>(entity =>

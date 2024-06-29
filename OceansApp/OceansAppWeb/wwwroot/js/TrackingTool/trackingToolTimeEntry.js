@@ -92,17 +92,17 @@ function generateDateList(startDateString, endDateString, movements) {
                 submitBtn.className = 'submit-button-disabled';
             }
             if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
-                addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName);
+                addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName, movement.isPayable);
             }
         });
         currentDate.setDate(currentDate.getDate() + 1);
     }
 }
 
-function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus) {
+function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, isPayable) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('span');
-    reportedTimeLabel.className = 'reported-time-span';
+    reportedTimeLabel.className = `reported-time-span ${!isPayable || isPayable.toString().includes('(Non-payable)') ? 'non-payable' : ''}`;
     reportedTimeLabel.innerHTML = `<span id="reportedTimeSpan-${ movementId }">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
 
     const timeEntryDiv = document.createElement('div');

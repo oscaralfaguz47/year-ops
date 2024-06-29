@@ -2,8 +2,7 @@
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using System.Linq.Expressions;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -39,9 +38,16 @@ namespace OceansApp.DataAccess.Repository
             return await query.ToListAsync();
         }
 
-        public async Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> filter)
+        public async Task<T> GetFirstOrDefaultAsync(
+         Expression<Func<T, bool>> filter,
+         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
             IQueryable<T> query = dbSet;
+
+            if (include != null)
+            {
+                query = include(query);
+            }
 
             query = query.Where(filter);
 

@@ -96,6 +96,10 @@
     padding: 1px 7px;
     margin-top: 8px
 }
+.non-payable {
+    background-color: rgb(232, 180, 180);
+    color: #fff;
+}
 .edit-time-btn{
     border: none;
     background-color: transparent;

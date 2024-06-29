@@ -384,11 +384,23 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Transaction status 'No actions' not found.");
                     }
+                    ReportingMyTimeMovementType? movementType = null;
 
-                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
-                    if (movementType == null)
+                    if (timeEntryData.MovementTypeId == null)
                     {
-                        return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                        if (movementType == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        }
+                    }
+                    else
+                    {
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
+                        if (movementType == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        }
                     }
 
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
@@ -445,6 +457,23 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureExceptionResponse(responseValidateSubmission.Message);
                     }
+                    ReportingMyTimeMovementType? movementType = null;
+                    if (timeEntryData.MovementTypeId == null)
+                    {
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                        if (movementType == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        }
+                    }
+                    else
+                    {
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
+                        if (movementType == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        }
+                    }
 
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
 
@@ -453,6 +482,7 @@ namespace OceansApp.DataAccess.Repository
                     existingTimeMovement.Quantity = (decimal)totalQuantity;
                     existingTimeMovement.Notes = timeEntryData.Notes;
                     existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
+                    existingTimeMovement.MovementTypeId = movementType.MovementTypeId;
 
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
