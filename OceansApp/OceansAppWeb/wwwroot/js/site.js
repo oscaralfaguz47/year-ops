@@ -162,7 +162,7 @@ function disableButtonsWaitingForPostMethod(submitBtnId, otherBtns, spinnerClass
         btnToDisable.style.cursor = 'not-allowed';
     });
     const submitBtn = document.getElementById(submitBtnId);
-    submitBtn.ariaDisabled = true;
+    submitBtn.disabled = true;
 
     const spinnerSaving = submitBtn.querySelectorAll('.' + spinnerClass);
     spinnerSaving.forEach(function (element) {
