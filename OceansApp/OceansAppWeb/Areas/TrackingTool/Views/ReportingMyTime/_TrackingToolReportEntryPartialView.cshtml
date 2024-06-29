@@ -27,9 +27,9 @@
                 <div>
                     <div class="fields-backg">
                         <div class="col-7">
-                            <label>Total Worked Hours <span class="red-label">*</span></label>
+                            <label>Total Hours Worked <span class="red-label">*</span></label>
                             <div class="tooltip-container">
-                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <i class="fa-solid fa-circle-info tooltip-target"></i>
                                 <div class="tooltip-content">
                                     <div class="tooltip-arrow"></div>
                                     Enter only worked hours. Do not include days off you didn't work.
@@ -37,7 +37,7 @@
                             </div>
                         </div>
                         <div class="col-5">
-                        <input type="number" placeholder="0.00" oninput="limitDigitsAndDecimals(this)" class="input-time" id="quantityInput" value="0" />
+                        <input type="number" placeholder="0.00" oninput="limitDigitsAndDecimals(this); handleChangeData()" class="input-time" id="quantityInput" value="0" />
                         </div>
                     </div>
                     <div id="on-call-section">
@@ -48,7 +48,7 @@
                             <div class="col-5">
                                 <div>
                                     <span class="arrow-down"></span>
-                                    <select class="form-select" id="onCallFlateRateSelect">
+                                <select onchange="handleChangeData()" class="form-select" id="onCallFlateRateSelect">
                                         <option selected value="0">-No On-Calls-</option>
                                         <option value="1">1 On-Call</option>
                                         <option value="2">2 On-Calls</option>
@@ -65,18 +65,18 @@
                                 <label>On-Call Time Worked</label>
                             </div>
                             <div class="col-5">
-                            <input type="number" placeholder="0.00" class="input-time" oninput="limitDigitsAndDecimals(this)" id="onCallTimeWorkedInput" value="0" />
+                            <input type="number" placeholder="0.00" class="input-time" oninput="limitDigitsAndDecimals(this); handleChangeData()" id="onCallTimeWorkedInput" value="0" />
                             </div>
                         </div>
                     </div>
                     <div>
                         <label for="notesInput">Additional Notes (Optional)</label>
                         <div>
-                            <textarea id="notesInput" class="input-time"></textarea>
+                        <textarea oninput="handleChangeData()" id="notesInput" class="input-time"></textarea>
                         </div>
                     </div>
                     <div class="save-report-cont">
-                        <button id="save-btn" onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                    <button id="save-btn" onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Please save your changes</button>
                     </div>
                 </div>
             </div>

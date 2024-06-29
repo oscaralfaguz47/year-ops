@@ -12,6 +12,10 @@ let saveReportBtn = document.getElementById('save-btn');
 let transactionStatus = 'No actions';
 let uploadBtn = document.getElementById('upload-btn');
 
+function handleChangeData() {
+    saveReportBtn.style.display = 'block';
+}
+
 const dropArea = document.querySelector('.file-upload-wrapper');
 let fileList = [];
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
@@ -288,9 +292,9 @@ async function createFirstMovementIfDoesNotExist() {
 //CREATE, UPDATE TIME ENTRY MOVEMENT
 async function createUpdateTimeEntry() {
     submissionError.innerHTML = '';
-    var saveBtn = document.getElementById('save-btn');
+    let saveBtn = document.getElementById('save-btn');
     const savingLabel = `<i class="fa-solid fa-spinner saving-icon"></i> Saving Changes...`;
-    const saveLabel = `<i class="fa-solid fa-floppy-disk"></i> Save Changes`;
+    const saveLabel = `<i class="fa-solid fa-floppy-disk"></i> Please save your changes`;
     saveBtn.disabled = true;
     saveBtn.innerHTML = savingLabel;
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -373,6 +377,7 @@ async function createUpdateTimeEntry() {
         saveBtn.disabled = false;
         saveBtn.innerHTML = saveLabel;
         displayToasterSuccess(dataFromApi.message);
+        saveReportBtn.style.display = 'none';
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);
@@ -395,7 +400,11 @@ function initializeUploadProcess() {
     }
 }
 function updateStatusReportSubmittedClientHasTrackingTool() {
-    submissionInfo.innerHTML = `<div style="margin-bottom:10px">You have already submitted your report, and the current status is:</div> <span class="status-span">${getStatusLabel(transactionStatus)}</span>`;
+    submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor(transactionStatus)}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon(transactionStatus)} 
+                ${transactionStatus === 'Waiting to be approved' ? 'Pending approval' : transactionStatus === 'Approved' ? 'Timesheet approved' : transactionStatus}</button>`;
+    let submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.className = 'submit-button-disabled';
     quantityInput.disabled = true;
     notesInput.disabled = true;
     onCallFlateRateSelect.disabled = true;
@@ -406,6 +415,7 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
 }
 //GET PROJECT MOVEMENTS
 async function getProjectMovementsClientHasTrackTool() {
+    saveReportBtn.style.display = 'none';
     initializeUploadProcess();
     loadingBoxIntern.style.display = 'block';
     errorMessageIntern.style.display = 'none';
@@ -438,13 +448,12 @@ async function getProjectMovementsClientHasTrackTool() {
         } else {
             movementIdNormalHoursInput.value = null;
         }
-        submissionInfo.innerHTML = `<strong>Have you reported all your hours accurately?</strong> <button onclick="submitReportToBePaid()"><i class="fa-regular fa-paper-plane"></i> Submit Report to get paid</button>`;
+        submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor('No Actions')}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon('No Actions')} Submit your time</button>`;
         quantityInput.disabled = false;
         notesInput.disabled = false;
         onCallFlateRateSelect.disabled = false;
         onCallTimeWorkedInput.disabled = false;
         fileInput.disabled = false;
-        saveReportBtn.style.display = 'inline';
         transactionStatus = 'No actions';
         uploadBtn.style.display = 'block';
 

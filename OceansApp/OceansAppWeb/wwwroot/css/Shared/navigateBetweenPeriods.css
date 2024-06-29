@@ -10,6 +10,10 @@
         padding: 2px 6px;
         border-radius: 15px;
     }
+    .navegation-box i {
+        margin-left: 5px;
+        color: #2aa7ff;
+    }
 .btn-arrow {
     display: inline-flex;
     justify-content: center;
