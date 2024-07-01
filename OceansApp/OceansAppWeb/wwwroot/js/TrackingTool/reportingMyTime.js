@@ -69,8 +69,8 @@ async function getProjectInfo() {
                 document.getElementById('payment-period-container').innerHTML = `<div><span class="strong-label">Your payment period is</span> <span class="gray-bold-span">${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}</span></div>`;
                 let currentDateNoChange = new Date();
                 calculatePeriod(currentDateNoChange, paymentPeriod);
-                document.getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span style="text-alig:center">Please reach out to your Success Manager,
-            <strong style="color:var(--clr-blueLight)">${projectInfo.sucessManagerName}</strong></span> <a class="envelope-link" href="mailto:${projectInfo.successManagerEmail}">
+                document.getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span>Please reach out to your Success Manager
+            </span> <strong style="color:var(--clr-blueLight); display:block;">${projectInfo.sucessManagerName}</strong> <a class="envelope-link" href="mailto:${projectInfo.successManagerEmail}">
             <div class="envelope-container"><img src="/img/globalIcons/envelope.webp"></div></a>`;
                 header.style.display = 'flex';
                 loadingBox.style.display = 'none';
