@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AdminCenter.UserRolesPermissions;
@@ -14,19 +15,21 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
     [Route("AdminCenter/[controller]")]
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     public class UserRolesPermissionsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
         UserManager<IdentityUser> _userManager;
+        private readonly IMemoryCache _cache;
         public UserRolesPermissionsController(IUnitOfWork unitOrWork, RoleManager<IdentityRole> roleManager,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager, IMemoryCache cache)
         {
             _unitOfWork = unitOrWork;
             _roleManager = roleManager;
             _userManager = userManager;
+            _cache = cache;
         }
 
         [Authorize(Policy = "AccessToUserRolesAndPermissions")]
@@ -266,6 +269,15 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                                     }
                                 }
                             }
+                        }
+                        var usersInRole = await _unitOfWork.ApplicationUser.GetUsersWhereRoleId(existingRole.Id);
+                        foreach (var user in usersInRole)
+                        {
+                            var cacheKey = $"UserSessionChangesExpiration_{user.UserId}";
+                            _cache.Set(cacheKey, DateTimeOffset.Now.AddSeconds(1), new MemoryCacheEntryOptions
+                            {
+                                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)
+                            });
                         }
                         return Ok(new { message = "The role was successfully updated!", result = "success" });
                     }

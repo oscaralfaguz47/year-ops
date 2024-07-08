@@ -9,7 +9,7 @@ namespace OceansAppWeb.Areas.General.Controllers
     [Route("General/[controller]")]
     [Area("General")]
     [Authorize]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class ConsultantDetailsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

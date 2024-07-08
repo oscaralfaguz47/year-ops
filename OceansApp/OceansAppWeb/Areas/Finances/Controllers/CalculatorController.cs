@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace FinancialCalculatorWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     [Authorize(Policy = "AccessToFinancialCalculator")]
     public class CalculatorController : Controller

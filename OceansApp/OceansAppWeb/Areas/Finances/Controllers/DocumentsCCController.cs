@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
     [Area("Finances")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     [Authorize(Policy = "AccessToAccountsReceivable")]
     public class DocumentsCCController : Controller

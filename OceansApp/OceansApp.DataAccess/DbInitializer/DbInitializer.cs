@@ -15,38 +15,39 @@ namespace OceansApp.DataAccess.DbInitializer
 {
     public class DbInitializer : IDbInitializer
     {
+        private readonly ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ApplicationDbContext _db;
         public IConfiguration _config { get; }
+
         public DbInitializer(
+            ApplicationDbContext db,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            ApplicationDbContext db,
             IConfiguration config)
         {
-            _roleManager = roleManager;
-            _userManager = userManager;
             _db = db;
+            _userManager = userManager;
+            _roleManager = roleManager;
             _config = config;
         }
 
-        public async void Initialize()
+        public async Task InitializeAsync()
         {
             bool isThereNewMigrationToUpdate = true; // False if no migration updates in the DB are needed
             if (isThereNewMigrationToUpdate)
             {
-                //Migrations if they are not applied
+                // Migrations if they are not applied
                 try
                 {
-                    if (_db.Database.GetPendingMigrations().Count() > 0)
+                    if ((await _db.Database.GetPendingMigrationsAsync()).Any())
                     {
-                        _db.Database.Migrate();
+                        await _db.Database.MigrateAsync();
                     }
                 }
                 catch (Exception ex)
                 {
-
+                    // Log or handle exception as needed
                 }
             }
 
@@ -54,65 +55,78 @@ namespace OceansApp.DataAccess.DbInitializer
 
             if (createDefaultDataToDatabase)
             {
-                //-----------------  ROLES  --------------------------------
+                // ----------------- ROLES --------------------------------
 
-                List<IdentityRole> rolesList = new List<IdentityRole>();
-                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Master });
-                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Admin });
-                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Simple });
-                rolesList.Add(new IdentityRole() { Name = SD.Role_User_Computer_Consultant });
+                List<IdentityRole> rolesList = new List<IdentityRole>
+                {
+                    new IdentityRole { Name = SD.Role_User_Master },
+                    new IdentityRole { Name = SD.Role_User_Admin },
+                    new IdentityRole { Name = SD.Role_User_Simple },
+                    new IdentityRole { Name = SD.Role_User_Computer_Consultant }
+                };
 
                 foreach (var role in rolesList)
                 {
-                    if (_roleManager.FindByNameAsync(role.Name).Result == null)
+                    if (await _roleManager.FindByNameAsync(role.Name) == null)
                     {
-                        _roleManager.CreateAsync(new IdentityRole(role.Name)).GetAwaiter().GetResult();
+                        await _roleManager.CreateAsync(role);
                     }
                 }
 
-                //-----------------  USER CATEGORIES  --------------------------------
+                // ----------------- USER CATEGORIES --------------------------------
 
-                List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>();
-                userCategoriesList.Add(new ApplicationUserCategory() { Name = "Administrative" });
-                userCategoriesList.Add(new ApplicationUserCategory() { Name = "Consultant" });
-                userCategoriesList.Add(new ApplicationUserCategory() { Name = "External User" });
+                List<ApplicationUserCategory> userCategoriesList = new List<ApplicationUserCategory>
+                {
+                    new ApplicationUserCategory { Name = "Administrative" },
+                    new ApplicationUserCategory { Name = "Consultant" },
+                    new ApplicationUserCategory { Name = "External User" }
+                };
                 foreach (var userCategory in userCategoriesList)
                 {
-                    if (_db.UserCategories.FirstOrDefault(x => x.Name == userCategory.Name) == null)
+                    if (await _db.UserCategories.FirstOrDefaultAsync(x => x.Name == userCategory.Name) == null)
                     {
-                        _db.UserCategories.Add(userCategory);
+                        await _db.UserCategories.AddAsync(userCategory);
                     }
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
 
-                //-----------------  CREATE DEFAULT USER  --------------------------------
+                // ----------------- CREATE DEFAULT USER --------------------------------
 
-                if (!_roleManager.RoleExistsAsync(SD.Role_User_Master).GetAwaiter().GetResult())
+                if (!await _roleManager.RoleExistsAsync(SD.Role_User_Master))
                 {
-                    //If Roles are not created, then we will create Master user as well
-                    _userManager.CreateAsync(new ApplicationUser
+                    var masterUserEmail = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]);
+                    var masterUserPass = Environment.GetEnvironmentVariable(_config["MasterUserPass_ENV"]);
+
+                    // If Roles are not created, then we will create Master user as well
+                    var user = new ApplicationUser
                     {
-                        UserName = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]),
-                        Email = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]),
+                        UserName = masterUserEmail,
+                        Email = masterUserEmail,
                         Name = _config["MasterUserName"],
                         LastName = _config["MasterUserLastName"],
                         IsActive = true,
                         DeactivationDate = null
-                    }, Environment.GetEnvironmentVariable(_config["MasterUserPass_ENV"])).GetAwaiter().GetResult();
-                    ApplicationUser user = _db.AspNetUsers.FirstOrDefault(x => x.Email == Environment.GetEnvironmentVariable(_config["MasterUserEmail"]));
+                    };
+                    await _userManager.CreateAsync(user, masterUserPass);
+                    var createdUser = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Email == masterUserEmail);
 
-                    _userManager.AddToRoleAsync(user, SD.Role_User_Master).GetAwaiter().GetResult();
+                    if (createdUser != null)
+                    {
+                        await _userManager.AddToRoleAsync(createdUser, SD.Role_User_Master);
+                    }
                 }
 
-                //-----------------  COMPANIES  --------------------------------
+                // ----------------- COMPANIES --------------------------------
 
-                List<Company> companiesList = new List<Company>();
-                companiesList.Add(new Company() { CompanyId = "OCE", Name = "Oceans Consulting Firm, S.A"});
-                companiesList.Add(new Company() { CompanyId = "LLC", Name = "OCE LLC" });
+                List<Company> companiesList = new List<Company>
+                {
+                    new Company { CompanyId = "OCE", Name = "Oceans Consulting Firm, S.A" },
+                    new Company { CompanyId = "LLC", Name = "OCE LLC" }
+                };
 
                 foreach (var company in companiesList)
                 {
-                    var existingCompany = _db.COMPANIES.FirstOrDefault(x => x.Name == company.Name);
+                    var existingCompany = await _db.COMPANIES.FirstOrDefaultAsync(x => x.Name == company.Name);
                     if (existingCompany == null)
                     {
                         Company companyToCreate = new()
@@ -120,21 +134,23 @@ namespace OceansApp.DataAccess.DbInitializer
                             CompanyId = company.CompanyId,
                             Name = company.Name
                         };
-                        _db.COMPANIES.Add(companyToCreate);
+                        await _db.COMPANIES.AddAsync(companyToCreate);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  CONSULTANT BENEFITS  --------------------------------
+                // ----------------- CONSULTANT BENEFITS --------------------------------
 
-                List<ConsultantBenefit> consultantBenefitList = new List<ConsultantBenefit>();
-                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Balance Program", Amount = 750, BenefitPeriod = "Annual" });
-                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Bonusly", Amount = 5000, BenefitPeriod = "Undefined" });
-                consultantBenefitList.Add(new ConsultantBenefit() { Name = "Oceans Challenge", Amount = 250, BenefitPeriod = "Annual" });
+                List<ConsultantBenefit> consultantBenefitList = new List<ConsultantBenefit>
+                {
+                    new ConsultantBenefit { Name = "Balance Program", Amount = 750, BenefitPeriod = "Annual" },
+                    new ConsultantBenefit { Name = "Bonusly", Amount = 5000, BenefitPeriod = "Undefined" },
+                    new ConsultantBenefit { Name = "Oceans Challenge", Amount = 250, BenefitPeriod = "Annual" }
+                };
 
                 foreach (var benefit in consultantBenefitList)
                 {
-                    var existingBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == benefit.Name);
+                    var existingBenefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.Name == benefit.Name);
                     if (existingBenefit == null)
                     {
                         ConsultantBenefit conBenefit = new()
@@ -143,51 +159,51 @@ namespace OceansApp.DataAccess.DbInitializer
                             Amount = benefit.Amount,
                             BenefitPeriod = benefit.BenefitPeriod
                         };
-                        _db.CONSULTANT_BENEFITS.Add(conBenefit);
+                        await _db.CONSULTANT_BENEFITS.AddAsync(conBenefit);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  CONSULTANT BENEFITS CATEGORIES  --------------------------------
+                // ----------------- CONSULTANT BENEFITS CATEGORIES --------------------------------
 
                 List<ConsultantBenefitCategory> consultantBenefitCategoriesList = new List<ConsultantBenefitCategory>();
-                var balanceProgramBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Balance Program");
-                var bonuslyBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Bonusly");
-                var oceansChallengeBenefit = _db.CONSULTANT_BENEFITS.FirstOrDefault(x => x.Name == "Oceans Challenge");
+                var balanceProgramBenefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.Name == "Balance Program");
+                var bonuslyBenefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.Name == "Bonusly");
+                var oceansChallengeBenefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.Name == "Oceans Challenge");
 
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Expert Boost ($250) (2500 Bonus.ly XP)", BenefitId = balanceProgramBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Wellness Coverage ($750)", BenefitId = balanceProgramBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Expert Boost ($250) (2500 Bonus.ly XP)", BenefitId = balanceProgramBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Wellness Coverage ($750)", BenefitId = balanceProgramBenefit.BenefitId });
 
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = " Curiosity Stream 1 year ($25)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "A new gaming console ($500)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Adventure tickets ($100)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Buy a book! ($25)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Ergonomics ($150)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Gamers ($200)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Hotel or plane tickets ($240/$480/$750)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Just Cash Out ($50/$100/$200)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Lodgings ($100) ", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Movie Night ($30)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Music Lovers! ($60)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "N. Fitness Freaks ($120)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Nintendo Switch ONLINE 1 year ($40)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Out for dinner ($80)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Personal Care ($35/$70/$140)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "PlayStation Plus ($60)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Streaming Subscriptions ($20)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets I ($30)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets II ($140)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Tech gadgets III ($300)", BenefitId = bonuslyBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "UberEats voucher ($25)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Curiosity Stream 1 year ($25)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "A new gaming console ($500)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Adventure tickets ($100)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Buy a book! ($25)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Ergonomics ($150)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Gamers ($200)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Hotel or plane tickets ($240/$480/$750)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Just Cash Out ($50/$100/$200)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Lodgings ($100) ", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Movie Night ($30)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Music Lovers! ($60)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "N. Fitness Freaks ($120)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Nintendo Switch ONLINE 1 year ($40)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Out for dinner ($80)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Personal Care ($35/$70/$140)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "PlayStation Plus ($60)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Streaming Subscriptions ($20)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Tech gadgets I ($30)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Tech gadgets II ($140)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Tech gadgets III ($300)", BenefitId = bonuslyBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "UberEats voucher ($25)", BenefitId = bonuslyBenefit.BenefitId });
 
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Courses (in person/online)", BenefitId = oceansChallengeBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Licenses for learning tools and work support", BenefitId = oceansChallengeBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Universities Enrollment", BenefitId = oceansChallengeBenefit.BenefitId });
-                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory() { Name = "Certificates", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Courses (in person/online)", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Licenses for learning tools and work support", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Universities Enrollment", BenefitId = oceansChallengeBenefit.BenefitId });
+                consultantBenefitCategoriesList.Add(new ConsultantBenefitCategory { Name = "Certificates", BenefitId = oceansChallengeBenefit.BenefitId });
 
                 foreach (var category in consultantBenefitCategoriesList)
                 {
-                    var existingCategory = _db.CONSULTANT_BENEFIT_CATEGORIES.FirstOrDefault(x => x.Name == category.Name);
+                    var existingCategory = await _db.CONSULTANT_BENEFIT_CATEGORIES.FirstOrDefaultAsync(x => x.Name == category.Name);
                     if (existingCategory == null)
                     {
                         ConsultantBenefitCategory conBenefitCategory = new()
@@ -195,59 +211,59 @@ namespace OceansApp.DataAccess.DbInitializer
                             Name = category.Name,
                             BenefitId = category.BenefitId
                         };
-                        _db.CONSULTANT_BENEFIT_CATEGORIES.Add(conBenefitCategory);
+                        await _db.CONSULTANT_BENEFIT_CATEGORIES.AddAsync(conBenefitCategory);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  CONSULTANT BENEFITS COMPANIES  --------------------------------
+                // ----------------- CONSULTANT BENEFITS COMPANIES --------------------------------
 
                 List<ConsultantBenefitCompany> consultantBenefitCompaniesList = new List<ConsultantBenefitCompany>();
-                var peopleAndCultureCostCenterOCE = _db.COST_CENTER.FirstOrDefault(x => x.CostCenterCode == "10-02-04" && x.CompanyId == "OCE");
-                var peopleAndCultureCostCenterLLC = _db.COST_CENTER.FirstOrDefault(x => x.CostCenterCode == "10-02-04" && x.CompanyId == "LLC");
-                var accountingAccountReservaBalanceProgramOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "3-02-01-000-000" && x.CompanyId == "OCE");
-                var accountingAccountReservaBonuslyOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "3-02-02-000-000" && x.CompanyId == "OCE");
-                var accountingAccountOceansChallengeOCE = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "6-01-03-005-000" && x.CompanyId == "OCE");
-                var accountingAccountAdminExpensesLLC = _db.ACCOUNTING_ACCOUNT.FirstOrDefault(x => x.AccountingAccountCode == "6-01-04-013-0000" && x.CompanyId == "LLC");
+                var peopleAndCultureCostCenterOCE = await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterCode == "10-02-04" && x.CompanyId == "OCE");
+                var peopleAndCultureCostCenterLLC = await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterCode == "10-02-04" && x.CompanyId == "LLC");
+                var accountingAccountReservaBalanceProgramOCE = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountCode == "3-02-01-000-000" && x.CompanyId == "OCE");
+                var accountingAccountReservaBonuslyOCE = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountCode == "3-02-02-000-000" && x.CompanyId == "OCE");
+                var accountingAccountOceansChallengeOCE = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountCode == "6-01-03-005-000" && x.CompanyId == "OCE");
+                var accountingAccountAdminExpensesLLC = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountCode == "6-01-04-013-0000" && x.CompanyId == "LLC");
 
-                //OCE
-                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                // OCE
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany
                 {
                     CompanyId = "OCE",
                     CostCenterId = peopleAndCultureCostCenterOCE.CostCenterId,
                     AccountingAccountId = accountingAccountReservaBalanceProgramOCE.AccountingAccountId,
                     BenefitId = balanceProgramBenefit.BenefitId
                 });
-                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany
                 {
                     CompanyId = "OCE",
                     CostCenterId = peopleAndCultureCostCenterOCE.CostCenterId,
                     AccountingAccountId = accountingAccountReservaBonuslyOCE.AccountingAccountId,
                     BenefitId = bonuslyBenefit.BenefitId
                 });
-                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany
                 {
                     CompanyId = "OCE",
                     CostCenterId = peopleAndCultureCostCenterOCE.CostCenterId,
                     AccountingAccountId = accountingAccountOceansChallengeOCE.AccountingAccountId,
                     BenefitId = oceansChallengeBenefit.BenefitId
                 });
-                //LLC
-                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                // LLC
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany
                 {
                     CompanyId = "LLC",
                     CostCenterId = peopleAndCultureCostCenterLLC.CostCenterId,
                     AccountingAccountId = accountingAccountAdminExpensesLLC.AccountingAccountId,
                     BenefitId = balanceProgramBenefit.BenefitId
                 });
-                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany
                 {
                     CompanyId = "LLC",
                     CostCenterId = peopleAndCultureCostCenterLLC.CostCenterId,
                     AccountingAccountId = accountingAccountAdminExpensesLLC.AccountingAccountId,
                     BenefitId = bonuslyBenefit.BenefitId
                 });
-                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany()
+                consultantBenefitCompaniesList.Add(new ConsultantBenefitCompany
                 {
                     CompanyId = "LLC",
                     CostCenterId = peopleAndCultureCostCenterLLC.CostCenterId,
@@ -257,7 +273,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 foreach (var benefitCompany in consultantBenefitCompaniesList)
                 {
-                    var existingBenefitCompany = _db.CONSULTANT_BENEFIT_COMPANIES.FirstOrDefault(x => x.CompanyId == benefitCompany.CompanyId &&
+                    var existingBenefitCompany = await _db.CONSULTANT_BENEFIT_COMPANIES.FirstOrDefaultAsync(x => x.CompanyId == benefitCompany.CompanyId &&
                     x.CostCenterId == benefitCompany.CostCenterId && x.AccountingAccountId == benefitCompany.AccountingAccountId);
                     if (existingBenefitCompany == null)
                     {
@@ -268,74 +284,80 @@ namespace OceansApp.DataAccess.DbInitializer
                             AccountingAccountId = benefitCompany.AccountingAccountId,
                             BenefitId = benefitCompany.BenefitId
                         };
-                        _db.CONSULTANT_BENEFIT_COMPANIES.Add(conBenefitCompany);
+                        await _db.CONSULTANT_BENEFIT_COMPANIES.AddAsync(conBenefitCompany);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  NOTIFICATIONS MEDIA  --------------------------------
+                // ----------------- NOTIFICATIONS MEDIA --------------------------------
 
-                List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>();
-                notificatinMediaList.Add(new NotificationMedia() { Name = "Email" });
-                notificatinMediaList.Add(new NotificationMedia() { Name = "Slack" });
+                List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>
+                {
+                    new NotificationMedia { Name = "Email" },
+                    new NotificationMedia { Name = "Slack" }
+                };
 
                 foreach (var notMedia in notificatinMediaList)
                 {
-                    var existingMedia = _db.NOTIFICATION_MEDIA.FirstOrDefault(x => x.Name == notMedia.Name);
+                    var existingMedia = await _db.NOTIFICATION_MEDIA.FirstOrDefaultAsync(x => x.Name == notMedia.Name);
                     if (existingMedia == null)
                     {
                         NotificationMedia notificationMedia = new()
                         {
                             Name = notMedia.Name
                         };
-                        _db.NOTIFICATION_MEDIA.Add(notificationMedia);
+                        await _db.NOTIFICATION_MEDIA.AddAsync(notificationMedia);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  NOTIFICATION STATUS  --------------------------------
+                // ----------------- NOTIFICATION STATUS --------------------------------
 
-                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>();
-                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviando" });
-                notificatinStatusList.Add(new NotificationStatus() { Name = "Enviado" });
-                notificatinStatusList.Add(new NotificationStatus() { Name = "No enviado" });
-                notificatinStatusList.Add(new NotificationStatus() { Name = "Envío fallido" });
+                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>
+                {
+                    new NotificationStatus { Name = "Enviando" },
+                    new NotificationStatus { Name = "Enviado" },
+                    new NotificationStatus { Name = "No enviado" },
+                    new NotificationStatus { Name = "Envío fallido" }
+                };
                 foreach (var notStatus in notificatinStatusList)
                 {
-                    var existingNS = _db.NOTIFICATION_STATUS.FirstOrDefault(x => x.Name == notStatus.Name);
+                    var existingNS = await _db.NOTIFICATION_STATUS.FirstOrDefaultAsync(x => x.Name == notStatus.Name);
                     if (existingNS == null)
                     {
                         NotificationStatus notificationStatus = new()
                         {
                             Name = notStatus.Name
                         };
-                        _db.NOTIFICATION_STATUS.Add(notificationStatus);
+                        await _db.NOTIFICATION_STATUS.AddAsync(notificationStatus);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  NOTIFICATION TYPES  --------------------------------
+                // ----------------- NOTIFICATION TYPES --------------------------------
 
-                List<NotificationType> notificationTypeList = new List<NotificationType>();
-                notificationTypeList.Add(new NotificationType() { Name = "Cuentas por cobrar" });
-                notificationTypeList.Add(new NotificationType() { Name = "Create new Consultant" });
+                List<NotificationType> notificationTypeList = new List<NotificationType>
+                {
+                    new NotificationType { Name = "Cuentas por cobrar" },
+                    new NotificationType { Name = "Create new Consultant" }
+                };
                 foreach (var notType in notificationTypeList)
                 {
-                    if (_db.NOTIFICATION_TYPES.FirstOrDefault(x => x.Name == notType.Name) == null)
+                    if (await _db.NOTIFICATION_TYPES.FirstOrDefaultAsync(x => x.Name == notType.Name) == null)
                     {
                         NotificationType notificationType = new()
                         {
                             Name = notType.Name
                         };
-                        _db.NOTIFICATION_TYPES.Add(notificationType);
+                        await _db.NOTIFICATION_TYPES.AddAsync(notificationType);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
 
-                //-----------------  DEFAULT CLIENT FOR ADMINISTRATIVE CONSULTANTS  --------------------------------
+                // ----------------- DEFAULT CLIENT FOR ADMINISTRATIVE CONSULTANTS --------------------------------
 
-                if (_db.CLIENT.FirstOrDefault(x => x.Name == "Oceans Code Experts") == null)
+                if (await _db.CLIENT.FirstOrDefaultAsync(x => x.Name == "Oceans Code Experts") == null)
                 {
                     Client client = new()
                     {
@@ -352,231 +374,247 @@ namespace OceansApp.DataAccess.DbInitializer
                         LatePaymentFee = 0,
                         AllowSentLatePaymentNotifications = false
                     };
-                    _db.CLIENT.Add(client);
-                    _db.SaveChanges();
+                    await _db.CLIENT.AddAsync(client);
+                    await _db.SaveChangesAsync();
                 }
 
-                //-----------------  PROJECT CONSULTANTS ASSIGNED HISTORY ACTIONS  --------------------------------
+                // ----------------- PROJECT CONSULTANTS ASSIGNED HISTORY ACTIONS --------------------------------
 
-                if (_db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.ToList().Count == 0)
+                if (!_db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.Any())
                 {
-                    List<ProjectConsultantAssignedHistoryAction> actionsList = new();
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant Assigned First Time" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Position Details updated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Hourly Client Rate updated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Monthly Client Rate updated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Hourly Salary updated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Monthly Salary updated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Third Party Salary updated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Monthly)" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Client pricing method updated (Hourly)" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Monthly)" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant pricing method updated (Hourly)" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant Activated" });
-                    actionsList.Add(new ProjectConsultantAssignedHistoryAction() { Name = "Consultant Deactivated" });
+                    List<ProjectConsultantAssignedHistoryAction> actionsList = new()
+                    {
+                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant Assigned First Time" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Position Details updated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Hourly Client Rate updated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Monthly Client Rate updated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Hourly Salary updated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Monthly Salary updated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Third Party Salary updated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Client pricing method updated (Monthly)" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Client pricing method updated (Hourly)" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant pricing method updated (Monthly)" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant pricing method updated (Hourly)" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant Activated" },
+                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant Deactivated" }
+                    };
                     foreach (var action in actionsList)
                     {
                         ProjectConsultantAssignedHistoryAction actionToSave = new()
                         {
                             Name = action.Name
                         };
-                        _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.Add(actionToSave);
+                        await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.AddAsync(actionToSave);
                     }
-                    _db.SaveChanges();
+                    await _db.SaveChangesAsync();
                 }
 
-                //-----------------  SYSTEM AREAS  --------------------------------
+                // ----------------- SYSTEM AREAS --------------------------------
 
-                List<SystemArea> systemAreasList = new List<SystemArea>();
-                systemAreasList.Add(new SystemArea() { Name = "Admin Center" });
-                systemAreasList.Add(new SystemArea() { Name = "Finanzas" });
-                systemAreasList.Add(new SystemArea() { Name = "General" });
-                systemAreasList.Add(new SystemArea() { Name = "Tracking Tool" });
-                systemAreasList.Add(new SystemArea() { Name = "Dashboard" });
-                systemAreasList.Add(new SystemArea() { Name = "Mi Cuenta" });
-                systemAreasList.Add(new SystemArea() { Name = "Account Management" });
-                systemAreasList.Add(new SystemArea() { Name = "Recruiting" });
+                List<SystemArea> systemAreasList = new List<SystemArea>
+                {
+                    new SystemArea { Name = "Admin Center" },
+                    new SystemArea { Name = "Finanzas" },
+                    new SystemArea { Name = "General" },
+                    new SystemArea { Name = "Tracking Tool" },
+                    new SystemArea { Name = "Dashboard" },
+                    new SystemArea { Name = "Mi Cuenta" },
+                    new SystemArea { Name = "Account Management" },
+                    new SystemArea { Name = "Recruiting" }
+                };
 
                 foreach (var area in systemAreasList)
                 {
-                    if (_db.SYSTEM_AREAS.FirstOrDefault(x => x.Name == area.Name) == null)
+                    if (await _db.SYSTEM_AREAS.FirstOrDefaultAsync(x => x.Name == area.Name) == null)
                     {
                         SystemArea sa = new()
                         {
                             Name = area.Name
                         };
-                        _db.SYSTEM_AREAS.Add(sa);
+                        await _db.SYSTEM_AREAS.AddAsync(sa);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  SYSTEM SUB AREAS  --------------------------------
+                // ----------------- SYSTEM SUB AREAS --------------------------------
 
-                List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>();
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Administración de Usuarios" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 1, Name = "Consultant Positions Accounting Configuration" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Cuentas Por Cobrar" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Payment Sheets" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 2, Name = "Calculadora Financiera" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultants" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 3, Name = "Holidays" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 4, Name = "Reporting My Time" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 5, Name = "Dashboard" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 6, Name = "Mi Cuenta" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Clients" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 7, Name = "Projects" });
-                systemSubAreasList.Add(new SystemSubArea() { SystemAreaId = 11, Name = "Interviews" });
+                List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>
+                {
+                    new SystemSubArea { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" },
+                    new SystemSubArea { SystemAreaId = 1, Name = "Administración de Usuarios" },
+                    new SystemSubArea { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" },
+                    new SystemSubArea { SystemAreaId = 1, Name = "Consultant Positions Accounting Configuration" },
+                    new SystemSubArea { SystemAreaId = 2, Name = "Cuentas Por Cobrar" },
+                    new SystemSubArea { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" },
+                    new SystemSubArea { SystemAreaId = 2, Name = "Payment Sheets" },
+                    new SystemSubArea { SystemAreaId = 2, Name = "Calculadora Financiera" },
+                    new SystemSubArea { SystemAreaId = 3, Name = "Consultants" },
+                    new SystemSubArea { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" },
+                    new SystemSubArea { SystemAreaId = 3, Name = "Holidays" },
+                    new SystemSubArea { SystemAreaId = 4, Name = "Reporting My Time" },
+                    new SystemSubArea { SystemAreaId = 5, Name = "Dashboard" },
+                    new SystemSubArea { SystemAreaId = 6, Name = "Mi Cuenta" },
+                    new SystemSubArea { SystemAreaId = 7, Name = "Clients" },
+                    new SystemSubArea { SystemAreaId = 7, Name = "Projects" },
+                    new SystemSubArea { SystemAreaId = 11, Name = "Interviews" }
+                };
 
                 foreach (var subArea in systemSubAreasList)
                 {
-                    if (_db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == subArea.Name) == null)
+                    if (await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == subArea.Name) == null)
                     {
                         SystemSubArea ssa = new()
                         {
                             Name = subArea.Name,
                             SystemAreaId = subArea.SystemAreaId
                         };
-                        _db.SYSTEM_SUB_AREAS.Add(ssa);
+                        await _db.SYSTEM_SUB_AREAS.AddAsync(ssa);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  PARTNERS  --------------------------------
+                // ----------------- PARTNERS --------------------------------
 
-                List<Partner> partnersList = new List<Partner>();
-                partnersList.Add(new Partner()
+                List<Partner> partnersList = new List<Partner>
                 {
-                    Name = "Global Business",
-                    Contact = "Yeanett Russo",
-                    ContactOccupation = "Admin and Finances",
-                    ContactEmail = "yeanett.russo@gbitcorp.com",
-                    Phone = "(+507) 310 2673",
-                    AdmissionDate = DateTime.Parse("2022-02-07"),
-                    IsActive = true,
-                    CreationDate = DateTime.UtcNow,
-                    CompanyId = "OCE",
-                    IdCountry = "PAN"
-                }) ;
+                    new Partner
+                    {
+                        Name = "Global Business",
+                        Contact = "Yeanett Russo",
+                        ContactOccupation = "Admin and Finances",
+                        ContactEmail = "yeanett.russo@gbitcorp.com",
+                        Phone = "(+507) 310 2673",
+                        AdmissionDate = DateTime.Parse("2022-02-07"),
+                        IsActive = true,
+                        CreationDate = DateTime.UtcNow,
+                        CompanyId = "OCE",
+                        IdCountry = "PAN"
+                    }
+                };
 
                 foreach (var partner in partnersList)
                 {
-                    var existingNS = _db.PARTNERS.FirstOrDefault(x => x.Name == partner.Name);
+                    var existingNS = await _db.PARTNERS.FirstOrDefaultAsync(x => x.Name == partner.Name);
                     if (existingNS == null)
                     {
                         Partner partnerToCreate = partner;
-                        _db.PARTNERS.Add(partnerToCreate);
-                        _db.SaveChanges();
+                        await _db.PARTNERS.AddAsync(partnerToCreate);
+                        await _db.SaveChangesAsync();
                     }
                 }
 
-                //-----------------  PAYMENT METHODS  --------------------------------
+                // ----------------- PAYMENT METHODS --------------------------------
 
-                List<PaymentMethod> paymentMethodsList = new List<PaymentMethod>();
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Bac Credomatic different from Panamá (Ameritransfer)", CompanyId = "OCE" });
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Other banks (International Transfer)", CompanyId = "OCE" });
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Payoneer", CompanyId = "OCE" });
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Banco General (Panamá)", CompanyId = "OCE" });
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Bac Credomatic (Panamá)", CompanyId = "OCE" });
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Mercury", CompanyId = "LLC" });
-                paymentMethodsList.Add(new PaymentMethod() { Name = "Wise", CompanyId = "LLC" });
+                List<PaymentMethod> paymentMethodsList = new List<PaymentMethod>
+                {
+                    new PaymentMethod { Name = "Bac Credomatic different from Panamá (Ameritransfer)", CompanyId = "OCE" },
+                    new PaymentMethod { Name = "Other banks (International Transfer)", CompanyId = "OCE" },
+                    new PaymentMethod { Name = "Payoneer", CompanyId = "OCE" },
+                    new PaymentMethod { Name = "Banco General (Panamá)", CompanyId = "OCE" },
+                    new PaymentMethod { Name = "Bac Credomatic (Panamá)", CompanyId = "OCE" },
+                    new PaymentMethod { Name = "Mercury", CompanyId = "LLC" },
+                    new PaymentMethod { Name = "Wise", CompanyId = "LLC" }
+                };
 
                 foreach (var paymentMethod in paymentMethodsList)
                 {
-                    if (_db.PAYMENT_METHODS.FirstOrDefault(x => x.Name == paymentMethod.Name) == null)
+                    if (await _db.PAYMENT_METHODS.FirstOrDefaultAsync(x => x.Name == paymentMethod.Name) == null)
                     {
                         PaymentMethod pm = new()
                         {
                             Name = paymentMethod.Name,
                             CompanyId = paymentMethod.CompanyId
                         };
-                        _db.PAYMENT_METHODS.Add(pm);
+                        await _db.PAYMENT_METHODS.AddAsync(pm);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  REPORTING MY TIME MOVEMENT TYPES --------------------------------
+                // ----------------- REPORTING MY TIME MOVEMENT TYPES --------------------------------
 
-                List<ReportingMyTimeMovementType> movTypesList = new List<ReportingMyTimeMovementType>();
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Normal Hours", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Flate Rate", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "On Call Time Worked", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Balance Program", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Oceans Challenge", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Bonusly Rewards", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Interviews", IsPayable = true });
-                movTypesList.Add(new ReportingMyTimeMovementType() { Name = "Time Off (Non-payable)", IsPayable = true });
+                List<ReportingMyTimeMovementType> movTypesList = new List<ReportingMyTimeMovementType>
+                {
+                    new ReportingMyTimeMovementType { Name = "Normal Hours", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "On Call Flate Rate", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "On Call Time Worked", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Balance Program", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Oceans Challenge", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Bonusly Rewards", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Interviews", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Time Off (Non-payable)", IsPayable = true }
+                };
 
                 foreach (var movementType in movTypesList)
                 {
-                    var existingType = _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefault(x => x.Name == movementType.Name);
+                    var existingType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == movementType.Name);
                     if (existingType == null)
                     {
                         ReportingMyTimeMovementType movType = new()
                         {
                             Name = movementType.Name
                         };
-                        _db.REPORTING_MY_TIME_MOVEMENT_TYPES.Add(movType);
+                        await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AddAsync(movType);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  TRANSACTION TYPES  --------------------------------
+                // ----------------- TRANSACTION TYPES --------------------------------
 
-                List<TransactionType> transactionTypesList = new List<TransactionType>();
-                transactionTypesList.Add(new TransactionType() { Name = "Debit" });
-                transactionTypesList.Add(new TransactionType() { Name = "Credit" });
+                List<TransactionType> transactionTypesList = new List<TransactionType>
+                {
+                    new TransactionType { Name = "Debit" },
+                    new TransactionType { Name = "Credit" }
+                };
 
                 foreach (var type in transactionTypesList)
                 {
-                    var existingType = _db.TRANSACTION_TYPES.FirstOrDefault(x => x.Name == type.Name);
+                    var existingType = await _db.TRANSACTION_TYPES.FirstOrDefaultAsync(x => x.Name == type.Name);
                     if (existingType == null)
                     {
                         TransactionType transactionType = new()
                         {
                             Name = type.Name
                         };
-                        _db.TRANSACTION_TYPES.Add(transactionType);
+                        await _db.TRANSACTION_TYPES.AddAsync(transactionType);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  TRANSACTION STATUSES  --------------------------------
+                // ----------------- TRANSACTION STATUSES --------------------------------
 
-                List<TransactionStatus> transactionStatusesList = new List<TransactionStatus>();
-                transactionStatusesList.Add(new TransactionStatus() { Name = "No actions" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Waiting to be approved" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Approved" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Rejected" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Sent to be paid" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Paid" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Accounted - Accounts Payable" });
-                transactionStatusesList.Add(new TransactionStatus() { Name = "Done" });
+                List<TransactionStatus> transactionStatusesList = new List<TransactionStatus>
+                {
+                    new TransactionStatus { Name = "No actions" },
+                    new TransactionStatus { Name = "Waiting to be approved" },
+                    new TransactionStatus { Name = "Approved" },
+                    new TransactionStatus { Name = "Rejected" },
+                    new TransactionStatus { Name = "Sent to be paid" },
+                    new TransactionStatus { Name = "Paid" },
+                    new TransactionStatus { Name = "Accounted - Accounts Payable" },
+                    new TransactionStatus { Name = "Done" }
+                };
 
                 foreach (var status in transactionStatusesList)
                 {
-                    var existingStatus = _db.TRANSACTION_STATUSES.FirstOrDefault(x => x.Name == status.Name);
+                    var existingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == status.Name);
                     if (existingStatus == null)
                     {
                         TransactionStatus transactionStatus = new()
                         {
                             Name = status.Name
                         };
-                        _db.TRANSACTION_STATUSES.Add(transactionStatus);
+                        await _db.TRANSACTION_STATUSES.AddAsync(transactionStatus);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
 
-                //-----------------  CLAIMS  --------------------------------
+                // ----------------- CLAIMS --------------------------------
 
                 List<ApplicationSystemClaim> systemClaimsList = new List<ApplicationSystemClaim>();
 
-                //ADMIN CENTER
-                var softlandSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Actualizar Datos desde Softland");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // ADMIN CENTER
+                var softlandSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Actualizar Datos desde Softland");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType,
                     ClaimValue = AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue,
@@ -584,8 +622,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = softlandSubAreaId.SystemSubAreaId
                 });
 
-                var adminUserSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Administración de Usuarios");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                var adminUserSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Administración de Usuarios");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = AdminCenterClaimsCD.Administracion_Usuarios_ClaimType,
                     ClaimValue = AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue,
@@ -593,16 +631,16 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = adminUserSubAreaId.SystemSubAreaId
                 });
 
-                var userRolesPermissionsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Roles y Permisos de Usuarios");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                var userRolesPermissionsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Roles y Permisos de Usuarios");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimType,
                     ClaimValue = AdminCenterClaimsCD.Roles_Permisos_Usuarios_ClaimValue,
                     Description = "Acceso a ver y editar los roles y permisos de usuarios",
                     SystemSubAreaId = userRolesPermissionsSubAreaId.SystemSubAreaId
                 });
-                var consultantPositionsAcConSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Positions Accounting Configuration");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                var consultantPositionsAcConSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Consultant Positions Accounting Configuration");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType,
                     ClaimValue = ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue,
@@ -612,9 +650,9 @@ namespace OceansApp.DataAccess.DbInitializer
                 // NOTES FOR ADMIN CENTER PERMISSIONS:
                 // Add every permission to the AnyOfPoliciesAdminCenterRequirementHandler
 
-                //FINANCES
-                var accountsReceivableSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Cuentas Por Cobrar");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // FINANCES
+                var accountsReceivableSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Cuentas Por Cobrar");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Accounts_Receivable_ClaimType,
                     ClaimValue = FinancesClaimsCD.Accounts_Receivable_ClaimValue,
@@ -622,36 +660,36 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = accountsReceivableSubAreaId.SystemSubAreaId
                 });
 
-                var financialCalculatorSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Calculadora Financiera");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                var financialCalculatorSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Calculadora Financiera");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_ClaimValue,
                     Description = "Acceso básico a la calculadora financiera",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_BasicConfig_ClaimValue,
                     Description = "Acceso a la configuración básica de la calculadora financiera",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_AdvancedConfig_ClaimValue,
                     Description = "Acceso avanzado en la configuración de la calculadora (editar los porcentages de utilidad, porcentages de riesgo, etc.)",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_Profit_And_Details_ClaimValue,
                     Description = "Acceso a ver las utilidades de los resultados de la calculadora financiera y a más detalles.",
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimType,
                     ClaimValue = FinancesClaimsCD.Financial_Calculator_Remove_Expenses_And_Costs_And_Edit_Vacations_ClaimValue,
@@ -659,8 +697,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = financialCalculatorSubAreaId.SystemSubAreaId
                 });
 
-                var paymentDebitsAndCreditsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Payment Debits & Credits");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                var paymentDebitsAndCreditsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Consultant Payment Debits & Credits");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType,
                     ClaimValue = FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue,
@@ -668,8 +706,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = paymentDebitsAndCreditsSubAreaId.SystemSubAreaId
                 });
 
-                var paymentSheetsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Payment Sheets");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                var paymentSheetsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Payment Sheets");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType,
                     ClaimValue = FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue,
@@ -677,16 +715,16 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = paymentSheetsSubAreaId.SystemSubAreaId
                 });
 
-                //GENERAL - CONSULTANTS
-                var consultantsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultants");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // GENERAL - CONSULTANTS
+                var consultantsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Consultants");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = ConsultantsClaimsCD.Consultants_Page_ClaimType,
                     ClaimValue = ConsultantsClaimsCD.Consultants_Page_ClaimValue,
                     Description = "Access to manage only Computer Consultants (Developers, QAs...)",
                     SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
                 });
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType,
                     ClaimValue = ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue,
@@ -694,9 +732,9 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = consultantsSubAreaId.SystemSubAreaId
                 });
 
-                //GENERAL - HOLIDAYS
-                var holidaysSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Holidays");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // GENERAL - HOLIDAYS
+                var holidaysSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Holidays");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = HolidaysClaimsCD.Holidays_Page_ClaimType,
                     ClaimValue = HolidaysClaimsCD.Holidays_Page_ClaimValue,
@@ -704,9 +742,9 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = holidaysSubAreaId.SystemSubAreaId
                 });
 
-                //GENERAL - CONSULTANT REIMBURSED BENEFITS
-                var consultantsBenefitsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Consultant Reimbursed Benefits");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // GENERAL - CONSULTANT REIMBURSED BENEFITS
+                var consultantsBenefitsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Consultant Reimbursed Benefits");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType,
                     ClaimValue = ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue,
@@ -715,9 +753,9 @@ namespace OceansApp.DataAccess.DbInitializer
                 });
 
 
-                //HOURS TRACKING TOOL
-                var reportingMyTimeSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Reporting My Time");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // HOURS TRACKING TOOL
+                var reportingMyTimeSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Reporting My Time");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType,
                     ClaimValue = TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue,
@@ -725,18 +763,18 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = reportingMyTimeSubAreaId.SystemSubAreaId
                 });
 
-                //PROJECT MANAGEMENT - CLIENTS
-                var clientsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Clients");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // PROJECT MANAGEMENT - CLIENTS
+                var clientsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Clients");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = ClientsClaimsCD.Clients_Page_ClaimType,
                     ClaimValue = ClientsClaimsCD.Clients_Page_ClaimValue,
                     Description = "Acces to view the Clients list",
                     SystemSubAreaId = clientsSubAreaId.SystemSubAreaId
                 });
-                //PROJECT MANAGEMENT - PROJECTS
-                var projectsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Projects");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // PROJECT MANAGEMENT - PROJECTS
+                var projectsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Projects");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = ProjectsClaimsCD.Projects_Page_ClaimType,
                     ClaimValue = ProjectsClaimsCD.Projects_Page_ClaimValue,
@@ -744,9 +782,9 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = projectsSubAreaId.SystemSubAreaId
                 });
 
-                //PROJECT MANAGEMENT - PROJECTS
-                var interviewsSubAreaId = _db.SYSTEM_SUB_AREAS.FirstOrDefault(x => x.Name == "Interviews");
-                systemClaimsList.Add(new ApplicationSystemClaim()
+                // PROJECT MANAGEMENT - PROJECTS
+                var interviewsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Interviews");
+                systemClaimsList.Add(new ApplicationSystemClaim
                 {
                     ClaimType = InterviewsClaimsCD.Manage_Interviews_Page_ClaimType,
                     ClaimValue = InterviewsClaimsCD.Manage_Interviews_ClaimValue,
@@ -756,7 +794,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 foreach (var claim in systemClaimsList)
                 {
-                    if (_db.APPLICATION_SYSTEM_CLAIMS.FirstOrDefault(x => x.ClaimType == claim.ClaimType && x.ClaimValue == claim.ClaimValue) == null)
+                    if (await _db.APPLICATION_SYSTEM_CLAIMS.FirstOrDefaultAsync(x => x.ClaimType == claim.ClaimType && x.ClaimValue == claim.ClaimValue) == null)
                     {
                         ApplicationSystemClaim asc = new()
                         {
@@ -765,12 +803,11 @@ namespace OceansApp.DataAccess.DbInitializer
                             Description = claim.Description,
                             SystemSubAreaId = claim.SystemSubAreaId
                         };
-                        _db.APPLICATION_SYSTEM_CLAIMS.Add(asc);
+                        await _db.APPLICATION_SYSTEM_CLAIMS.AddAsync(asc);
                     }
                 }
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
-            return;
         }
     }
 }

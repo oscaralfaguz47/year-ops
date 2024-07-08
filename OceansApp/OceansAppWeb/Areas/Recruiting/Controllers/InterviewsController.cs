@@ -14,7 +14,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
     [Area("Recruiting")]
     [Authorize]
     [Authorize(Policy = "AccessToManageInterviews")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class InterviewsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

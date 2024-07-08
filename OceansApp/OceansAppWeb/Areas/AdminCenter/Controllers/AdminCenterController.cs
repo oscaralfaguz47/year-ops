@@ -8,7 +8,7 @@ namespace OceansApp.Areas.Admin.Controllers
     [EnableCors("AllowSpecificOrigin")]
     [Authorize]
     [Authorize(Policy = "AnyOfPoliciesInAdminCenter")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class AdminCenterController : Controller
     {
         [HttpGet]

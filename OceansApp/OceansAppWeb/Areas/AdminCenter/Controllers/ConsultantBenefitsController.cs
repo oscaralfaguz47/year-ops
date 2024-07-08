@@ -10,7 +10,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
     [Route("AdminCenter/[controller]")]
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     public class ConsultantBenefitsController : Controller
     {

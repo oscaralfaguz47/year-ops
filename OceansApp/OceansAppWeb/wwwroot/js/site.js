@@ -10,7 +10,7 @@ window.onload = function () {
 }
 function validateSessionExpiration(message) {
     if (message.toString().includes('Unexpected token')) {
-        window.location.href = "/SessionExpired";
+        window.location.href = "/SessionEnded";
     }
 }
 function displaySpinner() {

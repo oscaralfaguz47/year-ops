@@ -9,5 +9,6 @@ namespace OceansApp.Utility
         public const string Role_User_Computer_Consultant = "Computer Consultant";
         public const int SessionExpirationTime = 500;
         public const int OpaqueTokenExpirationTime = 1500;
+        public const int cacheExpirationTimeInSeconds = 10000;
     }
 }

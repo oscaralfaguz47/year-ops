@@ -14,7 +14,7 @@ namespace OceansAppWeb.Areas.General.Controllers
     [Area("General")]
     [Authorize]
     [Authorize(Policy = "AccessToManageConsultantReimbursedBenefits")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class ConsultantReimbursedBenefitsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

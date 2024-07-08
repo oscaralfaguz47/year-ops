@@ -24,6 +24,8 @@ namespace OceansApp.Models.Models
         public DateTime? OpaqueTokenExpiration { get; set; }
         [Required]
         public int UserCategoryId { get; set; }
+        [Required]
+        public bool TwoFactorRequired { get; set; } = true;
 
         [ValidateNever]
         public ApplicationUserCategory ApplicationUserCategory { get; set; }

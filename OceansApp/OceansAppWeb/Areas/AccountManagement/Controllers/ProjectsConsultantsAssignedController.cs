@@ -9,7 +9,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
     [ApiController]
     [Route("AccountManagement/[controller]")]
     [Area("AccountManagement")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     public class ProjectsConsultantsAssignedController : Controller
     {

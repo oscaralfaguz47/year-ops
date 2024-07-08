@@ -14,7 +14,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
 {
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     [Authorize(Policy = "AccessToUserAdministration")]
     public class ApplicationUserController : Controller
@@ -38,7 +38,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
             return View();
         }
         [HttpGet]
-        [RequireTwoFactorEnabled]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         [Authorize(Roles = "Master")]
         public IActionResult Register()
         {
@@ -58,7 +58,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         }
 
         [HttpPost]
-        [RequireTwoFactorEnabled]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterVM model)
         {
@@ -209,7 +209,7 @@ namespace OceansApp.Areas.AdminCenter.Controllers
         }
         [HttpPost]
         [Authorize(Roles = SD.Role_User_Master)]
-        [RequireTwoFactorEnabled]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         public async Task<IActionResult> RemoveAuthenticator(string userId)
         {
             try {

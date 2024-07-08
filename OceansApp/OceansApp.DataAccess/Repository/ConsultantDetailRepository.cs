@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -16,13 +16,13 @@ namespace OceansApp.DataAccess.Repository
     public class ConsultantDetailRepository : Repository<ConsultantDetail>, IConsultantDetailRepository
     {
         private ApplicationDbContext _db;
-        private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
-        public ConsultantDetailRepository(ApplicationDbContext db, IConfiguration config, UserManager<IdentityUser> userManager) : base(db)
+        private readonly IMemoryCache _cache;
+        public ConsultantDetailRepository(ApplicationDbContext db, UserManager<IdentityUser> userManager, IMemoryCache cache) : base(db)
         {
             _db = db;
-            _config = config;
             _userManager = userManager;
+            _cache = cache;
         }
         public async Task<(List<ConsultantsGetAllWithFiltersVM> consultants, int totalCount)> GetAllConsultantsWithFiltersAsync(ConsultantsPaginationFiltersVM filtersAndPagination)
         {
@@ -186,6 +186,11 @@ namespace OceansApp.DataAccess.Repository
                     {
                         _userManager.RemoveFromRoleAsync(existingUser, actualUserRole[0]).GetAwaiter().GetResult();
                         _userManager.AddToRoleAsync(existingUser, consultantData.UserRole).GetAwaiter().GetResult();
+                        var cacheKey = $"UserSessionChangesExpiration_{existingUser.Id}";
+                        _cache.Set(cacheKey, DateTimeOffset.Now.AddSeconds(1), new MemoryCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)
+                        });
                     }
                     existingUser.UserCategoryId = (int)consultantData.UserCategoryId;
                 }

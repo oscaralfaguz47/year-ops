@@ -15,6 +15,7 @@ namespace OceansApp.Models.ViewModels.Consultants
         public string InternalEmail { get; set; }
         public string? PhoneNumber { get; set; }
         public bool TwoFactorEnabled { get; set; }
+        public bool TwoFactorRequired { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool IsActive { get; set; }
         public bool IsLockedOut { get; set; }

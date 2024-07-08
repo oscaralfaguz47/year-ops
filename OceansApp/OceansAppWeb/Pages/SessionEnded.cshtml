@@ -1,0 +1,22 @@
+﻿@page
+<link rel="stylesheet" href="~/css/Account/global.css" />
+
+<div class="text-center">
+    <div class="custom-box">
+        <div class="sub-box">
+            <div>
+                <h1 class="text-danger">SESSION ENDED</h1>
+                <p>Your session has ended due to one of the following reasons:</p>
+                <div class="session-ended-container">
+                    <p><i class="fa-solid fa-hourglass-end"></i> Inactivity for an extended period.</p>
+                    <p><i class="fa-solid fa-key"></i> Two-factor authentication settings have changed.</p>
+                    <p><i class="fa-solid fa-user-shield"></i> Role or role permissions have changed.</p>
+                </div>
+                <p>Please login again to continue.</p>
+                <br />
+                <a class="btn-primary-submit" asp-area="" asp-controller="Account" asp-action="Login">OK LOGIN</a>
+            </div>
+        </div>
+    </div>
+</div>
+

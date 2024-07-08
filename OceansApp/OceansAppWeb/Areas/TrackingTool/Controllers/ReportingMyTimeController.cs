@@ -20,7 +20,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
     [Area("TrackingTool")]
     [Authorize]
     [Authorize(Policy = "BasicAccessToReportingMyTime")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class ReportingMyTimeController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

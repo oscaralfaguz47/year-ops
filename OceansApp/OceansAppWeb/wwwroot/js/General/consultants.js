@@ -41,6 +41,8 @@ async function getListOfResults(firstTime, filters) {
                 if (obj.twoFactorEnabled) {
                     resetTwoFactorBtn = `<li onclick="resetTwoFactorAuth(${obj.consultantId}, '${obj.consultantName}')"><i class="bi bi-arrow-counterclockwise"></i> Reset Two-Factor</li>`;
                 }
+                var activateDeactivateTwoFactorBtn = `<li onclick="activateDeactivateTwoFactorAuth(${obj.consultantId}, '${obj.consultantName}', ${obj.twoFactorRequired})"><i class="fa-solid fa-lock${obj.twoFactorRequired ? '-open red-label':' green-label'}"></i> ${obj.twoFactorRequired ? 'Deactivate':'Activate'} Two-Factor</li>`;
+
                 var resendInviteBtn = '';
                 if (!obj.emailConfirmed) {
                     resendInviteBtn = `<li onclick="resendInviteToConsultant(${obj.consultantId}, '${obj.consultantName}')""><i class="bi bi-send"></i> Resend Invite</li>`;
@@ -54,6 +56,7 @@ async function getListOfResults(firstTime, filters) {
                              <li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})""><i class="bi bi-pencil-square"></i> Edit Consultant</li>
                              ${resendInviteBtn}
                              ${resetTwoFactorBtn}
+                             ${activateDeactivateTwoFactorBtn}
                            </ul>
                          </div>
                       ${obj.consultantName}
@@ -199,6 +202,53 @@ async function resetTwoFactorAuth(consultantId, name) {
         }
     });
 }
+
+// Activate - Deactivate Two-Factor Auth
+async function activateDeactivateTwoFactorAuth(consultantId, name, status) {
+    let statusName = status ? 'Deactivate' : 'Activate';
+    Swal.fire({
+        title: `${statusName} Two-Factor Auth`,
+        text: `Are you sure you want to ${statusName} the Two-Factor Authentication from ${name}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, do it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            displaySpinner();
+            var token = $('[name="__RequestVerificationToken"]').val();
+            var formData = new FormData();
+            formData.append('consultantId', consultantId);
+            fetch("/General/Consultants/ActivateDeactivateAuthenticatorFromUser"
+                , {
+                    method: 'POST',
+                    headers: {
+                        RequestVerificationToken: token
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                    } else {
+                        displayToasterError(data.error);
+                        console.error('There has been a problem with the fetch operation:', data.detail);
+                    }
+                    getListOfResults(false, false);
+                })
+                .catch(error => {
+                    validateSessionExpiration(error.message);
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+        }
+    });
+}
+
 // Activate - Inactivate Consultant User
 async function activateInactivateConsultantUser(consultantId, name, status) {
     var title = status ? "Deactivate Consultant" : "Activate Consultant";

@@ -14,7 +14,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     [Area("Finances")]
     [Authorize]
     [Authorize(Policy = "AccessToManageTheBasicsOfPaymentSheets")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class PaymentSheetsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

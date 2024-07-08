@@ -2,13 +2,17 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Account;
+using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansAppWeb.Controllers;
+using SlackAPI;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 namespace OceansAppWeb.Account.Controllers
@@ -25,11 +29,12 @@ namespace OceansAppWeb.Account.Controllers
         private readonly IConfiguration _config;
         private readonly LazyServiceProvider<ISendEmailRepository> _sendEmailRepository;
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+        private readonly IMemoryCache _cache;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
             IHttpContextAccessor httpContextAccessor, IConfiguration config, LazyServiceProvider<ISendEmailRepository> sendEmailRepository,
-            IBackgroundTaskQueue backgroundTaskQueue)
+            IBackgroundTaskQueue backgroundTaskQueue, IMemoryCache cache)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -41,6 +46,7 @@ namespace OceansAppWeb.Account.Controllers
             _config = config;
             _sendEmailRepository = sendEmailRepository;
             _backgroundTaskQueue = backgroundTaskQueue;
+            _cache = cache;
         }
         public IActionResult Index()
         {
@@ -49,7 +55,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpGet]
         [Authorize]
-        [RequireTwoFactorEnabled]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         public async Task<IActionResult> ProfileAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -70,6 +76,7 @@ namespace OceansAppWeb.Account.Controllers
 
         [HttpPost]
         [Authorize]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(ProfileVM model)
         {
@@ -217,13 +224,46 @@ namespace OceansAppWeb.Account.Controllers
                         var applicationUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
                         if (applicationUser.IsActive)
                         {
+                            var currentUserClaims = await _userManager.GetClaimsAsync(user);
+                            var existingClaimTwoFactorRequired = currentUserClaims.FirstOrDefault(c => c.Type == "TwoFactorRequired");
+                            var existingClaimTwoFactorEnabled = currentUserClaims.FirstOrDefault(c => c.Type == "amr");
+
+                            var claimTwoFactorRequired = new Claim("TwoFactorRequired", applicationUser.TwoFactorRequired.ToString());
+                            var claimTwoFactorEnabled = new Claim("amr", user.TwoFactorEnabled ? "mfa" : "");
+
+                            if (existingClaimTwoFactorRequired == null)
+                            {
+                                await _userManager.AddClaimAsync(user, claimTwoFactorRequired);
+                            }
+                            else if (existingClaimTwoFactorRequired.Value != applicationUser.TwoFactorRequired.ToString())
+                            {
+                                await _userManager.RemoveClaimAsync(user, existingClaimTwoFactorRequired);
+                                await _userManager.AddClaimAsync(user, claimTwoFactorRequired);
+                            }
+
+                            if (existingClaimTwoFactorEnabled == null)
+                            {
+                                await _userManager.AddClaimAsync(user, claimTwoFactorEnabled);
+                            }
+                            else if (existingClaimTwoFactorEnabled.Value != (user.TwoFactorEnabled ? "mfa" : ""))
+                            {
+                                await _userManager.RemoveClaimAsync(user, existingClaimTwoFactorEnabled);
+                                await _userManager.AddClaimAsync(user, claimTwoFactorEnabled);
+                            }
+
+                            // Regenerate the authentication ticket
+                            //await _signInManager.RefreshSignInAsync(user);
+
+                            GenerateUserSessionChangesExpirationCache(user.Id);
+
                             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                             if (result.Succeeded)
                             {
-                                if (!user.TwoFactorEnabled)
+                                if (!user.TwoFactorEnabled && applicationUser.TwoFactorRequired)
                                 {
                                     return RedirectToAction("EnableAuthenticator");
                                 }
+
                                 return LocalRedirect(returnUrl);
                             }
 
@@ -253,6 +293,16 @@ namespace OceansAppWeb.Account.Controllers
             return View(model);
         }
 
+        private void GenerateUserSessionChangesExpirationCache(string userId)
+        {
+
+            var cacheKey = $"UserSessionChangesExpiration_{userId}";
+            _cache.Set(cacheKey, DateTimeOffset.Now.AddMinutes(SD.cacheExpirationTimeInSeconds), new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(SD.cacheExpirationTimeInSeconds)
+            });
+        }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> EnableAuthenticator()
@@ -270,6 +320,7 @@ namespace OceansAppWeb.Account.Controllers
             if (user.TwoFactorEnabled)
             {
                 ViewData["TwoFactorNoEnabled"] = user.TwoFactorEnabled;
+                return LocalRedirect("/Home/Dashboard");
             }
             else
             {
@@ -374,6 +425,12 @@ namespace OceansAppWeb.Account.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var cacheKey = $"UserSessionChangesExpiration_{user.Id}";
+                _cache.Remove(cacheKey);
+            }
             await _signInManager.SignOutAsync();
             return RedirectToAction(nameof(AccountController.Login), "Account");
         }

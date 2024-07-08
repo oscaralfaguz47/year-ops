@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace OceansAppWeb.Controllers
 {
     [Authorize]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class HomeController : Controller
    
     {

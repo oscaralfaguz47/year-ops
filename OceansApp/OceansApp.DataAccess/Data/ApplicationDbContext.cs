@@ -37,6 +37,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TwoFactorEnabled);
                 entity.HasIndex(e => e.LockoutEnd);
                 entity.HasIndex(e => e.LockoutEnabled);
+                entity.HasIndex(e => e.TwoFactorRequired);
 
             });
             modelBuilder.Entity<ApplicationUser>()
@@ -44,6 +45,12 @@ namespace OceansApp.DataAccess.Data
                .WithMany()
                .HasForeignKey(a => a.UserCategoryId)
                .IsRequired();
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(e => e.TwoFactorRequired)
+                .IsRequired()
+                .HasDefaultValue(true);
+            });
 
             modelBuilder.Entity<ApplicationUserClaim>()
                 .HasDiscriminator<string>("Discriminator")

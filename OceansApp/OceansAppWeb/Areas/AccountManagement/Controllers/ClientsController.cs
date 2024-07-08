@@ -13,7 +13,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
     [ApiController]
     [Area("AccountManagement")]
     [EnableCors("AllowSpecificOrigin")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     [Route("AccountManagement/[controller]")]
     public class ClientsController : Controller

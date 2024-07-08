@@ -12,7 +12,7 @@ namespace OceansApp.Areas.Admin.Controllers
 {
     [Area("AdminCenter")]
     [EnableCors("AllowSpecificOrigin")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     [Authorize(Policy = "AccessToUpdateDataFromSoftlandSection")]
     public class DataFromSoftlandController : Controller

@@ -118,6 +118,9 @@ builder.Services.AddTransient<DatabaseService>(provider =>
 // Background services
 //builder.Services.AddHostedService<EveryOneDayServices>();
 
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<RequireTwoFactorEnabledAttribute>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -133,7 +136,7 @@ app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OCEANS APP 
 
 app.UseHttpsRedirection();
 app.UseRouting();
-SeedDatabase();
+await SeedDatabaseAsync(app);
 app.UseMiddleware<RedirectToDashboardMiddleware>();
 
 app.UseSession();
@@ -142,8 +145,6 @@ app.UseAuthentication();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthorization();
 
-// Use the DatabaseExceptionMiddleware
-app.UseMiddleware<DatabaseExceptionMiddleware>();
 
 app.MapControllers();
 app.UseStaticFiles();
@@ -160,12 +161,13 @@ app.UseEndpoints(endpoints =>
         pattern: "{controller=Home}/{action=Index}/{id?}");
 });
 
-app.Run();
-void SeedDatabase()
+await app.RunAsync();
+
+async Task SeedDatabaseAsync(IHost app)
 {
     using (var scope = app.Services.CreateScope())
     {
         var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-        dbInitializer.Initialize();
+        await dbInitializer.InitializeAsync();
     }
 }

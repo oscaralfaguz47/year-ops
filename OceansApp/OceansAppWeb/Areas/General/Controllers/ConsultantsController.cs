@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -10,6 +11,7 @@ using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using SlackAPI;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers
@@ -17,7 +19,7 @@ namespace OceansAppWeb.Areas.General.Controllers
     [ApiController]
     [Route("General/[controller]")]
     [Area("General")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     [Authorize(Policy = "AccessToViewNoSensitiveInfoForAllConsultants")]
     public class ConsultantsController : Controller
@@ -27,15 +29,17 @@ namespace OceansAppWeb.Areas.General.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IAuthorizationService _authorizationService;
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+        private readonly IMemoryCache _cache;
         public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager, 
             IAuthorizationService authorizationService,
-            IBackgroundTaskQueue backgroundTaskQueue)
+            IBackgroundTaskQueue backgroundTaskQueue, IMemoryCache cache)
         {
             _unitOfWork = unitOrWork;
             _config = config;
             _userManager = userManager;
             _authorizationService = authorizationService;
             _backgroundTaskQueue = backgroundTaskQueue;
+            _cache = cache;
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -414,7 +418,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [HttpPost("ResentInvite")]
-        [RequireTwoFactorEnabled]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         public async Task<IActionResult> ResentInvite([FromForm] int consultantId)
         {
             try
@@ -448,7 +452,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [HttpPost("ResetAuthenticatorFromUser")]
-        [RequireTwoFactorEnabled]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         public async Task<IActionResult> ResetAuthenticatorFromUser([FromForm] int consultantId)
         {
             try
@@ -461,7 +465,61 @@ namespace OceansAppWeb.Areas.General.Controllers
                 var user = await _userManager.FindByIdAsync(consultant.UserId);
                 await _userManager.ResetAuthenticatorKeyAsync(user);
                 await _userManager.SetTwoFactorEnabledAsync(user, false);
+                var cacheKey = $"UserSessionChangesExpiration_{consultant.UserId}";
+                _cache.Set(cacheKey, DateTimeOffset.Now.AddSeconds(1), new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)
+                });
                 return Json(new { success = true, message = "Two-factor authentication was successfully reset!" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost("ActivateDeactivateAuthenticatorFromUser")]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
+        public async Task<IActionResult> ActivateDeactivateAuthenticatorFromUser([FromForm] int consultantId)
+        {
+            try
+            {
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId);
+                if (consultant == null)
+                {
+                    return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
+                }
+                var user = await _userManager.FindByIdAsync(consultant.UserId);
+                if (user == null)
+                {
+                    return BadRequest(new { MessageType = "Not Found", error = $"The user was not found in the database. " });
+                }
+                var applicationUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
+                if (applicationUser == null)
+                {
+                    return BadRequest(new { MessageType = "Not Found", error = $"The user was not found in the database. " });
+                }
+                var successMessage = "Activated";
+                if (applicationUser.TwoFactorRequired)
+                {
+                    await _userManager.ResetAuthenticatorKeyAsync(user);
+                    await _userManager.SetTwoFactorEnabledAsync(user, false);
+                    applicationUser.TwoFactorRequired = false;
+                    await _unitOfWork.SaveAsync();
+                    successMessage = "Deactivated";
+                }
+                else
+                {
+                    applicationUser.TwoFactorRequired = true;
+                    await _unitOfWork.SaveAsync();
+                    var cacheKey = $"UserSessionChangesExpiration_{consultant.UserId}";
+                    _cache.Set(cacheKey, DateTimeOffset.Now.AddSeconds(1), new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(1)
+                    });
+                }
+
+                return Json(new { success = true, message = $"Two-factor authentication was {successMessage} successfully!" });
             }
             catch (Exception e)
             {
@@ -485,6 +543,8 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     userToUpdate.IsActive = false;
                     userToUpdate.LockoutEnd = DateTime.Now.AddYears(1000);
+                    var cacheKey = $"UserSessionChangesExpiration_{consultant.UserId}";
+                    _cache.Remove(cacheKey);
                     message = "The user was successfully deactivated!";
                 }
                 else

@@ -1,5 +1,6 @@
 ﻿
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Account;
 using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -8,5 +9,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate);
         void Update(ApplicationUser obj);
+        Task<List<GetUserIdVM>> GetUsersWhereRoleId(string roleId);
     }
 }

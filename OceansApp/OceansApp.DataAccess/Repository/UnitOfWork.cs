@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 
@@ -9,13 +9,13 @@ namespace OceansApp.DataAccess.Repository
     public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _db;
-        private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
-        public UnitOfWork(ApplicationDbContext db, IConfiguration config, UserManager<IdentityUser> userManager)
+        private readonly IMemoryCache _cache;
+        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, IMemoryCache cache)
         {
             _db = db;
-            _config = config;
             _userManager = userManager;
+            _cache = cache;
             AccountingAccounts = new AccountingAccountRepository(_db);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
@@ -32,7 +32,7 @@ namespace OceansApp.DataAccess.Repository
             ProviderCategory = new ProviderCategoryRepository(_db);
             Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
-            ConsultantDetail = new ConsultantDetailRepository(_db, _config, _userManager);
+            ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
             ConsultantPayment = new ConsultantPaymentRepository(_db);
             ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db);
             ConsultantPosition = new ConsultantPositionRepository(_db);

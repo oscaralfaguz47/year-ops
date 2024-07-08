@@ -10,7 +10,7 @@ namespace OceansAppWeb.Areas.General.Controllers
     [ApiController]
     [Route("General/[controller]")]
     [Area("General")]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
     public class ConsultantHolidaysController : Controller
     {

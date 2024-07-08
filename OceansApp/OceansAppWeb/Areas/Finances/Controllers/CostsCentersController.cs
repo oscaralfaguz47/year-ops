@@ -8,7 +8,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     [Route("Finances/[controller]")]
     [Area("Finances")]
     [Authorize]
-    [RequireTwoFactorEnabled]
+    [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     public class CostsCentersController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
