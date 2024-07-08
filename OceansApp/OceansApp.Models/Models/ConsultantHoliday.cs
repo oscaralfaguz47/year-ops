@@ -11,7 +11,6 @@ namespace OceansApp.Models.Models
         [Required]
         public int ConsultantHolidayId { get; set; }
         [Required]
-        public int Year { get; set; }
         [MaxLength(100)]
         public string Name { get; set; }
         [Required]

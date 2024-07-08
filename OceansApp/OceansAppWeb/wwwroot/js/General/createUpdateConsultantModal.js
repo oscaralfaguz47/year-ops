@@ -1,29 +1,16 @@
-﻿function fillYears(select) {
-    if (select.length > 1) {
-        return;
-    }
-
-    for (let year = 2024; year <= 2040; year++) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        select.appendChild(option);
-    }
-}
-function selectYear(yearSelect, selectedOption) {
-    var holidaysSelect = document.getElementById('HolidaysSelect');
-    fillHolidaysSelect(holidaysSelect, '-Select a holiday-', yearSelect.value, selectedOption);
-    holidaysSelect.disabled = false;
-}
-
+﻿
 //CREATE / UPDATE CONSULTANT MODAL
 async function displayUpdateCreateConsultantModal(modalId, id) {
     var modalTitle = document.getElementById('create-consultant-modal-title');
     modalTitle.textContent = "ADD NEW CONSULTANT";
     var createUpdateForm = $('#form-create-update');
     var otherConfigForm = $('#form-other-config');
-    var holidaySelect = otherConfigForm.find('[name="idConsultantHoliday"]');
-    holidaySelect.prop('disabled', true);
+    var holidaySelect = document.getElementById("HolidaysSelect");
+    const selectedHolidayOption = document.createElement('option');
+    var partnerSelect = document.getElementById("PartnerSelect");
+    const selectedPartnerOption = document.createElement('option');
+    partnerSelect.innerHTML = `<option value>- Select a Partner -</option>`;
+    holidaySelect.innerHTML = `<option value>- Select a Holiday -</option>`;
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
     resetForm('form-other-config');
@@ -80,16 +67,23 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
                 otherConfigForm.find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
-                var holidayYearSelect = otherConfigForm.find('[name="holidayYear"]');
-                holidayYearSelect.html('<option value="' + (data.consultantData.holidayYear === null ? '' : data.consultantData.holidayYear) + '">'
-                    + (data.consultantData.holidayYear === null ? '-Select a year-' : data.consultantData.holidayYear) + '</option>');
-                holidayYearSelect.value = data.consultantData.holidayYear !== null ? data.consultantData.holidayYear : '';
-                if (data.consultantData.holidayYear !== null) {
-                    selectYear(holidayYearSelect, data.consultantData.consultantHolidayId);
+
+                if (data.consultantData.consultantHolidayId !== null) {
+                    holidaySelect.innerHTML = '';
+                    selectedHolidayOption.value = data.consultantData.consultantHolidayId;
+                    selectedHolidayOption.textContent = data.consultantData.consultantHolidayName;
+                    holidaySelect.appendChild(selectedHolidayOption);
                 }
-                var partnerSelect = otherConfigForm.find('[name="idPartner"]');
-                partnerSelect.html('<option value="' + (data.consultantData.partnerId === null ? '' : data.consultantData.partnerId)
-                    + '">' + (data.consultantData.partnerName === null ? '-Select a partner-' : data.consultantData.partnerName) + '</option>');
+                holidaySelect.value = data.consultantData.consultantHolidayId === null ? '' : data.consultantData.consultantHolidayId;
+
+                if (data.consultantData.partnerId !== null) {
+                    partnerSelect.innerHTML = '';
+                    selectedPartnerOption.value = data.consultantData.partnerId;
+                    selectedPartnerOption.textContent = data.consultantData.partnerName;
+                    partnerSelect.appendChild(selectedPartnerOption);
+                }
+                partnerSelect.value = data.consultantData.partnerId === null ? '' : data.consultantData.partnerId;
+
                 showModal(modalId);
             })
             .catch(error => {

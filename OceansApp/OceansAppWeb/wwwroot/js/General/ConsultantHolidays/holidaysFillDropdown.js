@@ -1,5 +1,5 @@
-﻿async function getHolidaysList(year) {
-    var url = "/General/ConsultantHolidays/GetHolidaysListForSelectByYear?year=" + year;
+﻿async function getHolidaysList() {
+    var url = "/General/ConsultantHolidays/GetHolidaysListForSelect";
     return fetch(url)
         .then(response => {
             if (response.ok) {
@@ -18,18 +18,19 @@
         });
 }
 
-function fillHolidaysSelect(selectElement, firstOption, parameter, selectedOption) {
-    console.log("VALUE: " + selectedOption);
-    selectElement.innerHTML = '';
+function fillHolidaysSelect(selectElement, firstOption) {
+    let previousValue = selectElement.value;
+    if (selectElement.length > 1) {
+        return;
+    }
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
-    getHolidaysList(parameter)
+    getHolidaysList()
         .then(data => {
-            console.log(parameter);
             selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
             data.holidays.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
             });
-            selectElement.value = selectedOption !== null ? selectedOption : '';
+            selectElement.value = previousValue;
         })
         .catch(error => {
             console.error('Error fetching holidays:', error);

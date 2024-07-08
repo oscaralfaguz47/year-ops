@@ -24,15 +24,6 @@
             <div class="more-filters-cont">
                 <div id="more-filters">
                     <div class="row">
-                        <div class="col-sm-2">
-                            <label for="year" class="select-label">Year</label>
-                            <div class="">
-                                <span class="arrow-down"></span>
-                                <select id="year" class="form-select" onchange="paginationSubmit(false, true)">
-                                    <option selected value="">Select a Year</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
                     <div class="principal-buttons">
                         <a asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
@@ -50,10 +41,6 @@
                         Holidays List Name
                         <span class="sort-arrow" id="sortArrowName">
                         </span>
-                    </th>
-                    <th onclick="orderByTableList('Year', 'YearTableHeader', 'sortArrowYear')" data-sort="ANY" name="YearTableHeader" class="table-col-little sortable-col">
-                        Year
-                        <span class="sort-arrow" id="sortArrowYear"></span>
                     </th>
                     <th class="table-col-medium">#Holidays</th>
                     <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="table-col-medium sortable-col">
@@ -81,15 +68,8 @@
                 </h2>
                 <form id="form-create-update">
                     <div class="inputs-header-cont">
-                        <div class="input-container col-sm-8" style="margin-top: 0">
-                            <input id="holidaysListId" name="consultantHolidayId" type="hidden">
-                            <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
-                        </div>
-                        <div class="col-sm-4">
-                            <span class="arrow-down"></span>
-                            <select id="selectYear" name="holidayYear" class="form-select">
-                            </select>
-                        </div>
+                        <input id="holidaysListId" name="consultantHolidayId" type="hidden">
+                        <input formnovalidate="holidayName" name="holidayName" type="text" class="form-control" id="holidayName" placeholder="Insert the Holidays list Name">
                     </div>
                     <div class="add-dates-btn-cont">
                         <a style="padding-right: 10px" class="blue-btn" onclick="addNewDateRow(null)"><i class="bi bi-plus"></i> Add Date</a>

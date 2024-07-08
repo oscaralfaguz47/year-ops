@@ -29,26 +29,6 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToHolidaysPage")]
-        [HttpGet("GetUniqueYears")]
-        public async Task<IActionResult> GetUniqueYears()
-        {
-            try
-            {
-                var uniqueYears = await _unitOfWork.ConsultantHoliday.GetHolidaysYears();
-                return Json(uniqueYears);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new
-                {
-                    errors = new[] { $"Hubo un error extrayendo la lista de años." },
-                    result = "errorGet",
-                    detail = ex.Message
-                });
-            }
-        }
-
-        [Authorize(Policy = "AccessToHolidaysPage")]
         [HttpGet("GetHolidaysList")]
         public async Task<IActionResult> GetHolidaysList(string model)
         {
@@ -123,10 +103,6 @@ namespace OceansAppWeb.Areas.General.Controllers
             if (string.IsNullOrEmpty(holidayData.Name) || holidayData.Name.Length > 70)
             {
                 ModelState.AddModelError("Name", "The Holidays list name must be between 1 and 70 characters.");
-            }
-            if (holidayData.Year == null)
-            {
-                ModelState.AddModelError("Year", "The Year of the Holidays list is required.");
             }
             if (holidayData.HolidayDates.Count == 0)
             {
@@ -228,12 +204,12 @@ namespace OceansAppWeb.Areas.General.Controllers
         }
 
         [Authorize(Policy = "AccessToListOfHolidaysForSelect")]
-        [HttpGet("GetHolidaysListForSelectByYear")]
-        public async Task<IActionResult> GetHolidaysListForSelectByYear(int year)
+        [HttpGet("GetHolidaysListForSelect")]
+        public async Task<IActionResult> GetHolidaysListForSelect()
         {
             try
             {
-                var holidays = await _unitOfWork.ConsultantHoliday.GetAllAsync(x => x.Year == year).ConfigureAwait(false);
+                var holidays = await _unitOfWork.ConsultantHoliday.GetAllAsync();
                 var holidaysList = holidays.Select(holiday => new GetDataForSelectVM
                 {
                     Value = holiday.ConsultantHolidayId,

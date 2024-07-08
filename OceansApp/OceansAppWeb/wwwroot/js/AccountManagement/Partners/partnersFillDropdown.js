@@ -19,6 +19,7 @@
 }
 
 function fillPartnersSelectForFilters(selectElement, firstOption) {
+    let previousValue = selectElement.value;
     if (selectElement.length > 1) {
         return;
     }
@@ -29,6 +30,7 @@ function fillPartnersSelectForFilters(selectElement, firstOption) {
             data.partners.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
             });
+            selectElement.value = previousValue;
         })
         .catch(error => {
             console.error('Error fetching partners:', error);

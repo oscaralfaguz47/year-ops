@@ -217,7 +217,6 @@ namespace OceansApp.DataAccess.Data
             //  CONSULTANT HOLIDAY
             modelBuilder.Entity<ConsultantHoliday>(entity =>
             {
-                entity.HasIndex(e => e.Year);
                 entity.HasIndex(e => e.CreatedBy);
                 entity.HasIndex(e => e.Name);
             });

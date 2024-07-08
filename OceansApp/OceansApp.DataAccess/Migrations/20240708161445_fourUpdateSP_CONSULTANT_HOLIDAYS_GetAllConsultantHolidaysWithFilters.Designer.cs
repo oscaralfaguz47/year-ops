@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240708161445_fourUpdateSP_CONSULTANT_HOLIDAYS_GetAllConsultantHolidaysWithFilters")]
+    partial class fourUpdateSP_CONSULTANT_HOLIDAYS_GetAllConsultantHolidaysWithFilters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -878,11 +881,16 @@ namespace OceansApp.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
                     b.HasKey("ConsultantHolidayId");
 
                     b.HasIndex("CreatedBy");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("Year");
 
                     b.ToTable("CONSULTANT_HOLIDAYS");
                 });

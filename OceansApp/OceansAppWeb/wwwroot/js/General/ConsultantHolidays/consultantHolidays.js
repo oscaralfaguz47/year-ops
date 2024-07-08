@@ -1,34 +1,6 @@
 ﻿$(document).ready(function () {
-    getDataForFiltersList();
     getHolidaysList(true, false);
 });
-
-async function getDataForFiltersList() {
-    const url = "/General/ConsultantHolidays/GetUniqueYears";
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const select = document.getElementById("year");
-
-        data.forEach(function (yearValue) {
-            let option = document.createElement("option");
-            option.value = yearValue;
-            option.text = yearValue;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        validateSessionExpiration(error.message);
-        const errorResponse = await error.json();
-        displayToasterError("More error details: " + errorResponse.detail);
-        displayToasterError(errorResponse.errors + " Ponte en contacto con el administrador para solucionar el problema");
-    }
-}
-
 
 function paginationSubmit(firstTime, filters) {
     getHolidaysList(firstTime, filters);
@@ -36,9 +8,7 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters) {
     {
         var searchText = $('#search-input').val();
-        var year = parseInt($('#year').val());
         var filtersData = {
-            Year: year,
             SearchText: searchText
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
@@ -55,7 +25,6 @@ function recolectDataFromForm(filters) {
         }
         if (filters) {
             filtersData = {
-                Year: year,
                 SearchText: searchText
             };
         }
@@ -95,7 +64,6 @@ async function getHolidaysList(firstTime, filters) {
                     <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.consultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                     <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.consultantHolidayId})" title="Click to see the Holidays">${holiday.name}</span>
                 </td>
-                <td>${holiday.year}</td>
                 <td>${holiday.numHolidays}</td>
                 <td>${formatUtcToLocalMmDdYyyyTime(holiday.creationDate)}</td>
                 <td>${holiday.createdByName}</td>
@@ -129,7 +97,6 @@ function enterInSearch(event) {
 
 async function displayCreateUpdateModal(modalId, action, holidayId) {
     var createUpdateForm = $('#form-create-update');
-    var select = $('#selectYear');
     if (action === 'VIEW HOLIDAYS LIST') {
         $('#btn-saving').css("display", "none");
         $('#btn-cancel').text("Close");
@@ -137,7 +104,6 @@ async function displayCreateUpdateModal(modalId, action, holidayId) {
         $('.blue-btn').css("display", "none");
 
         createUpdateForm.find('[name="holidayName"]').prop('disabled', true);
-        select.prop('disabled', true);
     } else {
         $('#btn-saving').css("display", "block");
         $('#btn-cancel').text("Cancel");
@@ -145,27 +111,13 @@ async function displayCreateUpdateModal(modalId, action, holidayId) {
         $('.blue-btn').css("display", "-webkit-inline-box");
 
         createUpdateForm.find('[name="holidayName"]').prop('disabled', false);
-        select.prop('disabled', false);
     }
     var modalTitle = $('#create-edit-holiday-title');
     modalTitle.text(action);
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
     createUpdateForm.find('[name="consultantHolidayId"]').val("");
-    select.empty();
-    // get actual year
-    var actualYear = new Date().getFullYear();
 
-    for (var year = 2023; year <= 2040; year++) {
-        var option = document.createElement('option');
-        option.value = year;
-        option.text = year;
-        select.append(option);
-
-        if (year === actualYear) {
-            option.selected = true;
-        }
-    }
     var permissionsContainer = $("#holidays-dates-container");
     permissionsContainer.empty();
     var url = "";
@@ -180,7 +132,6 @@ async function displayCreateUpdateModal(modalId, action, holidayId) {
                 if (data.success) {
                     createUpdateForm.find('[name="consultantHolidayId"]').val(data.holidayData.consultantHolidayId);
                     createUpdateForm.find('[name="holidayName"]').val(data.holidayData.name);
-                    createUpdateForm.find('[name="holidayYear"]').val(data.holidayData.year);
                     data.holidayData.holidayDates.forEach(function (holiday) {
                         addNewDateRow(holiday, action)
                     });
@@ -259,7 +210,6 @@ async function createUpdateHoliday(modalId) {
     var createUpdateForm = $('#form-create-update');
     var holidaysListId = createUpdateForm.find('[name="consultantHolidayId"]').val() || null;
     var holidayName = createUpdateForm.find('[name="holidayName"]').val();
-    var year = createUpdateForm.find('[name="holidayYear"]').val();
     var holidayDatesElements = document.querySelectorAll(".holidayRow");
     var holidayDatesData = [];
     holidayDatesData = Array.from(holidayDatesElements).map(function (fila) {
@@ -274,7 +224,6 @@ async function createUpdateHoliday(modalId) {
     var data = {
         ConsultantHolidayId: holidaysListId,
         Name: holidayName,
-        Year: year,
         HolidayDates: holidayDatesData
     };
     fetch('/General/ConsultantHolidays/CreateUpdateHoliday', {

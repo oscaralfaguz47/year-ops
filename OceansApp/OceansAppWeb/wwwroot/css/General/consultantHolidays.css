@@ -1,18 +1,12 @@
 ﻿.inputs-header-cont {
     display: flex;
+    margin-top: 20px;
 }
 .span-holiday-Name:hover{
     cursor: pointer;
     text-decoration: underline
 }
-.inputs-header-cont div {
-    margin-right: 5px;
-}
-.inputs-header-cont #holidayName {
-    padding-left: 10px;
-    font-weight: bold;
-    color: #2c3e50;
-}
+
     .add-dates-btn-cont {
         text-align: right;
         margin-bottom: 5px;

@@ -200,8 +200,7 @@
                     <div class="row">
                         <label for="PartnerSelect">Is the consultant hired by a partner? If so, select the partner</label>
                         <div class="col-md-6">
-                            <div class="custom-select">
-                                <span class="arrow-down"></span>
+                            <div>
                                 <select onfocus="fillPartnersSelectForFilters(this, 'Select a partner')" class="form-select" id="PartnerSelect" name="idPartner">
                                 </select>
                             </div>
@@ -209,25 +208,12 @@
                     </div>
                     <div class="row">
                         <strong><label>Select the holidays for this consultant.</label></strong>
-                        <div class="col-md-8" style="display:flex">
-                            <div style="margin-right: 8px">
-                                <label>Year</label>
-                                <div>
-                                    <div class="custom-select" style="width: auto">
-                                        <span class="arrow-down"></span>
-                                        <select style="width:auto" onchange="selectYear(this, null)" onfocus="fillYears(this)" class="form-select" id="holidayYear" name="holidayYear">
-                                            <option>-Select a year</option>
-                                        </select> 
-                                    </div>
-                                </div>
-                           </div>
+                        <div class="col-md-6">
                             <div>
                                 <label>Holidays</label>
                                 <div>
-                                    <div class="custom-select" style="width: auto">
-                                        <span class="arrow-down"></span>
-                                        <select class="form-select" id="HolidaysSelect" name="idConsultantHoliday">
-                                            <option>-First select a year-</option>
+                                    <div>
+                                        <select onfocus="fillHolidaysSelect(this, 'Select a Holiday')" class="form-select" id="HolidaysSelect" name="idConsultantHoliday">
                                         </select>
                                     </div>
                                 </div>

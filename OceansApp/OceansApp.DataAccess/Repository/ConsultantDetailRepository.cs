@@ -256,7 +256,6 @@ namespace OceansApp.DataAccess.Repository
                         ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,
-                        HolidayYear = consultant.HolidayYear,
                         PartnerId = consultant.PartnerId,
                         PartnerName = consultant.PartnerName,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects

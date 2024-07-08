@@ -27,22 +27,12 @@ namespace OceansApp.DataAccess.Repository
             return await query.ToListAsync();
         }
 
-        public async Task<List<int>> GetHolidaysYears()
-        {
-            var years = await _db.CONSULTANT_HOLIDAYS
-                           .GroupBy(ch => ch.Year)
-                           .OrderBy(g => g.Key)
-                           .Select(g => g.Key)
-                           .ToListAsync();
-            return years;
-        }
         public async Task<(List<HolidaysGetAllWithFiltersVM> holidays, int totalCount)> GetAllHolidaysWithFiltersAsync(HolidaysPaginationFiltersVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();
 
             var parameters = new DynamicParameters();
             parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
-            parameters.Add("@Year", filtersAndPagination.Filters.Year, DbType.Int32);
             parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
             parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
             parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
@@ -63,7 +53,7 @@ namespace OceansApp.DataAccess.Repository
             var parameters = new DynamicParameters();
             parameters.Add("@ConsultantHolidayId", consultantHolidayId);
 
-            using (var multiResultSet = await connection.QueryMultipleAsync("GetConsultantHolidayWithDates", parameters, commandType: CommandType.StoredProcedure))
+            using (var multiResultSet = await connection.QueryMultipleAsync("SP_CONSULTANT_HOLIDAYS_GetConsultantHolidayWithDates", parameters, commandType: CommandType.StoredProcedure))
             {
                 var consultantHoliday = await multiResultSet.ReadFirstOrDefaultAsync<ConsultantHoliday>();
                 var holidayDates = await multiResultSet.ReadAsync<CreateUpdateHolidayDateVM>();
@@ -72,7 +62,6 @@ namespace OceansApp.DataAccess.Repository
                 {
                     ConsultantHolidayId = consultantHoliday.ConsultantHolidayId,
                     Name = consultantHoliday.Name,
-                    Year = consultantHoliday.Year,
                     HolidayDates = (List<CreateUpdateHolidayDateVM>)holidayDates
                 };
             }
@@ -88,7 +77,6 @@ namespace OceansApp.DataAccess.Repository
                 ConsultantHoliday holidayListToCreate = new()
                 {
                     Name = holidayData.Name.Trim(),
-                    Year = (int)holidayData.Year,
                     CreatedBy = holidayData.CreatedBy,
                     CreationDate = DateTime.UtcNow
                 };
@@ -136,7 +124,6 @@ namespace OceansApp.DataAccess.Repository
                 }
 
                 holidayListToUpdate.Name = holidayData.Name.Trim();
-                holidayListToUpdate.Year = (int)holidayData.Year;
 
                 List<ConsultantHolidayDate> existingHolidaysInListToRemove = await _db.CONSULTANT_HOLIDAY_DATES
                 .Where(x => x.ConsultantHolidayId == holidayData.ConsultantHolidayId).ToListAsync();
