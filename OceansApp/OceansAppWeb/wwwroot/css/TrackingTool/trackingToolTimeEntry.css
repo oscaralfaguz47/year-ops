@@ -103,6 +103,9 @@
     position: absolute;
     top: 48px;
 }
+    .btn-add-time:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
 
 .count-day-label {
     font-weight: bold;
@@ -142,50 +145,24 @@
 }
 
 /*TOOTIP*/
-#tooltip-container label{
+.tooltip-container label{
     font-weight: bold; 
     margin-top: 5px;
     display: flex;
     align-content: center;
     align-items: center;
 }
-#tooltip-container p {
+.tooltip-container p {
     margin: 0;
 }
-#tooltip-container i {
+.tooltip-container i {
     font-size: 18px;
     margin-left: 5px;
 }
-    #tooltip-container label .i-payable {
+    .tooltip-container label .i-payable {
         color:green;
     }
-    #tooltip-container label .i-non-payable {
+    .tooltip-container label .i-non-payable {
         color: red;
         text-decoration: line-through;
     }
-.tooltip {
-    position: absolute;
-    background-color: #fff;
-    color: #000;
-    padding: 5px 10px;
-    border-radius: 4px;
-    border: solid 2px var(--clr-grayDark);
-    white-space: nowrap;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-    .tooltip::before {
-        content: '';
-        position: absolute;
-        border-width: 5px;
-        border-style: solid;
-        border-color: #333 transparent transparent transparent;
-    }
-
-.tooltip-target {
-    position: relative;
-    cursor: pointer;
-}

@@ -5,9 +5,6 @@
     animation: spin 1.5s linear infinite;
     margin: 5px;
 }
-.tooltip-container {
-    margin-left: 5px;
-}
 .file-upload-container {
     display: flex;
     justify-content: center;
@@ -146,9 +143,32 @@
     .save-report-cont #save-btn i {
         margin:5px;
     }
-.tooltip-target {
-    color: rgb(7, 8, 8, 0.6);
+#holidaysContainer{
+    text-align: center;
 }
+    #holidaysContainer .holiday-Item {
+        background-color: rgb(26, 174, 5, 0.4);
+        padding: 2px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 8px;
+        width: fit-content;
+        margin: 3px;
+        cursor: pointer;
+    }
+    #holidaysContainer i {
+        margin-left: 5px;
+    }
+    #holidaysContainer .holiday-name{
+        display: block;
+        text-decoration: underline;
+        font-weight: normal; 
+    }
+    .tooltip-target {
+        color: rgb(7, 8, 8, 0.6);
+    }
 .report-input-cont {
     display: flex;
     justify-content: center;

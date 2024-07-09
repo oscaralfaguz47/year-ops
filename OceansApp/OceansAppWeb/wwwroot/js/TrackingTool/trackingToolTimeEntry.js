@@ -81,9 +81,11 @@ function generateDateList(startDateString, endDateString, movements) {
         dayItem.appendChild(countLabel);
         dateListBox.appendChild(dayItem);
         submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor('No Actions')}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon('No Actions')} Submit your time</button>`;
+        console.log(movements);
         movements.forEach(function (movement) {
             const movementDate = new Date(movement.actionDate);
-            if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected') {
+            if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected' && movement.transactionStatusName !== null) {
+                console.log("ESTÁ ENTRANDO " + movement.transactionStatusName);
                 submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor(movement.transactionStatusName)}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon(movement.transactionStatusName)} 
                 ${movement.transactionStatusName === 'Waiting to be approved' ? 'Pending approval' : movement.transactionStatusName === 'Approved' ? 'Timesheet approved' : movement.transactionStatusName}</button>`;
                 addButton.style.display = 'none';
@@ -109,7 +111,7 @@ function formatTimeTo12Hour(timeStr) {
 function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, isPayable, notes) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('div');
-    reportedTimeLabel.setAttribute('data-tooltip', `<div id="tooltip-container">
+    reportedTimeLabel.setAttribute('data-tooltip', `<div class="tooltip-container">
     <label>${isPayable ? 'Payable Hours <i class="i-payable">$</i>' : 'Non-Payable Hours <i class="i-non-payable">$</i>'}</label>
     <p>${notes}</p>
     </div>`);

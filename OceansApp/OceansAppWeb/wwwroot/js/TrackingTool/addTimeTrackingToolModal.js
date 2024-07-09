@@ -207,6 +207,10 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
             const timeToInputFromDiv = htmlReportedTimeElement.querySelector('.time-to');
             const movementIdInputFromDiv = htmlReportedTimeElement.querySelector('.movement-id');
             const editBtnFromDiv = htmlReportedTimeElement.querySelector('.reported-time-span');
+            editBtnFromDiv.setAttribute('data-tooltip', `<div class="tooltip-container">
+    <label>${!timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') ? 'Payable Hours <i class="i-payable">$</i>' : 'Non-Payable Hours <i class="i-non-payable">$</i>'}</label>
+    <p>${additionalNotesInput.value}</p>
+    </div>`);
             editBtnFromDiv.onclick = function () {
                 let date = new Date(actionDateInput.value);
                 let options = {
@@ -236,7 +240,9 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
             updateDayTotal(dayItem);
             updateTotalHours();
         } else {
-            addTimeEntry(addBtn, dataFromApi.movementId, timeFromInput.value, timeToInput.value, 'No actions', timeClassificationSelect.selectedOptions[0].text);
+            let payable = timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') ? false : true;
+            addTimeEntry(addBtn, dataFromApi.movementId, timeFromInput.value, timeToInput.value, 'No actions',
+                payable, additionalNotesInput.value);
         }
         return dataFromApi;
     } catch (err) {

@@ -259,25 +259,42 @@ nav {
     z-index: 9999;
 }
 
-.tooltip-arrow {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent #333 transparent;
-}
 
 
 .tooltip-target:hover ~ .tooltip-content {
     opacity: 1;
 }
 
-.tooltip-target {
-    color: var(--clr-blueLight);
+.tooltip {
+    position: absolute;
+    background-color: #fff;
+    color: #000;
+    padding: 10px;
+    border-radius: 4px;
+    border: solid 2px var(--clr-grayDark);
+    white-space: nowrap;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    max-width: 300px;
+    word-wrap: break-word; 
+    white-space: normal; 
+    text-align: justify;
 }
 
+    .tooltip::before {
+        content: '';
+        position: absolute;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #333 transparent transparent transparent;
+    }
+
+.tooltip-target {
+    position: relative;
+    cursor: pointer;
+}
 .input-container {
     position: relative;
     margin-top: 10px;

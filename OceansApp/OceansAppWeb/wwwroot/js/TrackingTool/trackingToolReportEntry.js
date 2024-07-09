@@ -11,6 +11,7 @@ var fileInput = document.getElementById('file-upload');
 let saveReportBtn = document.getElementById('save-btn');
 let transactionStatus = 'No actions';
 let uploadBtn = document.getElementById('upload-btn');
+const holidaysContainer = document.getElementById('holidaysContainer');
 
 function handleChangeData() {
     saveReportBtn.style.display = 'block';
@@ -60,7 +61,6 @@ document.addEventListener('paste', (event) => {
         }
     }
 });
-
 
 async function handleFiles(event) {
     event.stopPropagation();
@@ -416,6 +416,7 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
 //GET PROJECT MOVEMENTS
 async function getProjectMovementsClientHasTrackTool() {
     saveReportBtn.style.display = 'none';
+    holidaysContainer.style.display = 'none';
     initializeUploadProcess();
     loadingBoxIntern.style.display = 'block';
     errorMessageIntern.style.display = 'none';
@@ -436,7 +437,6 @@ async function getProjectMovementsClientHasTrackTool() {
         }
 
         const data = await response.json();
-        console.log(data);
         let normalHoursQuantity = 0;
         let onCallFlateRateQuantity = 0;
         let onCallTimeWorkedQuantity = 0;
@@ -444,7 +444,10 @@ async function getProjectMovementsClientHasTrackTool() {
         let blobNames = [];
 
         if (data.movementsList.length > 0) {
-            movementIdNormalHoursInput.value = data.movementsList[0].movementId;
+            const normalMovement = data.movementsList.find(movement => movement.movementTypeName !== 'Holidays');
+            if (normalMovement) {
+                movementIdNormalHoursInput.value = normalMovement.movementId;
+            }
         } else {
             movementIdNormalHoursInput.value = null;
         }
@@ -456,12 +459,10 @@ async function getProjectMovementsClientHasTrackTool() {
         fileInput.disabled = false;
         transactionStatus = 'No actions';
         uploadBtn.style.display = 'block';
+        let holidaysCount = 0;
+        let holidaysHtmlList = ``;
 
         data.movementsList.forEach(function (obj) {
-            transactionStatus = obj.transactionStatus;
-            if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
-                updateStatusReportSubmittedClientHasTrackingTool();
-            }
             if (obj.movementTypeName === 'Normal Hours') {
                 notes += obj.notes === null ? '' : obj.notes;
                 normalHoursQuantity += obj.quantity;
@@ -475,7 +476,22 @@ async function getProjectMovementsClientHasTrackTool() {
             if (obj.movementTypeName === 'On Call Time Worked') {
                 onCallTimeWorkedQuantity += obj.quantity;
             }
+            if (obj.movementTypeName === 'Holidays') {
+                holidaysCount++;
+                let holidayDate = new Date(obj.actionDate);
+                holidaysHtmlList += `<div data-tooltip="You will be paid ${obj.quantity} hours for this holiday, you don't need to report this." class="holiday-Item tooltip-target"><span class="holiday-name">${obj.notes}<i class="fa-solid fa-gift"></i></span><span>${getMonthName(holidayDate.getMonth())} ${holidayDate.getDate()}</span></div>`;
+            } else {
+                transactionStatus = obj.transactionStatus;
+                if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
+                    updateStatusReportSubmittedClientHasTrackingTool();
+                }
+            }
         });
+        if (holidaysCount > 0) {
+            holidaysContainer.innerHTML = `<label>You have ${holidaysCount} holiday${holidaysCount === 1 ? '' : 's'} to be reimbursed for this period</label> <div style="display:flex; justify-content:center">${holidaysHtmlList}</div>`;
+            holidaysContainer.style.display = 'block';
+            initializeTooltips();
+        }
 
         quantityInput.value = normalHoursQuantity;
         onCallFlateRateSelect.value = onCallFlateRateQuantity;

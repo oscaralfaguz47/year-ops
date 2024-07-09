@@ -541,7 +541,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new ReportingMyTimeMovementType { Name = "Oceans Challenge", IsPayable = true },
                     new ReportingMyTimeMovementType { Name = "Bonusly Rewards", IsPayable = true },
                     new ReportingMyTimeMovementType { Name = "Interviews", IsPayable = true },
-                    new ReportingMyTimeMovementType { Name = "Time Off (Non-payable)", IsPayable = true }
+                    new ReportingMyTimeMovementType { Name = "Time Off (Non-payable)", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Holidays", IsPayable = true }
                 };
 
                 foreach (var movementType in movTypesList)
@@ -551,7 +552,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     {
                         ReportingMyTimeMovementType movType = new()
                         {
-                            Name = movementType.Name
+                            Name = movementType.Name,
+                            IsPayable = movementType.IsPayable
                         };
                         await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AddAsync(movType);
                     }

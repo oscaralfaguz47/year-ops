@@ -231,6 +231,9 @@ namespace OceansApp.DataAccess.Data
             // HOLIDAY DATE
             modelBuilder.Entity<ConsultantHolidayDate>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantHolidayId, e.Date });
+
                 entity.HasIndex(e => e.ConsultantHolidayId);
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => e.CreatedBy);
@@ -455,6 +458,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Composite index
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.HourlySalary, e.MonthlySalary });
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.ProjectId);
@@ -653,6 +657,10 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("varchar");
 
             // REPORTING MY TIME MOVEMENT BLOBS
+            modelBuilder.Entity<ReportingMyTimeMovementBlob>(entity =>
+            {
+                entity.HasIndex(e => e.MovementId);
+            });
             modelBuilder.Entity<ReportingMyTimeMovementBlob>()
                 .HasKey(r => new { r.InternalBlobId });
             modelBuilder.Entity<ReportingMyTimeMovementBlob>()
