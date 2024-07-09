@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240709025244_fourUpdateSP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool")]
+    partial class fourUpdateSP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -832,8 +835,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("ConsultantHolidayId");
 
-                    b.HasIndex("ConsultantId");
-
                     b.HasIndex("IdCountry");
 
                     b.HasIndex("ParticipatesInOnCalls");
@@ -881,8 +882,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("ConsultantHolidayId");
-
-                    b.HasIndex("ConsultantHolidayId");
 
                     b.HasIndex("CreatedBy");
 

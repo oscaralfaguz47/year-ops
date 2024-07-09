@@ -170,6 +170,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ConsultantHolidayId);
 
                 // Indexes for columns
+                entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.Phone2);
                 entity.HasIndex(e => e.Address);
                 entity.HasIndex(e => e.PersonalEmail);
@@ -217,6 +218,7 @@ namespace OceansApp.DataAccess.Data
             //  CONSULTANT HOLIDAY
             modelBuilder.Entity<ConsultantHoliday>(entity =>
             {
+                entity.HasIndex(e => e.ConsultantHolidayId);
                 entity.HasIndex(e => e.CreatedBy);
                 entity.HasIndex(e => e.Name);
             });

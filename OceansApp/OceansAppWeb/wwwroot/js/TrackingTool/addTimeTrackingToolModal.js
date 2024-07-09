@@ -5,6 +5,7 @@ let additionalNotesInput = document.getElementById('addNotesInput');
 let actionDateInput = document.getElementById('actionDateInput');
 let movementIdInput = document.getElementById('movementIdInput');
 let validationMessageTimeZero = document.getElementById('time-zero-val-message');
+let validationMessageNotes = document.getElementById('notes-val-message');
 let timeClassificationSelect = document.getElementById('timeClassification');
 let addBtn = null;
 let htmlReportedTimeElement = null;
@@ -23,6 +24,13 @@ timeToInput.addEventListener('change', () => {
         validationMessageTimeZero.style.display = 'block';
     } else {
         validationMessageTimeZero.style.display = 'none';
+    }
+});
+additionalNotesInput.addEventListener('input', () => {
+    if (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') && additionalNotesInput.value === '') {
+        validationMessageNotes.style.display = 'block';
+    } else {
+        validationMessageNotes.style.display = 'none';
     }
 });
 
@@ -49,6 +57,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     const dateObject = new Date(fullDateString);
     addBtn = button;
     hideValidationMessage(validationMessageTimeZero);
+    hideValidationMessage(validationMessageNotes);
     const submitBtns = [{ id: 'btn-cancel', text: 'Delete' }, { id: 'btn-saving', text: 'Confirm' }];
     const otherBtns = ['close-modal-x-btn'];
     enableModalButtons(submitBtns, otherBtns, 'spinner-border');
@@ -140,7 +149,9 @@ function fillMovementTypesSelect(selectElement) {
 //CREATE, UPDATE TIME ENTRY
 async function createUpdateTimeEntryTrackingTool(modalId) {
     let hoursMinutes = calculateTimeDifference(timeFromInput.value, timeToInput.value);
-    if (hoursMinutes.hours === 0 && hoursMinutes.minutes === 0) {
+    if ((hoursMinutes.hours === 0 && hoursMinutes.minutes === 0)
+        || (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') && additionalNotesInput.value === '')) {
+        validationMessageNotes.style.display = 'block';
         return;
     }
     const submitBtnsInitialize = [{ id: 'btn-cancel', text: 'Delete' }, { id: 'btn-saving', text: 'Confirm' }];
@@ -195,7 +206,7 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
             const timeFromInputFromDiv = htmlReportedTimeElement.querySelector('.time-from');
             const timeToInputFromDiv = htmlReportedTimeElement.querySelector('.time-to');
             const movementIdInputFromDiv = htmlReportedTimeElement.querySelector('.movement-id');
-            const editBtnFromDiv = htmlReportedTimeElement.querySelector('.edit-time-btn');
+            const editBtnFromDiv = htmlReportedTimeElement.querySelector('.reported-time-span');
             editBtnFromDiv.onclick = function () {
                 let date = new Date(actionDateInput.value);
                 let options = {
@@ -212,7 +223,9 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
             movementIdInputFromDiv.value = dataFromApi.movementId;
 
             const hoursMinutes = calculateTimeDifference(timeFromInput.value, timeToInput.value);
+            const reportedTimeFromToById = document.getElementById('time-from-to-span-' + movementIdInput.value);
             const reportedTimeSpanById = document.getElementById('reportedTimeSpan-' + movementIdInput.value);
+            reportedTimeFromToById.innerHTML = `${formatTimeTo12Hour(timeFromInput.value)} - ${formatTimeTo12Hour(timeToInput.value)}`;
             reportedTimeSpanById.innerHTML = `<span id="reportedTimeSpan-${movementIdInput.value}">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
             if (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)')) {
                 reportedTimeSpanById.parentElement.classList.add('non-payable');

@@ -7,7 +7,9 @@
 #create-update-time-modal-title {
     font-size: 32px;
 }
-
+#modal-btns-cont{
+    margin-top: 12px;
+}
 #form-create-update label {
     font-weight: 800;
     margin-bottom: 3px;
@@ -18,7 +20,6 @@
 .time-detail {
     width: 100%;
     height: 70px;
-    margin-bottom: 12px;
 }
 
 .time-from:focus {

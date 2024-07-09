@@ -1,0 +1,97 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace OceansApp.DataAccess.Migrations
+{
+    /// <inheritdoc />
+    public partial class fourUpdateSP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            var sp = @"CREATE PROCEDURE SP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool
+            @ProjectId INT,
+            @ConsultantId INT,
+            @StartDate DATE,
+            @EndDate DATE
+            AS
+            BEGIN
+            WITH TimeMovements AS (
+                SELECT M.MovementId,
+                       M.ActionDate,
+                       M.TimeFrom,
+                       M.TimeTo,
+                       TS.Name AS TransactionStatusName,
+                       MT.IsPayable,
+                       M.Notes
+                FROM REPORTING_MY_TIME_MOVEMENTS AS M
+                INNER JOIN TRANSACTION_STATUSES AS TS 
+                    ON M.TransactionStatusId = TS.TransactionStatusId
+                INNER JOIN REPORTING_MY_TIME_MOVEMENT_TYPES AS MT 
+                    ON M.MovementTypeId = MT.MovementTypeId
+                WHERE M.ProjectId = @ProjectId
+                  AND M.ConsultantId = @ConsultantId
+                  AND M.ActionDate BETWEEN @StartDate AND @EndDate
+            ),
+            HolidayDates AS (
+                SELECT 
+                    NULL AS MovementId,
+                    CHD.Date AS ActionDate,
+                    'Holiday' AS TimeFrom,
+                    NULL AS TimeTo,
+                    NULL AS TransactionStatusName,
+                    1 AS IsPayable,
+                    CHD.Name AS Notes
+                FROM CONSULTANT_HOLIDAY_DATES AS CHD
+                INNER JOIN CONSULTANT_HOLIDAYS AS CH 
+                    ON CHD.ConsultantHolidayId = CH.ConsultantHolidayId
+                INNER JOIN CONSULTANT_DETAILS AS CD 
+                    ON CH.ConsultantHolidayId = CD.ConsultantHolidayId
+                WHERE CD.ConsultantId = @ConsultantId
+                  AND CHD.Date BETWEEN @StartDate AND @EndDate
+            )
+            SELECT * FROM TimeMovements
+            UNION ALL
+            SELECT * FROM HolidayDates
+            ORDER BY ActionDate;
+            END";
+
+            // Delete stored procedure if exists
+            migrationBuilder.Sql("DROP PROCEDURE IF EXISTS SP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool");
+
+            // Create new stored Procedure
+            migrationBuilder.Sql(sp);
+        }
+
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            // restart the stored procedure to the original version
+            var spOriginal = @"CREATE PROCEDURE SP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool
+            @ProjectId INT,
+            @ConsultantId INT,
+            @StartDate DATE,
+            @EndDate DATE
+            AS
+            BEGIN
+            SELECT M.MovementId,
+                   M.ActionDate,
+                   M.TimeFrom,
+                   M.TimeTo,
+                   TS.Name AS TransactionStatusName,
+                   MT.IsPayable
+            FROM REPORTING_MY_TIME_MOVEMENTS AS M
+            INNER JOIN TRANSACTION_STATUSES AS TS 
+                ON M.TransactionStatusId = TS.TransactionStatusId
+            INNER JOIN REPORTING_MY_TIME_MOVEMENT_TYPES AS MT 
+                ON M.MovementTypeId = MT.MovementTypeId
+            WHERE M.ProjectId = @ProjectId
+              AND M.ConsultantId = @ConsultantId
+              AND M.ActionDate BETWEEN @StartDate AND @EndDate
+            ORDER BY M.ActionDate;
+            END";
+
+            migrationBuilder.Sql("DROP PROCEDURE IF EXISTS SP_REPORTING_MY_TIME_GetProjectMovementsTrackingTool");
+            migrationBuilder.Sql(spOriginal);
+        }
+    }
+}
