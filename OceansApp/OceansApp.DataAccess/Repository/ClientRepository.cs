@@ -45,9 +45,19 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<List<GetDataForSelectVM>> GetAllClientsForSelectAsync()
         {
-            var connection = _db.Database.GetDbConnection();
-            var results = await connection.QueryAsync<GetDataForSelectVM>("SP_GetAllClientsForSelect", commandType: CommandType.StoredProcedure);
-            return results.ToList();
+            var results = await _db.CLIENT.ToListAsync();
+            List<GetDataForSelectVM> clientsList = new List<GetDataForSelectVM>();
+
+            foreach (var client in results)
+            {
+                GetDataForSelectVM clientToAdd = new GetDataForSelectVM()
+                {
+                    Text = client.Name,
+                    Value = client.ClientId
+                };
+                clientsList.Add(clientToAdd);
+            }
+            return clientsList;
         }
 
         public async Task<List<GetDataForSelectVM>> GetAllActiveClientsForSelectAsync()

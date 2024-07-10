@@ -7,9 +7,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
     var otherConfigForm = $('#form-other-config');
     var holidaySelect = document.getElementById("HolidaysSelect");
     const selectedHolidayOption = document.createElement('option');
-    var partnerSelect = document.getElementById("PartnerSelect");
-    const selectedPartnerOption = document.createElement('option');
-    partnerSelect.innerHTML = `<option value>- Select a Partner -</option>`;
     holidaySelect.innerHTML = `<option value>- Select a Holiday -</option>`;
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
@@ -76,14 +73,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 }
                 holidaySelect.value = data.consultantData.consultantHolidayId === null ? '' : data.consultantData.consultantHolidayId;
 
-                if (data.consultantData.partnerId !== null) {
-                    partnerSelect.innerHTML = '';
-                    selectedPartnerOption.value = data.consultantData.partnerId;
-                    selectedPartnerOption.textContent = data.consultantData.partnerName;
-                    partnerSelect.appendChild(selectedPartnerOption);
-                }
-                partnerSelect.value = data.consultantData.partnerId === null ? '' : data.consultantData.partnerId;
-
                 showModal(modalId);
             })
             .catch(error => {
@@ -126,7 +115,6 @@ async function createUpdateConsultant(modalId) {
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
     var participatesOnCallData = otherConfigForm.find('[name="onCallParticiation"]').prop('checked');
-    var partnerIdData = Number(otherConfigForm.find('[name="idPartner"]').val()) || null;
     var holidayIdData = Number(otherConfigForm.find('[name="idConsultantHoliday"]').val()) || null;
 
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -152,7 +140,6 @@ async function createUpdateConsultant(modalId) {
         PaymentMethodId: paymentMethodIdData,
         PaymentPeriod: paymentPeriodIdData,
         ParticipatesInOnCalls: Boolean(participatesOnCallData),
-        PartnerId: partnerIdData,
         ConsultantHolidayId: holidayIdData,
         Address: addressData,
         PersonalEmail: personalEmailData,

@@ -28,6 +28,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.UserCategoryId);
 
                 // Indexes for columns
+                entity.HasIndex(e => e.Id);
                 entity.HasIndex(e => e.Occupation);
                 entity.HasIndex(e => e.DeactivationDate);
                 entity.HasIndex(e => e.IsActive);
@@ -166,7 +167,6 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.UserCreatedBy);
                 entity.HasIndex(e => e.UserLastUpdatedBy);
                 entity.HasIndex(e => e.PaymentMethodId);
-                entity.HasIndex(e => e.PartnerId);
                 entity.HasIndex(e => e.ConsultantHolidayId);
 
                 // Indexes for columns
@@ -203,10 +203,6 @@ namespace OceansApp.DataAccess.Data
                 .HasOne(p => p.PaymentMethod)
                 .WithMany()
                 .HasForeignKey(p => p.PaymentMethodId);
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasOne(p => p.Partner)
-                .WithMany()
-                .HasForeignKey(p => p.PartnerId);
             modelBuilder.Entity<ConsultantDetail>()
                 .HasOne(x => x.ConsultantHoliday)
                 .WithMany()
@@ -421,6 +417,7 @@ namespace OceansApp.DataAccess.Data
                 // Composite index
                 entity.HasIndex(e => new { e.IsActive, e.ClientId, e.SuccessManagerId, e.StartDate, e.Name});
 
+                entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.CreatedBy);
                 entity.HasIndex(e => e.UpdatedBy);
                 entity.HasIndex(e => e.ClientId);
@@ -464,6 +461,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.PositionId);
+                entity.HasIndex(e => e.PartnerId);
 
                 // Indexes for columns
                 entity.HasIndex(e => e.IsMonthlySalaryCalculatedPerHour);
@@ -489,6 +487,10 @@ namespace OceansApp.DataAccess.Data
                .HasOne(p => p.ConsultantPosition)
                .WithMany()
                .HasForeignKey(p => p.PositionId);
+            modelBuilder.Entity<ProjectConsultantAssigned>()
+               .HasOne(p => p.Partner)
+               .WithMany()
+               .HasForeignKey(p => p.PartnerId);
 
             // PROJECTS CONSULTANTS ASSIGNED HISTORY
             modelBuilder.Entity<ProjectConsultantAssignedHistory>(entity =>

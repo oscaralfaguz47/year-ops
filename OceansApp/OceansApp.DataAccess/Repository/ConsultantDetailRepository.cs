@@ -101,8 +101,7 @@ namespace OceansApp.DataAccess.Repository
                     UserCreatedBy = userIdCreatedBy,
                     PaymentPeriod = consultantData.PaymentPeriod,
                     ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls,
-                    ConsultantHolidayId = consultantData.ConsultantHolidayId,
-                    PartnerId = consultantData.PartnerId
+                    ConsultantHolidayId = consultantData.ConsultantHolidayId
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -206,7 +205,6 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
                 existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;
                 existingConsultant.ConsultantHolidayId = consultantData.ConsultantHolidayId;
-                existingConsultant.PartnerId = consultantData.PartnerId;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -256,8 +254,6 @@ namespace OceansApp.DataAccess.Repository
                         ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,
-                        PartnerId = consultant.PartnerId,
-                        PartnerName = consultant.PartnerName,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }

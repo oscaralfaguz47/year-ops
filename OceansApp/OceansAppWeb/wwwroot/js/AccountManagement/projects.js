@@ -135,7 +135,6 @@ async function displayUpdateModal(modalId, id) {
                 }
             })
             .then(data => {
-                console.log(data);
                 consultantsAssignedSection.style.display = 'block';
                 createUpdateForm.find('[name="projectId"]').val(data.projectData.projectId);
                 createUpdateForm.find('[name="projectName"]').val(data.projectData.name);
@@ -239,6 +238,7 @@ async function createUpdateProject(modalId) {
         var hourlySalaryCreateProject = fila.querySelector('[name="hourlySalaryCreateProject"]').value;
         var monthlySalaryCreateProject = fila.querySelector('[name="monthlySalaryCreateProject"]').value;
         var monthlySalaryThirdPartyCreateProject = fila.querySelector('[name="monthlySalaryThirdPartyCreateProject"]').value;
+        var partnerIdCreateProject = fila.querySelector('[name="idPartnerCreateProject"]').value === '' ? null : Number(fila.querySelector('[name="idPartnerCreateProject"]').value);
         var actionDateCreateProject = fila.querySelector('[name="actionDateCreateProject"]').value;
         var monthlySalaryCalculatedPerHourInput = fila.querySelector('[name="monthlySalaryCalculatedPerHourCreateProject"]');
         var accessToTrackingToolInput = fila.querySelector('[name="accessToTrackingToolCreateProject"]');
@@ -251,6 +251,7 @@ async function createUpdateProject(modalId) {
             MonthlyClientRate: Number(monthlyClientRateCreateProject),
             MonthlySalary: Number(monthlySalaryCreateProject),
             MonthlySalaryThirdParty: Number(monthlySalaryThirdPartyCreateProject),
+            PartnerId: partnerIdCreateProject,
             IsMonthlySalaryCalculatedPerHour: Boolean(monthlySalaryCalculatedPerHourInput.value === "true"),
             AccessToTrackingTool: Boolean(accessToTrackingToolInput.value === "true"),
             IsDefaultProject: Boolean(isDefaultProjectInput.value === "true"),
@@ -366,6 +367,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     var hourlyConsultantRateValue = createUpdateConsultantForm.find('[name="hourlySalary"]').val();
     var monthlyConsultantRateValue = createUpdateConsultantForm.find('[name="monthlySalary"]').val();
     var monthlyConsultantThirdPartyValue = createUpdateConsultantForm.find('[name="thirdPartySalary"]').val();
+    var partnerIdValue = createUpdateConsultantForm.find('[name="idPartner"]').val();
     var accessToTrackingToolValue = createUpdateConsultantForm.find('[name="accessToTrackingTool"]').prop('checked');
     var isDefaultProjectValue = createUpdateConsultantForm.find('[name="isDefaultProject"]').prop('checked');
     var actionDateValue = createUpdateConsultantForm.find('[name="actionDate"]').val();
@@ -375,7 +377,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
         addNewConsultantRow(consultantNameValue, consultantProjectAssignedId, consultantIdValue, positionIdValue,
             hourlyClientRateValue, monthlyClientRateValue, hourlyConsultantRateValue, monthlyConsultantRateValue, null,
             actionDateValue, monthlySalaryCalculatedPerHourValue, null, null, null, monthlyConsultantThirdPartyValue,
-            accessToTrackingToolValue, isDefaultProjectValue)
+            accessToTrackingToolValue, isDefaultProjectValue, partnerIdValue)
     } else {
         document.getElementById('positionDetail-' + consultantProjectAssignedId).value = positionIdValue;
         document.getElementById('hourlyClientRate-' + consultantProjectAssignedId).value = hourlyClientRateValue;
@@ -387,7 +389,7 @@ function addConsultantToModalCreateUpdateProject(modalId) {
 }
 function addNewConsultantRow(consultantName, consProjAssId, consultantId, positionId, hourlyClientRate, monthlyClientRate,
     hourlyConsultantSalary, monthlyConsultantSalary, statusAction, actionDate, monthlySalaryCalculatedPerHour, allowedMAdminConsultants,
-    userCategoryName, projectId, monthlySalaryThirdParty, accessToTrackingToolValue, isDefaultProject) {
+    userCategoryName, projectId, monthlySalaryThirdParty, accessToTrackingToolValue, isDefaultProject, partnerId) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
@@ -524,6 +526,13 @@ function addNewConsultantRow(consultantName, consProjAssId, consultantId, positi
     monthlyConsultantSalaryThirdPartyInput.name = "monthlySalaryThirdPartyCreateProject";
     monthlyConsultantSalaryThirdPartyInput.type = "hidden";
     row.appendChild(monthlyConsultantSalaryThirdPartyInput);
+
+    var partnerIdInput = document.createElement("input");
+    partnerIdInput.value = partnerId;
+    partnerIdInput.id = `partnerId-${consProjAssId}`;
+    partnerIdInput.name = "idPartnerCreateProject";
+    partnerIdInput.type = "hidden";
+    row.appendChild(partnerIdInput);
 
     var monthlySalaryCalculatedPerHourInput = document.createElement("input");
     monthlySalaryCalculatedPerHourInput.value = monthlySalaryCalculatedPerHour;

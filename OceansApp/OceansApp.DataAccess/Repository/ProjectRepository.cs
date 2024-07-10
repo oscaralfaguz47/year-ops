@@ -183,6 +183,7 @@ namespace OceansApp.DataAccess.Repository
                                 MonthlyClientRate = consultant.MonthlyClientRate,
                                 MonthlySalary = consultant.MonthlySalary,
                                 MonthlySalaryThirdParty = consultant.MonthlySalaryThirdParty,
+                                PartnerId = consultant.PartnerId,
                                 PositionId = consultant.PositionId,
                                 IsMonthlySalaryCalculatedPerHour = consultant.IsMonthlySalaryCalculatedPerHour,
                                 AccessToTrackingTool = consultant.AccessToTrackingTool,
@@ -421,6 +422,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultantAssignation.MonthlySalary = consultantAssignationData.MonthlySalary;
                 existingConsultantAssignation.HourlySalary = consultantAssignationData.HourlySalary;
                 existingConsultantAssignation.MonthlySalaryThirdParty = consultantAssignationData.MonthlySalaryThirdParty;
+                existingConsultantAssignation.PartnerId = consultantAssignationData.PartnerId;
                 existingConsultantAssignation.IsMonthlySalaryCalculatedPerHour = consultantAssignationData.IsMonthlySalaryCalculatedPerHour;
                 existingConsultantAssignation.AccessToTrackingTool = consultantAssignationData.AccessToTrackingTool;
 

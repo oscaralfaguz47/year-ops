@@ -11,6 +11,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public decimal? MonthlyClientRate { get; set; }
         public decimal? MonthlySalary { get; set; }
         public decimal? MonthlySalaryThirdParty { get; set; }
+        public int? PartnerId { get; set; }
         public int? PositionId { get; set; }
         public string? ActionDate { get; set; }
         public string? StatusAction { get; set; }

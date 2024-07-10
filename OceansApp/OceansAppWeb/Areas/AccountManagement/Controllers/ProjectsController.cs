@@ -207,7 +207,6 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                             validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultant.ActionDate, ModelState);
                         }
                         validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", consultant.ConsultantId, ModelState);
-                        validateInputs.ValidateRequiredFieldIntType("PositionId", "Position", consultant.PositionId, ModelState);
                     }
                 }
 

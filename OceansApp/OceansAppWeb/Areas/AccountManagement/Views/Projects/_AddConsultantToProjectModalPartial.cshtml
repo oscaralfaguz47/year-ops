@@ -1,6 +1,6 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-<link rel="stylesheet" href="~/css/AccountManagement/sharedProjectsMethods.css" />
-<link rel="stylesheet" href="~/css/General/sharedConsultantDetailsMethods.css" />
+<link rel="stylesheet" href="~/css/AccountManagement/sharedProjectsMethods.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/General/sharedConsultantDetailsMethods.css?v=@DateTime.Now.Ticks" />
 
 <div id="modal-add-consultant" class="global-modal" style="display:none">
     <div style="width: 650px" class="global-modal-content">
@@ -79,12 +79,12 @@
                         <label class="radio-label">
                             <input onchange="validateRatesInputs()" name="consultant-payment-model" type="radio" value="Hy" class="radio-input">
                             <span class="radio-custom"></span>
-                            &nbsp; Consultant salary hybrid. <span style="font-weight: normal"> (Is paid between Oceans and a third party)</span>
+                            &nbsp; Consultant salary hybrid. <span style="font-weight: normal"> (Is paid between Oceans and the partner)</span>
                         </label>
                         <label class="radio-label">
                             <input onchange="validateRatesInputs()" name="consultant-payment-model" type="radio" value="T" class="radio-input">
                             <span class="radio-custom"></span>
-                            &nbsp; A single salary paid by a third party. <span style="font-weight: normal"> (Nothing from Oceans)</span>
+                            &nbsp; A single salary paid by a the partner. <span style="font-weight: normal"> (Nothing from Oceans)</span>
                         </label>
                     </div>
                     <div style="margin-top: 5px" class="radio-group" id="oceans-payment-radio-section">
@@ -129,9 +129,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="display:flex">
-                            <div class="col-md-6" id="thirdPartyConsultantSalaryEl">
-                                <label for="PaymentCondition">Consultant Monthly Salary - Third Party <span class="required-asterisk">*</span></label>
+                        <div style="display:flex" id="thirdPartyConsultantSalaryEl">
+                            <div class="col-md-6">
+                                <label for="PaymentCondition">Partner <span class="required-asterisk">*</span></label>
+                                <select onfocus="fillPartnersSelectForFilters(this, 'Select a partner')" class="form-select" id="PartnerSelect" name="idPartner">
+                                </select>
+                            </div>&nbsp;&nbsp;&nbsp;
+                            <div class="col-md-6">
+                                <label for="PaymentCondition">Consultant Monthly Salary - Partner <span class="required-asterisk">*</span></label>
                                 <div class="input-container">
                                     <input placeholder="$$$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="thirdPartySalary" id="thirdPartySalary">
                                 </div>
@@ -187,7 +192,8 @@
     </div>
 </div>
 
-<script src="~/js/AccountManagement/sharedProjectsMethods.js"></script>
-<script src="~/js/General/sharedConsultantDetailsMethods.js"></script>
-<script src="~/js/AdminCenter/ConsultantPositions/consultantPositionsFillDropdowns.js"></script>
-<script src="~/js/Shared/inputValidations.js"></script>
+<script src="~/js/AccountManagement/sharedProjectsMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/General/sharedConsultantDetailsMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/ConsultantPositions/consultantPositionsFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/inputValidations.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/Partners/partnersFillDropdown.js?v=@DateTime.Now.Ticks"></script>

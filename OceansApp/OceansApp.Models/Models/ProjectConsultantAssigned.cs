@@ -26,7 +26,10 @@ namespace OceansApp.Models.Models
         public bool? AccessToTrackingTool { get; set; }
         public bool IsDefaultProject { get; set; }
         public int? PositionId { get; set; }
+        public int? PartnerId { get; set; }
 
+        [ValidateNever]
+        public Partner? Partner { get; set; }
 
         [ValidateNever]
         public ConsultantDetail ConsultantDetail { get; set; }

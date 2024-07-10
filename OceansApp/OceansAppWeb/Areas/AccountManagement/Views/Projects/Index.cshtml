@@ -1,10 +1,10 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<link rel="stylesheet" href="~/css/Shared/pagination.css" />
-<link rel="stylesheet" href="~/css/AccountManagement/projects.css" />
-<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
-<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
-<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/AccountManagement/projects.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -195,17 +195,17 @@
                             </div>
                         </div>
                     </div>
-                   <div class="green-label m-3" id="saved-project-message" style="text-align: center">
+                    <div class="green-label m-3" id="saved-project-message" style="text-align: center">
                         <label>Now you can add consultants to the project <i class="bi bi-check-circle-fill"></i></label>
-                   </div>
-                   <div id="consultants-assigned-section">
+                    </div>
+                    <div id="consultants-assigned-section">
                         <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
-                        <label><strong>Assigned Consultants</strong></label>
-                        <a style="padding-right: 10px" class="blue-btn" onclick="displayAddUpdateConsultant('modal-add-consultant', null)"><i class="bi bi-plus"></i> Add Consultant</a>
+                            <label><strong>Assigned Consultants</strong></label>
+                            <a style="padding-right: 10px" class="blue-btn" onclick="displayAddUpdateConsultant('modal-add-consultant', null)"><i class="bi bi-plus"></i> Add Consultant</a>
+                        </div>
+                        <div id="consultants-container" class="modal-scroll-container">
+                        </div>
                     </div>
-                    <div id="consultants-container" class="modal-scroll-container">
-                    </div>
-                   </div>
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
@@ -232,11 +232,9 @@
     <partial name="_ProjectConsultantAssignedHistoryModalVM" />
 </div>
 
-@section Scripts{
-<script src="~/js/Shared/pagination.js"></script>
-<script src="~/js/Shared/sharedComponents.js"></script>
-<script src="~/js/AccountManagement/projects.js"></script>
-<script src="~/js/AccountManagement/clientsSectionFillDropdowns.js"></script>
-<script src="~/js/General/generalSectionFillDropdowns.js"></script>
-<script src="~/js/Shared/inputValidations.js"></script>
-    }
+<script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/projects.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/clientsSectionFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/General/generalSectionFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/inputValidations.js?v=@DateTime.Now.Ticks"></script>

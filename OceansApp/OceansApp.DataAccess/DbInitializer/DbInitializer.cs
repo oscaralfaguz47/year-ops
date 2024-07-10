@@ -489,6 +489,19 @@ namespace OceansApp.DataAccess.DbInitializer
                         CreationDate = DateTime.UtcNow,
                         CompanyId = "OCE",
                         IdCountry = "PAN"
+                    },
+                    new Partner
+                    {
+                        Name = "Syntepro",
+                        Contact = "Andrés Ureña",
+                        ContactOccupation = "Accountant",
+                        ContactEmail = "andres.urena@gruposyntepro.com",
+                        Phone = "(+506) 2101 8823",
+                        AdmissionDate = DateTime.Parse("2021-06-01"),
+                        IsActive = true,
+                        CreationDate = DateTime.UtcNow,
+                        CompanyId = "OCE",
+                        IdCountry = "CRI"
                     }
                 };
 

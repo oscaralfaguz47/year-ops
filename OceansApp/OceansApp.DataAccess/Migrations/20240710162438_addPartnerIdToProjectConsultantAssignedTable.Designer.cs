@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240710162438_addPartnerIdToProjectConsultantAssignedTable")]
+    partial class addPartnerIdToProjectConsultantAssignedTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -791,6 +794,9 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<bool>("ParticipatesInOnCalls")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("PartnerId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int");
 
@@ -834,6 +840,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("IdCountry");
 
                     b.HasIndex("ParticipatesInOnCalls");
+
+                    b.HasIndex("PartnerId");
 
                     b.HasIndex("PaymentMethodId");
 
@@ -1891,8 +1899,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("Name");
 
-                    b.HasIndex("ProjectId");
-
                     b.HasIndex("SuccessManagerId");
 
                     b.HasIndex("UpdatedBy");
@@ -2644,8 +2650,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("EmailConfirmed");
 
-                    b.HasIndex("Id");
-
                     b.HasIndex("IsActive");
 
                     b.HasIndex("LockoutEnabled");
@@ -2809,6 +2813,10 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OceansApp.Models.Models.Partner", "Partner")
+                        .WithMany()
+                        .HasForeignKey("PartnerId");
+
                     b.HasOne("OceansApp.Models.Models.PaymentMethod", "PaymentMethod")
                         .WithMany()
                         .HasForeignKey("PaymentMethodId");
@@ -2836,6 +2844,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantHoliday");
 
                     b.Navigation("Country");
+
+                    b.Navigation("Partner");
 
                     b.Navigation("PaymentMethod");
                 });
