@@ -715,7 +715,7 @@ emailsCCString;
                                         style=""background-color: #f5f6f7; margin: 0 auto; position: relative;z-index: 1; border-top-left-radius: 10px; border-top-right-radius: 10px;"">
                                         <tr>
                                             <td>
-                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693322491/logos/email-header.png""
+                                                <img src=""https://oceansapp.azurewebsites.net/img/email/email-header.png""
                                                     alt=""Oceans Code Experts"" width=""100%"" />
                                             </td>
                                         </tr>
@@ -835,7 +835,7 @@ emailsCCString;
                                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
                                                                         <tr>
                                                                             <td style=""text-align: left;"">
-                                                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                                                                <img src=""https://oceansapp.azurewebsites.net/img/accounting-firm.png""
                                                                                     width=""100%"" alt=""Accounting"" />
                                                                             </td>
                                                                         </tr>
@@ -907,7 +907,7 @@ emailsCCString;
                                         style=""background-color: #f5f6f7; margin: 0 auto; position: relative;z-index: 1; border-top-left-radius: 10px; border-top-right-radius: 10px;"">
                                         <tr>
                                             <td>
-                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693329272/logos/email-header-red.png""
+                                                <img src=""https://oceansapp.azurewebsites.net/img/email/email-header-red.png""
                                                     alt=""Oceans Code Experts"" width=""100%"" />
                                             </td>
                                         </tr>
@@ -1022,7 +1022,7 @@ emailsCCString;
                                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
                                                                         <tr>
                                                                             <td style=""text-align: left;"">
-                                                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                                                                <img src=""https://oceansapp.azurewebsites.net/img/accounting-firm.png""
                                                                                     width=""100%"" alt=""Accounting"" />
                                                                             </td>
                                                                         </tr>
@@ -1107,7 +1107,7 @@ emailsCCString;
                                         style=""background-color: #f5f6f7; margin: 0 auto; position: relative;z-index: 1; border-top-left-radius: 10px; border-top-right-radius: 10px;"">
                                         <tr>
                                             <td>
-                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1693329272/logos/email-header-red.png""
+                                                <img src=""	https://oceansapp.azurewebsites.net/img/email/email-header-red.png""
                                                     alt=""Oceans Code Experts"" width=""100%"" />
                                             </td>
                                         </tr>
@@ -1223,7 +1223,7 @@ emailsCCString;
                                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
                                                                         <tr>
                                                                             <td style=""text-align: left;"">
-                                                                                <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1677609596/accounting-system/Firma_Accounting.png""
+                                                                                <img src=""https://oceansapp.azurewebsites.net/img/accounting-firm.png""
                                                                                     width=""100%"" alt=""Accounting"" />
                                                                             </td>
                                                                         </tr>

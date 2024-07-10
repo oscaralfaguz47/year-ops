@@ -24,7 +24,7 @@ namespace OceansApp.Utility.NotificationTemplates
                                             <tr>
                                                 <td>
                                                     <table cellspacing=""0"" cellpadding=""0"" width=""100%""> 
-                                                             <img src=""https://res.cloudinary.com/oceans-consulting-firm/image/upload/v1612882702/logos/logo-color_xdip1b.png""
+                                                             <img src=""https://oceansapp.azurewebsites.net/img/logo-color.png""
                                                             alt=""Oceans Code Experts"" width=""150""/>
                                                       </table>
                                                   </td>
