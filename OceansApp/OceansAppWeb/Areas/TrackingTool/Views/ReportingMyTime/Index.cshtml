@@ -1,8 +1,8 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<link rel="stylesheet" href="~/css/TrackingTool/reportingMyTime.css" />
-<link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css" />
-<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css" />
+<link rel="stylesheet" href="~/css/TrackingTool/reportingMyTime.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css?v=@DateTime.Now.Ticks" />
 
 <div id="rmt-background">
     <div id="header">
@@ -111,8 +111,8 @@
     </div>
 </div>
 
-<script src="~/js/Shared/navigateBetweenPeriods.js"></script>
-<script src="~/js/Shared/Labels/transactionStatuses.js"></script>
-<script src="~/js/Shared/Dates/datesMethods.js"></script>
-<script src="~/js/TrackingTool/reportingMyTime.js"></script>
-<script src="~/js/AccountManagement/Projects/projectsConsultantAssigned.js"></script>
+<script src="~/js/Shared/navigateBetweenPeriods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/TrackingTool/reportingMyTime.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/Projects/projectsConsultantAssigned.js?v=@DateTime.Now.Ticks"></script>

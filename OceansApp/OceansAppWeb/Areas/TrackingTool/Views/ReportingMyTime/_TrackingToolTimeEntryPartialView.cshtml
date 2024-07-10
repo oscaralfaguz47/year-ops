@@ -1,5 +1,5 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-<link rel="stylesheet" href="~/css/TrackingTool/trackingToolTimeEntry.css" />
+<link rel="stylesheet" href="~/css/TrackingTool/trackingToolTimeEntry.css?v=@DateTime.Now.Ticks" />
 
     <div id="tracking-tool-sec" style="display: none">
         <div id="dateList">
@@ -8,4 +8,4 @@
 
 <partial name="_TrackingToolTimeEntryAddTimeModalPartialView" />
 
-<script src="~/js/TrackingTool/trackingToolTimeEntry.js"></script>
+<script src="~/js/TrackingTool/trackingToolTimeEntry.js?v=@DateTime.Now.Ticks"></script>

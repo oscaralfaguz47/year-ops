@@ -3,9 +3,9 @@
 @addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Reflection;
 
-<link rel="stylesheet" href="~/css/Shared/pagination.css" />
-<link rel="stylesheet" href="~/css/Finances/documentsCC.css" />
-<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Finances/documentsCC.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -262,7 +262,7 @@
 @section Scripts{
     @{
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/Finances/documentsCC.js"></script>
+        <script src="~/js/Finances/documentsCC.js?v=@DateTime.Now.Ticks"></script>
     }
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>

@@ -1,5 +1,5 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-<link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css" />
+<link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css?v=@DateTime.Now.Ticks" />
 
 <div id="no-tracking-tool-sec" style="display: none">
     <div class="row mt-3">
@@ -81,5 +81,5 @@
     </div>
 </div>
 
-<script src="~/js/TrackingTool/trackingToolReportEntry.js"></script>
-<script src="~/js/Shared/inputValidations.js"></script>
+<script src="~/js/TrackingTool/trackingToolReportEntry.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/inputValidations.js?v=@DateTime.Now.Ticks"></script>

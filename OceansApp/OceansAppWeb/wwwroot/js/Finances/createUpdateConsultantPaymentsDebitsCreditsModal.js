@@ -231,12 +231,6 @@ document.getElementById('Detail').addEventListener('input', function (e) {
         this.value = this.value.slice(0, 150);
     }
 });
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('Amount');
-});
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('QuantityInput');
-});
 
 let selectedIndexOp = -1;
 

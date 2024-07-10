@@ -5,9 +5,9 @@
     var isAuthorizedForManageAdministrativeUsers = await AuthorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 }
 
-<link rel="stylesheet" href="~/css/Shared/sharedInputs.css" />
-<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
-<link rel="stylesheet" href="~/css/General/createUpdateConsultantModal.css" />
+<link rel="stylesheet" href="~/css/Shared/sharedInputs.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/General/createUpdateConsultantModal.css?v=@DateTime.Now.Ticks" />
 
 <!--MODAL UPDATE CREATE CONSULTANT-->
 <div id="modal-update-create-consultant" class="global-modal" style="display:none">
@@ -230,7 +230,7 @@
     </div>
 </div>
 
-<script src="~/js/General/createUpdateConsultantModal.js"></script>
-<script src="~/js/AccountManagement/Partners/partnersFillDropdown.js"></script>
-<script src="~/js/General/ConsultantHolidays/holidaysFillDropdown.js"></script>
+<script src="~/js/General/createUpdateConsultantModal.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/Partners/partnersFillDropdown.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/General/ConsultantHolidays/holidaysFillDropdown.js?v=@DateTime.Now.Ticks"></script>
 

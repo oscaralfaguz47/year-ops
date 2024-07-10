@@ -1,6 +1,6 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-<link rel="stylesheet" href="~/css/TrackingTool/addTimetrackingToolModal.css" />
-<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
+<link rel="stylesheet" href="~/css/TrackingTool/addTimetrackingToolModal.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
 
 <div id="modal-update-create-time" class="global-modal" style="display:none">
     <div class="global-modal-content">
@@ -49,6 +49,6 @@
     </div>
 </div>
 
-<script src="~/js/TrackingTool/addTimeTrackingToolModal.js"></script>
-<script src="~/js/Shared/sharedComponents.js"></script>
-<script src="~/js/AdminCenter/MovementTypes/movementTypesFillDropdowns.js"></script>
+<script src="~/js/TrackingTool/addTimeTrackingToolModal.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/MovementTypes/movementTypesFillDropdowns.js?v=@DateTime.Now.Ticks"></script>

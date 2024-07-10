@@ -1,9 +1,9 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<link rel="stylesheet" href="~/css/General/consultants.css" />
-<link rel="stylesheet" href="~/css/Shared/pagination.css" />
-<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
-<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
+<link rel="stylesheet" href="~/css/General/consultants.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -127,9 +127,9 @@
                     <th>Address</th>
                     @*<th>Location</th>*@
                     @* <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
-                        Shirt Size
-                        <span class="sort-arrow" id="sortArrowShirtSize"></span>
-                        </th>*@
+                    Shirt Size
+                    <span class="sort-arrow" id="sortArrowShirtSize"></span>
+                    </th>*@
                 </tr>
             </thead>
             <tbody>
@@ -143,13 +143,12 @@
     <partial name="_CreateUpdateConsultantModalPartialView" />
 </div>
 
-@section Scripts{
-<script src="~/js/General/consultants.js"></script>
-<script src="~/js/General/createUpdateConsultantModal.js"></script>
-<script src="~/js/Shared/pagination.js"></script>
-<script src="~/js/Shared/sharedComponents.js"></script>
-<script src="~/js/AdminCenter/Countries/countriesFillDropdowns.js"></script>
-<script src="~/js/AdminCenter/ConsultantPositions/consultantPositionsFillDropdowns.js"></script>
-<script src="~/js/AdminCenter/UserRolesPermissions/rolesFillDropdowns.js"></script>
-<script src="~/js/AdminCenter/PaymentMethods/paymentMethodsFillDropdowns.js"></script>
-    }
+<script src="~/js/General/consultants.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/General/createUpdateConsultantModal.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/Countries/countriesFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/ConsultantPositions/consultantPositionsFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/UserRolesPermissions/rolesFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/PaymentMethods/paymentMethodsFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+

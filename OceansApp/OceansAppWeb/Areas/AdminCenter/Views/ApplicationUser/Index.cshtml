@@ -6,26 +6,24 @@
     <hr /> <br />
 
     <div class="container">
-		<div class="text-right mb-5">
-			<a class="box-link" asp-area="AdminCenter" asp-controller="ApplicationUser" asp-action="Register"><i class="bi bi-person-fill-add"></i> Agregar Nuevo Usuario</a>
-		</div>
-       <table id="tblUsers" class="table table-bordered table-striped" style="width:100%">
-		<thead>
-			<tr>
-				<th>Nombre</th>
-				<th>Apellido</th>
-				<th>Correo</th>
-				<th>Teléfono</th>
-				<th>Ocupación</th>
-				<th></th>
-			</tr>
-		</thead>
-	</table>
+        <div class="text-right mb-5">
+            <a class="box-link" asp-area="AdminCenter" asp-controller="ApplicationUser" asp-action="Register"><i class="bi bi-person-fill-add"></i> Agregar Nuevo Usuario</a>
+        </div>
+        <table id="tblUsers" class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Ocupación</th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
     </div>
 
     <br /><br /><br /><br /><br />
 </div>
 
-@section Scripts{
-<script src="~/js/applicationUser.js"></script>
-}
+<script src="~/js/applicationUser.js?v=@DateTime.Now.Ticks"></script>

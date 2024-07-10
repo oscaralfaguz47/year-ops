@@ -1,9 +1,9 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<link rel="stylesheet" href="~/css/Shared/pagination.css" />
-<link rel="stylesheet" href="~/css/General/consultantHolidays.css" />
-<link rel="stylesheet" href="~/css/Shared/sharedComponents.css" />
-<link rel="stylesheet" href="~/css/Shared/contentPages.css" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/General/consultantHolidays.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="filters-container">
@@ -91,6 +91,6 @@
     </div>
 </div>
 
-<script src="~/js/Shared/pagination.js"></script>
-<script src="~/js/General/ConsultantHolidays/consultantHolidays.js"></script>
-<script src="~/js/Shared/Dates/datesMethods.js"></script>
+<script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/General/ConsultantHolidays/consultantHolidays.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>
