@@ -17,12 +17,11 @@
 }
 
 async function fillHolidaysSelect(selectElement, firstOption) {
-    if (selectElement.dataset.loaded === 'true') {
+    let previousValue = selectElement.value;
+    if (selectElement.length > 1) {
         return;
     }
-    selectElement.dataset.loaded = 'true';
 
-    let previousValue = selectElement.value;
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     try {
         const data = await getHolidaysList();
@@ -31,14 +30,21 @@ async function fillHolidaysSelect(selectElement, firstOption) {
         data.holidays.forEach(obj => {
             selectElement.add(new Option(obj.text, obj.value));
         });
+
         selectElement.value = previousValue;
+        reopenSelect(selectElement);
     } catch (error) {
         console.error('Error fetching holidays:', error);
     }
 }
-document.addEventListener('DOMContentLoaded', function () {
-    const selectElement = document.getElementById('HolidaysSelect');
-    selectElement.addEventListener('click', function () {
-        fillHolidaysSelect(this, 'Select a Holiday');
+function reopenSelect(selectElement) {
+    // Crear un nuevo evento de clic
+    const clickEvent = new MouseEvent('click', {
+        view: window,
+        bubbles: true,
+        cancelable: true
     });
-});
+
+    // Reabrir el select
+    selectElement.dispatchEvent(clickEvent);
+}
