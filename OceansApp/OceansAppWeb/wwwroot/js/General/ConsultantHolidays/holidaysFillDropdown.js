@@ -21,29 +21,19 @@ function fillHolidaysSelect(selectElement, firstOption) {
     if (selectElement.length > 1) {
         return;
     }
-
-    // Mostrar "Loading options" inmediatamente
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
-    selectElement.value = 'loading';
-
     getHolidaysList()
         .then(data => {
-            const tempSelect = document.createElement('select');
-            tempSelect.innerHTML = '<option value="">-' + firstOption + '-</option>';
+            selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
             data.holidays.forEach(obj => {
-                tempSelect.add(new Option(obj.text, obj.value));
+                selectElement.add(new Option(obj.text, obj.value));
             });
-
-            // Reemplazar el contenido del select original con el nuevo
-            selectElement.innerHTML = tempSelect.innerHTML;
             selectElement.value = previousValue;
 
-            // Forzar reapertura del select
-            setTimeout(() => {
-                // Crear y disparar un evento 'click' personalizado para forzar la reapertura
-                selectElement.focus();
-                selectElement.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-            }, 100); // Añadir un pequeño retraso para asegurar que el DOM se haya actualizado
+            // Forzar actualización del DOM
+            selectElement.style.display = 'none';
+            selectElement.offsetHeight; // Reflujo forzado
+            selectElement.style.display = '';
         })
         .catch(error => {
             console.error('Error fetching holidays:', error);
