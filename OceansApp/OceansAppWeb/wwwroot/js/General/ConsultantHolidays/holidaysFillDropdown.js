@@ -16,7 +16,7 @@
     }
 }
 
-function fillHolidaysSelect(selectElement, firstOption) {
+async function fillHolidaysSelect(selectElement, firstOption) {
     let previousValue = selectElement.value;
     if (selectElement.length > 1) {
         return;
@@ -26,49 +26,39 @@ function fillHolidaysSelect(selectElement, firstOption) {
     const loadingOption = new Option("Loading options… (⏳)", "loading", true, true);
     selectElement.add(loadingOption);
 
-    getHolidaysList()
-        .then(data => {
-            // Crear un documento fragmento para añadir las opciones
-            const fragment = document.createDocumentFragment();
+    try {
+        const data = await getHolidaysList();
 
-            // Añadir la primera opción
-            fragment.appendChild(new Option('-' + firstOption + '-', '', true, true));
+        // Crear un documento fragmento para añadir las opciones
+        const fragment = document.createDocumentFragment();
 
-            // Añadir las opciones obtenidas del backend
-            data.holidays.forEach(obj => {
-                fragment.appendChild(new Option(obj.text, obj.value));
-            });
+        // Añadir la primera opción
+        fragment.appendChild(new Option('-' + firstOption + '-', '', true, true));
 
-            // Limpiar el select y añadir las nuevas opciones
-            selectElement.innerHTML = '';
-            selectElement.appendChild(fragment);
-            selectElement.value = previousValue;
-
-            // Forzar la actualización del DOM y abrir el menú desplegable
-            openSelectMenu(selectElement);
-        })
-        .catch(error => {
-            console.error('Error fetching holidays:', error);
+        // Añadir las opciones obtenidas del backend
+        data.holidays.forEach(obj => {
+            fragment.appendChild(new Option(obj.text, obj.value));
         });
+
+        // Limpiar el select y añadir las nuevas opciones
+        selectElement.innerHTML = '';
+        selectElement.appendChild(fragment);
+        selectElement.value = previousValue;
+
+        // Simular un evento de mousedown para mantener el menú desplegable abierto
+        openSelectMenu(selectElement);
+
+    } catch (error) {
+        console.error('Error fetching holidays:', error);
+    }
 }
 
 function openSelectMenu(selectElement) {
-    // Guardar el índice seleccionado actual
-    const selectedIndex = selectElement.selectedIndex;
-
-    // Crear y disparar un evento de clic para abrir el menú
     const event = new MouseEvent('mousedown', {
         view: window,
         bubbles: true,
-        cancelable: true,
-        clientX: 0,
-        clientY: 0
+        cancelable: true
     });
+
     selectElement.dispatchEvent(event);
-
-    // Restaurar el índice seleccionado después de abrir el menú
-    selectElement.selectedIndex = selectedIndex;
 }
-
-
-
