@@ -38,6 +38,7 @@ function fillClientsSelectForFilters(selectElement, firstOption) {
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     getClientsList()
         .then(data => {
+            console.log(data);
             selectElement.innerHTML = '<option value="null">-' + firstOption + '-</option>';
             data.clients.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
@@ -55,6 +56,7 @@ function fillActiveClientsSelectForFilters(selectElement, firstOption) {
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
     getActiveClientsList()
         .then(data => {
+            console.log(data);
             selectElement.innerHTML = '<option value="null">-' + firstOption + '-</option>';
             data.clients.forEach(obj => {
                 selectElement.add(new Option(obj.text, obj.value));
