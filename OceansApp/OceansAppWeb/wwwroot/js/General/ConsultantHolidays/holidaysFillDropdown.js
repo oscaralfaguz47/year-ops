@@ -21,21 +21,40 @@ function fillHolidaysSelect(selectElement, firstOption) {
     if (selectElement.length > 1) {
         return;
     }
-    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
+
+    // Añadir la opción de "Loading..."
+    const loadingOption = new Option("Loading options… (⏳)", "loading", true, true);
+    selectElement.add(loadingOption);
+
     getHolidaysList()
         .then(data => {
-            selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
-            data.holidays.forEach(obj => {
-                selectElement.add(new Option(obj.text, obj.value));
-            });
-            selectElement.value = previousValue;
+            // Crear un documento fragmento para añadir las opciones
+            const fragment = document.createDocumentFragment();
 
-            // Forzar actualización del DOM
-            selectElement.style.display = 'none';
-            selectElement.offsetHeight; // Reflujo forzado
-            selectElement.style.display = '';
+            // Añadir la primera opción
+            fragment.appendChild(new Option('-' + firstOption + '-', '', true, true));
+
+            // Añadir las opciones obtenidas del backend
+            data.holidays.forEach(obj => {
+                fragment.appendChild(new Option(obj.text, obj.value));
+            });
+
+            // Forzar actualización del DOM en Safari
+            setTimeout(() => {
+                // Limpiar el select y añadir las nuevas opciones
+                selectElement.innerHTML = '';
+                selectElement.appendChild(fragment);
+                selectElement.value = previousValue;
+
+                // Actualizar el select para asegurar que se desplieguen las opciones
+                selectElement.style.display = 'none';
+                selectElement.offsetHeight; // Reflujo forzado
+                selectElement.style.display = '';
+            }, 100); // Pequeño retraso para asegurar la actualización del DOM
         })
         .catch(error => {
             console.error('Error fetching holidays:', error);
         });
 }
+
+
