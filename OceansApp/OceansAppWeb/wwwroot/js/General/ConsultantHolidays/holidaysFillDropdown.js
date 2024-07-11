@@ -39,22 +39,36 @@ function fillHolidaysSelect(selectElement, firstOption) {
                 fragment.appendChild(new Option(obj.text, obj.value));
             });
 
-            // Forzar actualización del DOM en Safari
-            setTimeout(() => {
-                // Limpiar el select y añadir las nuevas opciones
-                selectElement.innerHTML = '';
-                selectElement.appendChild(fragment);
-                selectElement.value = previousValue;
+            // Limpiar el select y añadir las nuevas opciones
+            selectElement.innerHTML = '';
+            selectElement.appendChild(fragment);
+            selectElement.value = previousValue;
 
-                // Actualizar el select para asegurar que se desplieguen las opciones
-                selectElement.style.display = 'none';
-                selectElement.offsetHeight; // Reflujo forzado
-                selectElement.style.display = '';
-            }, 100); // Pequeño retraso para asegurar la actualización del DOM
+            // Forzar la actualización del DOM y abrir el menú desplegable
+            openSelectMenu(selectElement);
         })
         .catch(error => {
             console.error('Error fetching holidays:', error);
         });
 }
+
+function openSelectMenu(selectElement) {
+    // Guardar el índice seleccionado actual
+    const selectedIndex = selectElement.selectedIndex;
+
+    // Crear y disparar un evento de clic para abrir el menú
+    const event = new MouseEvent('mousedown', {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+        clientX: 0,
+        clientY: 0
+    });
+    selectElement.dispatchEvent(event);
+
+    // Restaurar el índice seleccionado después de abrir el menú
+    selectElement.selectedIndex = selectedIndex;
+}
+
 
 
