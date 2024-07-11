@@ -283,13 +283,7 @@ nav {
     text-align: justify;
 }
 
-    .tooltip::before {
-        content: '';
-        position: absolute;
-        border-width: 5px;
-        border-style: solid;
-        border-color: #333 transparent transparent transparent;
-    }
+
 
 .tooltip-target {
     position: relative;

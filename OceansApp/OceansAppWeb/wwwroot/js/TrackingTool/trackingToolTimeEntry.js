@@ -101,13 +101,7 @@ function generateDateList(startDateString, endDateString, movements) {
         currentDate.setDate(currentDate.getDate() + 1);
     }
 }
-function formatTimeTo12Hour(timeStr) {
-    let [hours, minutes] = timeStr.split(':');
-    hours = parseInt(hours, 10);
-    const period = hours >= 12 ? 'pm' : 'am';
-    hours = hours % 12 || 12;
-    return `${hours}:${minutes}${period}`;
-}
+
 function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, isPayable, notes) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('div');
@@ -153,17 +147,6 @@ function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, i
 
     updateTimeDifference();
     initializeTooltips();
-}
-function calculateTimeDifference(startTime, endTime) {
-    const startTimeDate = new Date(`1970-01-01T${startTime}:00`);
-    const endTimeDate = new Date(`1970-01-01T${endTime}:00`);
-    let difference = endTimeDate - startTimeDate;
-    if (difference < 0) {
-        difference += 24 * 60 * 60 * 1000;
-    }
-    const hours = Math.floor(difference / (1000 * 60 * 60));
-    const minutes = Math.round((difference % (1000 * 60 * 60)) / (1000 * 60));
-    return { hours, minutes };
 }
 
 function saveTimeEntry(button, date) {
@@ -224,55 +207,6 @@ function updateTotalHours() {
     const totalHoursLabel = document.getElementById('total-hours-label');
     if (totalHoursLabel) {
         totalHoursLabel.innerHTML = `<span class="strong-label">Total Time Reported</span> <span class="gray-bold-span mb-2">${totalHours} Hours, ${totalMinutesLeft} Minutes</span>`;
-    }
-}
-
-function initializeTooltips() {
-    const tooltipTargets = document.querySelectorAll('.tooltip-target');
-
-    tooltipTargets.forEach(target => {
-        // Remover event listeners anteriores para evitar duplicación
-        target.removeEventListener('mouseenter', showTooltip);
-        target.removeEventListener('mousemove', positionTooltip);
-        target.removeEventListener('mouseleave', hideTooltip);
-
-        // Agregar event listeners
-        target.addEventListener('mouseenter', showTooltip);
-        target.addEventListener('mousemove', positionTooltip);
-        target.addEventListener('mouseleave', hideTooltip);
-    });
-
-    function showTooltip(event) {
-        const tooltipText = event.currentTarget.getAttribute('data-tooltip');
-        let tooltip = document.querySelector('.tooltip');
-
-        if (!tooltip) {
-            tooltip = document.createElement('div');
-            tooltip.classList.add('tooltip');
-            document.body.appendChild(tooltip);
-        }
-
-        tooltip.innerHTML = tooltipText; // Use innerHTML to allow HTML content
-        tooltip.style.opacity = 1;
-    }
-
-
-    function positionTooltip(event) {
-        const tooltip = document.querySelector('.tooltip');
-        const offset = 10;
-
-        let x = event.clientX + offset;
-        let y = event.clientY + offset;
-
-        tooltip.style.left = `${x}px`;
-        tooltip.style.top = `${y}px`;
-    }
-
-    function hideTooltip() {
-        const tooltip = document.querySelector('.tooltip');
-        if (tooltip) {
-            tooltip.style.opacity = 0;
-        }
     }
 }
 

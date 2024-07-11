@@ -238,3 +238,50 @@ function formatDateWeekDayMonthDaySuffix(date) {
     var formattedDate = weekDayName + ", " + monthName + " " + day + daySuffix;
     return formattedDate;
 }
+function initializeTooltips() {
+    const tooltipTargets = document.querySelectorAll('.tooltip-target');
+
+    tooltipTargets.forEach(target => {
+        // Remover event listeners anteriores para evitar duplicación
+        target.removeEventListener('mouseenter', showTooltip);
+        target.removeEventListener('mousemove', positionTooltip);
+        target.removeEventListener('mouseleave', hideTooltip);
+
+        // Agregar event listeners
+        target.addEventListener('mouseenter', showTooltip);
+        target.addEventListener('mousemove', positionTooltip);
+        target.addEventListener('mouseleave', hideTooltip);
+    });
+
+    function showTooltip(event) {
+        const tooltipText = event.currentTarget.getAttribute('data-tooltip');
+        let tooltip = document.querySelector('.tooltip');
+
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.classList.add('tooltip');
+            document.body.appendChild(tooltip);
+        }
+
+        tooltip.innerHTML = tooltipText;
+        tooltip.style.opacity = 1;
+    }
+
+    function positionTooltip(event) {
+        const tooltip = document.querySelector('.tooltip');
+        const offset = 10;
+
+        let x = event.clientX + offset;
+        let y = event.clientY + offset;
+
+        tooltip.style.left = `${x}px`;
+        tooltip.style.top = `${y}px`;
+    }
+
+    function hideTooltip() {
+        const tooltip = document.querySelector('.tooltip');
+        if (tooltip) {
+            tooltip.style.opacity = 0;
+        }
+    }
+}

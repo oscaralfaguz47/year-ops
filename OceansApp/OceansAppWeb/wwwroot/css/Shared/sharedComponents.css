@@ -28,6 +28,8 @@
 }
     .global-modal-content .close-btn-container {
         text-align: right;
+        position: relative;
+        height: 10px;
     }
     .global-modal-content .close-btn-container button{
         font-weight: bold;
@@ -35,6 +37,9 @@
         color: var(--clr-grayDark);
         border: none;
         background-color: transparent;
+        padding: 0;
+        position: absolute;
+        top: -12px;
     }
         .global-modal-content .close-btn-container button:hover {
             color: rgb(232, 180, 180);

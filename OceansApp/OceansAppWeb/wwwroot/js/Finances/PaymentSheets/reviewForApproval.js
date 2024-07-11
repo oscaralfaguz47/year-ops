@@ -25,45 +25,59 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         submissionDetailsContainer.innerHTML = '';
         let movementsDetailsArray = JSON.parse(dataFromApi.reportDetails.movements);
         console.log(movementsDetailsArray);
-        document.getElementById('review-for-approval-modal-title').textContent = dataFromApi.reportDetails.consultantName;
+        let startPeriodDateFromDb = new Date(dataFromApi.reportDetails.startPeriodDate);
+        let endPeriodDateFromDb = new Date(dataFromApi.reportDetails.endPeriodDate);
+        document.getElementById('review-for-approval-modal-title').innerHTML = `<span class="strong-label">${getMonthName(startPeriodDateFromDb.getMonth())} ${startPeriodDateFromDb.getDate()} - ${getMonthName(endPeriodDateFromDb.getMonth())} ${endPeriodDateFromDb.getDate()}, <span style="color:var(--clr-grayDark)">${startPeriodDateFromDb.getFullYear()}</span></span>`;
         let movementsBody = document.createElement('div');
         movementsBody.className = 'movement-body';
         let headerInfo = document.createElement('div');
-        let totalHoursLabel = document.createElement('h6');
         let attachmentsSection = document.createElement('div');
         attachmentsSection.className = 'attachments-section';
+        let contentForRightHeaderDiv = ``;
 
         if (!dataFromApi.reportDetails.clientHasTrackingTool) {
             let ul = document.createElement('ul');
-            ul.innerHTML = `<h4><strong>More details</strong></h4>`;
+            ul.className = 'movements-section';
+            let totalHoursFormatted = 0;
             let totalHours = 0;
+            let totalMinutes = 0;
             movementsDetailsArray.forEach(function (obj, index) {
                 let li = document.createElement('li');
-                li.innerHTML = `${formatDateMmDdYyyy(obj.ActionDate)}: <input disabled type="time" value=${obj.TimeFrom}> - <input disabled type="time" value=${obj.TimeTo}> <label class="total-hours-per-line">${obj.Quantity} hours</label> <input type="text" disabled value="${obj.Notes}" />`;
+                let actionDateReportedTime = new Date(obj.ActionDate);
+                const formattedActionDate = actionDateReportedTime.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long' });
+                const hoursMinutes = calculateTimeDifference(obj.TimeFrom, obj.TimeTo);
+                li.innerHTML = `<label class="date-reported">${formattedActionDate}</label>
+                ${obj.MovementTypeName !== 'Holidays' ? `<label class="time-reported ${obj.MovementTypeName.includes('(Non-payable)') ? 'non-payable' : ''}">${formatTimeTo12Hour(obj.TimeFrom)}</label> - 
+                <label class="time-reported ${obj.MovementTypeName.includes('(Non-payable)') ? 'non-payable' : ''}">${formatTimeTo12Hour(obj.TimeTo)}</label>` : `<label class="time-reported-holiday">Holiday</label>` } 
+                <span class="hours-minutes">${obj.MovementTypeName === 'Holidays' ? '<i class="fa-solid fa-gift"></i>' :'<i class="fa-regular fa-clock"></i>'} ${hoursMinutes.hours} Hours, ${hoursMinutes.minutes} Minutes</span>
+                ${obj.Notes !== '' ? `<span class="notes-reported"><i class="fa-regular fa-comment-dots tooltip-target" data-tooltip="${obj.Notes}"></i></span>` : ''}`;
                 ul.appendChild(li);
-                totalHours += obj.Quantity;
+                totalHoursFormatted += obj.Quantity;
+                totalHours += hoursMinutes.hours;
+                totalMinutes += hoursMinutes.minutes;
             });
-            totalHoursLabel.innerHTML = `<strong>TOTAL HOURS: </strong> ${totalHours}`;
+            let liTotalHoursMinutes = document.createElement('li');
+            liTotalHoursMinutes.innerHTML = `<label class="total-label"><strong>TOTAL:</strong> ${totalHours} Hours, ${totalMinutes} Minutes. This is equals to: ${totalHoursFormatted} Hours.</label>`;
+            ul.appendChild(liTotalHoursMinutes);
+            contentForRightHeaderDiv = `<strong><i class="fa-solid fa-clock"></i> Total Hours Reported: </strong> <span class="total-amount">${totalHoursFormatted}</span>`;
             movementsBody.appendChild(ul);
         } else {
             let ul = document.createElement('ul');
-            ul.innerHTML = `<h4><strong>More details</strong></h4>`;
-            let notesInput = document.createElement('textarea');
+            let additionalNotes = '';
             movementsDetailsArray.forEach(function (obj, index) {
                 if (index === 0) {
-                    notesInput.value = obj.Notes;
-                    notesInput.disabled = true;
+                    additionalNotes = document.createElement('div');
+                    additionalNotes.innerHTML = `<p><strong>Additional Notes:</strong></p><p>${obj.Notes}</p>`;
                 }
                 let li = document.createElement('li');
-                li.innerHTML = `${obj.MovementTypeName}: ${obj.Quantity}`;
-                ul.appendChild(li);
+                contentForRightHeaderDiv += `<span><strong>${obj.MovementTypeName === 'Normal Hours' ? '<i class="fa-solid fa-clock"></i>' : obj.MovementTypeName === 'On Call Flate Rate' ? '<i class="fa-solid fa-person-military-pointing"></i>' : '<i class="fa-solid fa-laptop-code"></i>'}${obj.MovementTypeName}:</strong> <span class="total-amount">${obj.Quantity}</span></span><br>`;
             });
-                if(notesInput.value !== 'undefined') {
-                ul.appendChild(notesInput);
-            };
+            if (additionalNotes !== '') {
+                ul.appendChild(additionalNotes);
+            }
             movementsBody.appendChild(ul);
-            if (movementsDetailsArray[0].Blobs !== undefined) {
-                movementsDetailsArray[0].Blobs.forEach(function (blob, index) {
+            if (movementsDetailsArray[0] !== undefined && movementsDetailsArray[0].Blobs !== undefined) {
+                JSON.parse(movementsDetailsArray[0].Blobs).forEach(function (blob, index) {
                     let fileType = getFileType(getFileTypeFromUrl(blob.BlobUrl));
                     if (fileType === 'image') {
                         let image = document.createElement('img');
@@ -85,13 +99,13 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
                 });
             }
         }
-        headerInfo.innerHTML = `<p><strong>Project Name: </strong>${dataFromApi.reportDetails.projectName}</p>
-        <p><strong>Period: </strong>${formatDateMmDdYyyy(dataFromApi.reportDetails.startPeriodDate)} - ${formatDateMmDdYyyy(dataFromApi.reportDetails.endPeriodDate)}</p>`;
+        headerInfo.innerHTML = `<div class="header-container row"><div class="col-7"><p><i class="fa-solid fa-user"></i><strong>Consultant: </strong>${dataFromApi.reportDetails.consultantName}</p>
+        <p class=""><i class="fa-solid fa-briefcase"></i><strong>Project Name: </strong>${dataFromApi.reportDetails.projectName}</p></div><div class="col-5 right-header-div">${contentForRightHeaderDiv}</div></div>`;
         submissionDetailsContainer.appendChild(headerInfo);
-        submissionDetailsContainer.appendChild(totalHoursLabel);
         submissionDetailsContainer.appendChild(movementsBody);
         submissionDetailsContainer.appendChild(attachmentsSection);
 
+        initializeTooltips();
         hideSpinner();
         showModal(modalId);
         return dataFromApi;
@@ -186,6 +200,6 @@ async function approveRejectSubmission() {
         console.error('Network or fetch error:', err);
         displayToasterError('Something went wrong, more details: ' + err);
         hideSpinner();
-        return null; 
+        return null;
     }
 }

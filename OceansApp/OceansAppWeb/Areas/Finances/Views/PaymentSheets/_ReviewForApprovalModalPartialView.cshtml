@@ -5,15 +5,15 @@
     <div class="global-modal-content">
         <div class="container">
             <div>
+                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-review-for-approval')">x</button></div>
                 <h2 id="review-for-approval-modal-title"></h2>
                 <input type="hidden" id="submissionId-input" />
                 <div id="submission-details-container">
                 </div>
 
                 <div class="action-btns-box">
-                    <button onclick="hideModal('modal-review-for-approval')" class="cancel-btn">Cancel</button>
-                    <button class="btn-reject" onclick="displayApproveRejectConfirmation('Rejected')">Reject</button>
-                    <button class="btn-approve" onclick="displayApproveRejectConfirmation('Approved')">Approve</button>
+                    <button class="cancel-btn" onclick="displayApproveRejectConfirmation('Rejected')">Reject</button>
+                    <button class="btn-primary-submit" onclick="displayApproveRejectConfirmation('Approved')">Approve</button>
                 </div>
             </div>
         </div>
@@ -32,7 +32,7 @@
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-approve-reject-submission')" class="cancel-btn">Cancel</button>
-                    <button class="btn-confirm" id="confirm-approve-reject-btn" onclick="approveRejectSubmission()"></button>
+                    <button class="btn-primary-submit" id="confirm-approve-reject-btn" onclick="approveRejectSubmission()"></button>
                 </div>
             </div>
         </div>
@@ -42,3 +42,4 @@
 <script src="~/js/Finances/PaymentSheets/reviewForApproval.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Blobs/blobsSharedMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Time/timeMethods.js?v=@DateTime.Now.Ticks"></script>

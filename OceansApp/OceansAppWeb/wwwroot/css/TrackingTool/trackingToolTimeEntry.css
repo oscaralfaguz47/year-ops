@@ -147,7 +147,6 @@
 /*TOOTIP*/
 .tooltip-container label{
     font-weight: bold; 
-    margin-top: 5px;
     display: flex;
     align-content: center;
     align-items: center;

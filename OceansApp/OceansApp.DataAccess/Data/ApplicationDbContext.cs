@@ -617,6 +617,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
             {
                 entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.ActionDate });
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId});
 
                 entity.HasIndex(e => e.ActionDate);
                 entity.HasIndex(e => e.Quantity);
@@ -680,6 +681,9 @@ namespace OceansApp.DataAccess.Data
             // REPORTING MY TIME SUBMISSIONS
             modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
             {
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
+
+                entity.HasIndex(e => e.SubmissionId);
                 entity.HasIndex(e => e.SubmissionDate);
                 entity.HasIndex(e => e.LastSubmissionDate);
                 entity.HasIndex(e => e.ProjectId);
