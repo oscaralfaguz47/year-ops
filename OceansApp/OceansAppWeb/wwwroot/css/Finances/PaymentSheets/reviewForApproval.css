@@ -14,7 +14,9 @@
 }
     #submission-details-container .header-container .right-header-div{
         text-align: right;
+        display: grid;
     }
+
     #submission-details-container .header-container .total-amount {
         font-weight: bold;
         color: var(--clr-blueLight);
@@ -61,6 +63,23 @@ h4{
 .movement-body .movements-section{
     margin-top: 10px;
 }
+.movement-body .movements-section{
+    margin-top: 10px;
+}
+.movement-body .holidays-section {
+    margin-bottom: 15px;
+}
+.movement-body .holidays-section p {
+    margin-bottom: 8px;
+}
+.movement-body .holiday-item {
+    background-color: rgb(26, 174, 5, 0.5);
+    padding: 4px 8px;
+    border-radius: 15px;
+    color: #fff;
+    margin-right: 5px;
+}
+
 .movement-body .movements-section .date-reported {
     max-width: 200px;
     min-width: 110px;
@@ -85,8 +104,17 @@ h4{
  color: var(--clr-blueLight);  
  margin-left: 7px;
 }
+    .movement-body .movements-section .hours-minutes .fa-gift {
+        color: rgb(26, 174, 5, 0.7);
+    }
     .movement-body .movements-section .non-payable {
         background-color: rgb(232, 180, 180);
+    }
+    .movement-body .movements-section .non-payable-icon {
+        color: red !important;
+        font-weight: bold;
+        font-size: 18px !important;
+        text-decoration: line-through;
     }
 .movement-body .movements-section .hours-minutes i {
     color: gray;
@@ -95,9 +123,10 @@ h4{
 .movement-body .movements-section .notes-reported i {
  margin-left: 8px
 }
-.movement-body .total-label{
+.movement-body .total-label {
     margin-top: 10px;
-    text-align: center;
+    border-top: solid 3px var(--clr-grayLight);
+    width: 100%;
 }
 .movement-body ul {
     list-style-type: none;
@@ -106,13 +135,9 @@ h4{
 .movement-body ul li {
     padding: 3px;
 }
-.movement-body textarea {
-   width: 100%;
-}
 /* Approve - Reject Confirmation Modal */
 #modal-approve-reject-submission .action-btns-box {
     text-align: center;
-    margin-top: 25px;
 }
 #body-container {
     text-align:center;
@@ -123,9 +148,21 @@ h4{
     }
     #body-container textarea {
         width: 100%;
-        margin-top: 20px;
-        height: 100px;
+        margin-top: 10px;
+        height: 110px;
+        padding: 2px 7px;
+        border: none;
+        background-color: var(--clr-grayLight);
+        color: #333333;
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+        transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        font-size: 14px;
     }
+        #body-container textarea:focus {
+            border-color: #969fa8;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+        }
 #val-mess-message{
     color: red;
     font-size: 17px;

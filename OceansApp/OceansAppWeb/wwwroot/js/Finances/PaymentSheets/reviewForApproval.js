@@ -20,11 +20,9 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         }
 
         const dataFromApi = await response.json();
-        console.log(dataFromApi);
         let submissionDetailsContainer = document.getElementById('submission-details-container');
         submissionDetailsContainer.innerHTML = '';
         let movementsDetailsArray = JSON.parse(dataFromApi.reportDetails.movements);
-        console.log(movementsDetailsArray);
         let startPeriodDateFromDb = new Date(dataFromApi.reportDetails.startPeriodDate);
         let endPeriodDateFromDb = new Date(dataFromApi.reportDetails.endPeriodDate);
         document.getElementById('review-for-approval-modal-title').innerHTML = `<span class="strong-label">${getMonthName(startPeriodDateFromDb.getMonth())} ${startPeriodDateFromDb.getDate()} - ${getMonthName(endPeriodDateFromDb.getMonth())} ${endPeriodDateFromDb.getDate()}, <span style="color:var(--clr-grayDark)">${startPeriodDateFromDb.getFullYear()}</span></span>`;
@@ -34,6 +32,7 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         let attachmentsSection = document.createElement('div');
         attachmentsSection.className = 'attachments-section';
         let contentForRightHeaderDiv = ``;
+        let totalHolidaysHours = 0;
 
         if (!dataFromApi.reportDetails.clientHasTrackingTool) {
             let ul = document.createElement('ul');
@@ -41,6 +40,11 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
             let totalHoursFormatted = 0;
             let totalHours = 0;
             let totalMinutes = 0;
+            let totalPayableHours = 0;
+            let totalPayableMinutes = 0;
+            let totalNonPayableHours = 0;
+            let totalNonPayableMinutes = 0;
+
             movementsDetailsArray.forEach(function (obj, index) {
                 let li = document.createElement('li');
                 let actionDateReportedTime = new Date(obj.ActionDate);
@@ -48,36 +52,62 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
                 const hoursMinutes = calculateTimeDifference(obj.TimeFrom, obj.TimeTo);
                 li.innerHTML = `<label class="date-reported">${formattedActionDate}</label>
                 ${obj.MovementTypeName !== 'Holidays' ? `<label class="time-reported ${obj.MovementTypeName.includes('(Non-payable)') ? 'non-payable' : ''}">${formatTimeTo12Hour(obj.TimeFrom)}</label> - 
-                <label class="time-reported ${obj.MovementTypeName.includes('(Non-payable)') ? 'non-payable' : ''}">${formatTimeTo12Hour(obj.TimeTo)}</label>` : `<label class="time-reported-holiday">Holiday</label>` } 
-                <span class="hours-minutes">${obj.MovementTypeName === 'Holidays' ? '<i class="fa-solid fa-gift"></i>' :'<i class="fa-regular fa-clock"></i>'} ${hoursMinutes.hours} Hours, ${hoursMinutes.minutes} Minutes</span>
+                <label class="time-reported ${obj.MovementTypeName.includes('(Non-payable)') ? 'non-payable' : ''}">${formatTimeTo12Hour(obj.TimeTo)}</label>` : `<label class="time-reported-holiday">Holiday</label>`} 
+                <span class="hours-minutes">${obj.MovementTypeName === 'Holidays' ? '<i class="fa-solid fa-gift"></i>' : obj.MovementTypeName.includes('(Non-payable)') ? '<i class="non-payable-icon">$</i>' : '<i class="fa-regular fa-clock"></i>'} ${hoursMinutes.hours} Hours, ${hoursMinutes.minutes} Minutes</span>
                 ${obj.Notes !== '' ? `<span class="notes-reported"><i class="fa-regular fa-comment-dots tooltip-target" data-tooltip="${obj.Notes}"></i></span>` : ''}`;
                 ul.appendChild(li);
                 totalHoursFormatted += obj.Quantity;
                 totalHours += hoursMinutes.hours;
                 totalMinutes += hoursMinutes.minutes;
+                totalPayableHours += obj.MovementTypeName === 'Normal Hours' ? hoursMinutes.hours : 0;
+                totalPayableMinutes += obj.MovementTypeName === 'Normal Hours' ? hoursMinutes.minutes : 0;
+                totalNonPayableHours += obj.MovementTypeName.includes('(Non-payable)') ? hoursMinutes.hours : 0;
+                totalNonPayableMinutes += obj.MovementTypeName.includes('(Non-payable)') ? hoursMinutes.minutes : 0;
+                totalHolidaysHours += obj.MovementTypeName === 'Holidays' ? hoursMinutes.hours : 0;
             });
             let liTotalHoursMinutes = document.createElement('li');
-            liTotalHoursMinutes.innerHTML = `<label class="total-label"><strong>TOTAL:</strong> ${totalHours} Hours, ${totalMinutes} Minutes. This is equals to: ${totalHoursFormatted} Hours.</label>`;
+            liTotalHoursMinutes.innerHTML = `<label class="total-label"><strong>TOTAL HOURS/MINUTES:</strong> ${totalHours} Hours, ${totalMinutes} Minutes.</label><br>
+            <label><strong>TOTAL HOURS FORMATTED:</strong> ${totalHoursFormatted} Hours.</label>`;
             ul.appendChild(liTotalHoursMinutes);
-            contentForRightHeaderDiv = `<strong><i class="fa-solid fa-clock"></i> Total Hours Reported: </strong> <span class="total-amount">${totalHoursFormatted}</span>`;
+            contentForRightHeaderDiv = `<span><strong><i class="fa-solid fa-clock"></i> Total worked time: </strong> <span class="total-amount">${totalPayableHours}h, ${totalPayableMinutes}m</span></span>
+            ${totalHolidaysHours > 0 ? `<span><strong><i class="fa-solid fa-gift"></i> Total holidays time: </strong> <span class="total-amount">${totalHolidaysHours}h, 0m</span></span>` : ``}
+            ${totalNonPayableHours > 0 || totalNonPayableMinutes > 0 ? `<span><strong><i style="text-decoration: line-through">$</i> Total non-payable time: </strong> <span class="total-amount">${totalNonPayableHours}h, ${totalNonPayableMinutes}m</span></span>` : ``}`;
             movementsBody.appendChild(ul);
         } else {
             let ul = document.createElement('ul');
             let additionalNotes = '';
+            let holidaysSection = document.createElement('div');
+            holidaysSection.className = 'holidays-section';
+            holidaysSection.innerHTML = `<p><strong>Holidays</strong></p>`;
+            let holidayItem = document.createElement('span');
+            const firstNonHolidayMovement = movementsDetailsArray.find(element => element.MovementTypeName !== 'Holidays');
             movementsDetailsArray.forEach(function (obj, index) {
-                if (index === 0) {
+                totalHolidaysHours += obj.MovementTypeName === 'Holidays' ? Number(obj.Quantity) : 0;
+                if (firstNonHolidayMovement.Notes !== '' && firstNonHolidayMovement.Notes !== undefined) {
                     additionalNotes = document.createElement('div');
-                    additionalNotes.innerHTML = `<p><strong>Additional Notes:</strong></p><p>${obj.Notes}</p>`;
+                    additionalNotes.innerHTML = `<p><strong>Additional Notes:</strong></p><p>${firstNonHolidayMovement.Notes}</p>`;
                 }
+
                 let li = document.createElement('li');
-                contentForRightHeaderDiv += `<span><strong>${obj.MovementTypeName === 'Normal Hours' ? '<i class="fa-solid fa-clock"></i>' : obj.MovementTypeName === 'On Call Flate Rate' ? '<i class="fa-solid fa-person-military-pointing"></i>' : '<i class="fa-solid fa-laptop-code"></i>'}${obj.MovementTypeName}:</strong> <span class="total-amount">${obj.Quantity}</span></span><br>`;
+                contentForRightHeaderDiv += `${obj.MovementTypeName === 'Holidays' ? '' : `<span><strong>${obj.MovementTypeName === 'Normal Hours' ? '<i class="fa-solid fa-clock"></i>' : obj.MovementTypeName === 'On Call Flate Rate' ? '<i class="fa-solid fa-person-military-pointing"></i>' : '<i class="fa-solid fa-laptop-code"></i>'}${obj.MovementTypeName}:</strong> <span class="total-amount">${obj.Quantity}${obj.MovementTypeName !== 'On Call Flate Rate' ? 'h':''}</span></span>`}`;
+                if (obj.MovementTypeName === 'Holidays') {
+                    holidayItem.innerHTML += `<span class="holiday-item"><i class="fa-solid fa-gift"></i> ${obj.Notes}<span>`;
+                    holidaysSection.appendChild(holidayItem);
+                }
             });
-            if (additionalNotes !== '') {
+            if (totalHolidaysHours > 0) {
+                contentForRightHeaderDiv += `<span><strong><i class="fa-solid fa-gift"></i>Holidays: </strong><span class="total-amount">${totalHolidaysHours}h</span>`;
+            }
+            if (holidaysSection.querySelector('span') !== null) {
+                ul.appendChild(holidaysSection);
+            }
+            if (additionalNotes !== '' && additionalNotes !== undefined) {
                 ul.appendChild(additionalNotes);
             }
             movementsBody.appendChild(ul);
-            if (movementsDetailsArray[0] !== undefined && movementsDetailsArray[0].Blobs !== undefined) {
-                JSON.parse(movementsDetailsArray[0].Blobs).forEach(function (blob, index) {
+
+            if (firstNonHolidayMovement.Blobs !== undefined) {
+                JSON.parse(firstNonHolidayMovement.Blobs).forEach(function (blob, index) {
                     let fileType = getFileType(getFileTypeFromUrl(blob.BlobUrl));
                     if (fileType === 'image') {
                         let image = document.createElement('img');
