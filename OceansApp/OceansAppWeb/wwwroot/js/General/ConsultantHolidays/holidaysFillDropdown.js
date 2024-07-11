@@ -16,35 +16,36 @@
     }
 }
 
-async function fillHolidaysSelect(selectElement, firstOption) {
+function fillHolidaysSelect(selectElement, firstOption) {
     let previousValue = selectElement.value;
     if (selectElement.length > 1) {
         return;
     }
 
+    // Mostrar "Loading options" inmediatamente
     selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
-    try {
-        const data = await getHolidaysList();
-        console.log(data);
-        selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
-        data.holidays.forEach(obj => {
-            selectElement.add(new Option(obj.text, obj.value));
+    selectElement.value = 'loading';
+
+    getHolidaysList()
+        .then(data => {
+            const tempSelect = document.createElement('select');
+            tempSelect.innerHTML = '<option value="">-' + firstOption + '-</option>';
+            data.holidays.forEach(obj => {
+                tempSelect.add(new Option(obj.text, obj.value));
+            });
+
+            // Reemplazar el contenido del select original con el nuevo
+            selectElement.innerHTML = tempSelect.innerHTML;
+            selectElement.value = previousValue;
+
+            // Forzar reapertura del select
+            setTimeout(() => {
+                // Crear y disparar un evento 'click' personalizado para forzar la reapertura
+                selectElement.focus();
+                selectElement.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            }, 100); // Añadir un pequeño retraso para asegurar que el DOM se haya actualizado
+        })
+        .catch(error => {
+            console.error('Error fetching holidays:', error);
         });
-
-        selectElement.value = previousValue;
-        reopenSelect(selectElement);
-    } catch (error) {
-        console.error('Error fetching holidays:', error);
-    }
-}
-function reopenSelect(selectElement) {
-    // Crear un nuevo evento de clic
-    const clickEvent = new MouseEvent('click', {
-        view: window,
-        bubbles: true,
-        cancelable: true
-    });
-
-    // Reabrir el select
-    selectElement.dispatchEvent(clickEvent);
 }
