@@ -242,10 +242,12 @@ function initializeTooltips() {
     const tooltipTargets = document.querySelectorAll('.tooltip-target');
 
     tooltipTargets.forEach(target => {
+        // Remover event listeners anteriores para evitar duplicación
         target.removeEventListener('mouseenter', showTooltip);
         target.removeEventListener('mousemove', positionTooltip);
         target.removeEventListener('mouseleave', hideTooltip);
 
+        // Agregar event listeners
         target.addEventListener('mouseenter', showTooltip);
         target.addEventListener('mousemove', positionTooltip);
         target.addEventListener('mouseleave', hideTooltip);
@@ -270,14 +272,13 @@ function initializeTooltips() {
 
     function positionTooltip(event) {
         const tooltip = document.querySelector('.tooltip');
-        const offset = 10;
+        const offset = 2;
 
         let x = event.clientX + offset;
         let y = event.clientY + offset;
 
         const tooltipRect = tooltip.getBoundingClientRect();
 
-        // Verificar si el tooltip se sale de los límites de la pantalla
         const isOutOfBounds = (
             x + tooltipRect.width > window.innerWidth ||
             y + tooltipRect.height > window.innerHeight ||
@@ -285,21 +286,9 @@ function initializeTooltips() {
             y < 0
         );
 
-        if (x + tooltipRect.width > window.innerWidth) {
-            x = window.innerWidth - tooltipRect.width - offset;
-        }
-
-        if (y + tooltipRect.height > window.innerHeight) {
-            y = window.innerHeight - tooltipRect.height - offset;
-        }
-
-        // Evitar que el tooltip se salga por la izquierda o arriba
-        if (x < 0) {
-            x = offset;
-        }
-
-        if (y < 0) {
-            y = offset;
+        if (isOutOfBounds) {
+            x = (window.innerWidth - tooltipRect.width) / 2;
+            y = (window.innerHeight - tooltipRect.height) / 2;
         }
 
         tooltip.style.left = `${x}px`;
