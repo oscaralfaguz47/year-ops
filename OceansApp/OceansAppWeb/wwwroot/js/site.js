@@ -263,7 +263,7 @@ function initializeTooltips() {
 
         tooltip.innerHTML = tooltipText;
         tooltip.style.opacity = 1;
-        tooltip.style.pointerEvents = 'auto'; 
+        tooltip.style.pointerEvents = 'auto';
 
         positionTooltip(event);
     }
@@ -277,6 +277,7 @@ function initializeTooltips() {
 
         const tooltipRect = tooltip.getBoundingClientRect();
 
+        // Verificar si el tooltip se sale de los límites de la pantalla
         const isOutOfBounds = (
             x + tooltipRect.width > window.innerWidth ||
             y + tooltipRect.height > window.innerHeight ||
@@ -284,9 +285,21 @@ function initializeTooltips() {
             y < 0
         );
 
-        if (isOutOfBounds) {
-            x = (window.innerWidth - tooltipRect.width) / 2;
-            y = (window.innerHeight - tooltipRect.height) / 2;
+        if (x + tooltipRect.width > window.innerWidth) {
+            x = window.innerWidth - tooltipRect.width - offset;
+        }
+
+        if (y + tooltipRect.height > window.innerHeight) {
+            y = window.innerHeight - tooltipRect.height - offset;
+        }
+
+        // Evitar que el tooltip se salga por la izquierda o arriba
+        if (x < 0) {
+            x = offset;
+        }
+
+        if (y < 0) {
+            y = offset;
         }
 
         tooltip.style.left = `${x}px`;
@@ -297,7 +310,7 @@ function initializeTooltips() {
         const tooltip = document.querySelector('.tooltip');
         if (tooltip) {
             tooltip.style.opacity = 0;
-            tooltip.style.pointerEvents = 'none'; 
+            tooltip.style.pointerEvents = 'none';
         }
     }
 }
