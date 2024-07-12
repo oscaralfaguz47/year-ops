@@ -16,49 +16,21 @@
     }
 }
 
-async function fillHolidaysSelect(selectElement, firstOption) {
+function fillHolidaysSelect(selectElement, firstOption) {
     let previousValue = selectElement.value;
     if (selectElement.length > 1) {
         return;
     }
-
-    // Añadir la opción de "Loading..."
-    const loadingOption = new Option("Loading options… (⏳)", "loading", true, true);
-    selectElement.add(loadingOption);
-
-    try {
-        const data = await getHolidaysList();
-
-        // Crear un documento fragmento para añadir las opciones
-        const fragment = document.createDocumentFragment();
-
-        // Añadir la primera opción
-        fragment.appendChild(new Option('-' + firstOption + '-', '', true, true));
-
-        // Añadir las opciones obtenidas del backend
-        data.holidays.forEach(obj => {
-            fragment.appendChild(new Option(obj.text, obj.value));
+    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
+    getHolidaysList()
+        .then(data => {
+            selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
+            data.holidays.forEach(obj => {
+                selectElement.add(new Option(obj.text, obj.value));
+            });
+            selectElement.value = previousValue;
+        })
+        .catch(error => {
+            console.error('Error fetching holidays:', error);
         });
-
-        // Limpiar el select y añadir las nuevas opciones
-        selectElement.innerHTML = '';
-        selectElement.appendChild(fragment);
-        selectElement.value = previousValue;
-
-        // Simular un evento de mousedown para mantener el menú desplegable abierto
-        openSelectMenu(selectElement);
-
-    } catch (error) {
-        console.error('Error fetching holidays:', error);
-    }
-}
-
-function openSelectMenu(selectElement) {
-    const event = new MouseEvent('mousedown', {
-        view: window,
-        bubbles: true,
-        cancelable: true
-    });
-
-    selectElement.dispatchEvent(event);
 }
