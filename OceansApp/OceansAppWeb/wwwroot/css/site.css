@@ -278,12 +278,12 @@ nav {
     opacity: 0;
     transition: opacity 0.2s;
     max-width: 300px;
-    word-wrap: break-word; 
-    white-space: normal; 
+    white-space: normal;
     text-align: justify;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: inline-block;
 }
-
-
 
 .tooltip-target {
     position: relative;

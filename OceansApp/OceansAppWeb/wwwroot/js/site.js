@@ -242,12 +242,10 @@ function initializeTooltips() {
     const tooltipTargets = document.querySelectorAll('.tooltip-target');
 
     tooltipTargets.forEach(target => {
-        // Remover event listeners anteriores para evitar duplicación
         target.removeEventListener('mouseenter', showTooltip);
         target.removeEventListener('mousemove', positionTooltip);
         target.removeEventListener('mouseleave', hideTooltip);
 
-        // Agregar event listeners
         target.addEventListener('mouseenter', showTooltip);
         target.addEventListener('mousemove', positionTooltip);
         target.addEventListener('mouseleave', hideTooltip);
@@ -265,6 +263,9 @@ function initializeTooltips() {
 
         tooltip.innerHTML = tooltipText;
         tooltip.style.opacity = 1;
+        tooltip.style.pointerEvents = 'auto'; 
+
+        positionTooltip(event);
     }
 
     function positionTooltip(event) {
@@ -274,6 +275,20 @@ function initializeTooltips() {
         let x = event.clientX + offset;
         let y = event.clientY + offset;
 
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        const isOutOfBounds = (
+            x + tooltipRect.width > window.innerWidth ||
+            y + tooltipRect.height > window.innerHeight ||
+            x < 0 ||
+            y < 0
+        );
+
+        if (isOutOfBounds) {
+            x = (window.innerWidth - tooltipRect.width) / 2;
+            y = (window.innerHeight - tooltipRect.height) / 2;
+        }
+
         tooltip.style.left = `${x}px`;
         tooltip.style.top = `${y}px`;
     }
@@ -282,6 +297,7 @@ function initializeTooltips() {
         const tooltip = document.querySelector('.tooltip');
         if (tooltip) {
             tooltip.style.opacity = 0;
+            tooltip.style.pointerEvents = 'none'; 
         }
     }
 }

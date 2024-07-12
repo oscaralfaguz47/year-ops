@@ -151,6 +151,12 @@
     align-content: center;
     align-items: center;
 }
+.tooltip-container {
+    word-wrap: break-word; /* Ajusta el texto largo */
+    overflow-wrap: break-word; /* Alternativa */
+    display: inline-block;
+    max-width: 280px;
+}
 .tooltip-container p {
     margin: 0;
 }

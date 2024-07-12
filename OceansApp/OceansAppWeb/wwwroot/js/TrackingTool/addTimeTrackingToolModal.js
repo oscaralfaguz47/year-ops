@@ -52,6 +52,11 @@ document.getElementById('addNotesInput').addEventListener('input', function (e) 
 });
 
 function displayCreateUpdateTime(modalId, selectedDate, movementId, button, htmlElement) {
+    const tooltip = document.querySelector('.tooltip');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        tooltip.style.pointerEvents = 'none'; // Desactivar interacción
+    }
     fillMovementTypesSelect(timeClassificationSelect, timeClasifications);
     htmlReportedTimeElement = htmlElement;
     const currentYear = new Date().getFullYear();
