@@ -9,6 +9,7 @@ let validationMessageNotes = document.getElementById('notes-val-message');
 let timeClassificationSelect = document.getElementById('timeClassification');
 let addBtn = null;
 let htmlReportedTimeElement = null;
+let timeClasifications = [];
 
 timeFromInput.addEventListener('change', () => {
     let hoursMinutes = calculateTimeDifference(timeFromInput.value, timeToInput.value);
@@ -51,6 +52,7 @@ document.getElementById('addNotesInput').addEventListener('input', function (e) 
 });
 
 function displayCreateUpdateTime(modalId, selectedDate, movementId, button, htmlElement) {
+    fillMovementTypesSelect(timeClassificationSelect, timeClasifications);
     htmlReportedTimeElement = htmlElement;
     const currentYear = new Date().getFullYear();
     const fullDateString = `${selectedDate} ${currentYear}`;
@@ -63,7 +65,6 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     enableModalButtons(submitBtns, otherBtns, 'spinner-border');
     resetForm('form-create-update');
     if (movementId === null) {
-        timeClassificationSelect.innerHTML = `<option value="Normal Hours">Hours Worked (Payable)</option>`;
         movementIdInput.value = movementId;
         modalTitle.textContent = selectedDate;
         timeFromInput.value = '08:00';
@@ -106,9 +107,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
                 timeFromInput.value = data.movementData.timeFrom;
                 timeToInput.value = data.movementData.timeTo;
                 actionDateInput.value = data.movementData.actionDate;
-                const timeClassificationOptionText = data.movementData.movementTypeName === 'Normal Hours' ? 'Hours Worked (Payable)' : data.movementData.movementTypeName;
-                const timeClassificationOptionValue = data.movementData.movementTypeName === 'Normal Hours' ? 'Normal Hours' : data.movementData.movementTypeId;
-                timeClassificationSelect.innerHTML = `<option value="${timeClassificationOptionValue}">${timeClassificationOptionText}</option>`;
+                timeClassificationSelect.value = data.movementData.movementTypeName === 'Normal Hours' ? 'Normal Hours' : data.movementData.movementTypeId;
                 additionalNotesInput.value = data.movementData.notes;
                 showModal(modalId);
                 return data;
@@ -120,30 +119,6 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
                 hideSpinner();
             });
     }
-}
-
-//GET MOVEMENT TYPES
-function fillMovementTypesSelect(selectElement) {
-    let previousValue = selectElement.value;
-    if (selectElement.length > 1) {
-        return;
-    }
-    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
-    getMovementTypesList()
-        .then(data => {
-            selectElement.innerHTML = '';
-            selectElement.disabled = false;
-            data.movementTypes.forEach(obj => {
-                let optionText = obj.text === 'Normal Hours' ? 'Hours Worked (Payable)' : obj.text;
-                let optionValue = obj.text === 'Normal Hours' ? obj.text : obj.value;
-                var option = new Option(optionText, optionValue);
-                selectElement.add(option);
-            });
-                selectElement.value = previousValue;
-        })
-        .catch(error => {
-            console.error('Error fetching:', error);
-        });
 }
 
 //CREATE, UPDATE TIME ENTRY
