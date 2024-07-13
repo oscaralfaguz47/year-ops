@@ -7,6 +7,13 @@
 .first-cell{
     font-weight: bold;
 }
+.additional-filters {
+    display: flex;
+    background-color: var(--clr-grayLight);
+    border: solid 2px rgb(155, 168, 184, 0.5);
+    padding: 5px;
+    justify-content: center;
+}
 .payment-period-sel {
     margin-left: 5px;
 }

@@ -1,6 +1,8 @@
 ﻿let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
 let paymentPeriodSelect = document.getElementById('paymentPeriod');
+let statusSelectFilters = document.getElementById('statusSelectFilters');
+
 $(document).ready(function () {
     let currentDateNoChange = new Date();
     paymentPeriod = 1;
@@ -174,7 +176,8 @@ function recolectDataFromForm(filters, firstTime) {
             SearchText: searchText,
             StartDate: startDateData,
             EndDate: endDateData,
-            PaymentPeriod: Number(paymentPeriodSelect.value)
+            PaymentPeriod: Number(paymentPeriodSelect.value),
+            TransactionStatusName: statusSelectFilters.value === '' ? null : statusSelectFilters.value
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];

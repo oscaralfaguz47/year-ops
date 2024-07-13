@@ -7,37 +7,45 @@
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
-    <div class="filters-container">
-        <div class="row">
-            <div class="header-page">
-                <h2>PAYMENT SHEETS</h2>
+    <div class="principal-header-container">
+        <div class="filters-container">
+            <div class="row">
+                <div class="header-page">
+                    <h2>PAYMENT SHEETS</h2>
+                </div>
+                <partial name="_Pagination" />
             </div>
-            <partial name="_Pagination" />
+        </div>
+        <div class="table-header-actions">
+                <div class="input-container">
+                    <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                    <i class="bi bi-search placeholder-image"></i>
+                </div>
+            <div class="action-btns-container">
+                <button id="openSidebarBtn" onclick="openNav()"> <img src="/icons/Shared/filter.svg"></button>
+            </div>
+        </div>
+        <div class="additional-filters">
+                <div class="payment-period-sel">
+                    <select onchange="changePaymentPeriod()" id="paymentPeriod" class="form-select">
+                        <option selected value="1">Biweekly Consultants</option>
+                        <option value="2">Monthly Consultants</option>
+                    </select>
+                </div>
+                <div class="navigation-container">
+                    <div class="navegation-box">
+                        <input type="hidden" id="dateToInput" />
+                        <input type="hidden" id="dateFromInput" />
+                        <button class="btn-arrow" onclick="handleButtonClick('left')">< Previous</button>
+                        <label id="previous-date"></label> - <label id="next-date"></label>
+                        <button class="btn-arrow" onclick="handleButtonClick('right')">Next ></button>
+                    </div>
+                </div>
+                <button class="refresh-btn" onclick="getListOfResults(false, true)"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
         </div>
     </div>
     <div class="global-table-container">
-        <div class="table-header-actions">
-            <input type="hidden" id="dateToInput" />
-            <input type="hidden" id="dateFromInput" />
-            <div class="input-container">
-                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                <i class="bi bi-search placeholder-image"></i>
-            </div>
-            <div class="payment-period-sel">
-                <select onchange="changePaymentPeriod()" id="paymentPeriod" class="form-select">
-                    <option selected value="1">Biweekly Consultants</option>
-                    <option value="2">Monthly Consultants</option>
-                </select>
-            </div>
-            <div class="navigation-container">
-                <div class="navegation-box">
-                    <button class="btn-arrow" onclick="handleButtonClick('left')">< Previous</button>
-                    <label id="previous-date"></label> - <label id="next-date"></label>
-                    <button class="btn-arrow" onclick="handleButtonClick('right')">Next ></button>
-                </div>
-            </div>
-            <button class="refresh-btn" onclick="getListOfResults(false, true)"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
-        </div>
+
         <table id="payment-sheets-table" style="display:none">
             <thead>
                 <tr>
@@ -71,12 +79,28 @@
         <div class="no-results"></div>
     </div>
 </div>
+<div id="filtersSidebar" class="filters-sidebar">
+    <button class="closebtn" onclick="closeNav()">×</button>
+    <label class="more-filters-title">More filters</label>
+    <div id="more-filters-container">
+        <div class="select-container">
+            <label>Status</label>
+            <select onchange="getListOfResults(false, true)" id="statusSelectFilters" class="form-select">
+                <option value="">All statuses</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Waiting to be approved">Waiting to be approved</option>
+            </select>
+        </div>
 
+    </div>
+</div>
 <div>
     <partial name="_ReviewForApprovalModalPartialView" />
 </div>
 
 <script src="~/js/Finances/PaymentSheets/paymentSheets.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/contentPage.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/navigateBetweenPeriods.js?v=@DateTime.Now.Ticks"></script>

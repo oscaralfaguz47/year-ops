@@ -242,12 +242,10 @@ function initializeTooltips() {
     const tooltipTargets = document.querySelectorAll('.tooltip-target');
 
     tooltipTargets.forEach(target => {
-        // Remover event listeners anteriores para evitar duplicación
         target.removeEventListener('mouseenter', showTooltip);
         target.removeEventListener('mousemove', positionTooltip);
         target.removeEventListener('mouseleave', hideTooltip);
 
-        // Agregar event listeners
         target.addEventListener('mouseenter', showTooltip);
         target.addEventListener('mousemove', positionTooltip);
         target.addEventListener('mouseleave', hideTooltip);
