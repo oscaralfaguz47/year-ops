@@ -13,9 +13,17 @@
     border: solid 2px rgb(155, 168, 184, 0.5);
     padding: 5px;
     justify-content: center;
+    width: 100%;
 }
 .payment-period-sel {
     margin-left: 5px;
+}
+.payment-period-sel select {
+    height: 30px;
+    padding: 2px 6px;
+    border: none;
+    outline: none;
+    border-radius: 15px;
 }
 .no-actions-div {
     padding: 2px 8px;
@@ -42,4 +50,37 @@
 }
 .review-btn {
     background-color: #eeb30f;
+}
+
+/* MOBILE */
+@media only screen and (max-width: 630px) {
+    .additional-filters {
+        display: block;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .navegation-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+        .navegation-box .btn-arrow {
+            display: flex;
+            width: 20px;
+            font-size: 18px;
+        }
+        .navegation-box .btn-arrow span{
+           display: none;
+        }
+    .additional-filters button {
+        width: 100%;
+    }
+    .additional-filters div {
+        margin-bottom: 3px;
+    }
+    .payment-period-sel{
+        text-align: left;
+    }
 }

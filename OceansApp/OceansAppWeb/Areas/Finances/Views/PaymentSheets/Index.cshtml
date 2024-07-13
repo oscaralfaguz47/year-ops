@@ -9,12 +9,10 @@
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="principal-header-container">
         <div class="filters-container">
-            <div class="row">
                 <div class="header-page">
                     <h2>PAYMENT SHEETS</h2>
                 </div>
                 <partial name="_Pagination" />
-            </div>
         </div>
         <div class="table-header-actions">
                 <div class="input-container">
@@ -27,7 +25,7 @@
         </div>
         <div class="additional-filters">
                 <div class="payment-period-sel">
-                    <select onchange="changePaymentPeriod()" id="paymentPeriod" class="form-select">
+                    <select onchange="changePaymentPeriod()" id="paymentPeriod">
                         <option selected value="1">Biweekly Consultants</option>
                         <option value="2">Monthly Consultants</option>
                     </select>
@@ -36,9 +34,9 @@
                     <div class="navegation-box">
                         <input type="hidden" id="dateToInput" />
                         <input type="hidden" id="dateFromInput" />
-                        <button class="btn-arrow" onclick="handleButtonClick('left')">< Previous</button>
-                        <label id="previous-date"></label> - <label id="next-date"></label>
-                        <button class="btn-arrow" onclick="handleButtonClick('right')">Next ></button>
+                    <button class="btn-arrow" onclick="handleButtonClick('left')">< <span>Previous</span></button>
+                        <label id="previous-date"></label>-<label id="next-date"></label>
+                    <button class="btn-arrow" onclick="handleButtonClick('right')"><span>Next</span> ></button>
                     </div>
                 </div>
                 <button class="refresh-btn" onclick="getListOfResults(false, true)"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>

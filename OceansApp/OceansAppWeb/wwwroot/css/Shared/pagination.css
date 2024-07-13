@@ -1,6 +1,10 @@
 ﻿.pagination-container {
     padding: 9px 10px 2px 10px !important;
     border-top: var(--clr-grayLight) solid 2px;
+    text-align: center;
+}
+.block{
+   
 }
 .pagination-container div {
     display: flex;
@@ -32,5 +36,9 @@
 @media only screen and (max-width: 695px) {
     .pagination-container div {
         display: inline-block !important;
+    }
+    .block {
+        padding: 4px 0;
+        width: 100%;
     }
 }
