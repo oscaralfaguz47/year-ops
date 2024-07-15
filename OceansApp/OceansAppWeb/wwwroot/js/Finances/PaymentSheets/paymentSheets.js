@@ -1,7 +1,9 @@
 ﻿let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
 let paymentPeriodSelect = document.getElementById('paymentPeriod');
-let statusSelectFilters = document.getElementById('statusSelectFilters');
+let statusSelectFilters = null;
+let projectSelectFilters = null;
+let rightSidebarFiltersIsDiplayed = false;
 
 $(document).ready(function () {
     let currentDateNoChange = new Date();
@@ -46,7 +48,6 @@ async function getListOfResults(firstTime, filters) {
             let rows = [];
             let startIndex = 0;
             let groupName = 0;
-            console.log(data);
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionformattedDate = "Not submitted yet";
@@ -132,8 +133,6 @@ async function getListOfResults(firstTime, filters) {
                 }
             );
 
-
-
             if (data.consultantsToPayList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
@@ -162,6 +161,56 @@ function navitateBetweenDates(startDate, endDate, buttons) {
     });
 }
 
+//More filters
+async function displayMoreFiltersPaymentSheet() {
+    if (!rightSidebarFiltersIsDiplayed) {
+        displaySpinner();
+        let rightSidebarContainer = document.getElementById('right-sidebar-container');
+        rightSidebarContainer.innerHTML = `
+        <div class="header-btns-container">
+         <button class="clear-btn" onclick="clearFilters('filters-form')"><img class="filter-icon" src="/icons/Shared/clear.svg">Clear filters </button>
+        </div>
+        <div class="scroll-container">
+          <form id="filters-form">
+            <div class="select-container">
+                <label>Status</label>
+                <select onchange="getListOfResults(false, true)" id="statusSelectFilters" class="form-select">
+                    <option value="">All statuses</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Waiting to be approved">Waiting to be approved</option>
+                </select>
+            </div>
+            <div class="select-container">
+                <label>Project</label>
+                <select onchange="getListOfResults(false, true)" id="projectSelectFilters" class="form-select">
+                </select>
+            </div>
+          </form>
+        <div>`;
+
+        statusSelectFilters = document.getElementById('statusSelectFilters');
+        projectSelectFilters = document.getElementById('projectSelectFilters');
+
+        try {
+            const data = await getActiveProjectsList();
+            populateSelect('projectSelectFilters', data.projects, 'All projects', null);
+
+            openRightSidebar();
+            rightSidebarFiltersIsDiplayed = true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        } finally {
+            hideSpinner();
+        }
+    }
+    openRightSidebar();
+}
+function clearFilters(formId) {
+    resetFormElements(formId);
+    getListOfResults(false, true);
+}
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {
     getListOfResults(firstTime, filters);
@@ -177,7 +226,8 @@ function recolectDataFromForm(filters, firstTime) {
             StartDate: startDateData,
             EndDate: endDateData,
             PaymentPeriod: Number(paymentPeriodSelect.value),
-            TransactionStatusName: statusSelectFilters.value === '' ? null : statusSelectFilters.value
+            TransactionStatusName: statusSelectFilters === null ? null : statusSelectFilters.value === '' ? null : statusSelectFilters.value,
+            ProjectId: projectSelectFilters === null ? null : projectSelectFilters.value === '' ? null : Number(projectSelectFilters.value)
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];

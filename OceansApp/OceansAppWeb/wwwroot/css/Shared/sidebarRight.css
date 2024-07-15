@@ -1,0 +1,97 @@
+﻿#right-sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    right: 0;
+    background-color: rgb(49, 50, 49, 0.9);
+    border-start-start-radius: 15px;
+    border-end-start-radius: 15px;
+    transition: width 0.5s ease;
+    padding-top: 30px;
+    z-index: 1000;
+    overflow-x: hidden;
+}
+.header-btns-container{
+    padding: 5px;
+}
+.header-btns-container button img{
+    margin-right: 3px;
+}
+.clear-btn {
+    border: none;
+    outline: none;
+    border-radius: 15px;
+    padding: 1px 6px;
+    color: #000;
+    background-color: var(--clr-grayDark);
+    font-weight: bold;
+    display: inline-flex;
+}
+.scroll-container {
+    overflow-y: auto;
+    max-height: -webkit-fill-available;
+    max-height: -moz-available; /* For Firefox */
+    max-height: fill-available;
+    position: absolute;
+    width: 278px;
+}
+#right-sidebar .closebtn {
+    position: absolute;
+    top: 5px;
+    padding: 2px;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right: 5px;
+    font-size: 36px;
+    color: #fff;
+    background-color: transparent;
+    border: none;
+}
+
+    #right-sidebar .right-sidebar-title {
+        text-align: center;
+        width: 100%;
+        font-weight: bold;
+        font-size: 20px;
+        color: #fff;
+    }
+
+#right-sidebar-container {
+    color: #fff;
+    text-align: left;
+    padding: 5px;
+    border: solid 1px var(--clr-blueDark);
+    margin: 0 6px 7px;
+    width: -webkit-fill-available;
+    width: -moz-available; /* For Firefox */
+    width: fill-available;
+    height: -webkit-fill-available;
+    height: -moz-available; /* For Firefox */
+    height: fill-available;
+    position: fixed;
+    border-radius: 15px;
+}
+
+    #right-sidebar-container .select-container {
+        display: grid;
+        padding: 5px;
+        text-align: center;
+    }
+
+        #right-sidebar-container .select-container select {
+            height: 30px;
+            display: flex;
+            padding: 0 7px;
+            background-color: var(--clr-grayLight);
+        }
+    #right-sidebar-container .radio-buttons-container {
+        padding: 5px;
+        margin: 5px;
+        background-color: var(--clr-grayLight);
+        color: #000;
+        border-radius: 15px;
+    }

@@ -84,7 +84,8 @@
     }
 .table-header-actions {
     display: flex;
-    padding: 4px;
+    justify-content: space-between;
+    padding: 8px;
     border: solid 2px rgb(155, 168, 184, 0.5);
     border-start-start-radius: 15px;
     border-start-end-radius: 15px;
@@ -103,84 +104,19 @@
         }
 .action-btns-container {
     display: flex;
-    position: absolute;
-    right: 0;
-    transform: translate(-50%, -50%);
-    top:50%;
 }
-.action-btns-container button{
-    border: none;
-    padding: 0;
-    background-color: transparent;
-    outline: none;
-}
-    .action-btns-container button:hover svg {
-        color: red;
-    }
-    /* FILTERS SIDEBAR */
-.filters-sidebar {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    top: 0;
-    right: 0;
-    background-color: rgb(49, 50, 49, 0.9);
-    border-start-start-radius: 15px;
-    border-end-start-radius: 15px;
-    transition: width 0.5s ease;
-    padding-top: 30px;
-    z-index: 1000;
-    overflow-x: hidden;
-}
-
-    .filters-sidebar .closebtn {
-        position: absolute;
-        top: 5px;
-        padding: 2px;
-        height: 40px;
-        width: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        right: 5px;
-        font-size: 36px;
-        color: #fff;
-        background-color: transparent;
+    .action-btns-container button {
         border: none;
+        padding: 2px;
+        background-color: transparent;
+        outline: none;
+        margin: 0 5px;
     }
-    .filters-sidebar .more-filters-title {
-        text-align: center;
-        width: 100%;
-        font-weight: bold;
-        font-size: 20px;
-        color: #fff;
+    .action-btns-container button:hover {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
     }
-#more-filters-container {
-    color: #fff;
-    text-align: left;
-    padding: 5px;
-    border: solid 1px var(--clr-blueDark);
-    margin: 0 6px 7px;
-    width: -webkit-fill-available;
-    width: -moz-available; /* For Firefox */
-    width: fill-available;
-    height: -webkit-fill-available;
-    height: -moz-available; /* For Firefox */
-    height: fill-available;
-    position: fixed;
-    overflow-y: auto;
-    border-radius: 15px;
-}
-#more-filters-container .select-container {
-    display: grid;
-    padding: 5px;
-    text-align: center;
-}
-    #more-filters-container .select-container select{
-        height: 30px;
-        display: flex;
-        padding: 0 7px;
-    }
+
+
 /* Table */
 table {
     width: 100%;

@@ -20,7 +20,7 @@
                     <i class="bi bi-search placeholder-image"></i>
                 </div>
             <div class="action-btns-container">
-                <button id="openSidebarBtn" onclick="openNav()"> <img src="/icons/Shared/filter.svg"></button>
+                <button id="openSidebarBtn" onclick="displayMoreFiltersPaymentSheet()"><img src="/icons/Shared/filter.svg"></button>
             </div>
         </div>
         <div class="additional-filters">
@@ -77,22 +77,8 @@
         <div class="no-results"></div>
     </div>
 </div>
-<div id="filtersSidebar" class="filters-sidebar">
-    <button class="closebtn" onclick="closeNav()">×</button>
-    <label class="more-filters-title">More filters</label>
-    <div id="more-filters-container">
-        <div class="select-container">
-            <label>Status</label>
-            <select onchange="getListOfResults(false, true)" id="statusSelectFilters" class="form-select">
-                <option value="">All statuses</option>
-                <option value="Approved">Approved</option>
-                <option value="Pending">Pending</option>
-                <option value="Waiting to be approved">Waiting to be approved</option>
-            </select>
-        </div>
+<partial name="_SidebarRightPartial" />
 
-    </div>
-</div>
 <div>
     <partial name="_ReviewForApprovalModalPartialView" />
 </div>
@@ -103,3 +89,4 @@
 <script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/navigateBetweenPeriods.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/Projects/projectsFillDropdowns.js?v=@DateTime.Now.Ticks"></script>

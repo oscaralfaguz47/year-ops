@@ -249,8 +249,8 @@ function fillRolesForSelect(isAdministrative, isEditingConsultant, userRole) {
                 selectElement.innerHTML = '';
                 if (isAdministrative) {
                     data.roles.forEach(obj => {
-                        if (obj.name !== "Computer Consultant") {
-                            selectElement.add(new Option(obj.name, obj.value));
+                        if (obj.text !== "Computer Consultant") {
+                            selectElement.add(new Option(obj.text, obj.value));
                         }
                     });
                     if (!isEditingConsultant) {

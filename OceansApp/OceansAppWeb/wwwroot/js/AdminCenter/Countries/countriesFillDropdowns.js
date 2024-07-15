@@ -1,22 +1,19 @@
 ﻿
 async function getCountriesList() {
-    var url = "/AdminCenter/Countries/GetAllCountriesListForSelect";
-    return fetch(url)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.json().then(errorData => {
-                    displayToasterError(errorData.error);
-                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
-                });
-            }
-        })
-        .catch(error => {
-                validateSessionExpiration(error.message);
-            displayToasterError("Internet connection failed");
-            throw new Error('Network error or unable to reach the server. More details: ' + error.message);
-        });
+    const url = `/AdminCenter/Countries/GetAllCountriesListForSelect`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorData = await response.json();
+            displayToasterError(errorData.error);
+            throw new Error(`The request to the server failed! More details: ${errorData.detail}`);
+        }
+        return await response.json();
+    } catch (error) {
+        validateSessionExpiration(error.message);
+        displayToasterError("Internet connection failed");
+        throw new Error(`Network error or unable to reach the server. More details: ${error.message}`);
+    }
 }
 
 function fillCountriesSelectForFilters(selectElement, firstOption) {
@@ -28,7 +25,7 @@ function fillCountriesSelectForFilters(selectElement, firstOption) {
         .then(data => {
             selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
             data.countries.forEach(obj => {
-                selectElement.add(new Option(obj.name, obj.value));
+                selectElement.add(new Option(obj.text, obj.value));
             });
         })
         .catch(error => {

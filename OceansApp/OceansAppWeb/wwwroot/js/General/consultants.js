@@ -1,4 +1,7 @@
-﻿$(document).ready(function () {
+﻿let rightSidebarFiltersIsDiplayed = false;
+let activeInactiveRadioElement = null;
+let countrySelectFilters = null;
+$(document).ready(function () {
     getListOfResults(true, false);
 });
 
@@ -99,6 +102,89 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 
+//More filters
+async function displayMoreFiltersConsultants() {
+    if (!rightSidebarFiltersIsDiplayed) {
+        displaySpinner();
+        let rightSidebarContainer = document.getElementById('right-sidebar-container');
+        rightSidebarContainer.innerHTML = `
+        <div class="header-btns-container">
+         <button class="clear-btn" onclick="clearFilters('filters-form')"><img class="filter-icon" src="/icons/Shared/clear.svg">Clear filters </button>
+        </div>
+        <div class="scroll-container">
+          <form id="filters-form">
+           <div class="radio-buttons-container">
+             <div class="radio-group active-inactive-rg">
+               <label class="radio-label">
+                   <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="true" class="radio-input">
+                   <span class="radio-custom"></span>
+                   &nbsp; Active
+               </label>
+               <label class="radio-label">
+                   <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="false" class="radio-input">
+                   <span class="radio-custom"></span>
+                   &nbsp; Inactive
+               </label>
+             </div>
+           </div>
+           <div class="radio-buttons-container">
+             <div class="radio-group twoFactor-rg">
+               <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="two-factor" type="radio" value="true" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Two-Factor Auth Enabled
+               </label>
+               <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="two-factor" type="radio" value="false" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Two-Factor Auth Disabled
+               </label>
+             </div>
+           </div>
+           <div class="radio-buttons-container">
+             <div class="radio-group confirmedEmail-rg">
+               <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="confirmedEmail" type="radio" value="true" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Confirmed Email
+               </label>
+               <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="confirmedEmail" type="radio" value="false" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Unconfirmed Email
+               </label>
+             </div>
+           </div>
+           <div class="select-container">
+             <label>Country</label>
+             <select onchange="paginationSubmit(false, true)" id="countrySelectFilters" class="form-select">
+             </select>
+           </div>
+          </form>
+        <div>`;
+
+        activeInactiveRadioElement = document.querySelector('.active-inactive-rg');
+        countrySelectFilters = document.getElementById('countrySelectFilters');
+
+        try {
+            const data = await getCountriesList();
+            populateSelect('countrySelectFilters', data.countries, 'All countries', null);
+
+            openRightSidebar();
+            rightSidebarFiltersIsDiplayed = true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        } finally {
+            hideSpinner();
+        }
+    }
+    openRightSidebar();
+}
+function clearFilters(formId) {
+    resetFormElements(formId);
+    getListOfResults(false, true);
+}
 
 //Pagination and Filters
 function paginationSubmit(firstTime, filters) {
@@ -107,10 +193,10 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters) {
     {
         var searchText = $('#search-input').val();
-        const activeInactiveRadioElement = document.querySelector('.active-inactive-rg input[type="radio"]:checked');
         var activeInactiveValue = null;
         if (activeInactiveRadioElement !== null) {
-            activeInactiveValue = Boolean(document.querySelector('input[name="active-inactive"]:checked').value === 'true');
+            const checkedElement = activeInactiveRadioElement.querySelector('input[type="radio"]:checked');
+            activeInactiveValue = checkedElement === null ? null : Boolean(activeInactiveRadioElement.querySelector('input[type="radio"]:checked').value === 'true');
         }
         const twoFactorRadioElement = document.querySelector('.twoFactor-rg input[type="radio"]:checked');
         var isTwoFactorEnabledValue = null;
@@ -122,12 +208,11 @@ function recolectDataFromForm(filters) {
         if (confirmedEmailElement !== null) {
             confirmedEmailValue = Boolean(document.querySelector('input[name="confirmedEmail"]:checked').value === 'true');
         }
-        var countryValue = document.getElementById("CountrySelect").value || null;
 
         var filtersData = {
             SearchText: searchText,
             IsActive: activeInactiveValue,
-            CountryId: countryValue,
+            CountryId: countrySelectFilters === null ? null : countrySelectFilters.value === '' || countrySelectFilters.value === 'null' ? null : countrySelectFilters.value,
             IsTwoFactorEnabled: isTwoFactorEnabledValue,
             EmailConfirmed: confirmedEmailValue
         };
@@ -143,7 +228,7 @@ function recolectDataFromForm(filters) {
             RequestFromFilters: filters,
             OrderBy: orderByData
         }
-
+        console.log(filtersData);
         return {
             Filters: filtersData,
             PaginationWithoutFilters: paginationWithoutFilters

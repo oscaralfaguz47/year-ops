@@ -9,10 +9,10 @@ namespace OceansApp.Models.ViewModels.Components
         public bool IsLastPage => (TotalResults - (PageIndex * PageSize)) <= 0;
         public IEnumerable<SelectVM> ItemsPerPageList { get; set; } = new List<SelectVM>
     {
-        new SelectVM { Value = "50", Name = "50" },
-        new SelectVM { Value = "100", Name = "100" },
-        new SelectVM { Value = "200", Name = "200" },
-        new SelectVM { Value = "300", Name = "300" }
+        new SelectVM { Value = "50", Text = "50" },
+        new SelectVM { Value = "100", Text = "100" },
+        new SelectVM { Value = "200", Text = "200" },
+        new SelectVM { Value = "300", Text = "300" }
     };
 
     }

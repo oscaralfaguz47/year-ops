@@ -6,80 +6,22 @@
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
-    <div class="filters-container">
-        <div>
-            <div class="search-header-container">
-                <div>
-                    <h2>CONSULTANTS</h2>
-                    <div class="input-container">
-                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                        <i class="bi bi-search placeholder-image"></i>
-                    </div>
-                    <div class="action-buttons">
-                        <a onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant',null)">Add New Consultant</a>
-                    </div>
-                </div>
-                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
-            </div>
-            <div class="more-filters-cont">
-                <div id="more-filters">
-                    <div class="row">
-                        <div class="col-sm-1">
-                            <div class="radio-group active-inactive-rg">
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="true" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Active
-                                </label>
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="false" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Inactive
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <div class="radio-group twoFactor-rg">
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="two-factor" type="radio" value="true" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Two-Factor Auth Enabled
-                                </label>
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="two-factor" type="radio" value="false" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Two-Factor Auth Disabled
-                                </label>
-                            </div>
-                        </div> <div class="col-sm-2">
-                            <div class="radio-group confirmedEmail-rg">
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="confirmedEmail" type="radio" value="true" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Confirmed Email
-                                </label>
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="confirmedEmail" type="radio" value="false" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Unconfirmed Email
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="year" class="select-label">Country</label>
-                            <div class="">
-                                <span class="arrow-down"></span>
-                                <select id="CountrySelect" class="form-select" onfocus="fillCountriesSelectForFilters(this, 'Select a country')" onchange="paginationSubmit(false, true)">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="principal-buttons">
-                        <a asp-area="General" asp-controller="Consultants" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
-                    </div>
-                </div>
+    <div class="principal-header-container">
+        <div class="filters-container">
+            <div class="header-page">
+                <h2>CONSULTANTS</h2>
             </div>
             <partial name="_Pagination" />
+        </div>
+        <div class="table-header-actions">
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
+            <div class="action-btns-container">
+                <button title="Add new consultant" id="openSidebarBtn" onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant',null)"><img src="/icons/Shared/add.svg"></button>
+                <button title="See more filters" id="openSidebarBtn" onclick="displayMoreFiltersConsultants()"><img src="/icons/Shared/filter.svg"></button>
+            </div>
         </div>
     </div>
     <div class="global-table-container">
@@ -138,6 +80,7 @@
         <div class="no-results"></div>
     </div>
 </div>
+<partial name="_SidebarRightPartial" />
 <!--CREATE UPDATE CONSULTANT-->
 <div>
     <partial name="_CreateUpdateConsultantModalPartialView" />

@@ -25,7 +25,7 @@ namespace OceansApp.DataAccess.Repository
                 .Select(c => new SelectVM
                 {
                     Value = c.DocumentType,
-                    Name = c.DocumentType
+                    Text = c.DocumentType
                 })
                 .ToListAsync();
 

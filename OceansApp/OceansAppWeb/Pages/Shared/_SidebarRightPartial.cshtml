@@ -1,0 +1,13 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/sidebarRight.css?v=@DateTime.Now.Ticks" />
+
+<div id="right-sidebar">
+    <button class="closebtn" onclick="closeRightSidebar()">×</button>
+    <label class="right-sidebar-title">More filters</label>
+    <div id="right-sidebar-container">
+    </div>
+</div>
+
+<script src="~/js/Shared/sidebarRight.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/FormElements/selects.js?v=@DateTime.Now.Ticks"></script>

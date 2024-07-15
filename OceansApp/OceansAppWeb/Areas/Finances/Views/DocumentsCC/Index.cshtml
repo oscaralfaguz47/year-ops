@@ -38,14 +38,14 @@
                                         <option selected value="">Selecciona un tipo de documento</option>
                                         @foreach (var docType in Model.DocumentTypeList)
                                         {
-                                            <option value="@docType.Value">@docType.Name</option>
+                                            <option value="@docType.Value">@docType.Text</option>
                                         }
                                     </select>
                                     @foreach (var docType in Model.DocumentTypeList)
                                     {
                                         int index = Model.DocumentTypeList.IndexOf(docType);
                                         <input type="hidden" asp-for="DocumentTypeList[index].Value" name="DocumentTypeList[@index].Value" />
-                                        <input type="hidden" asp-for="DocumentTypeList[index].Name" name="DocumentTypeList[@index].Name" />
+                                        <input type="hidden" asp-for="DocumentTypeList[index].Text" name="DocumentTypeList[@index].Name" />
                                     }
                                 </div>
                             </div>
@@ -57,13 +57,13 @@
                                         <option selected value="">Selecciona un Cliente/Persona</option>
                                         @foreach (var client in Model.ClientList)
                                         {
-                                            <option value="@client.Value">@client.Name</option>
+                                            <option value="@client.Value">@client.Text</option>
                                         }
                                     </select>
                                     @foreach (var client in Model.ClientList)
                                     {
                                         int index = Model.ClientList.IndexOf(client);
-                                        <input type="hidden" asp-for="ClientList[index].Name" name="ClientList[@index].Name" />
+                                        <input type="hidden" asp-for="ClientList[index].Text" name="ClientList[@index].Name" />
                                         <input type="hidden" asp-for="ClientList[index].Value" name="ClientList[@index].Value" />
                                     }
                                 </div>
@@ -110,7 +110,7 @@
                             <select asp-for="Pagination.PageSize" class="form-select" onchange="paginationButtonActions('firstPage'); this.form.submit();">
                                 @foreach (var item in Model.Pagination.ItemsPerPageList)
                                 {
-                                    <option value="@item.Value">@item.Name</option>
+                                    <option value="@item.Value">@item.Text</option>
                                 }
                             </select>
                         </div>

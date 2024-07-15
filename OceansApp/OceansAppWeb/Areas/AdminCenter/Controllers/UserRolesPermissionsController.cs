@@ -124,7 +124,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 var roles = _roleManager.Roles.ToList().Where(x => x.Name != missingRole).OrderBy(x => x.Name);
                 foreach (var role in roles)
                 {
-                    rolesList.Add(new SelectVM { Value = role.Name, Name = role.Name });
+                    rolesList.Add(new SelectVM { Value = role.Name, Text = role.Name });
                 }
                 return Ok(new
                 {

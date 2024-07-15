@@ -105,7 +105,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     foreach (var docType in documentTypes)
                     {
-                        documentTypesList.Add(new SelectVM { Value = docType.Value, Name = docType.Name });
+                        documentTypesList.Add(new SelectVM { Value = docType.Value, Text = docType.Text });
                     }
                 }
 
@@ -116,7 +116,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     foreach (var client in clients)
                     {
-                        clientList.Add(new SelectVM { Value = client.ClientId.ToString(), Name = client.Name });
+                        clientList.Add(new SelectVM { Value = client.ClientId.ToString(), Text = client.Name });
                     }
                 }
                 var totalResults = await _unitOfWork.DocumentCC.GetAllDocumentsCCWithFiltersAsync(modelToSend);

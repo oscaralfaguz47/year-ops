@@ -108,7 +108,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     var seniorityList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(int.Parse(model.CalculatorPriceToClient.ConsultantRoleId));
                     foreach (var seniority in seniorityList)
                     {
-                        model.CalculatorPriceToClient.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Name, Value = seniority.Value });
+                        model.CalculatorPriceToClient.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Text, Value = seniority.Value });
                     }
                 }
                 catch (Exception ex)
@@ -696,7 +696,7 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
                     var seniorityList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(int.Parse(model.CalculatorPriceToConsultant.ConsultantRoleId));
                     foreach (var seniority in seniorityList)
                     {
-                        model.CalculatorPriceToConsultant.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Name, Value = seniority.Value });
+                        model.CalculatorPriceToConsultant.ConsultantSeniorityList.Add(new SelectListItem { Text = seniority.Text, Value = seniority.Value });
                     }
                 }
                 catch (Exception ex)

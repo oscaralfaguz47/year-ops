@@ -8,7 +8,7 @@ function updatePaginationValues(paginationData) {
     paginationData.itemsPerPageList.forEach(function (opcion) {
         let option = document.createElement("option");
         option.value = opcion.value;
-        option.text = opcion.name;
+        option.text = opcion.text;
         if (parseInt(opcion.value, 10) === paginationData.pageSize) {
             option.selected = true;
         }

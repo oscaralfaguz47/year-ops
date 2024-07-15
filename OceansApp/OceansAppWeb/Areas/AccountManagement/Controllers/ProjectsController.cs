@@ -26,12 +26,14 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             _authorizationService = authorizationService;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpGet("GetProjectsList")]
         public async Task<IActionResult> GetProjectsList(string model)
         {
@@ -101,6 +103,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpGet("GetProjectDataById")]
         public async Task<IActionResult> GetProjectDataById(int projectId)
         {
@@ -125,6 +128,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpGet("GetAssignedConsultantToProjectById")]
         public async Task<IActionResult> GetAssignedConsultantToProjectById(int consultantProjectAssignedtId)
         {
@@ -155,6 +159,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpPost("CreateUpdateProject")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdateProject([FromBody] CreateUpdateProjectVM projectData)
@@ -278,6 +283,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpPost("UpdateConsultantParameters")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateConsultantParameters([FromBody] CreateUpdateProjectConsultantAssignedVM consultantParametersData)
@@ -331,6 +337,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpPost("ActivateDeactivateConsultantFromProject")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId, [FromForm] DateTime actionDate)
@@ -388,6 +395,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpPost("ActivateDeactivateProject")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateProject([FromForm] int projectId)
@@ -411,6 +419,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+        [Authorize(Policy = "AccessToProjectsPage")]
         [HttpGet("GetProjectConsultantAssignedHistoryById")]
         public async Task<IActionResult> GetProjectConsultantAssignedHistoryById(int projectConsultantAssignedId)
         {
@@ -435,6 +444,33 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error =  $"There was an error fetching the list.", success = false, result = "errorGet", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "AccessToActiveProjectsListForSelect")]
+        [HttpGet("GetAllActiveProjectsList")]
+        public async Task<IActionResult> GetAllActiveProjectsList()
+        {
+            try
+            {
+                var activeProjects = await _unitOfWork.Project.GetAllAsync(x=>x.IsActive == true);
+                List<GetDataForSelectVM> listToSend = new List<GetDataForSelectVM>();
+                foreach (var project in activeProjects)
+                {
+                    GetDataForSelectVM projectToAdd = new(){
+                        Value = project.ProjectId,
+                        Text = project.Name
+                    };
+                    listToSend.Add(projectToAdd);
+                }
+                return Ok(new
+                {
+                    Projects = listToSend
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
 
