@@ -5,33 +5,24 @@
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
-    <div class="filters-container">
-        <div>
-            <div class="search-header-container">
-                <div>
-                    <h2>CONSULTANT POSITIONS ACCOUNTING CONFIG</h2>
-                    <div class="input-container">
-                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                        <i class="bi bi-search placeholder-image"></i>
-                    </div>
-                    <div class="action-buttons">
-                        <a onclick="displayUpdateCreatePositionModal('modal-update-create-position', null)">Create New Position</a>
-                    </div>
-                </div>
-                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
-            </div>
-            <div class="more-filters-cont">
-                <div id="more-filters">
-                    <div class="row">
-                    </div>
-                    <div class="principal-buttons">
-                        <a asp-area="AdminCenter" asp-controller="ConsultantPositions" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
-                    </div>
-                </div>
+    <div class="principal-header-container">
+        <div class="filters-container">
+            <div class="header-page">
+                <h2>CONSULTANT POSITIONS ACCOUNTING CONFIG</h2>
             </div>
             <partial name="_Pagination" />
         </div>
+        <div class="table-header-actions">
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
+            <div class="action-btns-container">
+                <button title="Add new position" id="openSidebarBtn" onclick="displayUpdateCreatePositionModal('modal-update-create-position', null)"><img src="/icons/Shared/add.svg"></button>
+            </div>
+        </div>
     </div>
+
     <div class="global-table-container">
         <table>
             <thead>

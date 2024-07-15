@@ -1,6 +1,8 @@
 ﻿let rightSidebarFiltersIsDiplayed = false;
 let activeInactiveRadioElement = null;
 let countrySelectFilters = null;
+let countriesArray = [];
+let holidaysArray = [];
 $(document).ready(function () {
     getListOfResults(true, false);
 });
@@ -165,20 +167,13 @@ async function displayMoreFiltersConsultants() {
 
         activeInactiveRadioElement = document.querySelector('.active-inactive-rg');
         countrySelectFilters = document.getElementById('countrySelectFilters');
-
-        try {
-            const data = await getCountriesList();
-            populateSelect('countrySelectFilters', data.countries, 'All countries', null);
-
-            openRightSidebar();
-            rightSidebarFiltersIsDiplayed = true;
-        } catch (error) {
-            console.error(error);
-            throw error;
-        } finally {
-            hideSpinner();
+        if (countriesArray.length === 0) {
+            countriesArray = await getCountriesList();
         }
+        populateSelect('countrySelectFilters', countriesArray.countries, 'All countries', null);
+       
     }
+    hideSpinner();
     openRightSidebar();
 }
 function clearFilters(formId) {

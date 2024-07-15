@@ -1,13 +1,19 @@
-﻿
+﻿var countrySelectCreateUpdate = document.getElementById('CountrySelect');
+var holidaySelectCreateUpdate = document.getElementById('HolidaysSelect');
 //CREATE / UPDATE CONSULTANT MODAL
 async function displayUpdateCreateConsultantModal(modalId, id) {
+    if (countriesArray.length === 0) {
+        countriesArray = await getCountriesList();
+    }
+    if (holidaysArray.length === 0) {
+        holidaysArray = await getHolidaysList();
+    }
+    populateSelect('CountrySelect', countriesArray.countries, '-Select a country-', null);
+    populateSelect('HolidaysSelect', holidaysArray.holidays, '-Select a holiday-', null);
     var modalTitle = document.getElementById('create-consultant-modal-title');
     modalTitle.textContent = "ADD NEW CONSULTANT";
     var createUpdateForm = $('#form-create-update');
     var otherConfigForm = $('#form-other-config');
-    var holidaySelect = document.getElementById("HolidaysSelect");
-    const selectedHolidayOption = document.createElement('option');
-    holidaySelect.innerHTML = `<option value>- Select a Holiday -</option>`;
     inicializeModalButtons(modalId);
     resetForm('form-create-update');
     resetForm('form-other-config');
@@ -23,8 +29,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
     document.getElementById("saved-consultant-message").style.display = "none";
     var projectsAssignedSection = document.getElementById("projects-assigned-section");
     projectsAssignedSection.style.display = "none";
-    const countrySelect = createUpdateForm.find('[name="idCountry"]')[0];
-    countrySelect.innerHTML = '<option value="">-Select a country-</option>';
     if (id !== null) {
         modalTitle.textContent = "UPDATE CONSULTANT";
         var url = "/General/Consultants/GetConsultantDataById?consultantId=" + encodeURIComponent(id);
@@ -57,21 +61,12 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 paymentMethodSelect.val(data.consultantData.paymentMethodId);
                 selectCategory(data.consultantData.userCategoryName, data.consultantData.positions, true, data.consultantData.userRole);
                 createUpdateForm.find('[name="userCategoryName"]').val(data.consultantData.userCategoryName);
-                var countrySelect = createUpdateForm.find('[name="idCountry"]');
-                countrySelect.html('<option value="' + data.consultantData.idCountry + '">' + data.consultantData.countryName + '</option>');
-                createUpdateForm.find('[name="idCountry"]').val(data.consultantData.idCountry);
+                countrySelectCreateUpdate.value = data.consultantData.idCountry;
                 createUpdateForm.find('[name="address"]').val(data.consultantData.address);
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
                 otherConfigForm.find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
-
-                if (data.consultantData.consultantHolidayId !== null) {
-                    holidaySelect.innerHTML = '';
-                    selectedHolidayOption.value = data.consultantData.consultantHolidayId;
-                    selectedHolidayOption.textContent = data.consultantData.consultantHolidayName;
-                    holidaySelect.appendChild(selectedHolidayOption);
-                }
-                holidaySelect.value = data.consultantData.consultantHolidayId === null ? '' : data.consultantData.consultantHolidayId;
+                holidaySelectCreateUpdate.value = data.consultantData.consultantHolidayId;
 
                 showModal(modalId);
             })
@@ -104,7 +99,6 @@ async function createUpdateConsultant(modalId) {
     var consultantLastNameData = createUpdateForm.find('[name="lastName"]').val();
     var emailData = createUpdateForm.find('[name="userName"]').val();
     var userCategoryNameData = createUpdateForm.find('[name="userCategoryName"]').val() === undefined ? 'Consultant' : createUpdateForm.find('[name="userCategoryName"]').val();
-    var idCountryData = createUpdateForm.find('[name="idCountry"]').val();
     var phoneNumberData = createUpdateForm.find('[name="phoneNumber"]').val() || null;
     var phone2Data = createUpdateForm.find('[name="phone2"]').val() || null;
     var companyIdData = createUpdateForm.find('[name="CompanyId"]').val();
@@ -115,7 +109,6 @@ async function createUpdateConsultant(modalId) {
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
     var participatesOnCallData = otherConfigForm.find('[name="onCallParticiation"]').prop('checked');
-    var holidayIdData = Number(otherConfigForm.find('[name="idConsultantHoliday"]').val()) || null;
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
@@ -133,21 +126,21 @@ async function createUpdateConsultant(modalId) {
         LastName: consultantLastNameData,
         Email: emailData,
         UserCategoryName: userCategoryNameData,
-        IdCountry: idCountryData,
+        IdCountry: countrySelectCreateUpdate.value === '' || countrySelectCreateUpdate.value === 'null' ? null : countrySelectCreateUpdate.value,
         PhoneNumber: phoneNumberData,
         Phone2: phone2Data,
         CompanyId: companyIdData,
         PaymentMethodId: paymentMethodIdData,
         PaymentPeriod: paymentPeriodIdData,
         ParticipatesInOnCalls: Boolean(participatesOnCallData),
-        ConsultantHolidayId: holidayIdData,
+        ConsultantHolidayId: holidaySelectCreateUpdate.value === '' || holidaySelectCreateUpdate.value === 'null' ? null : holidaySelectCreateUpdate.value,
         Address: addressData,
         PersonalEmail: personalEmailData,
         Location: locationData,
         UserRole: userRoleData,
         Positions: positionsData
     };
-
+    console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {
         method: 'POST',
         headers: {

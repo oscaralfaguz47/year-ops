@@ -6,33 +6,24 @@
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
-    <div class="filters-container">
-        <div>
-            <div class="search-header-container">
-                <div>
-                    <h2>HOLIDAYS LISTS</h2>
-                    <div class="input-container">
-                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                        <i class="bi bi-search placeholder-image"></i>
-                    </div>
-                    <div class="action-buttons">
-                        <a onclick="displayCreateUpdateModal('modal-create-holiday', 'CREATE NEW HOLIDAYS LIST',null)">Create Holidays List</a>
-                    </div>
-                </div>
-                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
-            </div>
-            <div class="more-filters-cont">
-                <div id="more-filters">
-                    <div class="row">
-                    </div>
-                    <div class="principal-buttons">
-                        <a asp-area="General" asp-controller="ConsultantHolidays" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
-                    </div>
-                </div>
+    <div class="principal-header-container">
+        <div class="filters-container">
+            <div class="header-page">
+                <h2>HOLIDAYS</h2>
             </div>
             <partial name="_Pagination" />
         </div>
+        <div class="table-header-actions">
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
+            <div class="action-btns-container">
+                <button title="Add new holiday list" id="openSidebarBtn" onclick="displayCreateUpdateModal('modal-create-holiday', 'CREATE NEW HOLIDAYS LIST',null)"><img src="/icons/Shared/add.svg"></button>
+            </div>
+        </div>
     </div>
+
     <div class="global-table-container">
         <table class="">
             <thead>
@@ -63,7 +54,7 @@
     <div class="global-modal-content">
         <div class="container">
             <div>
-
+                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-create-holiday')">x</button></div>
                 <h2 id="create-edit-holiday-title">
                 </h2>
                 <form id="form-create-update">
