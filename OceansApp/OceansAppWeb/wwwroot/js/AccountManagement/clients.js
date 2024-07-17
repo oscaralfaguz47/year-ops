@@ -1,4 +1,9 @@
-﻿$(document).ready(function () {
+﻿let rightSidebarFiltersIsDiplayed = false;
+let successManagersArray = [];
+let successManagerSelectFilters = null;
+let successManagerSelect = document.getElementById('successManager');
+let activeInactiveRadioElement = null;
+$(document).ready(function () {
     getListOfResults(true, false);
 });
 
@@ -86,6 +91,85 @@ async function getListOfResults(firstTime, filters) {
         .finally(() => {
             hideSpinner();
         });
+}
+
+//MORE FILTERS
+async function displayMoreFiltersClients() {
+    if (!rightSidebarFiltersIsDiplayed) {
+        displaySpinner();
+        let rightSidebarContainer = document.getElementById('right-sidebar-container');
+        rightSidebarContainer.innerHTML = `
+        <div class="header-btns-container">
+         <button class="clear-btn" onclick="clearFilters('filters-form')"><img class="filter-icon" src="/icons/Shared/clear.svg">Clear filters </button>
+        </div>
+        <div class="scroll-container">
+          <form id="filters-form">
+           <div class="select-container">
+             <label>Success Manager</label>
+             <select onchange="paginationSubmit(false, true)" id="SuccessManagerIdFilters" class="form-select">
+             </select>
+           </div>
+           <div class="radio-buttons-container">
+            <div class="radio-group active-inactive-rg">
+             <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="S" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Active
+             </label>
+             <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="N" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Inactive
+             </label>
+            </div>
+           </div>
+           <div class="radio-buttons-container">
+            <div class="radio-group company-radio-rg">
+             <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="OCE" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Oceans
+             </label>
+             <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="LLC" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; LLC
+             </label>
+            </div>
+           </div>
+             <div>
+              <div class="start-end-date-container">
+                  <label>Admission Date</label>
+                  <div class="datepickers-container">
+                    <div>
+                        <label for="startDate">Date From</label>
+                        <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
+                    </div>
+                    <div>
+                        <label for="endDate">Date Until</label>
+                        <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
+                    </div>
+                  </div>
+                  <label id="dates-val-message" class="validation-message"></label>
+              </div>
+           </div>
+          </form>
+        <div>`;
+
+        successManagerSelectFilters = document.getElementById('SuccessManagerIdFilters');
+        if (successManagersArray.length === 0) {
+            successManagersArray = await getSuccessManagersList();
+        }
+        populateSelect('SuccessManagerIdFilters', successManagersArray.successManagers, 'All success managers', null);
+        activeInactiveRadioElement = document.querySelector('.active-inactive-rg');
+        rightSidebarFiltersIsDiplayed = true;
+    }
+    hideSpinner();
+    openRightSidebar();
+}
+function clearFilters(formId) {
+    resetFormElements(formId);
+    getListOfResults(false, true);
 }
 
 async function getSuccessManagers() {
@@ -223,8 +307,10 @@ async function displayUpdateModal(modalId, clientId) {
     var permissionsContainer = $("#emails-container");
     permissionsContainer.empty();
 
-    const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
-    successManagerSelect.innerHTML = '';
+    if (successManagersArray.length === 0) {
+        successManagersArray = await getSuccessManagersList();
+    }
+    populateSelect('successManager', successManagersArray.successManagers, '-Select a success manager-', null);
 
     var url = "/AccountManagement/Clients/GetClientDataById?clientId=" + encodeURIComponent(clientId);
     displaySpinner();
@@ -252,18 +338,7 @@ async function displayUpdateModal(modalId, clientId) {
             createUpdateForm.find('[name="latePaymentFee"]').val(Number(data.clientData.latePaymentFee * 100).toFixed(2));
             createUpdateForm.find('[name="clientClass"]').val(data.clientData.clientClass);
             createUpdateForm.find('[name="address"]').val(data.clientData.address);
-            if (data.clientData.successManagerId !== null) {
-                var newOption = document.createElement('option');
-                newOption.value = data.clientData.successManagerId;
-                newOption.text = data.clientData.successManager;
-                newOption.selected = true;
-                successManagerSelect.appendChild(newOption);
-            } else {
-                var nullOption = document.createElement('option');
-                nullOption.value = null;
-                nullOption.text = "-Select a user-";
-                successManagerSelect.appendChild(nullOption);
-            }
+            successManagerSelect.value = data.clientData.successManagerId;
             var isActive = data.clientData.isActive === "S" ? true : false;
             createUpdateForm.find('[name="isActive"]').val(isActive);
             createUpdateForm.find('[name="isActive"]').prop('checked', isActive);
@@ -323,7 +398,6 @@ async function createUpdateClient(modalId) {
     var latePaymentFeeData = createUpdateForm.find('[name="latePaymentFee"]').val();
     var clientClassData = createUpdateForm.find('[name="clientClass"]').val();
     var addressData = createUpdateForm.find('[name="address"]').val();
-    var successManagerData = createUpdateForm.find('[name="successManager"]').val();
     var isActive = createUpdateForm.find('[name="isActive"]').prop('checked');
     var isActiveData = isActive ? "S" : "N";
     var allowSentLatePaymentNotificationsData = createUpdateForm.find('[name="allowSentLatePaymentNotifications"]').prop('checked');
@@ -348,7 +422,7 @@ async function createUpdateClient(modalId) {
         LatePaymentFee: Number(latePaymentFeeData).toFixed(2),
         ClientClass: clientClassData,
         Address: addressData,
-        SuccessManagerId: Number(successManagerData),
+        SuccessManagerId: successManagerSelect.value === '' ? null : Number(successManagerSelect.value),
         IsActive: isActiveData,
         AllowSentLatePaymentNotifications: Boolean(allowSentLatePaymentNotificationsData),
         AdditionalEmailsForNotifications: additionalEmaislData
@@ -437,21 +511,22 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters) {
     {
         var searchText = $('#search-input').val();
-        var activeInactiveValue = document.querySelector('.active-inactive-rg input[type="radio"]:checked')?.value || null;
+        var activeInactiveValue = activeInactiveRadioElement === null ? null : activeInactiveRadioElement.querySelector('.active-inactive-rg input[type="radio"]:checked')?.value || null;
         var companyValue = document.querySelector('.company-radio-rg input[type="radio"]:checked')?.value || null;
         var datesValMessageSpan = document.getElementById("dates-val-message");
-        datesValMessageSpan.textContent = "";
-        var startDateValue = document.getElementById("startDate").value || null;
-        var endDateValue = document.getElementById("endDate").value || null;
+        if (datesValMessageSpan !== null) {
+            datesValMessageSpan.textContent = "";
+        }
+        var startDateValue = document.getElementById("startDate") === null ? null : document.getElementById("startDate").value || null;
+        var endDateValue = document.getElementById("endDate")  === null ? null : document.getElementById("endDate").value || null;
         if (startDateValue === null || endDateValue === null) {
             startDateValue = null;
             endDateValue = null;
         } else if (startDateValue !== null & endDateValue !== null) {
             if (startDateValue > endDateValue) {
-                datesValMessageSpan.textContent = "Date From should be less than the Date Until";
+                datesValMessageSpan.textContent = "Date From must be less than Date Until";
             }
         }
-        var successManagerValue = Number(document.getElementById("succesManagerFilter").value) || null;
 
         var filtersData = {
             SearchText: searchText,
@@ -459,7 +534,7 @@ function recolectDataFromForm(filters) {
             CompanyId: companyValue,
             StartDate: startDateValue,
             EndDate: endDateValue,
-            SuccessManagerId: successManagerValue
+            SuccessManagerId: successManagerSelectFilters === null ? null : successManagerSelectFilters.value === '' ? null : Number(successManagerSelectFilters.value)
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];

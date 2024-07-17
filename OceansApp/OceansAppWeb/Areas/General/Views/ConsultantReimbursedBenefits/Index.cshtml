@@ -21,6 +21,7 @@
             </div>
             <div class="action-btns-container">
                 <button title="Add new reimbursement" id="openSidebarBtn" onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement',null)"><img src="/icons/Shared/add.svg"></button>
+                <button title="See more filters" id="openSidebarBtn" onclick="displayMoreFiltersReimbursements()"><img src="/icons/Shared/filter.svg"></button>
             </div>
         </div>
     </div>
@@ -80,6 +81,8 @@
     </div>
 </div>
 
+<partial name="_SidebarRightPartial" />
+
 <!--CREATE UPDATE REIMBURSEMENT-->
 <div>
     <partial name="_CreateUpdateReimbursementBenefitModalPartialView" />
@@ -90,3 +93,4 @@
 <script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/TransactionStatuses/transactionStatusesFillDropdows.js?v=@DateTime.Now.Ticks"></script>

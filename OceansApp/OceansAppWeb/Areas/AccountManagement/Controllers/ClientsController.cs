@@ -168,10 +168,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             try
             {
                 var successManager = await _unitOfWork.Client.GetSuccessManagerIdAndNameByClientId(clientId);
-                if (successManager == null)
-                {
-                    return NotFound(new { error = "The Success Manager is not longer in the database, is no longer a Success Manager or the client does not have a Success Manager." });
-                }
+
                 return Ok(new
                 {
                     successManager = successManager

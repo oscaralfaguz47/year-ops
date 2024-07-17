@@ -53,6 +53,7 @@
         INotificationRecipientRepository NotificationRecipient { get; }
         ISystemAreaRepository SystemArea { get; }
         ISystemSubAreaRepository SystemSubArea { get; }
+        ITransactionStatusRepository TransactionStatus { get; }
 
         Task SaveAsync();
         Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTranAsync();

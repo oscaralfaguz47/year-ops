@@ -1,4 +1,5 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿let benefitSelect = document.getElementById('BenefitSelect');
+document.addEventListener("DOMContentLoaded", function () {
     var actionDate = document.getElementById('DateToBeReimbursed');
     var today = new Date();
     var todayFormatted = today.toISOString().substr(0, 10);
@@ -17,12 +18,16 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
     modalTitle.textContent = "ADD NEW REIMBURSEMENT";
     var createUpdateForm = $('#form-create-update');
     inicializeModalButtons(modalId);
-    resetForm('form-create-update')
+    resetForm('form-create-update');
+    if (benefitsArray.length === 0) {
+        displaySpinner();
+        benefitsArray = await getBenefitsList();
+        hideSpinner();
+    }
+    populateSelect('BenefitSelect', benefitsArray.benefits, '-Select a benefit-', null);
     createUpdateForm.find('[name="reimburseBenefitId"]').val("");
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
-    const benefitSelect = createUpdateForm.find('[name="idBenefit"]')[0];
     const benefitCategorySelect = createUpdateForm.find('[name="benefitCategoryId"]')[0];
-    benefitSelect.innerHTML = '<option value="">-Select a benefit-</option>';
 
     if (id !== null) {
         modalTitle.textContent = "UPDATE REIMBURSEMENT";
@@ -50,10 +55,12 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
                 let dateToBeReimbursedDateFormat = new Date(data.benefitReimbursementData.dateToBeReimbursed);
                 createUpdateForm.find('[name="dateToBeReimbursed"]').val(dateToBeReimbursedDateFormat.toISOString().split('T')[0]);
                 createUpdateForm.find('[name="detail"]').val(data.benefitReimbursementData.detail);
-                var benefitSelect = createUpdateForm.find('[name="idBenefit"]');
                 var benefitCategorySelect = createUpdateForm.find('[name="benefitCategoryId"]');
-                benefitSelect.html('<option value="' + data.benefitReimbursementData.benefitId + '">' + data.benefitReimbursementData.benefitName + '</option>');
-                benefitSelect.val(data.benefitReimbursementData.benefitId);
+                let optionToRemove = benefitSelect.querySelector('option[value="null"]');
+                if (optionToRemove) {
+                    benefitSelect.removeChild(optionToRemove);
+                }
+                benefitSelect.value = data.benefitReimbursementData.benefitId;
 
                 selectBenefit('BenefitSelect', data.benefitReimbursementData.benefitId, true, data.benefitReimbursementData.benefitCategoryId);
                 benefitCategorySelect.val(data.benefitReimbursementData.benefitCategoryId);
@@ -76,12 +83,9 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
 //SELECT BENEFIT AND FILL BENEFIT CATEGORIES LIST
 function selectBenefit(selectElementId, selectedValue, isEditing, selectedValueBenefitCategory) {
     if (selectedValue !== null) {
-        var selectElement = document.getElementById(selectElementId);
-        for (var i = 0; i < selectElement.options.length; i++) {
-            if (selectElement.options[i].value === "" || selectElement.options[i].value === null) {
-                selectElement.remove(i);
-                break;
-            }
+        let optionToRemove = benefitSelect.querySelector('option[value="null"]');
+        if (optionToRemove) {
+            benefitSelect.removeChild(optionToRemove);
         }
         fillBenefitCategoriesForSelect(selectedValue, isEditing, selectedValueBenefitCategory);
     }
@@ -174,7 +178,3 @@ document.getElementById('Detail').addEventListener('input', function (e) {
         this.value = this.value.slice(0, 150);
     }
 });
-document.addEventListener("DOMContentLoaded", function () {
-    validateInputTypeNumber('AmountReimbursed');
-});
-

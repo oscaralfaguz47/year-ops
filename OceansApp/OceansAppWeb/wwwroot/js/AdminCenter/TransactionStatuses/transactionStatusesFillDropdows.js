@@ -1,5 +1,5 @@
-﻿async function getSuccessManagersList() {
-    var url = "/General/ConsultantDetails/GetSuccessManagers";
+﻿async function getTransactionStatusesList() {
+    const url = `/AdminCenter/TransactionStatuses/GetAllTransactionStatusesList`;
     try {
         const response = await fetch(url);
         if (!response.ok) {

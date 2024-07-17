@@ -295,6 +295,13 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType
                         && claim.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue)));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllTransactionStatusesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
+                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)));
+            });
 
         }
     }

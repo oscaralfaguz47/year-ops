@@ -1,5 +1,17 @@
-﻿$(document).ready(function () {
+﻿let rightSidebarFiltersIsDiplayed = false;
+let successManagersArray = [];
+let allActiveInactiveClientsArray = [];
+let activeClientsArray = [];
+let successManagerSelectFilters = null;
+let activeClientsSelectFilters = null;
+let activeInactiveRadioElement = null;
+const successManagerSelectCreateUpdate = document.getElementById('successManagerIdSelect');
+const clientSelectCreateUpdate = document.getElementById('ClientSelect');
+const clientHasTrackingToolInput = document.getElementById("ClientHasTrackingTool");
+
+$(document).ready(function () {
     getListOfResults(true, false);
+    selectSuccessManagerByClientId(clientSelectCreateUpdate);
 });
 
 let externalClientRb = document.getElementById('external-pt');
@@ -69,6 +81,82 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
+
+//MORE FILTERS
+async function displayMoreFiltersProjects() {
+    if (!rightSidebarFiltersIsDiplayed) {
+        displaySpinner();
+        let rightSidebarContainer = document.getElementById('right-sidebar-container');
+        rightSidebarContainer.innerHTML = `
+        <div class="header-btns-container">
+         <button class="clear-btn" onclick="clearFilters('filters-form')"><img class="filter-icon" src="/icons/Shared/clear.svg">Clear filters </button>
+        </div>
+        <div class="scroll-container">
+          <form id="filters-form">
+          <div class="select-container">
+             <label>Client</label>
+             <select onchange="paginationSubmit(false, true)" id="ClientIdFilters" class="form-select">
+             </select>
+           </div>
+           <div class="select-container">
+             <label>Success Manager</label>
+             <select onchange="paginationSubmit(false, true)" id="SuccessManagerIdFilters" class="form-select">
+             </select>
+           </div>
+           <div class="radio-buttons-container">
+            <div class="radio-group active-inactive-rg">
+             <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="true" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Active
+             </label>
+             <label class="radio-label">
+                 <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="false" class="radio-input">
+                 <span class="radio-custom"></span>
+                 &nbsp; Inactive
+             </label>
+            </div>
+           </div>
+             <div>
+              <div class="start-end-date-container">
+                  <label>Start Date</label>
+                  <div class="datepickers-container">
+                    <div>
+                        <label for="startDate">Date From</label>
+                        <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
+                    </div>
+                    <div>
+                        <label for="endDate">Date Until</label>
+                        <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
+                    </div>
+                  </div>
+                  <label id="dates-val-message" class="validation-message"></label>
+              </div>
+           </div>
+          </form>
+        <div>`;
+
+        successManagerSelectFilters = document.getElementById('SuccessManagerIdFilters');
+        if (successManagersArray.length === 0) {
+            successManagersArray = await getSuccessManagersList();
+        }
+        populateSelect('SuccessManagerIdFilters', successManagersArray.successManagers, 'All success managers', null);
+        activeClientsSelectFilters = document.getElementById('ClientIdFilters');
+        if (allActiveInactiveClientsArray.length === 0) {
+            allActiveInactiveClientsArray = await getClientsList();
+        }
+        populateSelect('ClientIdFilters', allActiveInactiveClientsArray.clients, 'All clients', null);
+
+        activeInactiveRadioElement = document.querySelector('.active-inactive-rg');
+        rightSidebarFiltersIsDiplayed = true;
+    }
+    hideSpinner();
+    openRightSidebar();
+}
+function clearFilters(formId) {
+    resetFormElements(formId);
+    getListOfResults(false, true);
+}
 function addConsultantIcons(num, tdId) {
     const tdElement = document.getElementById(tdId);
     tdElement.innerHTML = "";
@@ -89,7 +177,21 @@ async function displayUpdateModal(modalId, id) {
     document.getElementById('create-Project-modal-title').textContent = "CREATE NEW PROJECT";
     var createUpdateForm = $('#form-create-update');
     inicializeModalButtons(modalId);
-    resetForm('form-create-update')
+    resetForm('form-create-update');
+    if (activeClientsArray.length === 0) {
+        displaySpinner();
+        activeClientsArray = await getActiveClientsList();
+        hideSpinner();
+    }
+    populateSelect('ClientSelect', activeClientsArray.clients, '-Select a client-', null);
+
+    if (successManagersArray.length === 0) {
+        displaySpinner();
+        successManagersArray = await getSuccessManagersList();
+        hideSpinner();
+    }
+    populateSelect('successManagerIdSelect', successManagersArray.successManagers, '-Select a success manager-', null);
+
     var consultantsContainer = $("#consultants-container");
     consultantsContainer.empty();
     createUpdateForm.find('[name="projectId"]').val("");
@@ -97,21 +199,20 @@ async function displayUpdateModal(modalId, id) {
     projectTypeInputsCont.style.display = 'block';
     var projectTypeLabel = document.getElementById("saved-project-type-label");
     projectTypeLabel.style.display = 'none';
-    const clientSelect = createUpdateForm.find('[name="client"]')[0];
+
     var clientSelectCont = document.getElementById("client-select-cont");
     clientSelectCont.style.display = 'block';
-    clientSelect.innerHTML = '<option value="null">-Select a client-</option>';
-    clientSelect.disabled = false;
-    const successManagerSelect = createUpdateForm.find('[name="successManager"]')[0];
-    successManagerSelect.innerHTML = '<option value="null">-Select a user-</option>';
-    successManagerSelect.disabled = true;
+    clientSelectCreateUpdate.disabled = false;
+
+    successManagerSelectCreateUpdate.disabled = true;
     var billableTrackingToolCont = document.getElementById("billable-tracking-tool-cont");
     billableTrackingToolCont.style.display = 'block';
     var consultantsAssignedSection = document.getElementById("consultants-assigned-section");
     consultantsAssignedSection.style.display = 'none';
     document.getElementById("saved-project-message").style.display = "none";
     var billableInput = document.getElementById("IsBillable");
-    var clientHasTrackingToolInput = document.getElementById("ClientHasTrackingTool");
+
+    clientHasTrackingToolInput.disabled = false;
     billableInput.disabled = false;
     showModal(modalId);
     if (id !== null) {
@@ -150,20 +251,11 @@ async function displayUpdateModal(modalId, id) {
                     externalClientRb.checked = true;
                     internalClientRb.checked = false;
                 }
-                var newOptionClient = document.createElement('option');
-                newOptionClient.value = data.projectData.clientId;
-                newOptionClient.text = data.projectData.clientName;
-                newOptionClient.selected = true;
-                clientSelect.appendChild(newOptionClient);
-                clientSelect.disabled = true;
+                clientSelectCreateUpdate.value = data.projectData.clientId;
+                clientSelectCreateUpdate.disabled = true;
 
-                successManagerSelect.innerHTML = '';
-                var newOptionSuccessManager = document.createElement('option');
-                newOptionSuccessManager.value = data.projectData.successManagerId;
-                newOptionSuccessManager.text = data.projectData.successManagerName;
-                newOptionSuccessManager.selected = true;
-                successManagerSelect.appendChild(newOptionSuccessManager);
-                successManagerSelect.disabled = false;
+                successManagerSelectCreateUpdate.value = data.projectData.successManagerId;
+                successManagerSelectCreateUpdate.disabled = false;
 
                 let startDateDateFormat = new Date(data.projectData.startDate);
                 createUpdateForm.find('[name="startDate"]').val(startDateDateFormat.toISOString().split('T')[0]);
@@ -317,6 +409,7 @@ async function createUpdateProject(modalId) {
                 document.getElementById("project-type-inputs-cont").style.display = "none";
                 document.getElementById("saved-project-message").style.display = "block";
                 createUpdateForm.find('[name="projectId"]').val(data.projectId);
+                clientHasTrackingToolInput.disabled = true;
             } else {
                 hideModal(modalId);
             }
@@ -325,35 +418,37 @@ async function createUpdateProject(modalId) {
             validateSessionExpiration(error.message);
         });
 }
-async function fillClientsSelectForCreateProjectModal(selectElement, firstOption) {
-    fillActiveClientsSelectForFilters(selectElement, firstOption);
-    selectElement.onchange = function () {
+async function selectSuccessManagerByClientId(selectElement) {
+    selectElement.onchange = async function () {
         displaySpinner();
-        let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
-        if (selectedOptionText === "Oceans Code Experts") {
-            internalClientRb.checked = true;
-            validateProjectType();
-        } else {
-            externalClientRb.disabled = false;
-        }
 
-        getSuccessManagerIdAndNameByClientId(selectElement.value)
-            .then(data => {
-                var successManagerSelect = document.getElementById('successManagerIdSelect');
-                if (data !== null) {
-                    successManagerSelect.innerHTML = '<option selected value="' + data.successManager.userId + '">' + data.successManager.userName + '</option>';
+        try {
+            let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
+            if (selectedOptionText === "Oceans Code Experts") {
+                internalClientRb.checked = true;
+                validateProjectType();
+            } else {
+                externalClientRb.disabled = false;
+            }
+            if (selectElement.value !== '' && selectElement.value !== 'null') {
+                const data = await getSuccessManagerIdAndNameByClientId(Number(selectElement.value));
+                if (data && data.successManager) {
+                    successManagerSelectCreateUpdate.value = data.successManager.userId;
                 } else {
-                    successManagerSelect.innerHTML = '<option selected value="null">-Select a user-</option>';
+                    successManagerSelectCreateUpdate.value = null;
                 }
-                hideSpinner();
-            })
-            .catch(error => {
-                validateSessionExpiration(error.message);
-                console.error('Error fetching data:', error);
-            });
-        document.getElementById('successManagerIdSelect').disabled = false;
+            } else {
+                successManagerSelectCreateUpdate.value = null;
+            }
+            successManagerSelectCreateUpdate.disabled = false;
+        } catch (error) {
+            console.error("Error fetching success manager data:", error);
+        } finally {
+            hideSpinner();
+        }
     };
 }
+
 
 //ADD / UPDATE CONSULTANT
 function addConsultantToModalCreateUpdateProject(modalId) {
@@ -685,33 +780,30 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters) {
     {
         var searchText = $('#search-input').val();
-        const activeInactiveRadioElement = document.querySelector('.active-inactive-rg input[type="radio"]:checked');
-        var activeInactiveValue = null;
-        if (activeInactiveRadioElement !== null) {
-            activeInactiveValue = Boolean(document.querySelector('input[name="active-inactive"]:checked').value === 'true');
-        }
+        var activeInactiveValue = activeInactiveRadioElement?.querySelector('input[type="radio"]:checked')?.value || null;
         var datesValMessageSpan = document.getElementById("dates-val-message");
-        datesValMessageSpan.textContent = "";
-        var startDateValue = document.getElementById("startDate").value || null;
-        var endDateValue = document.getElementById("endDate").value || null;
+        var datesValMessageSpan = document.getElementById("dates-val-message");
+        if (datesValMessageSpan !== null) {
+            datesValMessageSpan.textContent = "";
+        }
+        var startDateValue = document.getElementById("startDate") === null ? null : document.getElementById("startDate").value || null;
+        var endDateValue = document.getElementById("endDate") === null ? null : document.getElementById("endDate").value || null;
         if (startDateValue === null || endDateValue === null) {
             startDateValue = null;
             endDateValue = null;
         } else if (startDateValue !== null & endDateValue !== null) {
             if (startDateValue > endDateValue) {
-                datesValMessageSpan.textContent = "Date From should be less than the Date Until";
+                datesValMessageSpan.textContent = "Date From must be less than Date Until";
             }
         }
-        var clientIdValue = Number(document.getElementById("clientFilter").value) || null;
-        var successManagerValue = Number(document.getElementById("succesManagerFilter").value) || null;
 
         var filtersData = {
             SearchText: searchText,
-            IsActive: activeInactiveValue,
+            IsActive: activeInactiveValue === null ? null : activeInactiveValue === 'true' ? true : false,
             StartDate: startDateValue,
             EndDate: endDateValue,
-            ClientId: clientIdValue,
-            SuccessManagerId: successManagerValue
+            ClientId: activeClientsSelectFilters === null ? null : activeClientsSelectFilters.value === '' ? null : Number(activeClientsSelectFilters.value),
+            SuccessManagerId: successManagerSelectFilters === null ? null : successManagerSelectFilters.value === '' ? null : Number(successManagerSelectFilters.value)
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];

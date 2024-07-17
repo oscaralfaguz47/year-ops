@@ -15,22 +15,3 @@
         throw new Error('Network error or unable to reach the server. More details: ' + error.message);
     }
 }
-
-function fillHolidaysSelect(selectElement, firstOption) {
-    let previousValue = selectElement.value;
-    if (selectElement.length > 1) {
-        return;
-    }
-    selectElement.innerHTML = '<option value="loading">Loading options… (⏳)</option>';
-    getHolidaysList()
-        .then(data => {
-            selectElement.innerHTML = '<option value="">-' + firstOption + '-</option>';
-            data.holidays.forEach(obj => {
-                selectElement.add(new Option(obj.text, obj.value));
-            });
-            selectElement.value = previousValue;
-        })
-        .catch(error => {
-            console.error('Error fetching holidays:', error);
-        });
-}

@@ -67,6 +67,7 @@ namespace OceansApp.DataAccess.Repository
             NotificationRecipient = new NotificationRecipientRepository(_db);
             SystemArea = new SystemAreaRepository(_db);
             SystemSubArea = new SystemSubAreaRepository(_db);
+            TransactionStatus = new TransactionStatusRepository(_db);
         }
         public IApplicationSystemClaimRepository ApplicationSystemClaim { get; private set; }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
@@ -119,6 +120,7 @@ namespace OceansApp.DataAccess.Repository
         public INotificationRecipientRepository NotificationRecipient { get; set; }
         public ISystemAreaRepository SystemArea { get; set; }
         public ISystemSubAreaRepository SystemSubArea { get; set; }
+        public ITransactionStatusRepository TransactionStatus { get; set; }
 
         public async Task SaveAsync()
         {

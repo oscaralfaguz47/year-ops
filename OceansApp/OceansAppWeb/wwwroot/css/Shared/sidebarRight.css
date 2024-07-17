@@ -95,3 +95,30 @@
         color: #000;
         border-radius: 15px;
     }
+    #right-sidebar-container .start-end-date-container {
+        background-color: var(--clr-grayLight);
+        padding: 4px;
+        margin: 5px;
+        border-radius: 15px;
+        text-align: center;
+        color: #000;
+        font-weight: bold;
+    }
+    #right-sidebar-container .start-end-date-container .datepickers-container {
+        display: flex;
+        width:100%;
+    }
+    #right-sidebar-container .start-end-date-container .datepickers-container div {
+        width: 50%;
+        padding: 2px;
+        text-align: left;
+        font-weight: normal;
+    }
+        #right-sidebar-container .start-end-date-container .datepickers-container input {
+            font-size: 14px;
+        }
+        #right-sidebar-container .start-end-date-container .validation-message {
+            font-size: 13px;
+            display: block;
+            padding: 5px 2px;
+        }

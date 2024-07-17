@@ -526,7 +526,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new PaymentMethod { Name = "Banco General (Panamá)", CompanyId = "OCE" },
                     new PaymentMethod { Name = "Bac Credomatic (Panamá)", CompanyId = "OCE" },
                     new PaymentMethod { Name = "Mercury", CompanyId = "LLC" },
-                    new PaymentMethod { Name = "Wise", CompanyId = "LLC" }
+                    new PaymentMethod { Name = "Wise", CompanyId = "LLC" },
+                    new PaymentMethod { Name = "Airtm", CompanyId = "LLC" }
                 };
 
                 foreach (var paymentMethod in paymentMethodsList)

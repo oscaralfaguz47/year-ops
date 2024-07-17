@@ -171,7 +171,7 @@ async function displayMoreFiltersConsultants() {
             countriesArray = await getCountriesList();
         }
         populateSelect('countrySelectFilters', countriesArray.countries, 'All countries', null);
-       
+        rightSidebarFiltersIsDiplayed = true;
     }
     hideSpinner();
     openRightSidebar();
@@ -223,7 +223,6 @@ function recolectDataFromForm(filters) {
             RequestFromFilters: filters,
             OrderBy: orderByData
         }
-        console.log(filtersData);
         return {
             Filters: filtersData,
             PaginationWithoutFilters: paginationWithoutFilters

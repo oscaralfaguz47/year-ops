@@ -21,13 +21,18 @@ namespace OceansApp.DataAccess.Repository
             await dbSet.AddAsync(entity);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public async Task<IEnumerable<T>> GetAllAsync(
+    Expression<Func<T, bool>>? filter = null,
+    string? includeProperties = null,
+    Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
         {
             IQueryable<T> query = dbSet;
+
             if (filter != null)
             {
                 query = query.Where(filter);
             }
+
             if (includeProperties != null)
             {
                 foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -35,8 +40,15 @@ namespace OceansApp.DataAccess.Repository
                     query = query.Include(includeProp);
                 }
             }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
             return await query.ToListAsync();
         }
+
 
         public async Task<T> GetFirstOrDefaultAsync(
          Expression<Func<T, bool>> filter,

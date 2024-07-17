@@ -140,7 +140,7 @@ async function createUpdateConsultant(modalId) {
         UserRole: userRoleData,
         Positions: positionsData
     };
-    console.log(data);
+
     fetch('/General/Consultants/CreateUpdateConsultant', {
         method: 'POST',
         headers: {

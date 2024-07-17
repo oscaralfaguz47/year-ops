@@ -9,7 +9,10 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<T> GetFirstOrDefaultAsync(
          Expression<Func<T, bool>> filter,
          Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null);
-        Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null);
+        Task<IEnumerable<T>> GetAllAsync(
+    Expression<Func<T, bool>>? filter = null,
+    string? includeProperties = null,
+    Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null);
 
         Task AddAsync(T entity);
 

@@ -408,7 +408,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     return BadRequest(new { error = "The Project no longer exist in the database.", MessageType = "No Exists Error" });
                 }
                 project.IsActive = project.IsActive ? false : true;
-                 await _unitOfWork.SaveAsync();
+                await _unitOfWork.SaveAsync();
                 var successMessage = "The project " + project.Name + " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
 
                 return Ok(new { success = true, message = successMessage });
@@ -434,7 +434,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId, userCategoryName);
                 if (historyList.Result.Count == 0)
                 {
-                    return BadRequest(new { error = "The consultant does not have history or the user does not have permission to retrive the data."});
+                    return BadRequest(new { error = "The consultant does not have history or the user does not have permission to retrive the data." });
                 }
                 return Ok(new
                 {
@@ -443,7 +443,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error =  $"There was an error fetching the list.", success = false, result = "errorGet", detail = ex.Message });
+                return BadRequest(new { error = $"There was an error fetching the list.", success = false, result = "errorGet", detail = ex.Message });
             }
         }
 
@@ -453,11 +453,15 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var activeProjects = await _unitOfWork.Project.GetAllAsync(x=>x.IsActive == true);
+                var activeProjects = await _unitOfWork.Project.GetAllAsync(
+    filter: x => x.IsActive == true,
+    orderBy: q => q.OrderBy(x => x.Name)
+);
                 List<GetDataForSelectVM> listToSend = new List<GetDataForSelectVM>();
                 foreach (var project in activeProjects)
                 {
-                    GetDataForSelectVM projectToAdd = new(){
+                    GetDataForSelectVM projectToAdd = new()
+                    {
                         Value = project.ProjectId,
                         Text = project.Name
                     };

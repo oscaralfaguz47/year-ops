@@ -45,7 +45,7 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<List<GetDataForSelectVM>> GetAllClientsForSelectAsync()
         {
-            var results = await _db.CLIENT.ToListAsync();
+            var results = await _db.CLIENT.OrderBy(x => x.Name).ToListAsync();
             List<GetDataForSelectVM> clientsList = new List<GetDataForSelectVM>();
 
             foreach (var client in results)
@@ -62,10 +62,10 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<List<GetDataForSelectVM>> GetAllActiveClientsForSelectAsync()
         {
-            var results = await _db.CLIENT.Where(x => x.IsActive == "S").ToListAsync();
+            var results = await _db.CLIENT.Where(x => x.IsActive == "S").OrderBy(x => x.Name).ToListAsync();
             List<GetDataForSelectVM> clientsList = new List<GetDataForSelectVM>();
 
-            foreach(var client in results)
+            foreach (var client in results)
             {
                 GetDataForSelectVM clientToAdd = new GetDataForSelectVM()
                 {
@@ -108,8 +108,8 @@ namespace OceansApp.DataAccess.Repository
             var existingClient = await GetFirstOrDefaultAsync(u => u.ClientCode == obj.ClientCode && u.CompanyId == obj.CompanyId);
             if (existingClient == null)
             {
-               await _db.CLIENT.AddAsync(obj);
-               await _db.SaveChangesAsync();
+                await _db.CLIENT.AddAsync(obj);
+                await _db.SaveChangesAsync();
                 return true;
             }
             else

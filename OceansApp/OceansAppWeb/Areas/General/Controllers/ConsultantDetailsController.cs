@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility.SharedMethods.InputValidations;
 
 namespace OceansAppWeb.Areas.General.Controllers
@@ -33,9 +34,19 @@ namespace OceansAppWeb.Areas.General.Controllers
             try
             {
                 var users = await _unitOfWork.ConsultantDetail.GetUsersByCategoryAndPositionForSelect("Administrative", "Success Manager");
+                List<GetDataForSelectVM> successManagersList = new List<GetDataForSelectVM>();
+
+                foreach (var successManager in users)
+                {
+                    GetDataForSelectVM successManagerToAdd = new() { 
+                    Value = successManager.UserId,
+                    Text = successManager.UserName
+                    };
+                    successManagersList.Add(successManagerToAdd);
+                }
                 return Ok(new
                 {
-                    SuccessManagers = users
+                    SuccessManagers = successManagersList
                 });
             }
             catch (Exception ex)

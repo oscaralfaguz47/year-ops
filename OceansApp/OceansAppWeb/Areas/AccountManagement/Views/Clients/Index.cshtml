@@ -7,77 +7,24 @@
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
-    <div class="filters-container">
-        <div>
-            <div class="search-header-container">
-                <div>
-                    <h2>CLIENTS</h2>
-                    <div class="input-container">
-                        <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                        <i class="bi bi-search placeholder-image"></i>
-                    </div>
-                </div>
-                <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Hide Filters </a>
-            </div>
-            <div class="more-filters-cont">
-                <div id="more-filters">
-                    <div class="row">
-                        <div class="col-sm-1">
-                            <div class="radio-group active-inactive-rg">
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="S" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Active
-                                </label>
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" name="active-inactive" type="radio" value="N" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Inactive
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-sm-1">
-                            <div class="radio-group company-radio-rg">
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="OCE" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; Oceans
-                                </label>
-                                <label class="radio-label">
-                                    <input onchange="paginationSubmit(false, true)" type="radio" name="company" value="LLC" class="radio-input">
-                                    <span class="radio-custom"></span>
-                                    &nbsp; LLC
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 text-center">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <label for="startDate" class="select-label">Admission Date From</label>
-                                    <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="startDate" />
-                                </div>
-                                <div class="col-sm-6">
-                                    <label for="endDate" class="select-label">Admission Date Until</label>
-                                    <input onchange="paginationSubmit(false, true)" class="form-control" type="date" id="endDate" />
-                                </div>
-                            </div>
-                            <span id="dates-val-message" style="font-size:15px; display:flex;" class="text-danger"></span>
-                        </div>
-                        <div class="col-sm-2">
-                            <label for="succesManagerFilter">Success Manager</label>
-                            <span class="arrow-down"></span>
-                            <select onchange="paginationSubmit(false, true)" onfocus="fillSuccessManagersSelectForFilters(this)" class="form-select" id="succesManagerFilter">
-                            </select>
-                        </div>
-                    </div>
-                    <div class="principal-buttons">
-                        <a asp-area="AccountManagement" asp-controller="Clients" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Clear Filters</a>
-                    </div>
-                </div>
+    <div class="principal-header-container">
+        <div class="filters-container">
+            <div class="header-page">
+                <h2>CLIENTS</h2>
             </div>
             <partial name="_Pagination" />
         </div>
+        <div class="table-header-actions">
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
+            <div class="action-btns-container">
+                <button title="See more filters" id="openSidebarBtn" onclick="displayMoreFiltersClients()"><img src="/icons/Shared/filter.svg"></button>
+            </div>
+        </div>
     </div>
+
     <div class="global-table-container">
         <table>
             <thead>
@@ -127,6 +74,8 @@
         <div class="no-results"></div>
     </div>
 </div>
+
+<partial name="_SidebarRightPartial" />
 
 <!--MODAL UPDATE CLIENT -->
 <div id="modal-update-client" class="global-modal" style="display:none">
@@ -204,7 +153,7 @@
                     <label for="successManager">Success Manager</label>
                     <div class="custom-select">
                         <span class="arrow-down"></span>
-                        <select onfocus="getSuccessManagers()" class="form-select" id="successManager" name="successManager">
+                        <select class="form-select" id="successManager" name="successManager">
                         </select>
                     </div>
 

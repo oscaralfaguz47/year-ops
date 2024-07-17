@@ -1,4 +1,10 @@
-﻿$(document).ready(function () {
+﻿let rightSidebarFiltersIsDiplayed = false;
+let benefitsArray = [];
+let transactionStatusesArray = [];
+let transactionStatusSelectFilters = null;
+let benefitSelectFilters = null;
+
+$(document).ready(function () {
     getListOfResults(true, false);
 });
 
@@ -80,6 +86,50 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
+//MORE FILTERS
+async function displayMoreFiltersReimbursements() {
+    if (!rightSidebarFiltersIsDiplayed) {
+        displaySpinner();
+        let rightSidebarContainer = document.getElementById('right-sidebar-container');
+        rightSidebarContainer.innerHTML = `
+        <div class="header-btns-container">
+         <button class="clear-btn" onclick="clearFilters('filters-form')"><img class="filter-icon" src="/icons/Shared/clear.svg">Clear filters </button>
+        </div>
+        <div class="scroll-container">
+          <form id="filters-form">
+           <div class="select-container">
+             <label>Status</label>
+             <select onchange="paginationSubmit(false, true)" id="TransactionStatusIdFilters" class="form-select">
+             </select>
+           </div>
+           <div class="select-container">
+             <label>Benefit</label>
+             <select onchange="paginationSubmit(false, true)" id="BenefitIdFilters" class="form-select">
+             </select>
+           </div>
+          </form>
+        <div>`;
+
+        transactionStatusSelectFilters = document.getElementById('TransactionStatusIdFilters');
+        if (transactionStatusesArray.length === 0) {
+            transactionStatusesArray = await getTransactionStatusesList();
+        }
+        populateSelect('TransactionStatusIdFilters', transactionStatusesArray.statuses, 'All statuses', null);
+
+        benefitSelectFilters = document.getElementById('BenefitIdFilters');
+        if (benefitsArray.length === 0) {
+            benefitsArray = await getBenefitsList();
+        }
+        populateSelect('BenefitIdFilters', benefitsArray.benefits, 'All benefits', null);
+        rightSidebarFiltersIsDiplayed = true;
+    }
+    hideSpinner();
+    openRightSidebar();
+}
+function clearFilters(formId) {
+    resetFormElements(formId);
+    getListOfResults(false, true);
+}
 
 // DELETE BENEFIT REIMBURSEMENT
 async function rejectBenefitReimbursement(benefitReimbursementId, consultantName) {
@@ -135,7 +185,9 @@ function recolectDataFromForm(filters) {
         var searchText = $('#search-input').val();
 
         var filtersData = {
-            SearchText: searchText
+            SearchText: searchText,
+            TransactionStatusId: transactionStatusSelectFilters === null ? null : transactionStatusSelectFilters.value === '' ? null : Number(transactionStatusSelectFilters.value),
+            BenefitId: benefitSelectFilters === null ? null : benefitSelectFilters.value === '' ? null : Number(benefitSelectFilters.value)
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];

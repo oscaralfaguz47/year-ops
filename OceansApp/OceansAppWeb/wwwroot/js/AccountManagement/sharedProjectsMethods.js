@@ -1,4 +1,5 @@
 ﻿var partnerSelect = document.getElementById("PartnerSelect");
+let partnersArray = [];
 
 //document.addEventListener("DOMContentLoaded", function () {
 //    var actionDate = document.getElementById('actionDate');
@@ -94,8 +95,10 @@ async function displayAddUpdateConsultant(modalId, id) {
     let newOption = new Option('-First select a Consultant-', '');
     positionIdSelect.append(newOption);
 
-    const selectedPartnerOption = document.createElement('option');
-    partnerSelect.innerHTML = `<option value>- Select a Partner -</option>`;
+    if (partnersArray.length === 0) {
+        partnersArray = await getPartnersList();
+    }
+    populateSelect('PartnerSelect', partnersArray.partners, '-Select a partner-', null);
 
     if (id == null) {
         positionIdSelect.prop('disabled', true);
@@ -142,13 +145,8 @@ async function displayAddUpdateConsultant(modalId, id) {
                 createUpdateForm.find('[name="monthlySalary"]').val(data.consultantAssignation.monthlySalary);
                 createUpdateForm.find('[name="hourlySalary"]').val(data.consultantAssignation.hourlySalary);
                 createUpdateForm.find('[name="thirdPartySalary"]').val(data.consultantAssignation.monthlySalaryThirdParty);
-                if (data.consultantAssignation.partnerId !== null) {
-                    partnerSelect.innerHTML = '';
-                    selectedPartnerOption.value = data.consultantAssignation.partnerId;
-                    selectedPartnerOption.textContent = data.consultantAssignation.partnerName;
-                    partnerSelect.appendChild(selectedPartnerOption);
-                }
-                partnerSelect.value = data.consultantAssignation.partnerId === null ? '' : data.consultantAssignation.partnerId;
+
+                partnerSelect.value = data.consultantAssignation.partnerId;
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').val(data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 createUpdateForm.find('[name="isMonthlySalaryCalculatedPerHour"]').prop('checked', data.consultantAssignation.isMonthlySalaryCalculatedPerHour);
                 createUpdateForm.find('[name="accessToTrackingTool"]').val(data.consultantAssignation.accessToTrackingTool);
@@ -238,7 +236,7 @@ function addConsultantToProject(modalId) {
         modelState = false;
         displayToasterWarning('Consultant Monthly Salary - Partner is required.');
     }
-    if ((partnerSelect.value === null || partnerSelect.value === '') && (consultantPaymentModel === 'T' || consultantPaymentModel === 'Hy')) {
+    if ((partnerSelect.value === 'null' || partnerSelect.value === '') && (consultantPaymentModel === 'T' || consultantPaymentModel === 'Hy')) {
         modelState = false;
         displayToasterWarning('The Partner is required.');
     }
