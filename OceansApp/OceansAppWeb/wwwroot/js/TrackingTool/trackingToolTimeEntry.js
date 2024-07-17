@@ -108,11 +108,13 @@ function generateDateList(startDateString, endDateString, movements) {
 function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, isPayable, notes) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('div');
-    reportedTimeLabel.setAttribute('data-tooltip', `<div class="tooltip-container">
+    if (window.innerWidth >= 767) {
+        reportedTimeLabel.setAttribute('data-tooltip', `<div class="tooltip-container">
     <label>${isPayable ? 'Payable Hours <i class="i-payable">$</i>' : 'Non-Payable Hours <i class="i-non-payable">$</i>'}</label>
     <p>${notes}</p>
     </div>`);
-    reportedTimeLabel.className = `reported-time-span tooltip-target ${timeFrom === 'Holiday' ? 'holiday-span' : ''} ${!isPayable || isPayable.toString().includes('(Non-payable)') ? 'non-payable' : ''}`;
+    }
+    reportedTimeLabel.className = `reported-time-span ${window.innerWidth >= 767 ? 'tooltip-target' : ''} ${timeFrom === 'Holiday' ? 'holiday-span' : ''} ${!isPayable || isPayable.toString().includes('(Non-payable)') ? 'non-payable' : ''}`;
     if (timeFrom !== 'Holiday') {
         reportedTimeLabel.innerHTML = `<span id="time-from-to-span-${movementId}" class="time-from-to-span">${formatTimeTo12Hour(timeFrom)} - ${formatTimeTo12Hour(timeTo)}</span><span id="reportedTimeSpan-${movementId}">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
     } else {

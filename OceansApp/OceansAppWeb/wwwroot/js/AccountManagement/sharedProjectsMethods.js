@@ -263,7 +263,7 @@ function addConsultantToProject(modalId) {
                 MonthlyClientRate: Number(monthlyClientRateValue),
                 MonthlySalary: Number(monthlyConsultantRateValue),
                 MonthlySalaryThirdParty: Number(thirdPartyConsultantSalaryValue),
-                PartnerId: partnerSelect.value === '' ? null : partnerSelect.value,
+                PartnerId: partnerSelect.value === '' || partnerSelect.value === 'null' ? null : partnerSelect.value,
                 PositionId: positionIdValue,
                 ActionDate: actionDateValue ? actionDateValue.toString() : null,
                 IsMonthlySalaryCalculatedPerHour: Boolean(isMonthlySalaryCalculatedPerHourVal),
