@@ -49,18 +49,21 @@ async function displayUpdateCreatePositionModal(modalId, id, isCloning) {
                 companyId = item.companyId;
             });
         }
-        for (const companyItem of companiesArray) {
-            const costCentersByCompany = await getCostsCentersWhereCompanyList(companyItem);
-            for (const costCenter of costCentersByCompany.costsCenters) {
-                costCentersByCompanyArray.push({
-                    companyId: companyItem,
-                    costCenterId: costCenter.costCenterId,
-                    costCenterCode: costCenter.costCenterCode,
-                    description: costCenter.description,
-                    acceptData: costCenter.acceptData
-                });
+        if (costCentersByCompanyArray.length === 0) {
+            for (const companyItem of companiesArray) {
+                const costCentersByCompany = await getCostsCentersWhereCompanyList(companyItem);
+                for (const costCenter of costCentersByCompany.costsCenters) {
+                    costCentersByCompanyArray.push({
+                        companyId: companyItem,
+                        costCenterId: costCenter.costCenterId,
+                        costCenterCode: costCenter.costCenterCode,
+                        description: costCenter.description,
+                        acceptData: costCenter.acceptData
+                    });
+                }
             }
         }
+        
         for (const item of data.positionConfigData.positionConfiguration) {
             if (item.companyName !== currentCompanyName) {
                 currentCompanyName = item.companyName;
@@ -105,6 +108,7 @@ async function displayUpdateCreatePositionModal(modalId, id, isCloning) {
             costCenterOption.textContent = item.costCenterName;
 
             fillCostCentersSelect(costCenterSelect, costCentersByCompanyArray.filter(x => x.companyId === item.companyId));
+
             row.appendChild(idConfigInput);
             row.appendChild(companyInput);
             row.appendChild(movementTypeInput);
