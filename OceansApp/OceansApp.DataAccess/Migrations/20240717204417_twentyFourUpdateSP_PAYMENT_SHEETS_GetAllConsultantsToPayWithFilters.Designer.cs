@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240717204417_twentyFourUpdateSP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters")]
+    partial class twentyFourUpdateSP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2051,53 +2054,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantPeriodDisabledTracking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EndPeriodDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartPeriodDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConsultantId");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("EndPeriodDate");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("StartPeriodDate");
-
-                    b.HasIndex("ProjectId", "ConsultantId");
-
-                    b.HasIndex("ConsultantId", "ProjectId", "StartPeriodDate", "EndPeriodDate");
-
-                    b.ToTable("PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ProjectUserSelected", b =>
                 {
                     b.Property<int>("ProjectId")
@@ -3412,33 +3368,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantUserActionedBy");
 
                     b.Navigation("ProjectConsultantAssigned");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantPeriodDisabledTracking", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ConsultantDetail", "ConsultantDetail")
-                        .WithMany()
-                        .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreated")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUserCreated");
-
-                    b.Navigation("ConsultantDetail");
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProjectUserSelected", b =>

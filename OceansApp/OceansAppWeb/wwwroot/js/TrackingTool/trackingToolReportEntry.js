@@ -1,48 +1,53 @@
-﻿let quantityInput = document.getElementById('quantityInput');
-let notesInput = document.getElementById('notesInput');
-let movementIdNormalHoursInput = document.getElementById('movementIdNormalHoursInput');
-let movementIdOnCallFlateRateInput = document.getElementById('movementIdOnCallFlateRateInput');
-let movementIdOnCallTimeWorkedInput = document.getElementById('movementIdOnCallTimeWorkedInput');
-let onCallFlateRateSelect = document.getElementById('onCallFlateRateSelect');
-let onCallTimeWorkedInput = document.getElementById('onCallTimeWorkedInput');
-let projectIdInput = document.getElementById('projectId');
-const uploadArea = document.getElementById('file-upload-name');
-var fileInput = document.getElementById('file-upload');
-let saveReportBtn = document.getElementById('save-btn');
-let transactionStatus = 'No actions';
-let uploadBtn = document.getElementById('upload-btn');
-const holidaysContainer = document.getElementById('holidaysContainer');
+﻿
+// Utility functions
+const getElementById = id => document.getElementById(id);
 
-function handleChangeData() {
-    saveReportBtn.style.display = 'block';
-}
-
+// Element selectors
+const quantityInput = getElementById('quantityInput');
+const notesInput = getElementById('notesInput');
+const movementIdNormalHoursInput = getElementById('movementIdNormalHoursInput');
+const movementIdOnCallFlateRateInput = getElementById('movementIdOnCallFlateRateInput');
+const movementIdOnCallTimeWorkedInput = getElementById('movementIdOnCallTimeWorkedInput');
+const onCallFlateRateSelect = getElementById('onCallFlateRateSelect');
+const onCallTimeWorkedInput = getElementById('onCallTimeWorkedInput');
+const projectIdInput = getElementById('projectId');
+const uploadArea = getElementById('file-upload-name');
+const fileInput = getElementById('file-upload');
+const saveReportBtn = getElementById('save-btn');
+const uploadBtn = getElementById('upload-btn');
+const holidaysContainer = getElementById('holidaysContainer');
 const dropArea = document.querySelector('.file-upload-wrapper');
-let fileList = [];
-const maxFileSize = 10 * 1024 * 1024; // 10 MB
+const noTrackingToolSection = getElementById('no-tracking-tool-sec');
 
-// Highlight drop zone when dragging files
-dropArea.addEventListener('dragover', (event) => {
+const maxFileSize = 10 * 1024 * 1024; // 10 MB
+let transactionStatus = 'No actions';
+let fileList = [];
+let isCreatingMovement = false;
+let movementCreationPromise = null;
+
+const displayElement = (element, displayStyle) => element.style.display = displayStyle;
+
+const handleChangeData = () => {
+    displayElement(saveReportBtn, 'block');
+};
+
+// Event listeners
+dropArea.addEventListener('dragover', event => {
     if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
-        event.stopPropagation();
         event.preventDefault();
         dropArea.classList.add('dragover');
     }
 });
 
-// Revert highlighting when files are no longer dragged over the area
-dropArea.addEventListener('dragleave', (event) => {
+dropArea.addEventListener('dragleave', () => {
     dropArea.classList.remove('dragover');
 });
 
-// Handle drop event and file selection change
 dropArea.addEventListener('drop', handleFiles);
-document.getElementById('file-upload').addEventListener('change', handleFiles);
-document.getElementById('file-upload').setAttribute('accept',
-    '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
+fileInput.addEventListener('change', handleFiles);
+fileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
 
-// Handle file paste from clipboard
-document.addEventListener('paste', (event) => {
+document.addEventListener('paste', event => {
     if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
         const items = event.clipboardData || event.originalEvent.clipboardData;
         if (items) {
@@ -62,11 +67,12 @@ document.addEventListener('paste', (event) => {
     }
 });
 
+// File handling functions
 async function handleFiles(event) {
-    event.stopPropagation();
     event.preventDefault();
     dropArea.classList.remove('dragover');
     const newFiles = event.dataTransfer ? event.dataTransfer.files : event.target.files;
+
     for (const file of newFiles) {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
             fileList.push(file);
@@ -75,10 +81,12 @@ async function handleFiles(event) {
     }
     updateInfoText();
 }
+
 function reUploadFile(fileElement) {
     fileElement.remove();
     updateFileDisplay(fileList[0], true, null, 'No actions');
 }
+
 function processFiles(newFiles) {
     newFiles.forEach(file => {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
@@ -104,13 +112,11 @@ function isDuplicate(file) {
 }
 
 function updateInfoText() {
-    const infoText = document.getElementById('info-text');
+    const infoText = getElementById('info-text');
     infoText.style.display = uploadArea.textContent.trim() === '' && uploadArea.childNodes.length === 0 ? 'block' : 'none';
 }
 
-let isCreatingMovement = false;
-let movementCreationPromise = null;
-
+// File display functions
 function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus) {
     const fileElement = document.createElement('div');
     fileElement.className = 'row-selected-file';
@@ -119,16 +125,12 @@ function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus)
     const spinnerLabel = document.createElement('label');
     spinnerLabel.className = 'spinner-label';
     spinnerLabel.innerHTML = '<i class="fa-solid fa-spinner saving-icon"></i>';
-    spinnerLabel.style.display = 'block';
+    displayElement(spinnerLabel, 'block');
     deleteBtn.className = 'delete-btn';
     deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
 
     const fileName = document.createElement('span');
-    if (isUploading) {
-        fileName.textContent = file.name;
-    } else {
-        fileName.textContent = cleanFileName(fileNameFromDb);
-    }
+    fileName.textContent = isUploading ? file.name : cleanFileName(fileNameFromDb);
 
     const statusLabel = document.createElement('span');
     statusLabel.textContent = '';
@@ -137,77 +139,68 @@ function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus)
     fileElement.appendChild(statusLabel);
     uploadArea.appendChild(fileElement);
 
-    // Ensure movementIdNormalHoursInput is actually null and no creation is currently in progress
     if (isUploading) {
-        if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
-            isCreatingMovement = true;
-            movementCreationPromise = createFirstMovementIfDoesNotExist()
-                .then(data => {
-                    if (data && data.createdMovementId !== undefined) {
-                        movementIdNormalHoursInput.value = data.createdMovementId;
-                    } else {
-                        throw new Error('Invalid response data');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    displayToasterError(error.message);
-                })
-                .finally(() => {
-                    isCreatingMovement = false;
-                });
-        }
-        if (movementCreationPromise) {
-            movementCreationPromise.then(() => {
-                uploadFile(file, statusLabel, fileElement).then(data => {
-                    deleteBtn.onclick = function () {
-                        deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel).then(() => {
-                            fileList.splice(fileList.indexOf(file), 1);
-                            fileElement.remove();
-                            updateInfoText();
-                        });
-                    };
-                    fileElement.appendChild(deleteBtn);
-                    fileElement.appendChild(spinnerLabel);
-                    spinnerLabel.style.display = 'none';
-                }).catch(error => {
-                    console.error("Error uploading the file:", error);
-                });
-            });
-        } else {
-            uploadFile(file, statusLabel, fileElement).then(data => {
-                deleteBtn.onclick = function () {
-                    deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel).then(() => {
-                        fileList.splice(fileList.indexOf(file), 1);
-                        fileElement.remove();
-                        updateInfoText();
-                    });
-                };
-                fileElement.appendChild(deleteBtn);
-                fileElement.appendChild(spinnerLabel);
-                spinnerLabel.style.display = 'none';
-            }).catch(error => {
-                console.error("Error uploading the file:", error);
-            });
-        }
+        handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel);
     } else {
-        if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
-            fileElement.appendChild(deleteBtn);
-        }
-        fileElement.appendChild(spinnerLabel);
-        spinnerLabel.style.display = 'none';
-        deleteBtn.onclick = async function () {
-            await deleteFile(fileNameFromDb, statusLabel, deleteBtn, spinnerLabel);
-            fileElement.remove();
-            updateInfoText();
-        };
-        statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
+        finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn, spinnerLabel, transactionStatus);
     }
 }
 
+async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel) {
+    if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
+        isCreatingMovement = true;
+        try {
+            movementCreationPromise = createFirstMovementIfDoesNotExist();
+            const data = await movementCreationPromise;
+            if (data && data.createdMovementId !== undefined) {
+                movementIdNormalHoursInput.value = data.createdMovementId;
+            } else {
+                throw new Error('Invalid response data');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            displayToasterError(error.message);
+        } finally {
+            isCreatingMovement = false;
+        }
+    }
+
+    if (movementCreationPromise) {
+        await movementCreationPromise;
+    }
+    uploadFile(file, statusLabel, fileElement).then(data => {
+        deleteBtn.onclick = async function () {
+            await deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel);
+            fileList.splice(fileList.indexOf(file), 1);
+            fileElement.remove();
+            updateInfoText();
+        };
+        fileElement.appendChild(deleteBtn);
+        fileElement.appendChild(spinnerLabel);
+        displayElement(spinnerLabel, 'none');
+    }).catch(error => {
+        console.error("Error uploading the file:", error);
+    });
+}
+
+function finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn, spinnerLabel, transactionStatus) {
+    if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
+        fileElement.appendChild(deleteBtn);
+    }
+    fileElement.appendChild(spinnerLabel);
+    displayElement(spinnerLabel, 'none');
+    deleteBtn.onclick = async function () {
+        await deleteFile(fileNameFromDb, statusLabel, deleteBtn, spinnerLabel);
+        fileElement.remove();
+        updateInfoText();
+    };
+    statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
+}
+
+// File upload functions
 async function uploadFile(file, statusLabel, fileElement) {
     submissionError.innerHTML = '';
-    var token = $('[name="__RequestVerificationToken"]').val();
+    const token = $('[name="__RequestVerificationToken"]').val();
     const formData = new FormData();
     formData.append('files', file);
     formData.append('movementId', movementIdNormalHoursInput.value);
@@ -222,24 +215,10 @@ async function uploadFile(file, statusLabel, fileElement) {
             },
             body: formData
         });
+
         if (!response.ok) {
             const errorData = await response.json();
-            switch (errorData.messageType) {
-                case "Validation Error":
-                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
-                        return acc.concat(current);
-                    }, []);
-                    fileElement.remove();
-                    displayToasterWarningArray(allErrors);
-                    break;
-                case "Not Found":
-                    displayToasterError(errorData.detail);
-                    createReuploadBtn(fileElement, statusLabel);
-                    break;
-                default:
-                    displayToasterError('An unexpected error occurred: ' + errorData.error);
-                    createReuploadBtn(fileElement, statusLabel);
-            }
+            handleUploadError(errorData, fileElement, statusLabel);
             return null;
         }
         const data = await response.json();
@@ -253,6 +232,24 @@ async function uploadFile(file, statusLabel, fileElement) {
         return null;
     }
 }
+
+function handleUploadError(errorData, fileElement, statusLabel) {
+    switch (errorData.messageType) {
+        case "Validation Error":
+            const allErrors = Object.values(errorData.errors).reduce((acc, current) => acc.concat(current), []);
+            fileElement.remove();
+            displayToasterWarningArray(allErrors);
+            break;
+        case "Not Found":
+            displayToasterError(errorData.detail);
+            createReuploadBtn(fileElement, statusLabel);
+            break;
+        default:
+            displayToasterError('An unexpected error occurred: ' + errorData.error);
+            createReuploadBtn(fileElement, statusLabel);
+    }
+}
+
 function createReuploadBtn(fileElement, statusLabel) {
     statusLabel.innerHTML = '';
     const errorSpan = document.createElement('span');
@@ -261,10 +258,11 @@ function createReuploadBtn(fileElement, statusLabel) {
     errorSpan.addEventListener('click', () => reUploadFile(fileElement));
     statusLabel.appendChild(errorSpan);
 }
+
 async function createFirstMovementIfDoesNotExist() {
-    var token = $('[name="__RequestVerificationToken"]').val();
-    let startActionDateData = new Date(dateFromInput.value).toISOString();
-    let actionDateData = new Date(dateToInput.value).toISOString();
+    const token = $('[name="__RequestVerificationToken"]').val();
+    const startActionDateData = new Date(dateFromInput.value).toISOString();
+    const actionDateData = new Date(dateToInput.value).toISOString();
     const formData = new FormData();
     formData.append('uploadFilesData.ProjectId', projectIdInput.value);
     formData.append('uploadFilesData.MovementId', movementIdNormalHoursInput.value);
@@ -279,9 +277,11 @@ async function createFirstMovementIfDoesNotExist() {
         },
         body: formData
     });
+
     if (!response.ok) {
         throw new Error('Creation failed');
     }
+
     const data = await response.json();
     if (!data.success) {
         throw new Error(data.message || 'Unknown error');
@@ -289,61 +289,58 @@ async function createFirstMovementIfDoesNotExist() {
     return data;
 }
 
-//CREATE, UPDATE TIME ENTRY MOVEMENT
+// Time entry creation/update
 async function createUpdateTimeEntry() {
     submissionError.innerHTML = '';
-    let saveBtn = document.getElementById('save-btn');
+    const saveBtn = getElementById('save-btn');
     const savingLabel = `<i class="fa-solid fa-spinner saving-icon"></i> Saving Changes...`;
     const saveLabel = `<i class="fa-solid fa-floppy-disk"></i> Please save your changes`;
     saveBtn.disabled = true;
     saveBtn.innerHTML = savingLabel;
-    var token = $('[name="__RequestVerificationToken"]').val();
-    let actionDateData = new Date(dateToInput.value).toISOString();
-    let startActionDateData = new Date(dateFromInput.value).toISOString();
+
+    const token = $('[name="__RequestVerificationToken"]').val();
+    const actionDateData = new Date(dateToInput.value).toISOString();
+    const startActionDateData = new Date(dateFromInput.value).toISOString();
     const formData = new FormData();
-    function appendIfValid(key, value) {
+    const appendIfValid = (key, value) => {
         if (value) {
             formData.append(key, value);
         }
-    }
-
-    let dataItems = [];
-
-    let normalHoursData = {
-        ProjectId: projectIdInput.value,
-        Quantity: quantityInput.value,
-        StartActionDate: startActionDateData,
-        ActionDate: actionDateData,
-        Notes: notesInput.value,
-        MovementType: 'Normal Hours'
-    };
-    let onCallFlateRateData = {
-        ProjectId: projectIdInput.value,
-        Quantity: onCallFlateRateSelect.value,
-        StartActionDate: startActionDateData,
-        ActionDate: actionDateData,
-        Notes: null,
-        MovementType: 'On Call Flate Rate'
-    };
-    let onCallTimeWorkedData = {
-        ProjectId: projectIdInput.value,
-        Quantity: onCallTimeWorkedInput.value,
-        StartActionDate: startActionDateData,
-        ActionDate: actionDateData,
-        Notes: null,
-        MovementType: 'On Call Time Worked'
     };
 
-    dataItems.push(normalHoursData);
-    dataItems.push(onCallFlateRateData);
-    dataItems.push(onCallTimeWorkedData);
-
+    const dataItems = [
+        {
+            ProjectId: projectIdInput.value,
+            Quantity: quantityInput.value,
+            StartActionDate: startActionDateData,
+            ActionDate: actionDateData,
+            Notes: notesInput.value,
+            MovementType: 'Normal Hours'
+        },
+        {
+            ProjectId: projectIdInput.value,
+            Quantity: onCallFlateRateSelect.value,
+            StartActionDate: startActionDateData,
+            ActionDate: actionDateData,
+            Notes: null,
+            MovementType: 'On Call Flate Rate'
+        },
+        {
+            ProjectId: projectIdInput.value,
+            Quantity: onCallTimeWorkedInput.value,
+            StartActionDate: startActionDateData,
+            ActionDate: actionDateData,
+            Notes: null,
+            MovementType: 'On Call Time Worked'
+        }
+    ];
 
     dataItems.forEach((item, index) => {
         Object.keys(item).forEach(key => {
             appendIfValid(`reportMovementListData[${index}].${key}`, item[key]);
         });
     });
+
     try {
         const response = await fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryClientNoTrackingTool', {
             method: 'POST',
@@ -353,31 +350,21 @@ async function createUpdateTimeEntry() {
             },
             body: formData
         });
+
         if (!response.ok) {
             const errorData = await response.json();
-            switch (errorData.messageType) {
-                case "Validation Error":
-                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
-                        return acc.concat(current);
-                    }, []);
-                    displayToasterWarningArray(allErrors);
-                    break;
-                case "Not Found":
-                    displayToasterError(errorData.error);
-                    break;
-                default:
-                    displayToasterError('An unexpected error occurred: ' + errorData.error);
-            }
+            handleCreateUpdateError(errorData);
             saveBtn.disabled = false;
             saveBtn.innerHTML = saveLabel;
             return null;
         }
+
         const dataFromApi = await response.json();
         movementIdNormalHoursInput.value = dataFromApi.movementIdNormalHours;
         saveBtn.disabled = false;
         saveBtn.innerHTML = saveLabel;
         displayToasterSuccess(dataFromApi.message);
-        saveReportBtn.style.display = 'none';
+        displayElement(saveReportBtn, 'none');
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);
@@ -389,9 +376,23 @@ async function createUpdateTimeEntry() {
     }
 }
 
+function handleCreateUpdateError(errorData) {
+    switch (errorData.messageType) {
+        case "Validation Error":
+            const allErrors = Object.values(errorData.errors).reduce((acc, current) => acc.concat(current), []);
+            displayToasterWarningArray(allErrors);
+            break;
+        case "Not Found":
+            displayToasterError(errorData.error);
+            break;
+        default:
+            displayToasterError('An unexpected error occurred: ' + errorData.error);
+    }
+}
+
+// Initialization and update functions
 function initializeUploadProcess() {
     fileList = [];
-
     if (uploadArea) {
         uploadArea.innerHTML = '';
     }
@@ -399,10 +400,11 @@ function initializeUploadProcess() {
         fileInput.value = '';
     }
 }
+
 function updateStatusReportSubmittedClientHasTrackingTool() {
     submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor(transactionStatus)}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon(transactionStatus)} 
                 ${transactionStatus === 'Waiting to be approved' ? 'Pending approval' : transactionStatus === 'Approved' ? 'Timesheet approved' : transactionStatus}</button>`;
-    let submitBtn = document.getElementById('submitBtn');
+    const submitBtn = getElementById('submitBtn');
     submitBtn.disabled = true;
     submitBtn.className = 'submit-button-disabled';
     quantityInput.disabled = true;
@@ -410,121 +412,118 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
     onCallFlateRateSelect.disabled = true;
     onCallTimeWorkedInput.disabled = true;
     fileInput.disabled = true;
-    saveReportBtn.style.display = 'none';
-    uploadBtn.style.display = 'none';
+    displayElement(saveReportBtn, 'none');
+    displayElement(uploadBtn, 'none');
 }
-//GET PROJECT MOVEMENTS
-async function getProjectMovementsClientHasTrackTool() {
-    saveReportBtn.style.display = 'none';
-    holidaysContainer.style.display = 'none';
-    initializeUploadProcess();
-    loadingBoxIntern.style.display = 'block';
-    errorMessageIntern.style.display = 'none';
-    let noTackingToolSection = document.getElementById('no-tracking-tool-sec');
-    noTackingToolSection.style.display = 'none';
 
-    var startDateValue = encodeURIComponent(dateFromInput.value);
-    var endDateValue = encodeURIComponent(dateToInput.value);
-    var url = "/TrackingTool/ReportingMyTime/GetProjectMovements?projectId=" + encodeURIComponent(projectIdInput.value) +
-        "&startDate=" + startDateValue + "&endDate=" + endDateValue;
+// Fetch project movements
+async function getProjectMovementsClientHasTrackTool() {
+    displayElement(saveReportBtn, 'none');
+    displayElement(holidaysContainer, 'none');
+    initializeUploadProcess();
+    displayElement(loadingBoxIntern, 'block');
+    displayElement(errorMessageIntern, 'none');
+    displayElement(noTrackingToolSection, 'none'); 
+
+    const startDateValue = encodeURIComponent(dateFromInput.value);
+    const endDateValue = encodeURIComponent(dateToInput.value);
+    const url = `/TrackingTool/ReportingMyTime/GetProjectMovements?projectId=${encodeURIComponent(projectIdInput.value)}&startDate=${startDateValue}&endDate=${endDateValue}`;
 
     try {
         const response = await fetch(url);
+
         if (!response.ok) {
             const errorData = await response.json();
-            errorMessageIntern.style.display = 'block';
+            displayElement(errorMessageIntern, 'block');
             throw new Error('The request to the server failed!. More details: ' + errorData.detail);
         }
 
         const data = await response.json();
-        let normalHoursQuantity = 0;
-        let onCallFlateRateQuantity = 0;
-        let onCallTimeWorkedQuantity = 0;
-        let notes = '';
-        let blobNames = [];
-
-        if (data.movementsList.length > 0) {
-            const normalMovement = data.movementsList.find(movement => movement.movementTypeName !== 'Holidays');
-            if (normalMovement) {
-                movementIdNormalHoursInput.value = normalMovement.movementId;
-            }
-        } else {
-            movementIdNormalHoursInput.value = null;
-        }
-        submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor('No Actions')}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon('No Actions')} Submit your time</button>`;
-        quantityInput.disabled = false;
-        notesInput.disabled = false;
-        onCallFlateRateSelect.disabled = false;
-        onCallTimeWorkedInput.disabled = false;
-        fileInput.disabled = false;
-        transactionStatus = 'No actions';
-        uploadBtn.style.display = 'block';
-        let holidaysCount = 0;
-        let holidaysHtmlList = ``;
-
-        data.movementsList.forEach(function (obj) {
-            if (obj.movementTypeName === 'Normal Hours') {
-                notes += obj.notes === null ? '' : obj.notes;
-                normalHoursQuantity += obj.quantity;
-                JSON.parse(obj.blobNames).forEach(function (blobName) {
-                    blobNames.push(blobName);
-                });
-            }
-            if (obj.movementTypeName === 'On Call Flate Rate') {
-                onCallFlateRateQuantity += obj.quantity;
-            }
-            if (obj.movementTypeName === 'On Call Time Worked') {
-                onCallTimeWorkedQuantity += obj.quantity;
-            }
-            if (obj.movementTypeName === 'Holidays') {
-                holidaysCount++;
-                let holidayDate = new Date(obj.actionDate);
-                holidaysHtmlList += `<div data-tooltip="You will be paid ${obj.quantity} hours for this holiday, you don't need to report this." class="holiday-Item tooltip-target"><span class="holiday-name">${obj.notes}<i class="fa-solid fa-gift"></i></span><span>${getMonthName(holidayDate.getMonth())} ${holidayDate.getDate()}</span></div>`;
-            } else {
-                transactionStatus = obj.transactionStatus;
-                if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
-                    updateStatusReportSubmittedClientHasTrackingTool();
-                }
-            }
-        });
-        if (holidaysCount > 0) {
-            holidaysContainer.innerHTML = `<label>You have ${holidaysCount} holiday${holidaysCount === 1 ? '' : 's'} to be reimbursed for this period</label> <div style="display:flex; justify-content:center">${holidaysHtmlList}</div>`;
-            holidaysContainer.style.display = 'block';
-            initializeTooltips();
-        }
-
-        quantityInput.value = normalHoursQuantity;
-        onCallFlateRateSelect.value = onCallFlateRateQuantity;
-        onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
-        notesInput.value = notes;
-        blobNames.forEach(function (objName) {
-            updateFileDisplay(null, false, objName, transactionStatus);
-        });
-        updateInfoText();
-        noTackingToolSection.style.display = 'block';
+        updateProjectMovements(data);
     } catch (error) {
         validateSessionExpiration(error.message);
         console.error(error);
-        // Handle any errors here
     } finally {
-        loadingBoxIntern.style.display = 'none';
+        displayElement(loadingBoxIntern, 'none');
     }
 }
 
-function cleanFileName(fileName) {
-    const regex = /^[a-f0-9]+_\d+_/i;
-    return fileName.replace(regex, '');
+function updateProjectMovements(data) {
+    let normalHoursQuantity = 0;
+    let onCallFlateRateQuantity = 0;
+    let onCallTimeWorkedQuantity = 0;
+    let notes = '';
+    let blobNames = [];
+
+    if (data.movementsList.length > 0) {
+        const normalMovement = data.movementsList.find(movement => movement.movementTypeName !== 'Holidays');
+        movementIdNormalHoursInput.value = normalMovement ? normalMovement.movementId : null;
+    } else {
+        movementIdNormalHoursInput.value = null;
+    }
+
+    submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor('No Actions')}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon('No Actions')} Submit your time</button>`;
+    quantityInput.disabled = false;
+    notesInput.disabled = false;
+    onCallFlateRateSelect.disabled = false;
+    onCallTimeWorkedInput.disabled = false;
+    fileInput.disabled = false;
+    transactionStatus = 'No actions';
+    displayElement(uploadBtn, 'block');
+    let holidaysCount = 0;
+    let holidaysHtmlList = ``;
+
+    data.movementsList.forEach(function (obj) {
+        if (obj.movementTypeName === 'Normal Hours') {
+            notes += obj.notes === null ? '' : obj.notes;
+            normalHoursQuantity += obj.quantity;
+            JSON.parse(obj.blobNames).forEach(blobName => blobNames.push(blobName));
+        }
+        if (obj.movementTypeName === 'On Call Flate Rate') {
+            onCallFlateRateQuantity += obj.quantity;
+        }
+        if (obj.movementTypeName === 'On Call Time Worked') {
+            onCallTimeWorkedQuantity += obj.quantity;
+        }
+        if (obj.movementTypeName === 'Holidays') {
+            holidaysCount++;
+            const holidayDate = new Date(obj.actionDate);
+            holidaysHtmlList += `<div data-tooltip="You will be paid ${obj.quantity} hours for this holiday, you don't need to report this." class="holiday-Item tooltip-target"><span class="holiday-name">${obj.notes}<i class="fa-solid fa-gift"></i></span><span>${getMonthName(holidayDate.getMonth())} ${holidayDate.getDate()}</span></div>`;
+        } else {
+            transactionStatus = obj.transactionStatus;
+            if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
+                updateStatusReportSubmittedClientHasTrackingTool();
+            }
+        }
+    });
+
+    if (holidaysCount > 0) {
+        holidaysContainer.innerHTML = `<label>You have ${holidaysCount} holiday${holidaysCount === 1 ? '' : 's'} to be reimbursed for this period</label> <div style="display:flex; justify-content:center">${holidaysHtmlList}</div>`;
+        displayElement(holidaysContainer, 'block');
+        initializeTooltips();
+    }
+
+    quantityInput.value = normalHoursQuantity;
+    onCallFlateRateSelect.value = onCallFlateRateQuantity;
+    onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
+    notesInput.value = notes;
+    blobNames.forEach(blobName => updateFileDisplay(null, false, blobName, transactionStatus));
+    updateInfoText();
+    displayElement(noTrackingToolSection, 'block');
 }
-// DELETE FILE
+
+// File deletion
 async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
     if (!fileName) {
         console.error('File name must be provided.');
         return;
     }
+
     fileInput.value = '';
-    deleteBtn.style.display = 'none';
+    displayElement(deleteBtn, 'none');
     statusLabel.innerHTML = '';
-    spinnerLabel.style.display = 'block';
+    displayElement(spinnerLabel, 'block');
+
     const token = $('[name="__RequestVerificationToken"]').val();
     const formData = new FormData();
     formData.append('fileName', fileName);
@@ -532,34 +531,37 @@ async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
     try {
         const response = await fetch("/TrackingTool/ReportingMyTime/DeleteBlob", {
             method: 'POST',
-            headers: {
-                RequestVerificationToken: token
-            },
+            headers: { RequestVerificationToken: token },
             body: formData
         });
 
         const data = await response.json();
-        if (response.ok) {
-        } else {
-            statusLabel.textContent = 'Delete failed';
-            deleteBtn.style.display = 'block';
-            spinnerLabel.style.display = 'none';
-            displayToasterError(data.error || 'Failed to delete the file.');
-            console.error('There has been a problem with the fetch operation:', data.detail);
+        if (!response.ok) {
+            handleDeleteError(data, statusLabel, deleteBtn, spinnerLabel);
         }
     } catch (error) {
         validateSessionExpiration(error.message);
-        statusLabel.textContent = 'Delete failed';
-        deleteBtn.style.display = 'block';
-        spinnerLabel.style.display = 'none';
-        console.error('Network error:', error);
-        displayToasterError('Network error occurred. Please try again.');
+        handleDeleteError({ error: 'Network error occurred. Please try again.' }, statusLabel, deleteBtn, spinnerLabel);
     }
 }
 
-// INPUT VALIDATIONS
-document.getElementById('notesInput').addEventListener('input', function (e) {
+function handleDeleteError(data, statusLabel, deleteBtn, spinnerLabel) {
+    statusLabel.textContent = 'Delete failed';
+    displayElement(deleteBtn, 'block');
+    displayElement(spinnerLabel, 'none');
+    displayToasterError(data.error || 'Failed to delete the file.');
+    console.error('There has been a problem with the fetch operation:', data.detail);
+}
+
+// Input validation
+notesInput.addEventListener('input', function () {
     if (this.value.length > 400) {
         this.value = this.value.slice(0, 400);
     }
 });
+
+// Other utility functions
+function cleanFileName(fileName) {
+    const regex = /^[a-f0-9]+_\d+_/i;
+    return fileName.replace(regex, '');
+}

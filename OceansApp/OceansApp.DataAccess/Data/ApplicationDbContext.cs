@@ -550,6 +550,51 @@ namespace OceansApp.DataAccess.Data
                .HasForeignKey(p => p.ProjectId)
                .IsRequired().OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<ConsultantPayment>(entity =>
+            {
+                entity.Property(c => c.CompanyId)
+                .HasColumnType("varchar(8)");
+            });
+
+            // PROJECT CONSULTAN PERIOD DISABLED TRACKING
+            modelBuilder.Entity<ProjectConsultantPeriodDisabledTracking>(entity =>
+            {
+                // Indexes
+                entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.StartPeriodDate, e.EndPeriodDate });
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.StartPeriodDate);
+                entity.HasIndex(e => e.EndPeriodDate);
+                entity.HasIndex(e => e.CreatedBy);
+
+                //Columns
+                entity.HasKey(r => new { r.Id });
+
+                entity.HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+
+                entity.HasOne(c => c.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(c => c.ConsultantId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(d => d.StartPeriodDate)
+                .HasColumnType("date")
+                .IsRequired();
+
+                entity.Property(d => d.EndPeriodDate)
+                .HasColumnType("date")
+                .IsRequired();
+
+                entity.HasOne(u => u.ApplicationUserCreated)
+                .WithMany()
+                .HasForeignKey(u => u.CreatedBy)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict); ;
+            });
+
             // REPORTING MY TIME COMMENTS
             modelBuilder.Entity<ReportingMyTimeComments>()
                 .HasKey(r => new { r.CommentId });
@@ -957,6 +1002,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
         public DbSet<ProjectConsultantAssignedHistoryAction> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS { get; set; }
+        public DbSet<ProjectConsultantPeriodDisabledTracking> PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS { get; set; }
         public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
         public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
