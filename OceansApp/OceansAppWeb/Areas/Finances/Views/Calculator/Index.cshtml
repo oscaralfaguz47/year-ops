@@ -915,7 +915,7 @@
                   success: function (data) {
                       // Llenar el segundo dropdown con las opciones recibidas
                       $.each(data, function (index, option) {
-                          dropdown2.append('<option value="' + option.value + '">' + option.name + '</option>');
+                          dropdown2.append('<option value="' + option.value + '">' + option.text + '</option>');
                       });
 
                       // Habilitar el segundo dropdown
@@ -951,7 +951,7 @@
                   success: function (data) {
                       // Llenar el segundo dropdown con las opciones recibidas
                       $.each(data, function (index, option) {
-                          dropdown2.append('<option value="' + option.value + '">' + option.name + '</option>');
+                          dropdown2.append('<option value="' + option.value + '">' + option.text + '</option>');
                       });
 
                       // Habilitar el segundo dropdown

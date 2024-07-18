@@ -27,7 +27,7 @@ namespace OceansApp.DataAccess.Repository
             queryBuilder.AppendLine(@"
                SELECT
                 CS.ConsultantSeniorityId AS Value
-               ,CS.Name
+               ,CS.Name AS Text
                FROM CONSULTANT_ROLES_QUALITY_LEVELS RCL
                JOIN CONSULTANT_SENIORITIS CS ON RCL.ConsultantSeniorityId = CS.ConsultantSeniorityId
                WHERE ConsultantRoleId = @roleId
