@@ -85,7 +85,11 @@ namespace FinancialCalculatorWeb.Areas.Finances.Controllers
         [HttpGet]
         public async Task<IActionResult> GetOptionsForSeniorityDropdownAsync(int roleId)
         {
-            var senioritisList = await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(roleId);
+            var senioritisList = (await _unitOfWork.ConsultantSeniority.GetSenioritisByRoleAsync(roleId)).Select(i => new SelectListItem
+            {
+                Text = i.Text,
+                Value = i.Value.ToString()
+            }); ;
             return Json(senioritisList);
         }
 
