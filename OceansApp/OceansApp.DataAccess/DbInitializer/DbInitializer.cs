@@ -378,37 +378,6 @@ namespace OceansApp.DataAccess.DbInitializer
                     await _db.SaveChangesAsync();
                 }
 
-                // ----------------- PROJECT CONSULTANTS ASSIGNED HISTORY ACTIONS --------------------------------
-
-                if (!_db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.Any())
-                {
-                    List<ProjectConsultantAssignedHistoryAction> actionsList = new()
-                    {
-                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant Assigned First Time" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Position Details updated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Hourly Client Rate updated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Monthly Client Rate updated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Hourly Salary updated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Monthly Salary updated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Third Party Salary updated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Client pricing method updated (Monthly)" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Client pricing method updated (Hourly)" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant pricing method updated (Monthly)" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant pricing method updated (Hourly)" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant Activated" },
-                        new ProjectConsultantAssignedHistoryAction { Name = "Consultant Deactivated" }
-                    };
-                    foreach (var action in actionsList)
-                    {
-                        ProjectConsultantAssignedHistoryAction actionToSave = new()
-                        {
-                            Name = action.Name
-                        };
-                        await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS.AddAsync(actionToSave);
-                    }
-                    await _db.SaveChangesAsync();
-                }
-
                 // ----------------- SYSTEM AREAS --------------------------------
 
                 List<SystemArea> systemAreasList = new List<SystemArea>

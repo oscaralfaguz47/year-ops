@@ -196,31 +196,11 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateRequiredFieldIntType("SuccessManagerId", "Success Manager", projectData.SuccessManagerId, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("ClientHasTrackingTool", "Client has tracking tool", projectData.ClientHasTrackingTool, ModelState);
 
-                if (projectData.AssignedConsultants != null)
-                {
-                    HashSet<int> existingConsultantIds = new HashSet<int>();
-
-                    foreach (var consultant in projectData.AssignedConsultants)
-                    {
-                        if (!existingConsultantIds.Add(consultant.ConsultantId))
-                        {
-                            ModelState.AddModelError("ConsultantId", $"You are adding duplicated consultants in the list.");
-                            continue;
-                        }
-                        if (consultant.ProjectConsultantAssignedId == null)
-                        {
-                            validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultant.ActionDate, ModelState);
-                        }
-                        validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", consultant.ConsultantId, ModelState);
-                    }
-                }
-
                 if (ModelState.IsValid)
                 {
-                    var claimsIdentity = (ClaimsIdentity)User.Identity;
-                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                     var resultMessage = "";
-                    projectData.CreatedBy = claim.Value;
+                    projectData.CreatedBy = userActionedBy;
                     int createdProjectId = 0;
 
                     //IF IS NOT PROJECT ID THEN CREATE THE PROJECT
@@ -284,51 +264,67 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         }
 
         [Authorize(Policy = "AccessToProjectsPage")]
-        [HttpPost("UpdateConsultantParameters")]
+        [HttpPost("AddUpdateConsultantInProjet")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateConsultantParameters([FromBody] CreateUpdateProjectConsultantAssignedVM consultantParametersData)
+        public async Task<IActionResult> AddUpdateConsultantInProjet([FromBody] CreateUpdateProjectConsultantHistoryVM consultantAssignationData)
         {
             try
             {
-                if (consultantParametersData == null)
+                if (consultantAssignationData == null)
                 {
-                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                    return BadRequest(new { MessageType = "Exception Error", error = $"The object data is null, it should be a valid object" });
                 }
                 ValidateInputs validateInputs = new();
 
-                validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultantParametersData.ActionDate, ModelState);
-                validateInputs.ValidateRequiredFieldIntType("ProjectConsultantAssignedId", "Project Consultant Assigned Id", consultantParametersData.ProjectConsultantAssignedId, ModelState);
-                validateInputs.ValidateRequiredFieldIntType("PositionId", "Position", consultantParametersData.PositionId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", consultantAssignationData.ConsultantId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("ProjectId", "ProjectId", consultantAssignationData.ProjectId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("PositionId", "Position", consultantAssignationData.PositionId, ModelState);
+
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("HourlyClientRate", "Hourly Client Rate", consultantAssignationData.HourlyClientRate, ModelState);
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("HourlySalary", "Hourly Salary", consultantAssignationData.HourlySalary, ModelState);
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlyClientRate", "Monthly Client Rate", consultantAssignationData.MonthlyClientRate, ModelState);
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlySalary", "Monthly Salary", consultantAssignationData.MonthlySalary, ModelState);
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlySalaryPartner", "Monthly Salary Partner", consultantAssignationData.MonthlySalaryPartner, ModelState);
+
+                validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date", consultantAssignationData.ActionDate, ModelState);
+                validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", consultantAssignationData.ActionDate, ModelState);
+
+                validateInputs.ValidateRequiredFieldBooleanType("HolidaysMustBePaid", "Holidays Must Be Paid", consultantAssignationData.HolidaysMustBePaid, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("AccessToTrackingTool", "Access To Tracking Tool", consultantAssignationData.AccessToTrackingTool, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("IsDefaultProject", "Is Default Project", consultantAssignationData.IsDefaultProject, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("IsAssigningFirstTime", "IsAssigningFirstTime", consultantAssignationData.IsAssigningFirstTime, ModelState);
 
                 if (ModelState.IsValid)
                 {
-                    var claimsIdentity = (ClaimsIdentity)User.Identity;
-                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                    var resultMessage = "";
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                    var res = await _unitOfWork.Project.UpdateConsultantAssignedParameters(consultantParametersData, claim.Value);
+                    consultantAssignationData.UserCreatedBy = userActionedBy;
+
+                    var res = await _unitOfWork.Project.AddUpdateConsultantInProjet(consultantAssignationData);
 
                     if (res.Success)
                     {
-                        resultMessage = res.Message;
+                        return Ok(new
+                        {
+                            success = true,
+                            message = res.Message
+                        });
                     }
                     else
                     {
-                        return BadRequest(new { error = res.Message, MessageType = res.MessageType, result = "ErrorSaving", detail = "The Consultant parameters could be updated." });
+                        if (res.MessageType == "Validation Error")
+                        {
+                            return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                        }
+                        return BadRequest(new { MessageType = res.MessageType, error = res.Message });
                     }
-                    await _unitOfWork.SaveAsync();
-                    return Ok(new
-                    {
-                        success = true,
-                        message = resultMessage
-                    });
                 }
                 else
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors)
                                                   .Select(e => e.ErrorMessage)
                                                   .ToList();
-                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", errors = errors });
                 }
             }
             catch (Exception ex)
@@ -337,61 +333,45 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
             }
         }
 
+
         [Authorize(Policy = "AccessToProjectsPage")]
         [HttpPost("ActivateDeactivateConsultantFromProject")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId, [FromForm] DateTime actionDate)
+        public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId,
+            [FromForm] DateTime actionDate, bool statusToChange)
         {
             try
             {
-                var consultantAssignation = await _unitOfWork.ProjectConsultantAssigned.GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
-                if (consultantAssignation == null)
+                var existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory.GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
+                if (existingConsultantAssignationHistory == null)
                 {
                     return BadRequest(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
                 }
-                var actionDescription = consultantAssignation.IsActive ? "Consultant Deactivated" : "Consultant Activated";
-                var action = await _unitOfWork.ProjectConsultantAssignedHistoryAction.GetFirstOrDefaultAsync(x => x.Name == actionDescription);
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var userActionedBy = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == claim.Value);
-                if (consultantAssignation.IsActive)
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (existingConsultantAssignationHistory.IsActive != statusToChange)
                 {
-                    ProjectConsultantAssignedHistory historyConsultant = new()
-                    {
-                        ProjectConsultantAssignedId = projectConsultantAssignedId,
-                        ActionId = action.ActionId,
-                        ActionDate = actionDate,
-                        CreationDate = DateTime.UtcNow,
-                        UserActionedBy = userActionedBy.ConsultantId,
-                        NewValue = 0,
-                        OldValue = 1
-                    };
-                    _unitOfWork.ProjectConsultantAssignedHistory.AddAsync(historyConsultant);
+                    ProjectConsultantAssignedHistory historyConsultantToCreate = new();
+                    historyConsultantToCreate = existingConsultantAssignationHistory;
+                    historyConsultantToCreate.IsActive = statusToChange;
+                    historyConsultantToCreate.UserIdActionedBy = userActionedBy;
+                    historyConsultantToCreate.ActionDate = actionDate;
+                    historyConsultantToCreate.CreationDate = DateTime.UtcNow;
+
+                    await _unitOfWork.ProjectConsultantAssignedHistory.AddAsync(historyConsultantToCreate);
                 }
                 else
                 {
-                    ProjectConsultantAssignedHistory historyConsultant = new()
-                    {
-                        ProjectConsultantAssignedId = projectConsultantAssignedId,
-                        ActionId = action.ActionId,
-                        ActionDate = actionDate,
-                        CreationDate = DateTime.UtcNow,
-                        UserActionedBy = userActionedBy.ConsultantId,
-                        NewValue = 1,
-                        OldValue = 0
-                    };
-                    _unitOfWork.ProjectConsultantAssignedHistory.AddAsync(historyConsultant);
+                    return BadRequest(new { error = $"The status of the consultat is already {(existingConsultantAssignationHistory.IsActive ? "Active" : "Inactive")}", MessageType = "Validation Error" });
                 }
-                consultantAssignation.IsActive = consultantAssignation.IsActive ? false : true;
                 await _unitOfWork.SaveAsync();
 
-                var successMessage = "The consultant was " + (consultantAssignation.IsActive ? "Activated" : "Deactivated") + " from the project!";
+                var successMessage = "The consultant was " + (statusToChange ? "Activated" : "Deactivated") + " from the project!";
 
                 return Ok(new { success = true, message = successMessage });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = $"There was an error in the server, the consultant assignation could not be updated.", detail = ex.Message });
+                return BadRequest(new { error = $"There was an error in the server, the consultant status could not be updated.", detail = ex.Message });
             }
         }
 

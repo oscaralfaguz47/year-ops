@@ -110,7 +110,7 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(c => c.BankAccountCode)
                 .HasColumnType("varchar(20)");
             });
-            modelBuilder.Entity<BankAccount>(entity => 
+            modelBuilder.Entity<BankAccount>(entity =>
             {
                 entity.Property(c => c.IsActive)
                 .HasColumnType("varchar(1)");
@@ -159,7 +159,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ConsultantDetail>(entity =>
             {
                 // Composite index
-                entity.HasIndex(e => new { e.UserId, e.ConsultantId});
+                entity.HasIndex(e => new { e.UserId, e.ConsultantId });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.UserId);
@@ -336,7 +336,7 @@ namespace OceansApp.DataAccess.Data
               .HasForeignKey(p => p.BankAccountId)
               .IsRequired();
             modelBuilder.Entity<ConsultantPayment>()
-                .Property(d => d.StartDatePeriod)                                                               
+                .Property(d => d.StartDatePeriod)
                 .HasColumnType("date")
                 .IsRequired();
             modelBuilder.Entity<ConsultantPayment>()
@@ -415,7 +415,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<Project>(entity =>
             {
                 // Composite index
-                entity.HasIndex(e => new { e.IsActive, e.ClientId, e.SuccessManagerId, e.StartDate, e.Name});
+                entity.HasIndex(e => new { e.IsActive, e.ClientId, e.SuccessManagerId, e.StartDate, e.Name });
 
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.CreatedBy);
@@ -453,87 +453,56 @@ namespace OceansApp.DataAccess.Data
             // PROJECTS CONSULTANTS ASSIGNED
             modelBuilder.Entity<ProjectConsultantAssigned>(entity =>
             {
-                // Composite index
-                entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.HourlySalary, e.MonthlySalary });
-                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
-
-                // Indexes on foreign keys
+                // Indexes
+                entity.HasIndex(e => new { e.ConsultantId, e.ProjectId});
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
-                entity.HasIndex(e => e.PositionId);
-                entity.HasIndex(e => e.PartnerId);
 
-                // Indexes for columns
-                entity.HasIndex(e => e.IsMonthlySalaryCalculatedPerHour);
-                entity.HasIndex(e => e.MonthlySalaryThirdParty);
-                entity.HasIndex(e => e.AccessToTrackingTool);
-                entity.HasIndex(e => e.IsDefaultProject);
-            });
-            modelBuilder.Entity<ProjectConsultantAssigned>()
-                .HasKey(p => new { p.ProjectConsultantAssignedId });
-            modelBuilder.Entity<ProjectConsultantAssigned>()
-                .HasOne(p => p.Project)
+                //Columns
+                entity.HasKey(p => new { p.ProjectConsultantAssignedId });
+                entity.HasOne(p => p.Project)
                 .WithMany()
                 .HasForeignKey(p => p.ProjectId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ProjectConsultantAssigned>()
-                .HasOne(cd => cd.ConsultantDetail)
+                entity.HasOne(cd => cd.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(cd => cd.ConsultantId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ProjectConsultantAssigned>()
-               .HasOne(p => p.ConsultantPosition)
-               .WithMany()
-               .HasForeignKey(p => p.PositionId);
-            modelBuilder.Entity<ProjectConsultantAssigned>()
-               .HasOne(p => p.Partner)
-               .WithMany()
-               .HasForeignKey(p => p.PartnerId);
+            });
 
             // PROJECTS CONSULTANTS ASSIGNED HISTORY
             modelBuilder.Entity<ProjectConsultantAssignedHistory>(entity =>
             {
-                // Composite index
-                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionId, e.ActionDate});
-
-                // Indexes on foreign keys
+                // Indexes
+                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate });
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
-                entity.HasIndex(e => e.UserActionedBy);
-                entity.HasIndex(e => e.ActionId);
+                entity.HasIndex(e => e.UserIdActionedBy);
+                entity.HasIndex(e => e.ActionDate);
+                entity.HasIndex(e => e.PositionId);
+                entity.HasIndex(e => e.PartnerId);
 
-                // Indexes for columns
-                entity.HasIndex(e => e.NewValue);
-            });
-            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .HasKey(p => new { p.Id });
-            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .HasOne(p => p.ProjectConsultantAssigned)
+                //Columns
+                entity.HasKey(p => new { p.Id });
+                entity.HasOne(p => p.ProjectConsultantAssigned)
                 .WithMany()
                 .HasForeignKey(p => p.ProjectConsultantAssignedId)
                 .IsRequired();
-            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .HasOne(a => a.ConsultantUserActionedBy)
+                entity.HasOne(a => a.UserActionedBy)
                 .WithMany()
-                .HasForeignKey(a => a.UserActionedBy)
+                .HasForeignKey(a => a.UserIdActionedBy)
                 .IsRequired();
-            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .HasOne(a => a.Action)
-                .WithMany()
-                .HasForeignKey(a => a.ActionId)
-                .IsRequired();
-            modelBuilder.Entity<ProjectConsultantAssignedHistory>()
-                .Property(d => d.ActionDate)
+                entity.Property(d => d.ActionDate)
                 .HasColumnType("date")
                 .IsRequired();
-
-            // PROJECTS CONSULTANTS ASSIGNED HISTORY ACTIONS
-            modelBuilder.Entity<ProjectConsultantAssignedHistoryAction>(entity =>
-            {
-                // Indexes for columns
-                entity.HasIndex(e => e.ActionId);
-                entity.HasIndex(e => e.Name);
+                entity.HasOne(p => p.ConsultantPosition)
+                .WithMany()
+                .HasForeignKey(p => p.PositionId)
+                .IsRequired();
+                entity.HasOne(p => p.Partner)
+               .WithMany()
+               .HasForeignKey(p => p.PartnerId);
             });
 
             // PROJECTS USERS SELECTED
@@ -662,7 +631,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
             {
                 entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.ActionDate });
-                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId});
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
 
                 entity.HasIndex(e => e.ActionDate);
                 entity.HasIndex(e => e.Quantity);
@@ -982,7 +951,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantRole> CONSULTANT_ROLES { get; set; }
         public DbSet<ConsultantQualityLevel> CONSULTANT_QUALITY_LEVELS { get; set; }
         public DbSet<ConsultantRolesQualityLevels> CONSULTANT_ROLES_QUALITY_LEVELS { get; set; }
-        public DbSet<ConsultantPayment> CONSULTANT_PAYMENTS{ get; set; }
+        public DbSet<ConsultantPayment> CONSULTANT_PAYMENTS { get; set; }
         public DbSet<ConsultantPosition> CONSULTANT_POSITIONS { get; set; }
         public DbSet<ConsultantAndPosition> CONSULTANTS_AND_POSITIONS { get; set; }
         public DbSet<ConsultantDetail> CONSULTANT_DETAILS { get; set; }
@@ -1001,7 +970,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
-        public DbSet<ProjectConsultantAssignedHistoryAction> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ACTIONS { get; set; }
         public DbSet<ProjectConsultantPeriodDisabledTracking> PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS { get; set; }
         public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
         public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }

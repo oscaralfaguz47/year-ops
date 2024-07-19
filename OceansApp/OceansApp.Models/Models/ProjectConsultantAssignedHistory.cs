@@ -12,26 +12,40 @@ namespace OceansApp.Models.Models
         [Required]
         public int ProjectConsultantAssignedId { get; set; }
         [Required]
-        public int ActionId { get; set; }
-        public decimal? OldValue { get; set; }
-        public decimal? NewValue { get; set; }
-        [MaxLength(130)]
-        public string? OldValueDetail { get; set; }
-        [MaxLength(130)]
-        public string? NewValueDetail { get; set; }
+        public bool IsActive { get; set; }
+        public decimal? HourlyClientRate { get; set; }
+        public decimal? HourlySalary { get; set; }
+        public decimal? MonthlyClientRate { get; set; }
+        public decimal? MonthlySalary { get; set; }
+        public decimal? MonthlySalaryPartner { get; set; }
+        public bool? IsMonthlySalaryCalculatedPerHour { get; set; }
+        [Required]
+        public bool AccessToTrackingTool { get; set; }
+        [Required]
+        public bool IsDefaultProject { get; set; }
+        [Required]
+        public int PositionId { get; set; }
+        public int? PartnerId { get; set; }
+        public bool? PartnerPaysBenefits { get; set; }
+        [Required]
+        public bool HolidaysMustBePaid { get; set; }
         [Required]
         public DateTime ActionDate { get; set; }
         [Required]
         public DateTime CreationDate { get; set; }
         [Required]
-        public int UserActionedBy { get; set; }
+        public string UserIdActionedBy { get; set; }
+
+
+        [ValidateNever]
+        public Partner? Partner { get; set; }
+        [ValidateNever]
+        public ConsultantPosition ConsultantPosition { get; set; }
 
         [ValidateNever]
         public ProjectConsultantAssigned ProjectConsultantAssigned { get; set; }
         [ValidateNever]
-        public ConsultantDetail ConsultantUserActionedBy { get; set; }
-        [ValidateNever]
-        public ProjectConsultantAssignedHistoryAction Action { get; set; }
+        public ApplicationUser UserActionedBy { get; set; }
 
     }
 }

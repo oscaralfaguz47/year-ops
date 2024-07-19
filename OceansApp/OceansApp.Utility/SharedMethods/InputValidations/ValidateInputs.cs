@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections;
 using System.Globalization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OceansApp.Utility.SharedMethods.InputValidations
 {
@@ -109,13 +108,17 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
                 }
             }
         }
-        public void ValidateNotRequiredFieldNumberValue(string field, string fieldName, object? numToValidate, ModelStateDictionary modelState)
+        public void ValidateNotRequiredAndGreaterThanZeroFieldNumberValue(string field, string fieldName, object? numToValidate, ModelStateDictionary modelState)
         {
             if (numToValidate != null)
             {
                 if (!(numToValidate is int || numToValidate is decimal || numToValidate is float))
                 {
                     modelState.AddModelError(field, $"The {fieldName} should be a number.");
+                }
+                if ((decimal)numToValidate < 0)
+                {
+                    modelState.AddModelError(field, $"The {fieldName} should be greater than zero.");
                 }
             }
         }

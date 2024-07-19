@@ -11,8 +11,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<GetProjectConsultantAssignedVM> GetAssignedConsultantToProjectById(int consultantProjectAssignedtId);
         Task<MethodResponse> CreateProject(CreateUpdateProjectVM projectData);
         Task<MethodResponse> UpdateProject(CreateUpdateProjectVM projectData);
-        Task<MethodResponse> UpdateConsultantAssignedParameters(CreateUpdateProjectConsultantAssignedVM consultantAssignationData, string userUpdatedBy);
-        void Update(Project obj);
+        Task<MethodResponse> AddUpdateConsultantInProjet(CreateUpdateProjectConsultantHistoryVM consultantAssignationData);
 
     }
 }

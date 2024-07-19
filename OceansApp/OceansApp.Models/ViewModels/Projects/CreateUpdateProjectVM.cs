@@ -14,7 +14,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public int? SuccessManagerId { get; set; }
         public string? SuccessManagerName { get; set; }
         public bool? ClientHasTrackingTool { get; set; }
-        public List<CreateUpdateProjectConsultantAssignedVM>? AssignedConsultants { get; set; }
+        public List<GetConsultantsAssignedToProjectVM>? AssignedConsultants { get; set; }
         public string? CreatedBy { get; set; }
         public string? ProjectType { get; set; }
     }

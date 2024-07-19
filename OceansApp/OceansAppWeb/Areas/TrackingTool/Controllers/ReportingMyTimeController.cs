@@ -94,7 +94,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", movementTime.Notes, 400, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project " + movementTime.MovementType, movementTime.ProjectId, ModelState);
                 validateInputs.ValidateNoNegativeNumber("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
-                validateInputs.ValidateNotRequiredFieldNumberValue("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, ModelState);
                 validateInputs.ValidateLengthTypeNumber("Quantity", "Quantity " + movementTime.MovementType, movementTime.Quantity, 18, 2, ModelState);
                 validateInputs.ValidateDateValidFormat("ActionDate", "Action Date " + movementTime.MovementType, movementTime.ActionDate, ModelState);
                 validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date " + movementTime.MovementType, movementTime.ActionDate, ModelState);
