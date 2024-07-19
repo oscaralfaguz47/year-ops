@@ -39,7 +39,7 @@ function validateRatesInputs() {
     if (consultantPaymentModel === 'T') {
         document.getElementById('hourlySalary').value = null;
         document.getElementById('monthlySalary').value = null;
-    } else if (consultantPaymentModel === 'O'){
+    } else if (consultantPaymentModel === 'O') {
         document.getElementById('thirdPartySalary').value = null;
         document.getElementById('PartnerSelect').value = null;
     }
@@ -67,7 +67,7 @@ function validateRatesInputs() {
         document.getElementById("isMonthlySalaryCalculatedPerHour").style.display = 'none';
         document.getElementById("calculationMethod").value = false;
         document.getElementById("calculationMethod").checked = false;
-    } 
+    }
 }
 //DISPLAY MODAL
 async function displayAddUpdateConsultant(modalId, id) {
@@ -79,7 +79,7 @@ async function displayAddUpdateConsultant(modalId, id) {
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
     createUpdateForm.find('[name="isDefaultProject"]').prop('disabled', false);
     validateRatesInputs();
-    
+
     document.getElementById('search-input-cont').style.display = 'block';
     const clientRateSection = document.getElementById("client-rate-section");
     const clientRateInputs = document.getElementById("client-rate-inputs");
@@ -135,7 +135,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 if (data.consultantAssignation.hourlySalary !== 0) document.getElementsByName('consultant-rate-model')[1].checked = true;
                 if (data.consultantAssignation.monthlySalaryThirdParty === 0 && (data.consultantAssignation.monthlySalary !== 0 ||
                     data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[0].checked = true;
-                if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary !== 0 || 
+                if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary !== 0 ||
                     data.consultantAssignation.hourlySalary !== 0)) document.getElementsByName('consultant-payment-model')[1].checked = true;
                 if (data.consultantAssignation.monthlySalaryThirdParty !== 0 && (data.consultantAssignation.monthlySalary === 0 &&
                     data.consultantAssignation.hourlySalary === 0)) document.getElementsByName('consultant-payment-model')[2].checked = true;
@@ -203,7 +203,7 @@ function addConsultantToProject(modalId) {
     let accessToTrackingToolVal = createUpdateForm.find('[name="accessToTrackingTool"]').prop('checked');
     let isDefaultProjectVal = createUpdateForm.find('[name="isDefaultProject"]').prop('checked');
     let consultantPaymentModel = document.querySelector('input[name="consultant-payment-model"]:checked').value;
-    
+
     var modelState = true;
     if ((createUpdateForm.find('[name="consultantIdFromSearch"]').val() === null
         || createUpdateForm.find('[name="consultantIdFromSearch"]').val() === '') && projectConsultantAssignedValue === "") {
@@ -307,210 +307,6 @@ function addConsultantToProject(modalId) {
                     hideSpinner();
                 })
         }
-    }
-}
-
-//Activate and deactivate Consultant from project
-async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
-    var title = status ? "Deactivate Consultant" : "Activate Consultant";
-    var textAction = status ? "Deactivate" : "Activate";
-    var textSpan = status ? "Deactivated" : "Activated";
-    var validationMessage = status ? "The Deactivation Date is required." : "The Activation Date is required.";
-
-    try {
-        const result = await Swal.fire({
-            title: title,
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: textAction,
-            cancelButtonText: 'Cancel',
-            html: `<div><span>Select a date when ${name} will be ${textSpan}</span></div>
-            <input type="date" id="swal-input-action-date" class="swal2-input" required>`,
-            focusConfirm: false,
-            preConfirm: () => {
-                const actionDate = document.getElementById('swal-input-action-date').value;
-                if (!actionDate) {
-                    Swal.showValidationMessage(validationMessage);
-                    return false;
-                }
-                return [actionDate];
-            }//,
-            //didOpen: () => {
-            //    const today = new Date();
-            //    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            //    document.getElementById('swal-input-action-date').setAttribute('min', localDate);
-            //    document.getElementById('swal-input-action-date').onkeydown = (e) => {
-            //        e.preventDefault();
-            //    };
-            //}
-        });
-
-        if (result.isConfirmed) {
-            displaySpinner();
-            var actionDate = document.getElementById('swal-input-action-date').value;
-            const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate);
-            toastr.success(data.message);
-            hideSpinner();
-            return data.success;
-        } else {
-            return false;
-        }
-    } catch (error) {
-        console.error(error);
-        hideSpinner();
-        return false;
-    }
-}
-
-// GET CONSULTANT HISTORY
-async function getProjectConsultantHistory(projectConsultantAssignedId, modalId) {
-    displaySpinner();
-    var bodyList = document.getElementById('consultant-history-body');
-    var actionIcon = "";
-    await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        var count = 0;
-        var firstRow = "";
-        var row = "";
-        var titleLabelClass = "";
-        console.log(data);
-        const filteredArray = data.historyList.result.filter(item => item.action === "Consultant Assigned First Time");
-        console.log(filteredArray);
-        data.historyList.result.forEach(function (obj) {
-            if (obj.action === 'Consultant Assigned First Time') {
-                actionIcon = '<i class="bi bi-plus-square green-label"></i>';
-                titleLabelClass = 'consultant-added';
-            } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated'
-                || obj.action === 'Consultant pricing method updated (Hourly)' || obj.action === 'Client pricing method updated (Monthly)'
-                || obj.action === 'Monthly Client Rate updated' || obj.action === 'Hourly Salary updated' || obj.action === 'Consultant pricing method updated (Monthly)'
-                || obj.action === 'Client pricing method updated (Hourly)' || obj.action === 'Third Party Salary updated') {
-                actionIcon = '<i style="color:#2aa7ff" class="bi bi-pencil-square"></i>';
-                titleLabelClass = 'consultant-updated';
-            } else if (obj.action === 'Consultant Deactivated') {
-                actionIcon = '<i class="bi bi-x-lg red-label"></i>';
-                titleLabelClass = 'consultant-deactivated';
-            } else if (obj.action === 'Consultant Activated') {
-                actionIcon = '<i class="bi bi-plus-lg green-label"></i>';
-                titleLabelClass = 'consultant-activated';
-            }
-            var actionDate = new Date(obj.actionDate);
-            var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
-                ('0' + actionDate.getDate()).slice(-2) + '/' +
-                actionDate.getFullYear();
-            var isExternalProject = document.getElementById('external-pt').checked;
-            var clientRateLabel = '';
-            if (isExternalProject) {
-                clientRateLabel = `${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>, `;
-            }
-
-            if (obj.action === 'Consultant Assigned First Time' && count < 4) {
-                if (count === 0) {
-                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${clientRateLabel}`;
-                } else if (count === 1) {
-                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>`;
-                } else if (count === 2) {
-                    firstRow += `, ${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Partner Salary: ' + obj.newValue : ''}`;
-                }
-                else if (count === 3) {
-                    firstRow += `${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Partner Salary: ' + '<strong>$' + obj.newValue + '</strong>,' : ''}`;
-                }
-                if (filteredArray.length === count + 1) {
-                    firstRow += ` Assigned by: ${ obj.userActionedBy }.</li >`
-                    row += firstRow;
-                }
-            } else {
-                if (obj.action !== "Consultant pricing method updated (Hourly)" && obj.action !== "Consultant pricing method updated (Monthly)"
-                    && obj.action !== "Client pricing method updated (Monthly)" && obj.action !== "Client pricing method updated (Hourly)"
-                    && obj.action !== "Consultant Deactivated" && obj.action !== "Consultant Activated") {
-                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action === 'Third Party Salary updated' ? 'Partner Salary Updated' : obj.action}</span> (${formattedDate}): Old Value: <strong>$${obj.oldValue}</strong>, New value: <strong>$${obj.newValue}</strong>. Updated by: ${obj.userActionedBy}.</li>`;
-                } else {
-                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action === 'Third Party Salary updated' ? 'Partner Salary Updated' : obj.action}</span> (${formattedDate}). Updated by: ${obj.userActionedBy}.</li>`;
-                }
-            }
-            count++;
-        });
-        bodyList.innerHTML = row;
-        hideSpinner();
-        showModal(modalId);
-    });
-}
-
-
-//HTTP REQUESTS
-async function getSuccessManagerIdAndNameByClientId(clientId) {
-    var url = "/AccountManagement/Clients/GetSuccessManagerIdAndNameByClientId?clientId=" + encodeURIComponent(clientId);
-    try {
-        let response = await fetch(url);
-        if (response.ok) {
-            return await response.json();
-        } else {
-            let errorData = await response.json();
-            throw new Error('The request to the server failed!. More details: ' + errorData.error);
-        }
-    } catch (error) {
-            validateSessionExpiration(error.message);
-        console.error('Error fetching data:', error);
-        return null;
-    }
-}
-
-async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate) {
-    var url = "/AccountManagement/Projects/ActivateDeactivateConsultantFromProject";
-    try {
-        var token = $('[name="__RequestVerificationToken"]').val();
-        var formData = new FormData();
-        formData.append('projectConsultantAssignedId', projectConsultantAssignedId);
-        formData.append('actionDate', actionDate);
-        let response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                RequestVerificationToken: token
-            },
-            body: formData
-        });
-        if (response.ok) {
-            return await response.json();
-        } else {
-            if (response.status === 404) {
-                displayToasterError("Resource not found (404).");
-                throw new Error('404 Not Found: The requested resource could not be found!');
-            } else {
-                let errorData = await response.json();
-                displayToasterError(errorData.error || 'An unknown error occurred.');
-                throw new Error('The request to the server failed!. More details: ' + errorData.error);
-            }
-        }
-    } catch (error) {
-        validateSessionExpiration(error.message);
-        console.error('Error fetching data:', error);
-        return null;
-    }
-}
-
-async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
-    var url = "/AccountManagement/Projects/GetProjectConsultantAssignedHistoryById?projectConsultantAssignedId="
-        + encodeURIComponent(projectConsultantAssignedId);
-    try {
-        let response = await fetch(url);
-        if (response.ok) {
-            return await response.json();
-        } else {
-            if (response.status === 404) {
-                displayToasterError("Resource not found (404).");
-                throw new Error('404 Not Found: The requested resource could not be found!');
-            } else {
-                let errorData = await response.json();
-                displayToasterError(errorData.error || 'An unknown error occurred.');
-                throw new Error('The request to the server failed!. More details: ' + errorData.error);
-            }
-            hideSpinner();
-        }
-    } catch (error) {
-        validateSessionExpiration(error.message);
-        displayToasterError('Error fetching data: ' + error);
-        console.error('Error fetching data:', error);
-        hideSpinner();
-        return null;
     }
 }
 

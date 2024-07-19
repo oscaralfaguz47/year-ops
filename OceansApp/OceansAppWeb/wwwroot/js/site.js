@@ -1,13 +1,11 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-window.onload = function () {
+﻿window.onload = function () {
     var currentYear = new Date().getFullYear();
     var copyrightYearElement = document.querySelector("#copyright-year");
     if (copyrightYearElement) {
         copyrightYearElement.innerHTML = currentYear;
     }
 }
+
 function validateSessionExpiration(message) {
     if (message.toString().includes('Unexpected token')) {
         window.location.href = "/SessionEnded";
@@ -21,6 +19,7 @@ function hideSpinner() {
     const spinner = document.getElementById("loading-spinner");
     spinner.style.display = "none";
 }
+
 function redirectToCalculatorIndex() {
     location.href = '/Finances/Calculator';
 }
@@ -47,29 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// COPY TEXT TO CLIPBOARD
-function copyToClipboard(text, messageSuccess) {
-    // Create a temporary input element
-    const tempInput = document.createElement('textarea');
-    tempInput.value = text;
-    document.body.appendChild(tempInput);
-
-    // Select the text inside the input element
-    tempInput.select();
-
-    try {
-        // Execute the "copy" command
-        document.execCommand('copy');
-        displayToasterSuccess(messageSuccess);
-    } catch (err) {
-        console.error('Unable to copy text to clipboard:', err);
-        toastr.error('Algo salió mal, reporta este issue a soporte.');
-    } finally {
-        // Remove the temporary input element
-        document.body.removeChild(tempInput);
-    }
-}
-
 function displayToasterSuccess(text) {
     toastr.success(text);
 }
@@ -91,21 +67,6 @@ function displayToasterWarningArray(messagesArray) {
 }
 function displayToasterWarning(message) {
     toastr.warning(message);
-}
-
-//FILTERS
-function hideShowFilters() {
-    var moreFiltersDiv = document.getElementById("more-filters");
-    var hideShowFiltersBtn = document.getElementById("show-hide-filters-btn");
-    if (moreFiltersDiv.classList.contains('hide')) {
-        moreFiltersDiv.classList.remove('hide')
-        moreFiltersDiv.classList.add('show')
-        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel-fill"></i> Hide Filters';
-    } else {
-        moreFiltersDiv.classList.add('hide')
-        moreFiltersDiv.classList.remove('show')
-        hideShowFiltersBtn.innerHTML = '<i class="bi bi-funnel"></i> Show Filters';
-    }
 }
 
 //HIDE MODALS

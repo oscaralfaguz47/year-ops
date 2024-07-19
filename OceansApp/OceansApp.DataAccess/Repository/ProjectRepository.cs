@@ -41,34 +41,26 @@ namespace OceansApp.DataAccess.Repository
             return (projects, totalCount);
         }
 
-        public async Task<CreateUpdateProjectVM> GetProjectDataById(int projectId)
+        public async Task<CreateUpdateProjectVM> GetProjectDataByIdAsync(int projectId)
         {
             var connection = _db.Database.GetDbConnection();
             var parameters = new DynamicParameters();
             parameters.Add("@ProjectId", projectId);
+            parameters.Add("@CurrentDate", DateTime.UtcNow);
 
-            using (var multiResultSet = await connection.QueryMultipleAsync("SP_PROJECTS_GetProjectDataById", parameters, commandType: CommandType.StoredProcedure))
+            try
             {
-                var project = await multiResultSet.ReadFirstOrDefaultAsync<CreateUpdateProjectVM>();
-                var assignedConsultants = await multiResultSet.ReadAsync<CreateUpdateProjectConsultantHistoryVM>();
-
-                return new CreateUpdateProjectVM
+                using (var multiResultSet = await connection.QueryMultipleAsync("SP_PROJECTS_GetProjectDataById", parameters, commandType: CommandType.StoredProcedure))
                 {
-                    ProjectId = project.ProjectId,
-                    Name = project.Name,
-                    Description = project.Description,
-                    StartDate = project.StartDate,
-                    IsActive = project.IsActive,
-                    IsBillable = project.IsBillable,
-                    ClientId = project.ClientId,
-                    ClientName = project.ClientName,
-                    SuccessManagerId = project.SuccessManagerId,
-                    SuccessManagerName = project.SuccessManagerName,
-                    ClientHasTrackingTool = project.ClientHasTrackingTool,
-                    AssignedConsultants = (List<GetConsultantsAssignedToProjectVM>)assignedConsultants
-                };
+                    return await multiResultSet.ReadFirstOrDefaultAsync<CreateUpdateProjectVM>();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
+
 
         public async Task<GetProjectConsultantAssignedVM> GetAssignedConsultantToProjectById(int consultantProjectAssignedtId)
         {

@@ -1,0 +1,111 @@
+﻿<div id="modal-update-create-project" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-update-create-project')">x</button></div>
+                <h2 id="create-update-project-modal-title"></h2>
+                <form id="form-create-update">
+                    <input type="hidden" name="projectId">
+                    <label for="Name">Project Name</label>
+                    <div class="input-container">
+                        <input type="text" class="form-control" name="projectName">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="Contact">Description</label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" name="description">
+                            </div>
+                        </div>
+                    </div>
+                    <label>Project Type</label>
+                    <div id="project-type-inputs-cont">
+                        <div style="margin-top: 5px; margin-bottom: 10px; display: flex;" class="">
+                            <label style="margin-top: 0; margin-right: 20px;" class="radio-label">
+                                <input onchange="validateProjectType()" id="external-pt" name="projectTypeRb" type="radio" value="E" checked class="radio-input">
+                                <span class="radio-custom"></span>
+                                &nbsp; Client External
+                            </label>
+                            <label class="radio-label">
+                                <input onchange="validateProjectType()" id="internal-pt" name="projectTypeRb" type="radio" value="I" class="radio-input">
+                                <span class="radio-custom"></span>
+                                &nbsp; Administrative Internal
+                            </label>
+                        </div>
+                    </div>
+                    <div id="saved-project-type-label" style="margin-bottom: 10px;">
+                        <label>This project is type: <span style="font-weight: bold;" id="saved-project-type-span"></span></label>
+                    </div>
+
+                    <div class="row">
+                        <div id="client-select-cont" class="col-md-7">
+                            <label for="ClientSelect">Client</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="ClientSelect" name="client">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="StartDate">Start Date</label>
+                            <div class="">
+                                <input type="date" class="form-control" name="startDate">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="successManager">Success Manager</label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select disabled class="form-select" id="successManagerIdSelect" name="successManager">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:8px">
+                        <div class="checkbox-cont">
+                            <input type="checkbox" class="form-check-input" id="IsActive" checked name="isActive">
+                            <label class="form-check-label" for="IsActive"> Is Active</label>
+                        </div>
+                        <div id="billable-tracking-tool-cont" class="mb-3">
+                            <div class="checkbox-cont">
+                                <input type="checkbox" class="form-check-input" id="IsBillable" checked name="isBillable">
+                                <label class="form-check-label" for="IsBillable"> Is billable $</label>
+                            </div>
+                            <div class="checkbox-cont">
+                                <input type="checkbox" class="form-check-input" id="ClientHasTrackingTool" name="clientHasTrackingTool">
+                                <label class="form-check-label" for="ClientHasTrackingTool"> The client has tracking tool</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <a id="btn-cancel" onclick="hideModal('modal-update-create-project')" class="cancel-btn">Cancel</a>&nbsp;
+                    <button type="button" id="btn-saving" onclick="createUpdateProject('modal-update-create-project')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="green-label m-3" id="saved-project-message" style="text-align: center">
+                    <label>Now you can add consultants to the project <i class="bi bi-check-circle-fill"></i></label>
+                </div>
+                <div id="consultants-assigned-section">
+                    <div style="display: flex;justify-content: space-between;align-items: center; margin-top:5px;">
+                        <label><strong>Assigned Consultants</strong></label>
+                        <a style="padding-right: 10px" class="blue-btn" onclick="displayAddUpdateConsultant('modal-add-consultant', null)"><i class="bi bi-plus"></i> Add Consultant</a>
+                    </div>
+                    <div id="consultants-container" class="modal-scroll-container">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/AccountManagement/Projects/createUpdateProject.js?v=@DateTime.Now.Ticks"></script>

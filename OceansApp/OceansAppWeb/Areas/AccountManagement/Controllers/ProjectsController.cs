@@ -109,10 +109,10 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var projectData = await _unitOfWork.Project.GetProjectDataById(projectId);
+                var projectData = await _unitOfWork.Project.GetProjectDataByIdAsync(projectId);
                 if (projectData == null)
                 {
-                    return BadRequest(new { error = "The project is not longer in the database.", detail = "The project was not found in the database." });
+                    return NotFound(new { error = "The project is not longer in the database."});
                 }
                 var authToManageAdminitrativeConsultants = await _authorizationService.AuthorizeAsync(User, "AccessToManageAdministrativeConsultants");
 
@@ -345,7 +345,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 var existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory.GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
                 if (existingConsultantAssignationHistory == null)
                 {
-                    return BadRequest(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
+                    return NotFound(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
                 }
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (existingConsultantAssignationHistory.IsActive != statusToChange)
@@ -358,12 +358,12 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                     historyConsultantToCreate.CreationDate = DateTime.UtcNow;
 
                     await _unitOfWork.ProjectConsultantAssignedHistory.AddAsync(historyConsultantToCreate);
+                    await _unitOfWork.SaveAsync();
                 }
                 else
                 {
                     return BadRequest(new { error = $"The status of the consultat is already {(existingConsultantAssignationHistory.IsActive ? "Active" : "Inactive")}", MessageType = "Validation Error" });
                 }
-                await _unitOfWork.SaveAsync();
 
                 var successMessage = "The consultant was " + (statusToChange ? "Activated" : "Deactivated") + " from the project!";
 

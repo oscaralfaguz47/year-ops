@@ -1,5 +1,4 @@
-﻿
-// Utility functions
+﻿// Utility functions
 const getElementById = id => document.getElementById(id);
 
 // Element selectors

@@ -40,17 +40,20 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.LockoutEnabled);
                 entity.HasIndex(e => e.TwoFactorRequired);
 
-            });
-            modelBuilder.Entity<ApplicationUser>()
-               .HasOne(a => a.ApplicationUserCategory)
+                entity.HasOne(a => a.ApplicationUserCategory)
                .WithMany()
                .HasForeignKey(a => a.UserCategoryId)
                .IsRequired();
-            modelBuilder.Entity<ApplicationUser>(entity =>
-            {
                 entity.Property(e => e.TwoFactorRequired)
                 .IsRequired()
                 .HasDefaultValue(true);
+            });
+               
+
+            // APPLICATION USER CATEGORIES
+            modelBuilder.Entity<ApplicationUserCategory>(entity =>
+            {
+                entity.HasIndex(e => e.UserCategoryId);
             });
 
             modelBuilder.Entity<ApplicationUserClaim>()
@@ -476,7 +479,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ProjectConsultantAssignedHistory>(entity =>
             {
                 // Indexes
-                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate });
+                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate, e.Id });
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.UserIdActionedBy);
                 entity.HasIndex(e => e.ActionDate);
