@@ -51,8 +51,9 @@ namespace OceansApp.DataAccess.Repository
 
 
         public async Task<T> GetFirstOrDefaultAsync(
-         Expression<Func<T, bool>> filter,
-         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
+    Expression<Func<T, bool>> filter,
+    Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null,
+    Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
         {
             IQueryable<T> query = dbSet;
 
@@ -63,8 +64,14 @@ namespace OceansApp.DataAccess.Repository
 
             query = query.Where(filter);
 
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
             return await query.FirstOrDefaultAsync();
         }
+
 
         public void Remove(T entity)
         {

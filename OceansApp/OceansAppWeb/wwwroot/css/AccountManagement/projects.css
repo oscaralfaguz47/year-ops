@@ -3,7 +3,14 @@
    display:flex;
    align-items:center;
 }
-
+#thirdPartyConsultantSalaryEl .thirdPartyContainer {
+    background-color: var(--clr-grayLight);
+    margin-top: 10px;
+    padding: 5px;
+}
+    #thirdPartyConsultantSalaryEl .checkbox-cont {
+        padding: 5px;
+    }
 .assigned-consultants-div .bi-person-fill {
     font-size: 18px;
     background-color: #2aa7ff;

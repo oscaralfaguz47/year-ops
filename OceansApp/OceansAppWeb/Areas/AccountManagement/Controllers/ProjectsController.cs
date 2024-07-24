@@ -6,6 +6,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Projects;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Reflection;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
@@ -338,11 +339,14 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         [HttpPost("ActivateDeactivateConsultantFromProject")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateConsultantFromProject([FromForm] int projectConsultantAssignedId,
-            [FromForm] DateTime actionDate, bool statusToChange)
+            [FromForm] DateTime actionDate, [FromForm] bool statusToChange)
         {
             try
             {
-                var existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory.GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId);
+                var existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory
+                    .GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId &&
+                    x.ActionDate <= actionDate,
+    orderBy: q => q.OrderByDescending(x => x.ActionDate).ThenByDescending(x => x.Id));
                 if (existingConsultantAssignationHistory == null)
                 {
                     return NotFound(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
@@ -351,7 +355,13 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 if (existingConsultantAssignationHistory.IsActive != statusToChange)
                 {
                     ProjectConsultantAssignedHistory historyConsultantToCreate = new();
-                    historyConsultantToCreate = existingConsultantAssignationHistory;
+                    foreach (PropertyInfo property in typeof(ProjectConsultantAssignedHistory).GetProperties())
+                    {
+                        if (property.Name != "Id")
+                        {
+                            property.SetValue(historyConsultantToCreate, property.GetValue(existingConsultantAssignationHistory));
+                        }
+                    }
                     historyConsultantToCreate.IsActive = statusToChange;
                     historyConsultantToCreate.UserIdActionedBy = userActionedBy;
                     historyConsultantToCreate.ActionDate = actionDate;
@@ -411,8 +421,8 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 {
                     userCategoryName = "Consultant";
                 }
-                var historyList = _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId, userCategoryName);
-                if (historyList.Result.Count == 0)
+                var historyList = await _unitOfWork.ProjectConsultantAssignedHistory.GetProjectConsultantAssignedHistoryByAssignationId(projectConsultantAssignedId, userCategoryName);
+                if (historyList.Count == 0)
                 {
                     return BadRequest(new { error = "The consultant does not have history or the user does not have permission to retrive the data." });
                 }

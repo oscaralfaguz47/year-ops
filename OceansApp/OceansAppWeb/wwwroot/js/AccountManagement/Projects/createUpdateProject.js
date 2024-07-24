@@ -113,7 +113,8 @@ async function displayUpdateCreateProjectModal(modalId, id) {
 
                 assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.ConsultantName, item.ProjectConsultantAssignedId, item.IsActive,
-                        item.UserCategory, item.BeforeOrAfterStatusActionDate, data.allowedManageAdminConsultants);
+                        item.UserCategory, item.BeforeOrAfterStatusActionDate, data.allowedManageAdminConsultants,
+                        item.FutureStatus, item.FutureStatusDate);
                 });
                 showModal(modalId);
             })
@@ -127,14 +128,15 @@ async function displayUpdateCreateProjectModal(modalId, id) {
         showModal(modalId);
     }
 }
-function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCategoryName, actionDate, allowedMAdminConsultants) {
+function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCategoryName, actionDate, allowedMAdminConsultants,
+    futureStatus, futureStatusDate) {
     // Create new row
     var row = document.createElement("div");
     row.className = "consultantRow";
     let spanToInnerToConsultant = `<strong>${consultantName}</strong>`;
 
-    var actionStatusSpan = '';
-    var activeInactiveBtn = '';
+    let actionStatusSpan = '';
+    let activeInactiveBtn = '';
     let userCategorySpanColor = userCategoryName === 'Consultant' ? '#2196F3' : 'gray';
 
     const todayDate = new Date();
@@ -144,30 +146,35 @@ function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCa
         return new Date(year, month - 1, day, 0, 0, 0);
     }
     const statusDate = converStringToDate(actionDate);
-    let statusText = 'Consultant Activated';
-    let statusLabel = '';
-    let statusClass = 'red-label';
+    const futureStatusDateString = futureStatusDate !== undefined ? converStringToDate(futureStatusDate) : null;
+
+    let futureStatusLabel = '';
+    let currentStatusLabel = '';
+    let currentStatusClass = 'red-label';
+    let futureStatusClass = 'red-label';
+
     if (statusAction) {
-        statusLabel = 'Activated';
-        statusClass = 'green-label';
+        currentStatusLabel = 'Activated';
+        currentStatusClass = 'green-label';
     } else {
         statusLabel = 'Deactivated';
+        currentStatusLabel = 'Deactivated';
     }
 
-    if (statusDate.toISOString().split('T')[0] > localDate.toISOString().split('T')[0]) {
-        actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '">Will be <strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
-        spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
-    } else if (statusDate.toISOString().split('T')[0] < localDate.toISOString().split('T')[0]) {
-        actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> on ' + statusDate.toISOString().split('T')[0] + '</span></label>';
-        spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
-    } else if (statusDate.toISOString().split('T')[0] === localDate.toISOString().split('T')[0]) {
-        if (statusText === 'Consultant Activated') {
-            actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
-        } else {
-            actionStatusSpan = '<label style="font-size:13px" id="a-i-label-' + consProjAssId + '"><span class="' + statusClass + '"><strong>' + statusLabel + '</strong> today</span></label>';
-        }
-        spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
+    if (futureStatus !== undefined && futureStatus) {
+        futureStatusLabel = 'Re-activated';
+        futureStatusClass = 'green-label';
+    } else {
+        futureStatusLabel = 'Deactivated';
     }
+
+    actionStatusSpan =
+        `<label style="font-size:13px" class="${currentStatusClass}"><strong>${currentStatusLabel}</strong> on ${statusDate.toISOString().split('T')[0]}</label>` + (futureStatus !== undefined ?
+        `<label style="font-size:13px" id="a-i-label-${consProjAssId}">
+        <span class="${futureStatusClass}">(Will be <strong>${futureStatusLabel}</strong> on ${futureStatusDateString.toISOString().split('T')[0]})</span>
+    </label>` : ``);
+
+    spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
 
     activeInactiveBtn = `
 <li id="activate-deactivate-li-${consProjAssId}" 
@@ -175,7 +182,6 @@ function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCa
     ${statusAction ? '<i class="bi bi-x-lg red-label"></i>Deactivate from Project' : '<i class="bi bi-plus-lg green-label"></i>Activate in the Project'}
 </li>`;
 
-    console.log("aca");
     var dotsIcon = document.createElement("i");
     var editConsultantParametersBtn = '';
     var viewHistoryBtn = '';
@@ -333,10 +339,11 @@ async function selectSuccessManagerByClientId(selectElement) {
 
 //Activate and deactivate Consultant from project
 async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
-    var title = status ? "Deactivate Consultant" : "Activate Consultant";
-    var textAction = status ? "Deactivate" : "Activate";
-    var textSpan = status ? "Deactivated" : "Activated";
-    var validationMessage = status ? "The Deactivation Date is required." : "The Activation Date is required.";
+    const title = status ? "Deactivate Consultant" : "Activate Consultant";
+    const textAction = status ? "Deactivate" : "Activate";
+    const textSpan = status ? "Deactivated" : "Activated";
+    const validationMessage = status ? "The Deactivation Date is required." : "The Activation Date is required.";
+    const statusToChange = status ? false : true;
 
     try {
         const result = await Swal.fire({
@@ -370,9 +377,9 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
         if (result.isConfirmed) {
             displaySpinner();
             var actionDate = document.getElementById('swal-input-action-date').value;
-            const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate);
+            const data = await activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate, statusToChange);
             toastr.success(data.message);
-            hideSpinner();
+            displayUpdateCreateProjectModal('modal-update-create-project', Number(projectIdInputCUP.value));
             return data.success;
         } else {
             return false;
@@ -383,13 +390,14 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
         return false;
     }
 }
-async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate) {
+async function activateDeactivateConsultantFromProjectHttps(projectConsultantAssignedId, actionDate, status) {
     var url = "/AccountManagement/Projects/ActivateDeactivateConsultantFromProject";
     try {
         var token = $('[name="__RequestVerificationToken"]').val();
         var formData = new FormData();
         formData.append('projectConsultantAssignedId', projectConsultantAssignedId);
         formData.append('actionDate', actionDate);
+        formData.append('statusToChange', status);
         let response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -416,103 +424,6 @@ async function activateDeactivateConsultantFromProjectHttps(projectConsultantAss
     }
 }
 
-// GET CONSULTANT HISTORY
-async function getProjectConsultantHistory(projectConsultantAssignedId, modalId) {
-    displaySpinner();
-    var bodyList = document.getElementById('consultant-history-body');
-    var actionIcon = "";
-    await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        var count = 0;
-        var firstRow = "";
-        var row = "";
-        var titleLabelClass = "";
-        console.log(data);
-        const filteredArray = data.historyList.result.filter(item => item.action === "Consultant Assigned First Time");
-        console.log(filteredArray);
-        data.historyList.result.forEach(function (obj) {
-            if (obj.action === 'Consultant Assigned First Time') {
-                actionIcon = '<i class="bi bi-plus-square green-label"></i>';
-                titleLabelClass = 'consultant-added';
-            } else if (obj.action === 'Hourly Client Rate updated' || obj.action === 'Monthly Salary updated'
-                || obj.action === 'Consultant pricing method updated (Hourly)' || obj.action === 'Client pricing method updated (Monthly)'
-                || obj.action === 'Monthly Client Rate updated' || obj.action === 'Hourly Salary updated' || obj.action === 'Consultant pricing method updated (Monthly)'
-                || obj.action === 'Client pricing method updated (Hourly)' || obj.action === 'Third Party Salary updated') {
-                actionIcon = '<i style="color:#2aa7ff" class="bi bi-pencil-square"></i>';
-                titleLabelClass = 'consultant-updated';
-            } else if (obj.action === 'Consultant Deactivated') {
-                actionIcon = '<i class="bi bi-x-lg red-label"></i>';
-                titleLabelClass = 'consultant-deactivated';
-            } else if (obj.action === 'Consultant Activated') {
-                actionIcon = '<i class="bi bi-plus-lg green-label"></i>';
-                titleLabelClass = 'consultant-activated';
-            }
-            var actionDate = new Date(obj.actionDate);
-            var formattedDate = ('0' + (actionDate.getMonth() + 1)).slice(-2) + '/' +
-                ('0' + actionDate.getDate()).slice(-2) + '/' +
-                actionDate.getFullYear();
-            var isExternalProject = document.getElementById('external-pt').checked;
-            var clientRateLabel = '';
-            if (isExternalProject) {
-                clientRateLabel = `${obj.newValueDetail} Client Rate: <strong>$${obj.newValue}</strong>, `;
-            }
-
-            if (obj.action === 'Consultant Assigned First Time' && count < 4) {
-                if (count === 0) {
-                    firstRow += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action}</span> (${formattedDate}): ${clientRateLabel}`;
-                } else if (count === 1) {
-                    firstRow += `${obj.newValueDetail} Consultant Salary: <strong>$${obj.newValue}</strong>`;
-                } else if (count === 2) {
-                    firstRow += `, ${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Partner Salary: ' + obj.newValue : ''}`;
-                }
-                else if (count === 3) {
-                    firstRow += `${obj.newValueDetail === 'Consultant Third Party Mothly Salary' ? 'Partner Salary: ' + '<strong>$' + obj.newValue + '</strong>,' : ''}`;
-                }
-                if (filteredArray.length === count + 1) {
-                    firstRow += ` Assigned by: ${obj.userActionedBy}.</li >`
-                    row += firstRow;
-                }
-            } else {
-                if (obj.action !== "Consultant pricing method updated (Hourly)" && obj.action !== "Consultant pricing method updated (Monthly)"
-                    && obj.action !== "Client pricing method updated (Monthly)" && obj.action !== "Client pricing method updated (Hourly)"
-                    && obj.action !== "Consultant Deactivated" && obj.action !== "Consultant Activated") {
-                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action === 'Third Party Salary updated' ? 'Partner Salary Updated' : obj.action}</span> (${formattedDate}): Old Value: <strong>$${obj.oldValue}</strong>, New value: <strong>$${obj.newValue}</strong>. Updated by: ${obj.userActionedBy}.</li>`;
-                } else {
-                    row += `<li>${actionIcon} <span class="history-title ${titleLabelClass}">${obj.action === 'Third Party Salary updated' ? 'Partner Salary Updated' : obj.action}</span> (${formattedDate}). Updated by: ${obj.userActionedBy}.</li>`;
-                }
-            }
-            count++;
-        });
-        bodyList.innerHTML = row;
-        hideSpinner();
-        showModal(modalId);
-    });
-}
-async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
-    var url = "/AccountManagement/Projects/GetProjectConsultantAssignedHistoryById?projectConsultantAssignedId="
-        + encodeURIComponent(projectConsultantAssignedId);
-    try {
-        let response = await fetch(url);
-        if (response.ok) {
-            return await response.json();
-        } else {
-            if (response.status === 404) {
-                displayToasterError("Resource not found (404).");
-                throw new Error('404 Not Found: The requested resource could not be found!');
-            } else {
-                let errorData = await response.json();
-                displayToasterError(errorData.error || 'An unknown error occurred.');
-                throw new Error('The request to the server failed!. More details: ' + errorData.error);
-            }
-            hideSpinner();
-        }
-    } catch (error) {
-        validateSessionExpiration(error.message);
-        displayToasterError('Error fetching data: ' + error);
-        console.error('Error fetching data:', error);
-        hideSpinner();
-        return null;
-    }
-}
 //HTTP REQUESTS
 async function getSuccessManagerIdAndNameByClientId(clientId) {
     var url = "/AccountManagement/Clients/GetSuccessManagerIdAndNameByClientId?clientId=" + encodeURIComponent(clientId);

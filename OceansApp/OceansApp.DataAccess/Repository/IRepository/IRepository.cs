@@ -5,10 +5,10 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IRepository<T> where  T : class
     {
-        // T = CuentaContable
         Task<T> GetFirstOrDefaultAsync(
-         Expression<Func<T, bool>> filter,
-         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null);
+    Expression<Func<T, bool>> filter,
+    Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null,
+    Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null);
         Task<IEnumerable<T>> GetAllAsync(
     Expression<Func<T, bool>>? filter = null,
     string? includeProperties = null,

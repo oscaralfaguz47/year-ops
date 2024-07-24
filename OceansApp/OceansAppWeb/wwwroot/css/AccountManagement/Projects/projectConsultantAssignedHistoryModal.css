@@ -1,0 +1,36 @@
+﻿@media only screen and (max-width: 700px) {
+    .global-modal-content {
+        width: 95% !important;
+    }
+}
+.section {
+    margin-bottom: 20px;
+}
+
+    .section label {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+#first-record-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#first-record-section table, th, td {
+    border: 1px solid #ddd;
+}
+
+#first-record-section th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+#first-record-section th {
+    background-color: #f2f2f2;
+}
+
+.highlight {
+    background-color: #ffeb3b;
+}

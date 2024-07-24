@@ -130,19 +130,35 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="display:flex" id="thirdPartyConsultantSalaryEl">
-                            <div style="padding: 0 4px" class="col-md-6">
-                                <label for="PaymentCondition">Partner <span class="required-asterisk">*</span></label>
-                                <select class="form-select" id="PartnerSelect" name="idPartner">
-                                </select>
-                            </div>
-                            <div style="padding: 0 4px" class="col-md-6">
-                                <label for="PaymentCondition">Consultant Monthly Salary - Partner <span class="required-asterisk">*</span></label>
-                                <div class="input-container">
-                                    <input placeholder="$$$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="thirdPartySalary" id="thirdPartySalary">
+                        <div id="thirdPartyConsultantSalaryEl">
+                           <div class="thirdPartyContainer">
+                                <div style="display:flex">
+                                    <div style="padding: 0 4px" class="col-md-6">
+                                        <label for="PaymentCondition">Partner <span class="required-asterisk">*</span></label>
+                                        <select class="form-select" id="PartnerSelect" name="idPartner">
+                                        </select>
+                                    </div>
+                                    <div style="padding: 0 4px" class="col-md-6">
+                                        <label for="PaymentCondition">Consultant Monthly Salary - Partner <span class="required-asterisk">*</span></label>
+                                        <div class="input-container">
+                                            <input placeholder="$$$" type="number" oninput="limitDigitsAndDecimals(this)" class="form-control" name="thirdPartySalary" id="thirdPartySalary">
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="checkbox-cont">
+                                    <input type="checkbox" class="form-check-input" id="PartnerPaysBenefits">
+                                    <label class="form-check-label" for="PartnerPaysBenefits"> Benefits must be paid by the Partner</label>
+                                    <div class="tooltip-container ">
+                                        <i class="bi bi-question-circle tooltip-target"></i>
+                                        <div class="tooltip-content">
+                                            <div class="tooltip-arrow"></div>
+                                            Uncheck if the benefits (Holidays, reimbursements, etc) are paid by Oceans.
+                                        </div>
+                                    </div>
+                                </div>
+                           </div>
                         </div>
+
                         <div class="row">
                             <div class="checkbox-cont">
                                 <input type="checkbox" class="form-check-input" id="accessToTrackingTool" checked name="accessToTrackingTool">
@@ -151,7 +167,7 @@
                         </div>
                         <div class="row">
                             <div class="checkbox-cont">
-                                <input type="checkbox" class="form-check-input" id="isDefaultProject" name="isDefaultProject">
+                                <input onchange="hideShowMustPayHolidaysCheckbox(this)" type="checkbox" class="form-check-input" id="isDefaultProject" name="isDefaultProject">
                                 <label class="form-check-label" for="isDefaultProject"> Is default project?</label>
                                 <div class="tooltip-container ">
                                     <i class="bi bi-question-circle tooltip-target"></i>
@@ -162,6 +178,18 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="checkbox-cont" id="holidaysMustBePaidEl">
+                            <input type="checkbox" checked class="form-check-input" id="holidaysMustBePaid">
+                            <label class="form-check-label" for="holidaysMustBePaid"> Holidays must be paid?</label>
+                            <div class="tooltip-container ">
+                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <div class="tooltip-content">
+                                    <div class="tooltip-arrow"></div>
+                                    Uncheck if the Holidays assigned to the consultant do not must be paid.
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label for="StartDate">Action Date</label> <span class="required-asterisk">*</span> <div class="tooltip-container ">

@@ -1,12 +1,30 @@
-﻿<div id="modal-consultant-history" class="global-modal" style="display:none">
+﻿<link rel="stylesheet" href="~/css/AccountManagement/Projects/projectConsultantAssignedHistoryModal.css?v=@DateTime.Now.Ticks" />
+
+<div id="modal-consultant-history" class="global-modal" style="display:none">
     <div class="global-modal-content" style="width:max-content !important">
         <div class="container">
             <div>
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-consultant-history')">x</button></div>
                 <h2>CONSULTANT HISTORY</h2>
+
                 <div>
-                    <ul id="consultant-history-body">
-                    </ul>
+                    <div class="section" id="first-record-section">
+                        <label>Assigned First Time</label>
+                        <table id="first-record-table"></table>
+                    </div>
+                    <div class="section" id="changes-section">
+                        <label>Changes</label>
+                        <table id="changes-table">
+                            <thead>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Old Value</th>
+                                    <th>New Value</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
@@ -16,3 +34,5 @@
         </div>
     </div>
 </div>
+
+<script src="~/js/AccountManagement/Projects/projectConsultantAssignedHistoryModal.js?v=@DateTime.Now.Ticks"></script>

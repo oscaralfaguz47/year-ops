@@ -159,11 +159,16 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var messageSuccess = "";
+                string messageSuccess = "";
                 var existingProject = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == consultantAssignationData.ProjectId);
-                if (existingProject != null)
+                if (existingProject == null)
                 {
                     return MethodResponse.CreateFailureValidationResponse("The project you are trying to add the consultant to no longer exists.", "ProjectId");
+                }
+                var existingConsultant = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == consultantAssignationData.ConsultantId);
+                if (existingConsultant == null)
+                {
+                    return MethodResponse.CreateFailureValidationResponse("The consultant you are trying to add to the project to no longer exists.", "ConsultantId");
                 }
 
                 var existingConsultantAssignation = await _db.PROJECTS_CONSULTANTS_ASSIGNED
@@ -177,24 +182,61 @@ namespace OceansApp.DataAccess.Repository
 
                 using var transaction = await _db.Database.BeginTransactionAsync();
 
-                var projectAssignations = await _db.PROJECTS_CONSULTANTS_ASSIGNED.Where(x => x.ConsultantId == consultantAssignationData.ConsultantId).ToListAsync();
-                var defaultProject = false;
+                var projectAssignations = await _db.PROJECTS_CONSULTANTS_ASSIGNED
+                    .Where(x => x.ConsultantId == consultantAssignationData.ConsultantId).ToListAsync();
+                bool defaultProject = false;
                 if (projectAssignations.Count == 0 || (bool)consultantAssignationData.IsDefaultProject)
                 {
                     defaultProject = true;
+                    if (projectAssignations.Count == 0)
+                    {
+                        var consultantUser = await _db.Users.FirstOrDefaultAsync(x => x.Id == existingConsultant.UserId);
+                        ProjectUserSelected projectUserSelectedToCreate = new()
+                        {
+                            ProjectId = existingProject.ProjectId,
+                            UserId = consultantUser.Id
+                        };
+                        await _db.PROJECTS_USERS_SELECTED.AddAsync(projectUserSelectedToCreate);
+                        await _db.SaveChangesAsync();
+                    }
                 }
 
                 if (projectAssignations.Count > 0 && (bool)consultantAssignationData.IsDefaultProject)
                 {
-                    var projectAssignationsHistory = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY
-                        .Where(x => x.ProjectConsultantAssignedId == projectAssignations[0].ProjectConsultantAssignedId
-                        && x.ActionDate >= consultantAssignationData.ActionDate).ToListAsync();
-
-                    foreach (var projAssignHistory in projectAssignationsHistory)
+                    if ((bool)consultantAssignationData.IsDefaultProject)
                     {
-                        projAssignHistory.IsDefaultProject = false;
+                        foreach (var conAssignation in projectAssignations)
+                        {
+                            if (conAssignation.ProjectId != consultantAssignationData.ProjectId)
+                            {
+                                var currentProjectAssignationHistory = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY
+                            .Where(x => x.ProjectConsultantAssignedId == conAssignation.ProjectConsultantAssignedId
+                            && x.ActionDate <= consultantAssignationData.ActionDate).OrderByDescending(x => x.ActionDate)
+                            .ThenByDescending(x => x.Id).FirstOrDefaultAsync();
+
+                                if (currentProjectAssignationHistory.IsDefaultProject == consultantAssignationData.IsDefaultProject)
+                                {
+
+                                    ProjectConsultantAssignedHistory historyToCreateChangingIsDefaultProject = new();
+
+                                    foreach (PropertyInfo property in typeof(ProjectConsultantAssignedHistory).GetProperties())
+                                    {
+                                        if (property.Name != "Id")
+                                        {
+                                            property.SetValue(historyToCreateChangingIsDefaultProject, property.GetValue(currentProjectAssignationHistory));
+                                        }
+                                    }
+
+                                    historyToCreateChangingIsDefaultProject.IsDefaultProject = false;
+                                    historyToCreateChangingIsDefaultProject.ActionDate = (DateTime)consultantAssignationData.ActionDate;
+                                    historyToCreateChangingIsDefaultProject.CreationDate = DateTime.UtcNow;
+                                    historyToCreateChangingIsDefaultProject.UserIdActionedBy = consultantAssignationData.UserCreatedBy;
+                                    await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyToCreateChangingIsDefaultProject);
+                                    await _db.SaveChangesAsync();
+                                }
+                            }
+                        }
                     }
-                    await _db.SaveChangesAsync();
                 }
 
                 ProjectConsultantAssignedHistory consultantAssignedHistoryToCreate = new()
@@ -212,7 +254,8 @@ namespace OceansApp.DataAccess.Repository
                     IsDefaultProject = defaultProject,
                     HolidaysMustBePaid = (bool)consultantAssignationData.HolidaysMustBePaid,
                     ActionDate = (DateTime)consultantAssignationData.ActionDate,
-                    CreationDate = DateTime.UtcNow
+                    CreationDate = DateTime.UtcNow,
+                    UserIdActionedBy = consultantAssignationData.UserCreatedBy
                 };
 
                 if (existingConsultantAssignation == null && (bool)consultantAssignationData.IsAssigningFirstTime)
@@ -237,45 +280,44 @@ namespace OceansApp.DataAccess.Repository
                     var recentHistoryBeforeActionDate = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY
                         .Where(x => x.ProjectConsultantAssignedId == existingConsultantAssignation.ProjectConsultantAssignedId &&
                                     x.ActionDate <= consultantAssignationData.ActionDate)
-                        .OrderBy(x => x.ActionDate)
+                        .OrderByDescending(x => x.ActionDate).ThenByDescending(x => x.Id)
                         .FirstOrDefaultAsync();
 
                     consultantAssignedHistoryToCreate.ProjectConsultantAssignedId = existingConsultantAssignation.ProjectConsultantAssignedId;
                     consultantAssignedHistoryToCreate.IsActive = recentHistoryBeforeActionDate.IsActive;
 
-                    if (HasDifferences(consultantAssignedHistoryToCreate, recentHistoryBeforeActionDate))
+                    if (
+                        consultantAssignedHistoryToCreate.PositionId != recentHistoryBeforeActionDate.PositionId ||
+                        consultantAssignedHistoryToCreate.HourlySalary != recentHistoryBeforeActionDate.HourlySalary ||
+                        consultantAssignedHistoryToCreate.MonthlySalary != recentHistoryBeforeActionDate.MonthlySalary ||
+                        consultantAssignedHistoryToCreate.IsMonthlySalaryCalculatedPerHour != recentHistoryBeforeActionDate.IsMonthlySalaryCalculatedPerHour ||
+                        consultantAssignedHistoryToCreate.MonthlySalaryPartner != recentHistoryBeforeActionDate.MonthlySalaryPartner ||
+                        consultantAssignedHistoryToCreate.PartnerId != recentHistoryBeforeActionDate.PartnerId ||
+                        consultantAssignedHistoryToCreate.PartnerPaysBenefits != recentHistoryBeforeActionDate.PartnerPaysBenefits ||
+                        consultantAssignedHistoryToCreate.HourlyClientRate != recentHistoryBeforeActionDate.HourlyClientRate ||
+                        consultantAssignedHistoryToCreate.MonthlyClientRate != recentHistoryBeforeActionDate.MonthlyClientRate ||
+                        consultantAssignedHistoryToCreate.AccessToTrackingTool != recentHistoryBeforeActionDate.AccessToTrackingTool ||
+                        consultantAssignedHistoryToCreate.HolidaysMustBePaid != recentHistoryBeforeActionDate.HolidaysMustBePaid ||
+                        consultantAssignedHistoryToCreate.IsDefaultProject != recentHistoryBeforeActionDate.IsDefaultProject
+                        )
                     {
                         await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(consultantAssignedHistoryToCreate);
                         await _db.SaveChangesAsync();
+                        messageSuccess = "The Consultant parameters were updated successfully!";
                     }
-
-                    messageSuccess = "The Consultant parameters were updated successfully!";
+                    else
+                    {
+                        messageSuccess = "You did not make any changes!";
+                    }
                 }
 
                 await transaction.CommitAsync();
-                return new MethodResponse { Success = true, Message = messageSuccess };
+                return MethodResponse.CreateSuccessResponse(messageSuccess);
             }
             catch (Exception ex)
             {
                 return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
             }
-        }
-        private bool HasDifferences(ProjectConsultantAssignedHistory newItem, ProjectConsultantAssignedHistory existingItem)
-        {
-            var properties = typeof(ProjectConsultantAssignedHistory).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
-            {
-                var newValue = property.GetValue(newItem);
-                var existingValue = property.GetValue(existingItem);
-                if (property.GetValue(newItem) != property.GetValue(existingItem))
-                {
-                    if (newValue == null && existingValue != null || newValue != null && !newValue.Equals(existingValue))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
     }

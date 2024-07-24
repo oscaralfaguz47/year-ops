@@ -26,10 +26,5 @@ namespace OceansApp.DataAccess.Repository
             return results.ToList();
         }
 
-        public void Update(ProjectConsultantAssignedHistory obj)
-        {
-            _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.Update(obj);
-        }
-
     }
 }
