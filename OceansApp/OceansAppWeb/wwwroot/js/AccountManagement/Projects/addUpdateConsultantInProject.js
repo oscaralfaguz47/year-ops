@@ -14,6 +14,7 @@ let partnersArray = [];
 //    actionDate.addEventListener('change', validateDate);
 //});
 
+const lastActionDateMessage = getElementById('last-action-date-message');
 const hourlySalaryInputCUCP = getElementById('hourlySalary');
 const monthlySalaryInputCUCP = getElementById('monthlySalary');
 const hourlyClientRateElCUCP = getElementById('hourlyClientRateEl');
@@ -112,8 +113,9 @@ const clientRateInputs = getElementById("client-rate-inputs");
 
 async function displayAddUpdateConsultant(modalId, id) {
     inicializeSecondModalButtons(modalId);
+    lastActionDateMessage.style.display = 'none';
     const modalTitle = getElementById('add-consultant-modal-title');
-    modalTitle.textContent = id === null ? 'ADD CONSULTANT TO THE PROJECT' : 'EDIT CONSULTANT ASSIGNATION PROJECT';
+    modalTitle.textContent = id === null ? 'ADD CONSULTANT TO THE PROJECT' : 'EDIT CONSULTANT PARAMETERS';
     resetForm('form-add-update-consultant');
     proConAssignedIdInputCUCP.value = "";
     consultantIdInputCUCP.vaue = "";
@@ -159,6 +161,12 @@ async function displayAddUpdateConsultant(modalId, id) {
                 }
             })
             .then(data => {
+                let creationDateDateFormat = new Date(data.consultantAssignation.creationDate);
+                lastActionDateMessage.innerHTML = `<label>The Action Date for last update was 
+                <strong>"${formatDateMmDdYyyy(data.consultantAssignation.actionDate)}"</strong>
+                . All the displayed data belongs to the last one. The changes were applied on (${formatUtcToLocalMmDdYyyyTime(creationDateDateFormat)}).
+                </label>`;
+                lastActionDateMessage.style.display = 'block';
                 consultantIdInputCUCP.value = data.consultantAssignation.consultantId;
                 consultantNameInputCUCP.value = data.consultantAssignation.consultantName;
                 consultantEmailInputCUCP.value = data.consultantAssignation.email;

@@ -214,6 +214,14 @@ namespace OceansApp.DataAccess.Repository
                             && x.ActionDate <= consultantAssignationData.ActionDate).OrderByDescending(x => x.ActionDate)
                             .ThenByDescending(x => x.Id).FirstOrDefaultAsync();
 
+                                if (currentProjectAssignationHistory == null)
+                                {
+                                    currentProjectAssignationHistory = await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY
+                            .Where(x => x.ProjectConsultantAssignedId == conAssignation.ProjectConsultantAssignedId
+                            && x.ActionDate >= consultantAssignationData.ActionDate).OrderBy(x => x.ActionDate)
+                            .ThenByDescending(x => x.Id).FirstOrDefaultAsync();
+                                }
+
                                 if (currentProjectAssignationHistory.IsDefaultProject == consultantAssignationData.IsDefaultProject)
                                 {
 
@@ -234,6 +242,8 @@ namespace OceansApp.DataAccess.Repository
                                     await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyToCreateChangingIsDefaultProject);
                                     await _db.SaveChangesAsync();
                                 }
+
+
                             }
                         }
                     }

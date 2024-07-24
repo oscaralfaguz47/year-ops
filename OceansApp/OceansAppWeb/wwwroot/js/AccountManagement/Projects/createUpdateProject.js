@@ -109,8 +109,6 @@ async function displayUpdateCreateProjectModal(modalId, id) {
                 clientHasTrackingToolInputCUP.checked = data.projectData.clientHasTrackingTool;
 
                 const assignedConsultants = JSON.parse(data.projectData.assignedConsultants);
-                console.log(assignedConsultants);
-
                 assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.ConsultantName, item.ProjectConsultantAssignedId, item.IsActive,
                         item.UserCategory, item.BeforeOrAfterStatusActionDate, data.allowedManageAdminConsultants,
@@ -169,9 +167,9 @@ function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCa
     }
 
     actionStatusSpan =
-        `<label style="font-size:13px" class="${currentStatusClass}"><strong>${currentStatusLabel}</strong> on ${statusDate.toISOString().split('T')[0]}</label>` + (futureStatus !== undefined ?
+        `<label style="font-size:13px" class="${currentStatusClass}"><strong>${currentStatusLabel}</strong></label>` + (futureStatus !== undefined ?
         `<label style="font-size:13px" id="a-i-label-${consProjAssId}">
-        <span class="${futureStatusClass}">(Will be <strong>${futureStatusLabel}</strong> on ${futureStatusDateString.toISOString().split('T')[0]})</span>
+        <span class="${futureStatusClass}">&nbsp;(Will be <strong>${futureStatusLabel}</strong> on ${futureStatusDateString.toISOString().split('T')[0]})</span>
     </label>` : ``);
 
     spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;

@@ -26,6 +26,7 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
+            console.log(data);
             var tbody = $(".global-table-container table tbody");
             var tableRows = $(".global-table-container table");
             var noResultsMessage = $(".no-results");
@@ -33,7 +34,10 @@ async function getListOfResults(firstTime, filters) {
             tableRows.css("display", "block");
             tbody.empty();
             data.consultantsList.forEach(function (obj) {
-                var projectsJson = JSON.parse(obj.consultantProjects);
+                var projectsJson = null; JSON.parse('[' + obj.consultantProjects + ']');
+                if (obj.consultantProjects !== null) {
+                    projectsJson = JSON.parse('[' + obj.consultantProjects + ']');
+                }
                 var projectsSpan = "";
                 if (projectsJson !== null) {
                     projectsJson.forEach(function (pos) {
@@ -68,6 +72,7 @@ async function getListOfResults(firstTime, filters) {
                   </td>
                   <td class="shared-table-td">${obj.isActive ? '<span class="green-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
                   <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="shared-table-td">${obj.twoFactorRequired ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
                   <td class="shared-table-td">${obj.emailConfirmed ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
                   <td class="shared-table-td">${!obj.isLockedOut ? '<i class="bi bi-unlock-fill green-label"></i>' : '<i class="bi bi-lock-fill red-label"></i>'}</td>
                   <td>${obj.internalEmail}</td>
@@ -79,13 +84,13 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.phoneNumber === null ? "" : obj.phoneNumber}</td>
                   <td>${obj.phone2 === null ? "" : obj.phone2}</td>
                   <td>${obj.address === null ? "" : obj.address}</td>
-                  <!--<td>${obj.location === null ? "" : `<div class="location-cont">
+                  <td>${obj.location === null ? "" : `<div class="location-cont">
                         <button onclick="copyToClipboard('${obj.location}', 'The location of: ' + '${obj.consultantName}' + ' was copied to the clipboard!')" >
                             <i class="bi bi-clipboard-fill"></i> Copy location
                         </button> &nbsp;
                         <a href="${obj.location}" target="_blank" class="link"><i class="bi bi-geo-alt-fill"></i> Redirect to location</a>
                                     </div>`}
-                  </td>-->
+                  </td>
               </tr>`;
                 tbody.append(row);
             });
@@ -417,4 +422,17 @@ async function resendInviteToConsultant(consultantId, name) {
                 });
         }
     });
+}
+function copyToClipboard(text, message) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); 
+
+    document.execCommand('copy');
+
+    document.body.removeChild(textarea);
+    displayToasterSuccess(message);
 }

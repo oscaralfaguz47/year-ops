@@ -353,8 +353,14 @@ namespace OceansApp.DataAccess.Data
             });
 
             // CONSULTANT AND POSITIONS
-            modelBuilder.Entity<ConsultantAndPosition>()
-                .HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
+            modelBuilder.Entity<ConsultantAndPosition>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.ConsultantPositionId);
+
+                entity.HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
+            });
+                
 
             // INTERVIEWS
             modelBuilder.Entity<Interview>(entity =>

@@ -20,5 +20,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool IsDefaultProject { get; set; }
         public DateTime CreationDate { get; set; }
         public bool HolidaysMustBePaid { get; set; }
+        public DateTime ActionDate { get; set; }
     }
 }

@@ -41,6 +41,10 @@
                         Two Factor Enabled?
                         <span class="sort-arrow" id="sortArrowTwoFactorEnabled"></span>
                     </th>
+                    <th onclick="orderByTableList('TwoFactorRequired', 'TwoFactorRequiredTableHeader', 'sortArrowTwoFactorRequired')" data-sort="ANY" name="TwoFactorRequiredTableHeader" class="sortable-col">
+                        Two Factor Required?
+                        <span class="sort-arrow" id="sortArrowTwoFactorRequired"></span>
+                    </th>
                     <th onclick="orderByTableList('EmailConfirmed', 'EmailConfirmedTableHeader', 'sortArrowEmailConfirmed')" data-sort="ANY" name="EmailConfirmedTableHeader" class="sortable-col">
                         Email Confirmed?
                         <span class="sort-arrow" id="sortArrowEmailConfirmed"></span>
@@ -67,7 +71,7 @@
                     <th>Primary Phone</th>
                     <th>Phone 2</th>
                     <th>Address</th>
-                    @*<th>Location</th>*@
+                    <th>Location</th>
                     @* <th onclick="orderByTableList('ShirtSize', 'ShirtSizeTableHeader', 'sortArrowShirtSize')" data-sort="ANY" name="ShirtSizeTableHeader" class="sortable-col">
                     Shirt Size
                     <span class="sort-arrow" id="sortArrowShirtSize"></span>

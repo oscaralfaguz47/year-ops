@@ -54,3 +54,12 @@
 #form-add-update-consultant .flex-div {
    display: flex;
 }
+#last-action-date-message label {
+    font-weight: normal;
+    font-size: 13px;
+    background-color: rgb(42, 167, 255, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    padding: 4px 8px;
+    border-radius: 10px;
+    text-align: center;
+}
