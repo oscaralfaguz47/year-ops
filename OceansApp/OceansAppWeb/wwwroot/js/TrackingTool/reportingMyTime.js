@@ -10,6 +10,9 @@ const submissionInfo = getElementById('submission-info');
 const submissionError = getElementById('submission-errors');
 const projectIdInput = getElementById('projectId');
 const onCallSectionEl = getElementById('on-call-section');
+let selectedProjectName = '';
+const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-project-sec');
+const totalHoursLabelEl = getElementById('total-hours-label');
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -55,41 +58,29 @@ async function getProjectInfo() {
         const projectInfo = response.projectInfoData;
 
         if (projectInfo !== null) {
-            if (projectInfo.numAssignedProjects > 1 || projectInfo.accessToTrackingTool) {
+            if (projectInfo.numAssignedProjects >= 1 || projectInfo.accessToTrackingTool) {
                 dropdownSelect.innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
                 projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
                 header.style.display = 'flex';
             }
-            if (projectInfo.accessToTrackingTool) {
-                noProjectsBox.style.display = 'none';
-                projectIdInput.value = projectInfo.projectId;
-                onCallSectionEl.style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
-                clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
-                trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
-                trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
-                paymentPeriod = projectInfo.paymentPeriod;
-                getElementById('payment-period-container').innerHTML = `<div><span class="strong-label">Your payment period is</span> <span class="gray-bold-span">${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}</span></div>`;
-                let currentDateNoChange = new Date();
-                calculatePeriod(currentDateNoChange, paymentPeriod);
-                getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span>Please reach out to your Success Manager
-            </span> <strong style="color:var(--clr-blueLight); display:block;">${projectInfo.sucessManagerName}</strong> <a class="envelope-link" href="mailto:${projectInfo.successManagerEmail}">
+            console.log(projectInfo);
+            projectIdInput.value = projectInfo.projectId;
+            onCallSectionEl.style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
+            clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
+            trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
+            trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
+            paymentPeriod = projectInfo.paymentPeriod;
+            selectedProjectName = projectInfo.projectName;
+            getElementById('payment-period-container').innerHTML = `<div><span class="strong-label">Your payment period is</span> <span class="gray-bold-span">${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}</span></div>`;
+
+            getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span>Please reach out to your Success Manager
+            </span> <strong style="color:var(--clr-blueLight); display:block;">${projectInfo.successManagerName}</strong> <a class="envelope-link" href="mailto:${projectInfo.successManagerEmail}">
             <div class="envelope-container"><img src="/img/globalIcons/envelope.webp"></div></a>`;
-                header.style.display = 'flex';
-                loadingBox.style.display = 'none';
-                contentBox.style.display = 'block';
-            } else {
-                if (!projectInfo.accessToTrackingTool) {
-                    noProjectsBox.style.display = 'block';
-                    noProjectsBox.innerHTML = `<div>
-            <div class="background-cont">
-                <div><i>Non reportable project</i></div>
-                <p><strong>You are part of the <span>"${projectInfo.projectName}"</span> project, but you are not allowed to report any time here.</strong></p>
-                <p><strong>Please contact the administrator if you need to report any time.</strong></p>
-            </div>
-        </div>`;
-                }
-            }
-        } else if (projectInfo === null) {
+
+            let currentDateNoChange = new Date();
+            calculatePeriod(currentDateNoChange, paymentPeriod);
+
+        } else {
             noProjectsBox.style.display = 'block';
             noProjectsBox.innerHTML = `<div>
             <div class="background-cont">
@@ -99,7 +90,6 @@ async function getProjectInfo() {
             </div>
         </div>`;
         }
-        loadingBox.style.display = 'none';
     } catch (error) {
         validateSessionExpiration(error.message);
         console.error("Error filling the projects dropdown:", error.message);
@@ -110,7 +100,7 @@ async function getProjectInfo() {
 document.addEventListener('DOMContentLoaded', async function () {
     let dataLoaded = false;
     const dropdownHeader = document.querySelector('.dropdown-header');
-    const dropdownList = document.querySelector('.dropdown-list'); 
+    const dropdownList = document.querySelector('.dropdown-list');
 
     dropdownHeader.addEventListener('click', async function () {
         if (!dataLoaded) {
@@ -155,59 +145,99 @@ async function selectProject(projectId) {
         var formData = new FormData();
         formData.append('projectId', projectId);
 
-        fetch("/AccountManagement/ProjectsConsultantsAssigned/SelectConsultantProject"
-            , {
-                method: 'POST',
-                headers: {
-                    RequestVerificationToken: token
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    header.style.display = 'flex';
-                    loadingBox.style.display = 'none';
-                } else {
-                    displayToasterError(data.error);
-                    console.error('There has been a problem with the fetch operation:', data.detail);
-                    loadingBox.style.display = 'none';
-                }
-                getProjectInfo();
-            }).catch(error => {
-                validateSessionExpiration(error.message);
-            });
-    }
-    catch (err) {
-        console.error('Network or fetch error:', err);
+        const response = await fetch("/AccountManagement/ProjectsConsultantsAssigned/SelectConsultantProject", {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            header.style.display = 'flex';
+            loadingBox.style.display = 'none';
+        } else {
+            displayToasterError(data.error);
+            console.error('There has been a problem with the fetch operation:', data.detail);
+            loadingBox.style.display = 'none';
+        }
+
+        await getProjectInfo();
+    } catch (error) {
+        validateSessionExpiration(error.message);
+        console.error('Network or fetch error:', error);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         loadingBox.style.display = 'none';
         return null;
     }
 }
+
 //Navitate between dates
-function navitateBetweenDates(startDate, endDate, buttons) {
-    submissionError.innerHTML = '';
-    submissionInfo.innerHTML = `<div class="spinner"></div>`;
-    if (clientHasTrackingToolValue) {
-        document.getElementById('total-hours-label').style.display = 'none';
-        getProjectMovementsClientHasTrackTool().then(() => {
+async function navitateBetweenDates(startDate, endDate, buttons) {
+    try {
+        const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
+        loadingBox.style.display = 'none';
+        const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
+        console.log(statusInfo);
+        inactiveNoTrackingToolSection.style.display = 'none';
+        contentBox.style.display = 'block';
+
+        if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+            submissionInfo.style.display = 'block';
+            totalHoursLabelEl.style.display = 'block';
+            noProjectsBox.style.display = 'none';
+            header.style.display = 'flex';
+            loadingBox.style.display = 'none';
+        } else {
+            trackingToolTimeEntrySection.style.display = 'none';
+            trackingToolReportEntrySection.style.display = 'none';
+            submissionInfo.style.display = 'none';
+            totalHoursLabelEl.style.display = 'none';
+            inactiveNoTrackingToolSection.style.display = 'block';
+        }
+        if (!statusInfo.isActive) {
+            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You are 
+                <strong>Inactive</strong> for this period.<br>Please contact your Success Manager if you need to report any time here.
+                </label></div>`;
+        }
+        if (!statusInfo.accessToTrackingTool) {
+            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>It seems that you don't need to report your time.
+            <br>Please contact your Success Manager if you need to report any time here.
+                </label></div>`;
+        }
+        loadingBox.style.display = 'none';
+        submissionError.innerHTML = '';
+        submissionInfo.innerHTML = `<div class="spinner"></div>`;
+        displayElement(loadingBoxIntern, 'none');
+
+        if (clientHasTrackingToolValue) {
+            totalHoursLabelEl.style.display = 'none';
+            if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+                trackingToolReportEntrySection.style.display = 'block';
+                await getProjectMovementsClientHasTrackTool();
+            }
             if (buttons) {
                 buttons.forEach(btn => {
                     if (btn) btn.disabled = false;
                 });
             }
-        });
-    } else {
-        document.getElementById('total-hours-label').style.display = 'block';
-        getTrackingToolProjectMovements().then(movements => {
-            generateDateList(startDate, endDate, movements.movementsList);
+        } else {
+            if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+                totalHoursLabelEl.style.display = 'block';
+                trackingToolTimeEntrySection.style.display = 'block';
+                const movements = await getTrackingToolProjectMovements();
+                generateDateList(startDate, endDate, movements.movementsList);
+            }
             if (buttons) {
                 buttons.forEach(btn => {
                     if (btn) btn.disabled = false;
                 });
             }
-        });
+        }
+    } catch (error) {
+        console.error('Error navigating between dates:', error);
     }
 }
 
@@ -275,17 +305,19 @@ async function submitReportToBePaid() {
             hideSpinner();
             return null;
         }
+
         const dataFromApi = await response.json();
         displayToasterSuccess(dataFromApi.message);
+
         if (clientHasTrackingToolValue) {
-            getProjectMovementsClientHasTrackTool().then(() => { });
+            await getProjectMovementsClientHasTrackTool();
         } else {
-            getTrackingToolProjectMovements().then(movements => {
-                let dateFrom = new Date(dateFromInput.value);
-                let dateTo = new Date(dateToInput.value);
-                generateDateList(formatDateYyyyMmDd(dateFrom), formatDateYyyyMmDd(dateTo), movements.movementsList);
-            });
+            const movements = await getTrackingToolProjectMovements();
+            let dateFrom = new Date(dateFromInput.value);
+            let dateTo = new Date(dateToInput.value);
+            generateDateList(formatDateYyyyMmDd(dateFrom), formatDateYyyyMmDd(dateTo), movements.movementsList);
         }
+
         submissionError.innerHTML = '';
         hideSpinner();
         return dataFromApi;
@@ -297,3 +329,4 @@ async function submitReportToBePaid() {
         return null;
     }
 }
+

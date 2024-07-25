@@ -36,5 +36,19 @@ namespace OceansApp.DataAccess.Repository
             return info;
         }
 
+        public async Task<GetConsultantStatusInTheProjectVM> GetConsultantStatusInTheProject(string userId, DateTime startDate,
+            DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", userId, DbType.String);
+            parameters.Add("@StartDate", startDate);
+            parameters.Add("@EndDate", endDate);
+
+            var info = await connection.QuerySingleOrDefaultAsync<GetConsultantStatusInTheProjectVM>("SP_PROJECTS_CONSULTANT_ASSIGNED_GetConsultantStatusInTheProject",
+                parameters, commandType: CommandType.StoredProcedure);
+            return info;
+        }
+
     }
 }

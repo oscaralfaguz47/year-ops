@@ -8,5 +8,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<List<GetProjectsListVM>> GetProjectsWhereConsultantAssigned(string? userId);
         Task<GetConsultantSelectedProjectInfoVM> GetConsultantSelectedProjectInfo(string userId);
+        Task<GetConsultantStatusInTheProjectVM> GetConsultantStatusInTheProject(string userId, DateTime startDate,
+            DateTime endDate);
     }
 }

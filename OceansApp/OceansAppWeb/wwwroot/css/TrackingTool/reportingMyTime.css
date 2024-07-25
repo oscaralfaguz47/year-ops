@@ -148,6 +148,39 @@
         align-items: center; 
         height: 80vh;
     }
+#inactive-no-tracking-in-project-sec{
+    height: 325px;
+    text-align: center;
+    align-content: center;
+    justify-content: center;
+    border-top: solid 3px var(--clr-grayLight);
+    font-size: 20px;
+    background-color: rgb(0,0,0,0.4);
+}
+#inactive-no-tracking-in-project-sec img {
+ width: 200px;
+}
+    #inactive-no-tracking-in-project-sec label {
+        background-color: #fff;
+        color: gray;
+        width: fit-content;
+        padding: 10px 20px;
+        border-radius: 10px;
+        margin-top: 10px;
+        box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+    }
+@media only screen and (max-width: 768px) {
+    #inactive-no-tracking-in-project-sec label {
+        font-size: 16px;
+        padding: 10px 10px;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+}
+    #inactive-no-tracking-in-project-sec label strong {
+       color: red;
+    }
+
 #no-projects-box {
     display: none;
     justify-content: center;

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AccountManagement.Controllers
@@ -63,6 +64,41 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 return Ok(new
                 {
                     projectInfoData = projectInfoData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+        [Authorize(Policy = "BasicAccessToReportingMyTime")]
+        [HttpGet("GetConsultantStatusInTheProject")]
+        public async Task<IActionResult> GetConsultantStatusInTheProject(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                ValidateInputs validateInputs = new();
+                validateInputs.ValidateDateValidFormat("StartDate", "Start Date", startDate, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDate", "End Date", endDate, ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User not valid." });
+                }
+                var consultantStatus = await _unitOfWork.ProjectConsultantAssigned.GetConsultantStatusInTheProject(userActionedBy, startDate, endDate);
+
+                return Ok(new
+                {
+                    consultantStatusInTheProject = consultantStatus
                 });
             }
             catch (Exception ex)
