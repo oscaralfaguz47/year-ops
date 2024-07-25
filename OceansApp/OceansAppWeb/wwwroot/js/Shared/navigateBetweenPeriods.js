@@ -34,7 +34,7 @@ function formatDateYyyyMmDd(date) {
 // Calculates and displays start and end dates based on the click direction.
 const handleButtonClick = (direction) => {
     adjustDate(direction, paymentPeriod, null);
-    let buttons = [document.getElementById('previousBtn'), document.getElementById('nextBtn')];
+    let buttons = [getElementById('previousBtn'), getElementById('nextBtn')];
     buttons.forEach(btn => {
         if (btn) btn.disabled = true;
     });
@@ -58,8 +58,8 @@ const calculatePeriod = (date, mode, buttons) => {
         endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }
 
-    document.getElementById('previous-date').innerHTML = `<span> ${getMonthName(startDate.getMonth())} ${startDate.getDate()}</span>`;
-    document.getElementById('next-date').innerHTML = `<span>${getMonthName(endDate.getMonth())} ${endDate.getDate()}, (${startDate.getFullYear()})</span>`;
+    getElementById('previous-date').innerHTML = `<span> ${getMonthName(startDate.getMonth())} ${startDate.getDate()}</span>`;
+    getElementById('next-date').innerHTML = `<span>${getMonthName(endDate.getMonth())} ${endDate.getDate()}, (${startDate.getFullYear()})</span>`;
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
     navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), buttons);

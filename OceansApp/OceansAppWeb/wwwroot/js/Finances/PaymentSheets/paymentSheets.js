@@ -1,4 +1,7 @@
-﻿let dateToInput = document.getElementById('dateToInput');
+﻿// Utility functions
+let getElementById = id => document.getElementById(id);
+
+let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
 let paymentPeriodSelect = document.getElementById('paymentPeriod');
 let statusSelectFilters = null;

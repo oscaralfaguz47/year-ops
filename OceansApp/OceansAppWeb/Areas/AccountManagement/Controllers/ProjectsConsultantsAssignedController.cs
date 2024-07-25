@@ -53,13 +53,12 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                if (claim == null)
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
                 {
                     return BadRequest(new { error = "User not valid." });
                 }
-                var projectInfoData = await _unitOfWork.ProjectConsultantAssigned.GetConsultantSelectedProjectInfo(claim.Value);
+                var projectInfoData = await _unitOfWork.ProjectConsultantAssigned.GetConsultantSelectedProjectInfo(userActionedBy);
 
                 return Ok(new
                 {

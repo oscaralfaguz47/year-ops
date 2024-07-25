@@ -12,14 +12,14 @@
         return await response.json();
     } catch (error) {
         validateSessionExpiration(error.message);
-        displayToasterError("Internet connection failed or server is unreachable");
+        displayToasterError(error.message);
         throw new Error(`Network error or unable to reach the server. More details: ${error.message}`);
     }
 }
 
 async function getSelectedProjectInfo() {
     try {
-        const url = "/AccountManagement/ProjectsConsultantsAssigned/GetConsultantSelectedProjectInfo";
+        const url = `/AccountManagement/ProjectsConsultantsAssigned/GetConsultantSelectedProjectInfo`;
         const response = await fetch(url);
 
         if (!response.ok) {

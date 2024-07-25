@@ -515,19 +515,24 @@ namespace OceansApp.DataAccess.Data
             });
 
             // PROJECTS USERS SELECTED
-            modelBuilder.Entity<ProjectUserSelected>()
-                .HasKey(pu => new { pu.ProjectId, pu.UserId });
-            modelBuilder.Entity<ProjectUserSelected>()
-               .HasOne(p => p.ApplicationUser)
+            modelBuilder.Entity<ProjectUserSelected>(entity =>
+            {
+                // Indexes
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.ProjectId);
+                 entity.HasKey(pu => new { pu.ProjectId, pu.UserId });
+                entity.HasOne(p => p.ApplicationUser)
                .WithMany()
                .HasForeignKey(p => p.UserId)
                .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ProjectUserSelected>()
-               .HasOne(p => p.Project)
+                entity.HasOne(p => p.Project)
                .WithMany()
                .HasForeignKey(p => p.ProjectId)
                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+            });
 
+
+            // CONSULTANT PAYMENTS
             modelBuilder.Entity<ConsultantPayment>(entity =>
             {
                 entity.Property(c => c.CompanyId)

@@ -1,5 +1,5 @@
 ﻿// Utility functions
-const getElementById = id => document.getElementById(id);
+let getElementById = id => document.getElementById(id);
 
 // Element selectors
 const quantityInput = getElementById('quantityInput');
@@ -9,7 +9,6 @@ const movementIdOnCallFlateRateInput = getElementById('movementIdOnCallFlateRate
 const movementIdOnCallTimeWorkedInput = getElementById('movementIdOnCallTimeWorkedInput');
 const onCallFlateRateSelect = getElementById('onCallFlateRateSelect');
 const onCallTimeWorkedInput = getElementById('onCallTimeWorkedInput');
-const projectIdInput = getElementById('projectId');
 const uploadArea = getElementById('file-upload-name');
 const fileInput = getElementById('file-upload');
 const saveReportBtn = getElementById('save-btn');
