@@ -109,6 +109,7 @@ async function displayUpdateCreateProjectModal(modalId, id) {
                 clientHasTrackingToolInputCUP.checked = data.projectData.clientHasTrackingTool;
 
                 const assignedConsultants = JSON.parse(data.projectData.assignedConsultants);
+                console.log(assignedConsultants);
                 assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.ConsultantName, item.ProjectConsultantAssignedId, item.IsActive,
                         item.UserCategory, item.BeforeOrAfterStatusActionDate, data.allowedManageAdminConsultants,
@@ -136,14 +137,10 @@ function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCa
     let actionStatusSpan = '';
     let activeInactiveBtn = '';
     let userCategorySpanColor = userCategoryName === 'Consultant' ? '#2196F3' : 'gray';
-
-    const todayDate = new Date();
-    const localDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
     function converStringToDate(stringDate) {
         const [year, month, day] = stringDate.split('-').map(Number);
         return new Date(year, month - 1, day, 0, 0, 0);
     }
-    const statusDate = converStringToDate(actionDate);
     const futureStatusDateString = futureStatusDate !== undefined ? converStringToDate(futureStatusDate) : null;
 
     let futureStatusLabel = '';
@@ -160,25 +157,32 @@ function addNewConsultantRow(consultantName, consProjAssId, statusAction, userCa
     }
 
     if (futureStatus !== undefined && futureStatus) {
-        futureStatusLabel = 'Re-activated';
+        futureStatusLabel = 'Activated';
         futureStatusClass = 'green-label';
+        if ((statusAction && futureStatus === undefined) || (futureStatus !== undefined && futureStatus && !statusAction)) {
+
+        }
     } else {
         futureStatusLabel = 'Deactivated';
     }
-
+    let currentStatusElement = `<label style="font-size:13px" class="${currentStatusClass}"><strong> ${statusAction ? 'Assigned First Time' : 'Deactivated' }</strong></label>`;
+    if ((statusAction && futureStatus === undefined) || (futureStatus !== undefined && futureStatus && !statusAction ||
+       (futureStatus !== undefined && !futureStatus && statusAction))) {
+        currentStatusElement = `<label style="font-size:13px" class="${currentStatusClass}"><strong>${currentStatusLabel}</strong></label>`;
+    }
     actionStatusSpan =
-        `<label style="font-size:13px" class="${currentStatusClass}"><strong>${currentStatusLabel}</strong></label>` + (futureStatus !== undefined ?
+        currentStatusElement + (futureStatus !== undefined ?
         `<label style="font-size:13px" id="a-i-label-${consProjAssId}">
         <span class="${futureStatusClass}">&nbsp;(Will be <strong>${futureStatusLabel}</strong> on ${futureStatusDateString.toISOString().split('T')[0]})</span>
     </label>` : ``);
 
     spanToInnerToConsultant = `<strong>${consultantName}</strong><span style="font-size: 12px; color:${userCategorySpanColor}"> (${userCategoryName})</span> ${actionStatusSpan}`;
 
-    activeInactiveBtn = `
+    futureStatus === undefined ? activeInactiveBtn = `
 <li id="activate-deactivate-li-${consProjAssId}" 
     onclick="activateDeactivateConFromProject(${consProjAssId}, '${consultantName}', ${statusAction}, ${projectIdInputCUP.value})">
     ${statusAction ? '<i class="bi bi-x-lg red-label"></i>Deactivate from Project' : '<i class="bi bi-plus-lg green-label"></i>Activate in the Project'}
-</li>`;
+</li>` : activeInactiveBtn = ``;
 
     var dotsIcon = document.createElement("i");
     var editConsultantParametersBtn = '';
@@ -336,6 +340,16 @@ async function selectSuccessManagerByClientId(selectElement) {
 }
 
 //Activate and deactivate Consultant from project
+async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status, projectId) {
+    try {
+        const data = await activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status);
+        if (data) {
+            displayUpdateModal('modal-update-create-project', projectId);
+        }
+    } catch (error) {
+        console.error("Error: ", error);
+    }
+}
 async function activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status) {
     const title = status ? "Deactivate Consultant" : "Activate Consultant";
     const textAction = status ? "Deactivate" : "Activate";
@@ -361,16 +375,16 @@ async function activateDeactivateConsultantFromProject(projectConsultantAssigned
                     return false;
                 }
                 return [actionDate];
-            }//,
-            //didOpen: () => {
-            //    const today = new Date();
-            //    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            //    document.getElementById('swal-input-action-date').setAttribute('min', localDate);
-            //    document.getElementById('swal-input-action-date').onkeydown = (e) => {
-            //        e.preventDefault();
-            //    };
-            //}
-        });
+            },
+            didOpen: () => {
+                const today = new Date();
+                const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                document.getElementById('swal-input-action-date').setAttribute('min', localDate);
+                document.getElementById('swal-input-action-date').onkeydown = (e) => {
+                    e.preventDefault();
+                };
+            }
+        })
 
         if (result.isConfirmed) {
             displaySpinner();

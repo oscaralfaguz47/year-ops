@@ -181,6 +181,7 @@ async function displayMoreFiltersPaymentSheet() {
                     <option value="">All statuses</option>
                     <option value="Approved">Approved</option>
                     <option value="Pending">Pending</option>
+                    <option value="Rejected">Rejected</option>
                     <option value="Waiting to be approved">Waiting to be approved</option>
                 </select>
             </div>

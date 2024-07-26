@@ -205,18 +205,6 @@ function addConsultantToModalCreateUpdateProject(modalId) {
     hideModal(modalId);
 }
 
-
-// Activate / Deactivate consultant
-async function activateDeactivateConFromProject(projectConsultantAssignedId, name, status, projectId) {
-    try {
-        const data = await activateDeactivateConsultantFromProject(projectConsultantAssignedId, name, status);
-        if (data) {
-            displayUpdateModal('modal-update-create-project', projectId);
-        }
-    } catch (error) {
-        console.error("Error: ", error);
-    }
-}
 // Activate / Deactivate project
 async function activateDeactivateProject(inputElement, projectId, name, status) {
     var title = status ? "Deactivate Project" : "Activate Project";

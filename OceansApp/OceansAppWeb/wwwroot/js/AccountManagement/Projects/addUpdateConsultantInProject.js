@@ -1,19 +1,6 @@
 ﻿var partnerSelect = getElementById("PartnerSelect");
 let partnersArray = [];
 
-//document.addEventListener("DOMContentLoaded", function () {
-//    var actionDate = document.getElementById('actionDate');
-//    var today = new Date();
-//    var todayFormatted = today.toISOString().substr(0, 10);
-//    actionDate.min = todayFormatted;
-//    function validateDate() {
-//        if (actionDate.value < actionDate.min) {
-//            actionDate.value = actionDate.min;
-//        }
-//    }
-//    actionDate.addEventListener('change', validateDate);
-//});
-
 const lastActionDateMessage = getElementById('last-action-date-message');
 const hourlySalaryInputCUCP = getElementById('hourlySalary');
 const monthlySalaryInputCUCP = getElementById('monthlySalary');
@@ -110,8 +97,38 @@ const benefitsArePaidByPartnerCheckboxCUCP = getElementById('PartnerPaysBenefits
 
 const clientRateSection = getElementById("client-rate-section");
 const clientRateInputs = getElementById("client-rate-inputs");
+const actionDate = getElementById('actionDate');
 
+function disableActionDateDatePicker(date) {
+
+    let dateTimeFormat = new Date(date);
+    let dateFormatted = dateTimeFormat.toISOString().substr(0, 10);
+    let todaysDate = new Date();
+    let todaysDateFormated = todaysDate.toISOString().substr(0, 10);
+    console.log(dateFormatted + " " + todaysDateFormated);
+    if (dateFormatted < todaysDateFormated) {
+        actionDate.min = todaysDateFormated;
+    } else {
+        actionDate.min = dateFormatted;
+    }
+    function validateDate() {
+        if (actionDate.value < actionDate.min) {
+            actionDate.value = actionDate.min;
+        }
+    }
+    actionDate.addEventListener('change', validateDate);
+};
+function enableAllDates() {
+    const actionDate = getElementById('actionDate');
+    actionDate.removeAttribute('min');
+    actionDate.removeAttribute('max');
+
+    if (typeof validateDate !== 'undefined' && actionDate.onchange) {
+        actionDate.removeEventListener('change', validateDate);
+    }
+}
 async function displayAddUpdateConsultant(modalId, id) {
+    enableAllDates();
     inicializeSecondModalButtons(modalId);
     lastActionDateMessage.style.display = 'none';
     const modalTitle = getElementById('add-consultant-modal-title');
@@ -166,6 +183,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 <strong>"${formatDateMmDdYyyy(data.consultantAssignation.actionDate)}"</strong>
                 . All the displayed data belongs to the last one. The changes were applied on (${formatUtcToLocalMmDdYyyyTime(creationDateDateFormat)}).
                 </label>`;
+                disableActionDateDatePicker(data.consultantAssignation.actionDate);
                 lastActionDateMessage.style.display = 'block';
                 consultantIdInputCUCP.value = data.consultantAssignation.consultantId;
                 consultantNameInputCUCP.value = data.consultantAssignation.consultantName;

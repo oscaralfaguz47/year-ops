@@ -63,7 +63,6 @@ async function getProjectInfo() {
                 projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
                 header.style.display = 'flex';
             }
-            console.log(projectInfo);
             projectIdInput.value = projectInfo.projectId;
             onCallSectionEl.style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
             clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
@@ -81,6 +80,7 @@ async function getProjectInfo() {
             calculatePeriod(currentDateNoChange, paymentPeriod);
 
         } else {
+            loadingBox.style.display = 'none';
             noProjectsBox.style.display = 'block';
             noProjectsBox.innerHTML = `<div>
             <div class="background-cont">
@@ -178,9 +178,9 @@ async function selectProject(projectId) {
 async function navitateBetweenDates(startDate, endDate, buttons) {
     try {
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
+        console.log(consultantStatusresponse.consultantStatusInTheProject);
         loadingBox.style.display = 'none';
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
-        console.log(statusInfo);
         inactiveNoTrackingToolSection.style.display = 'none';
         contentBox.style.display = 'block';
 
@@ -197,15 +197,26 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
             totalHoursLabelEl.style.display = 'none';
             inactiveNoTrackingToolSection.style.display = 'block';
         }
-        if (!statusInfo.isActive) {
-            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You are 
-                <strong>Inactive</strong> for this period.<br>Please contact your Success Manager if you need to report any time here.
-                </label></div>`;
+        let todaysDate = new Date();
+
+        function formatStringToDate(dateString) {
+            const [month, day, year] = dateString.split('/');
+            return new Date(year, month - 1, day);
         }
-        if (!statusInfo.accessToTrackingTool) {
-            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>It seems that you don't need to report your time.
-            <br>Please contact your Success Manager if you need to report any time here.
-                </label></div>`;
+        let inactiveNoTrackingMiddleMessage = '';
+        let inactiveNoTrackingEndMessae = '';
+
+        inactiveNoTrackingMiddleMessage = (formatStringToDate(dateToInput.value) < todaysDate) ? inactiveNoTrackingMiddleMessage = `were` : `are`;
+        inactiveNoTrackingMiddleMessage === 'are' ? inactiveNoTrackingEndMessae = `Please contact your Success Manager if you need to report any time here.
+                ` : inactiveNoTrackingEndMessae = `You have nothing reported.`;
+
+        if (!statusInfo.isActive) {
+            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} 
+                <strong>Inactive</strong> for this period.<br> ${inactiveNoTrackingEndMessae}</label></div>`;
+        }
+        if (!statusInfo.accessToTrackingTool && statusInfo.isActive) {
+            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} Active in this project, but you ${inactiveNoTrackingMiddleMessage} not needed to report time for this period.
+            <br>${inactiveNoTrackingEndMessae}</label></div>`;
         }
         loadingBox.style.display = 'none';
         submissionError.innerHTML = '';

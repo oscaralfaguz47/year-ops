@@ -343,13 +343,17 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         {
             try
             {
-                var existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory
+                ProjectConsultantAssignedHistory existingConsultantAssignationHistory = new();
+                existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory
                     .GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId &&
                     x.ActionDate <= actionDate,
     orderBy: q => q.OrderByDescending(x => x.ActionDate).ThenByDescending(x => x.Id));
                 if (existingConsultantAssignationHistory == null)
                 {
-                    return NotFound(new { error = "The Consultant assignation no longer exist in the database.", MessageType = "No Exists Error" });
+                    existingConsultantAssignationHistory = await _unitOfWork.ProjectConsultantAssignedHistory
+                    .GetFirstOrDefaultAsync(x => x.ProjectConsultantAssignedId == projectConsultantAssignedId &&
+                    x.ActionDate >= actionDate,
+    orderBy: q => q.OrderBy(x => x.ActionDate).ThenByDescending(x => x.Id));
                 }
                 string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (existingConsultantAssignationHistory.IsActive != statusToChange)
