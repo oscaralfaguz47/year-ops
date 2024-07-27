@@ -524,7 +524,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     new ReportingMyTimeMovementType { Name = "Oceans Challenge", IsPayable = true },
                     new ReportingMyTimeMovementType { Name = "Bonusly Rewards", IsPayable = true },
                     new ReportingMyTimeMovementType { Name = "Interviews", IsPayable = true },
-                    new ReportingMyTimeMovementType { Name = "Time Off (Non-payable)", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Time Off (Non-payable)", IsPayable = false },
                     new ReportingMyTimeMovementType { Name = "Holidays", IsPayable = true }
                 };
 
