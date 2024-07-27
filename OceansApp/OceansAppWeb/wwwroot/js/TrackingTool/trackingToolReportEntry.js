@@ -416,12 +416,7 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
 
 // Fetch project movements
 async function getProjectMovementsClientHasTrackTool() {
-    displayElement(saveReportBtn, 'none');
-    displayElement(holidaysContainer, 'none');
     initializeUploadProcess();
-    displayElement(loadingBoxIntern, 'block');
-    displayElement(errorMessageIntern, 'none');
-    displayElement(noTrackingToolSection, 'none'); 
 
     const startDateValue = encodeURIComponent(dateFromInput.value);
     const endDateValue = encodeURIComponent(dateToInput.value);

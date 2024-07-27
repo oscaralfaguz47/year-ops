@@ -22,7 +22,6 @@ namespace OceansApp.Utility.Configuration.AuthorizationRequirement.AdminCenter
                 var policies = new List<string>
             {
                 "AccessToUpdateDataFromSoftlandSection",
-                "AccessToUserAdministration",
                 "AccessToUserRolesAndPermissions",
                 "AccessToConsultantPositions"
             };

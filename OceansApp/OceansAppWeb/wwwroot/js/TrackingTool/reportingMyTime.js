@@ -174,12 +174,20 @@ async function selectProject(projectId) {
     }
 }
 
+function initializeNavigation() {
+    displayElement(saveReportBtn, 'none');
+    displayElement(holidaysContainer, 'none');
+    displayElement(loadingBoxIntern, 'block');
+    displayElement(errorMessageIntern, 'none');
+    displayElement(noTrackingToolSection, 'none');
+    displayElement(tackingToolSection, 'none');
+    displayElement(inactiveNoTrackingToolSection, 'none');
+}
 //Navitate between dates
 async function navitateBetweenDates(startDate, endDate, buttons) {
     try {
+        initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
-        console.log(consultantStatusresponse.consultantStatusInTheProject);
-        loadingBox.style.display = 'none';
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
         inactiveNoTrackingToolSection.style.display = 'none';
         contentBox.style.display = 'block';

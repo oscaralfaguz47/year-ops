@@ -410,7 +410,6 @@ namespace OceansApp.DataAccess.DbInitializer
                 List<SystemSubArea> systemSubAreasList = new List<SystemSubArea>
                 {
                     new SystemSubArea { SystemAreaId = 1, Name = "Actualizar Datos desde Softland" },
-                    new SystemSubArea { SystemAreaId = 1, Name = "Administración de Usuarios" },
                     new SystemSubArea { SystemAreaId = 1, Name = "Roles y Permisos de Usuarios" },
                     new SystemSubArea { SystemAreaId = 1, Name = "Consultant Positions Accounting Configuration" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Cuentas Por Cobrar" },
@@ -605,15 +604,6 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue,
                     Description = "Acceso a poder actualizar los datos extraídos desde Softland",
                     SystemSubAreaId = softlandSubAreaId.SystemSubAreaId
-                });
-
-                var adminUserSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Administración de Usuarios");
-                systemClaimsList.Add(new ApplicationSystemClaim
-                {
-                    ClaimType = AdminCenterClaimsCD.Administracion_Usuarios_ClaimType,
-                    ClaimValue = AdminCenterClaimsCD.Administracion_Usuarios_ClaimValue,
-                    Description = "Acceso a ver todos los usuarios del sistema",
-                    SystemSubAreaId = adminUserSubAreaId.SystemSubAreaId
                 });
 
                 var userRolesPermissionsSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Roles y Permisos de Usuarios");

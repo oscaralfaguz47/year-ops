@@ -55,7 +55,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     const tooltip = document.querySelector('.tooltip');
     if (tooltip) {
         tooltip.style.opacity = '0';
-        tooltip.style.pointerEvents = 'none'; // Desactivar interacción
+        tooltip.style.pointerEvents = 'none';
     }
     fillMovementTypesSelect(timeClassificationSelect, timeClasifications);
     htmlReportedTimeElement = htmlElement;
@@ -278,7 +278,6 @@ async function deleteTrackingToolTimeEntry(modalId) {
                 default:
                     displayToasterError('Error: ' + err.error);
             }
-            console.log("FALLÓ");
             enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
             return false;
         }

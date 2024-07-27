@@ -1,11 +1,8 @@
-﻿//GET PROJECT MOVEMENTS
+﻿
+const tackingToolSection = document.getElementById('tracking-tool-sec');
+//GET PROJECT MOVEMENTS
 async function getTrackingToolProjectMovements() {
     try {
-        loadingBoxIntern.style.display = 'block';
-        errorMessageIntern.style.display = 'none';
-        let tackingToolSection = document.getElementById('tracking-tool-sec');
-        tackingToolSection.style.display = 'none';
-
         var startDateValue = encodeURIComponent(dateFromInput.value);
         var endDateValue = encodeURIComponent(dateToInput.value);
         var url = "/TrackingTool/ReportingMyTime/GetTrackingToolProjectMovements?projectId=" + encodeURIComponent(projectIdInput.value) +
@@ -154,27 +151,29 @@ function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, i
     initializeTooltips();
 }
 
-function saveTimeEntry(button, date) {
-    var spinnerLabel = button.parentElement.querySelector('.spinner-time-actions');
-    const deleteBtn = button.parentElement.querySelector('.btn-delete-time');
-    const timeFrom = button.parentElement.querySelector('.time-from').value;
-    const timeTo = button.parentElement.querySelector('.time-to').value;
-    const notes = button.parentElement.querySelector('.time-detail').value;
-    let movementId = button.parentElement.querySelector('.movement-id').value === '' ? null : button.parentElement.querySelector('.movement-id').value;
-    const checkSavedIcon = button.parentElement.querySelector('.check-saved-icon');
+async function saveTimeEntry(button, date) {
+    try {
+        const spinnerLabel = button.parentElement.querySelector('.spinner-time-actions');
+        const deleteBtn = button.parentElement.querySelector('.btn-delete-time');
+        const timeFrom = button.parentElement.querySelector('.time-from').value;
+        const timeTo = button.parentElement.querySelector('.time-to').value;
+        const notes = button.parentElement.querySelector('.time-detail').value;
+        let movementId = button.parentElement.querySelector('.movement-id').value === '' ? null : button.parentElement.querySelector('.movement-id').value;
+        const checkSavedIcon = button.parentElement.querySelector('.check-saved-icon');
 
-    createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'),
-        spinnerLabel, button, checkSavedIcon).then(data => {
-            if (data) {
-                movementId = data.movementId; 
-                button.parentElement.querySelector('.movement-id').value = movementId;
-                deleteBtn.setAttribute('onclick', ''); 
-                deleteBtn.setAttribute('onclick', `deleteTimeEntry(this, ${movementId})`); 
-            }
-        }).catch(error => {
-            console.error("Error in saveTimeEntry:", error);
-        });
+        const data = await createUpdateTimeEntryTrackingTool(movementId, notes, timeFrom, timeTo, date, button.parentElement.querySelector('.movement-id'),
+            spinnerLabel, button, checkSavedIcon);
+
+        if (data) {
+            movementId = data.movementId;
+            button.parentElement.querySelector('.movement-id').value = movementId;
+            deleteBtn.setAttribute('onclick', `deleteTimeEntry(this, ${movementId})`);
+        }
+    } catch (error) {
+        console.error("Error in saveTimeEntry:", error);
+    }
 }
+
 
 function updateDayTotal(dayElement) {
     const timeEntries = dayElement.querySelectorAll('.time-entry');
