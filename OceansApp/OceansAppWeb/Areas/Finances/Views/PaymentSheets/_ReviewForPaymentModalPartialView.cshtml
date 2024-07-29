@@ -1,13 +1,14 @@
 ﻿<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
 
-<div id="modal-make-payment" class="global-modal" style="display:none">
+<div id="modal-review-for-payment" class="global-modal" style="display:none">
     <div class="global-modal-content">
         <div class="container">
             <div>
+                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-review-for-payment')">x</button></div>
                 <h2 id="make-payment-modal-title"></h2>
 
                 <div class="action-btns-box">
-                    <button onclick="hideModal('modal-review-for-approval')" class="cancel-btn">Cancel</button>
+                    <button onclick="hideModal('modal-review-for-payment')" class="cancel-btn">Cancel</button>
                     <button class="btn-reject" onclick="displayApproveRejectConfirmation('Rejected')">Reject</button>
                     <button class="btn-approve" onclick="displayApproveRejectConfirmation('Approved')">Approve</button>
                 </div>
@@ -16,4 +17,4 @@
     </div>
 </div>
 
-<script src="~/js/Finances/PaymentSheets/makePayment.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/PaymentSheets/reviewForPayment.js?v=@DateTime.Now.Ticks"></script>

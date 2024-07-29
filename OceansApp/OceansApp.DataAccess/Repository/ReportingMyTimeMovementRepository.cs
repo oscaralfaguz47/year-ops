@@ -604,5 +604,19 @@ namespace OceansApp.DataAccess.Repository
             }
             return MethodResponse.CreateSuccessResponse();
         }
+
+        public async Task<List<GetApprovedMovementsWhereConsultantVM>> GetApprovedMovementsWhereConsultant(int consultantId, 
+            int projectId, DateTime startDate, DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId);
+            parameters.Add("@ProjectId", projectId);
+            parameters.Add("@StartDate", startDate);
+            parameters.Add("@EndDate", endDate);
+
+            var results = await connection.QueryAsync<GetApprovedMovementsWhereConsultantVM>("SP_REPORTING_MY_TIME_MOVEMENTS_GetApprovedMovementsWhereConsultant", parameters, commandType: CommandType.StoredProcedure);
+            return results.ToList();
+        }
     }
 }

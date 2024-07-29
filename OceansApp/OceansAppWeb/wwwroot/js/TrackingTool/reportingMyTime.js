@@ -175,9 +175,9 @@ async function selectProject(projectId) {
 }
 
 function initializeNavigation() {
+    displayElement(loadingBoxIntern, 'block');
     displayElement(saveReportBtn, 'none');
     displayElement(holidaysContainer, 'none');
-    displayElement(loadingBoxIntern, 'block');
     displayElement(errorMessageIntern, 'none');
     displayElement(noTrackingToolSection, 'none');
     displayElement(tackingToolSection, 'none');

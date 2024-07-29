@@ -1,4 +1,4 @@
-﻿async function displayMakePaymentModal(modalId, consultantId) {
+﻿async function displayReviewForPaymentModal(modalId, consultantId) {
     let url = "/Finances/PaymentSheets/GetReportDetailsFromSubmissionById?submissionId=" + encodeURIComponent(consultantId);
     displaySpinner();
     try {

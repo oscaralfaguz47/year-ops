@@ -54,7 +54,7 @@ async function getListOfResults(firstTime, filters) {
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionformattedDate = "Not submitted yet";
-                let makePaymentBtn = '';
+                let reviewForPaymentBtn = '';
                 let setAsAccountsPayableBtn = '';
                 let menuBtn = '';
 
@@ -77,12 +77,12 @@ async function getListOfResults(firstTime, filters) {
                 }
 
                 if (obj.numApprovedSubmissions === obj.numProjectsIsActive) {
-                    makePaymentBtn = `<li>Make Payment</li>`;
-                    sendPaymentDetails = `<li>Send payment details</li>`;
+                    reviewForPaymentBtn = `<li>Review for payment</li>`;
+                    sendPaymentDetails = `<li onclick="displayReviewForPaymentModal('modal-review-for-payment', ${obj.consultantId})">Send payment details</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.consultantId}">
                                <ul>
-                                 ${makePaymentBtn + setAsAccountsPayableBtn}
+                                 ${reviewForPaymentBtn + setAsAccountsPayableBtn}
                                </ul>
                               </div>`;
                 }

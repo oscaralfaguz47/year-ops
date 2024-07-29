@@ -4,6 +4,9 @@
 <partial name="_HomeStylesPartial" />
 
 <!-- WIDGET PROVIDERS -->
+<div class="container">
+    <h2>Dashboard in progress....</h2>
+</div>
 @if (User.HasClaim(c => c.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType && c.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue))
 {
     @*<div class="container">
@@ -37,57 +40,3 @@
         </div>
     </div>*@
 }
-<!-- END WIDGET PROVIDERS -->
-@section Scripts {
-<script>
-    $(document).ready(function () {
-        // Reemplaza la URL con la ruta a tu controlador que devuelve el JSON
-        var url = "/Home/GetProvidersGroupByCategory";
-
-        $.getJSON(url, function (data) {
-            var html = "";
-            var totalDevProviders = 0;
-            var totalAdminProviders = 0;
-            $.each(data, function (key, item) {
-                if(item.CategoryDescription.indexOf("Recursos Informáticos") !== -1){
-                    totalDevProviders += item.NumProviders;
-                }else{
-                    totalAdminProviders += item.NumProviders;
-                }
-
-                html += `<div class="vertical-scroll-item">
-                             <div class="widget-left-col category-description" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#providersModal">
-                                 ${item.CategoryDescription}
-                             </div>
-                             <div class="widget-right-col">
-                                 ${item.NumProviders}
-                             </div>
-                        </div>`;
-            });
-
-            $("#providers-container").html(html);
-
-            // Agrega un evento de click para mostrar la lista de proveedores en el modal
-            $(".category-description").on("click", function() {
-                var index = $(this).parent().index();
-                var selectedItem = data[index];
-                var providerListHtml = '<ul>';
-                $.each(selectedItem.Providers, function (providerKey, provider) {
-                    providerListHtml += '<li>' + provider.Name + ' (' + provider.Occupation + ') - ' + provider.Company + '</li>';
-                });
-                providerListHtml += '</ul>';
-                $("#providersModalBody").html(providerListHtml);
-                $("#providersModalLabel").text(selectedItem.CategoryDescription);
-            });
-
-            var widgetFooterHtml = `
-            <h6>TOTAL DE CONSULTORES: ${totalDevProviders + totalAdminProviders} </h6>
-                 <label>Consultores Administrativos: <span>${totalAdminProviders}</span></label><br />
-                 <label>Consultores informáticos: <span>${totalDevProviders}</span></label>
-            `;
-            $("#widget-footer").html(widgetFooterHtml);
-        });
-    });
-</script>
-}
-

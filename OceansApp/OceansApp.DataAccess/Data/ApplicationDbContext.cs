@@ -491,6 +491,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ActionDate);
                 entity.HasIndex(e => e.PositionId);
                 entity.HasIndex(e => e.PartnerId);
+                entity.HasIndex(e => e.IsActive);
 
                 //Columns
                 entity.HasKey(p => new { p.Id });

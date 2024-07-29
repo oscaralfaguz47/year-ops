@@ -34,5 +34,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> DeleteTrackingTooTimeEntry(string userActionedBy, int movementId);
         Task<MethodResponse> ValidateSubmission(ReportingMyTimeMovement? movement, DateTime? actionDate,
             ConsultantDetail? consultant, int? projectId);
+        Task<List<GetApprovedMovementsWhereConsultantVM>> GetApprovedMovementsWhereConsultant(int consultantId,
+            int projectId, DateTime startDate, DateTime endDate);
     }
 }
