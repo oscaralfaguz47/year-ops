@@ -10,6 +10,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool? IsActive { get; set; }
         public bool? IsBillable { get; set; }
         public int? ClientId { get; set; }
+        public string? ClientName { get; set; }
         public int? SuccessManagerId { get; set; }
         public bool? ClientHasTrackingTool { get; set; }
         public string? AssignedConsultants { get; set; }
