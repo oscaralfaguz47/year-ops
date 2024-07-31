@@ -1,4 +1,6 @@
-﻿window.onload = function () {
+﻿// Utility functions
+let getElementById = id => document.getElementById(id);
+window.onload = function () {
     var currentYear = new Date().getFullYear();
     var copyrightYearElement = document.querySelector("#copyright-year");
     if (copyrightYearElement) {

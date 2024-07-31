@@ -189,5 +189,18 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<GetApprovedDebitsCreditsWhereConsultantVM>> GetApprovedDebitsCreditsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId);
+            parameters.Add("@StartDate", startDate);
+            parameters.Add("@EndDate", endDate);
+
+            var results = await connection.QueryAsync<GetApprovedDebitsCreditsWhereConsultantVM>("SP_CONSULTANT_PAYMENTS_DEBITS_CREDITS_GetApprovedDebitCreditWhereConsultantInThePeriod", parameters, commandType: CommandType.StoredProcedure);
+            return results.ToList();
+        }
+
     }
 }

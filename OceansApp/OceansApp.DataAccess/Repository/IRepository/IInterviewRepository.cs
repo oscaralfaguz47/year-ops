@@ -12,5 +12,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> UpdateInterview(string userActionedBy, CreateUpdateInterviewVM interviewData);
         Task<CreateUpdateInterviewVM> GetInterviewDataById(int interviewId);
         Task<MethodResponse> RejectInterview(string userActionedBy, int interviewId);
+        Task<List<GetApprovedInterviewsWhereConsultantVM>> GetApprovedInterviewsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate);
     }
 }

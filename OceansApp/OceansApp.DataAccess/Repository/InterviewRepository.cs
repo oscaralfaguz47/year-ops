@@ -168,5 +168,18 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<GetApprovedInterviewsWhereConsultantVM>> GetApprovedInterviewsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId);
+            parameters.Add("@StartDate", startDate);
+            parameters.Add("@EndDate", endDate);
+
+            var results = await connection.QueryAsync<GetApprovedInterviewsWhereConsultantVM>("SP_INTERVIEWS_GetApprovedInterviewsWhereConsultantInThePeriod", parameters, commandType: CommandType.StoredProcedure);
+            return results.ToList();
+        }
+
     }
 }

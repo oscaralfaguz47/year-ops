@@ -255,6 +255,18 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<GetApprovedBenefitsWhereConsultant>> GetApprovedBenefitsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId);
+            parameters.Add("@StartDate", startDate);
+            parameters.Add("@EndDate", endDate);
+
+            var results = await connection.QueryAsync<GetApprovedBenefitsWhereConsultant>("SP_CONSULTANT_REIMBURSED_BENEFITS_GetApprovedBenefitsWhereConsultantInThePeriod", parameters, commandType: CommandType.StoredProcedure);
+            return results.ToList();
+        }
 
     }
 }

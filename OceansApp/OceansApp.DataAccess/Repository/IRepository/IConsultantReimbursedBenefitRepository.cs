@@ -16,5 +16,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, int benetifReimbursementId);
         Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(int consultantId, int benefitId, int year,
             decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore, IDbTransaction transaction = null);
+        Task<List<GetApprovedBenefitsWhereConsultant>> GetApprovedBenefitsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate);
     }
 }

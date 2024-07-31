@@ -1,4 +1,5 @@
 ﻿<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Finances/PaymentSheets/reviewForPayment.css?v=@DateTime.Now.Ticks" />
 
 <div id="modal-review-for-payment" class="global-modal" style="display:none">
     <div class="global-modal-content">
@@ -6,6 +7,8 @@
             <div>
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-review-for-payment')">x</button></div>
                 <h2 id="make-payment-modal-title"></h2>
+                <div id="review-for-payment-container">
+                </div>
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-review-for-payment')" class="cancel-btn">Cancel</button>

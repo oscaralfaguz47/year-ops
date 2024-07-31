@@ -48,6 +48,32 @@ namespace OceansApp.DataAccess.Repository
 
             return (consultants, totalCount);
         }
+        public async Task<ConsultantUserVM> GetConsultantWithUserAsync(int consultantId)
+        {
+            try
+            {
+                var result = await (from c in _db.CONSULTANT_DETAILS
+                                join u in _db.AspNetUsers on c.UserId equals u.Id
+                                where c.ConsultantId == consultantId
+                                select new ConsultantUserVM
+                                {
+                                    Name = u.Name,
+                                    LastName = u.LastName,
+                                    Email = u.Email,
+                                    PaymentMethodId = (int)c.PaymentMethodId,
+                                    CompanyId = c.CompanyId,
+                                    CountryId = c.IdCountry,
+                                    PaymentPeriod = (int)c.PaymentPeriod,
+                                    ConsultantHolidayId = c.ConsultantHolidayId
+                                }).FirstOrDefaultAsync();
+
+            return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
         public async Task<List<GetUsersSelectVM>> GetUsersByCategoryAndPositionForSelect(string userCategory, string userPosition)
         {
             var connection = _db.Database.GetDbConnection();

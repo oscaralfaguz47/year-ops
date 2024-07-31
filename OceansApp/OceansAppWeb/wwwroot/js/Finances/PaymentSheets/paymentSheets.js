@@ -1,7 +1,4 @@
-﻿// Utility functions
-let getElementById = id => document.getElementById(id);
-
-let dateToInput = document.getElementById('dateToInput');
+﻿let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
 let paymentPeriodSelect = document.getElementById('paymentPeriod');
 let statusSelectFilters = null;
@@ -77,8 +74,8 @@ async function getListOfResults(firstTime, filters) {
                 }
 
                 if (obj.numApprovedSubmissions === obj.numProjectsIsActive) {
-                    reviewForPaymentBtn = `<li>Review for payment</li>`;
-                    sendPaymentDetails = `<li onclick="displayReviewForPaymentModal('modal-review-for-payment', ${obj.consultantId})">Send payment details</li>`;
+                    reviewForPaymentBtn = `<li onclick="displayReviewForPaymentModal('modal-review-for-payment', ${obj.consultantId})">Review for payment</li>`;
+                    sendPaymentDetails = `<li>Send payment details</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
                               <div class="menu-options" id="menuOptions-${obj.consultantId}">
                                <ul>

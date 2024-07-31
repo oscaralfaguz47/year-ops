@@ -1,7 +1,4 @@
-﻿// Utility functions
-let getElementById = id => document.getElementById(id);
-
-// Element selectors
+﻿// Element selectors
 const quantityInput = getElementById('quantityInput');
 const notesInput = getElementById('notesInput');
 const movementIdNormalHoursInput = getElementById('movementIdNormalHoursInput');

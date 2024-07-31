@@ -15,5 +15,26 @@ namespace OceansApp.Utility.SharedMethods
 
             return totalHours;
         }
+
+        public static int GetWorkingDaysInMonth(DateTime date)
+        {
+            int year = date.Year;
+            int month = date.Month;
+            int daysInMonth = DateTime.DaysInMonth(year, month);
+
+            int workingDays = 0;
+
+            for (int day = 1; day <= daysInMonth; day++)
+            {
+                DateTime currentDay = new DateTime(year, month, day);
+                if (currentDay.DayOfWeek != DayOfWeek.Saturday && currentDay.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    workingDays++;
+                }
+            }
+
+            return workingDays;
+        }
     }
+
 }

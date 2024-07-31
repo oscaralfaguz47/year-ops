@@ -13,5 +13,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CreateUpdateConsultantPaymentDebitCreditVM debitCreditData);
         Task<MethodResponse> RejectDebitCredit(string userActionedBy, int consultantPaymentDebitsCreditsId);
         Task<CreateUpdateConsultantPaymentDebitCreditVM> GetDebitCreditDataById(int consultantPaymentDebitsCreditsId);
+        Task<List<GetApprovedDebitsCreditsWhereConsultantVM>> GetApprovedDebitsCreditsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate);
     }
 }

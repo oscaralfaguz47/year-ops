@@ -224,10 +224,24 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public void Update(ConsultantHoliday obj)
+        public async Task<List<ConsultantHolidayDate>?> GetHolidaysDatesWhereConsultantInPeriodAsync(
+     DateTime startDate, DateTime endDate, int? consultantHolidayId)
         {
-            _db.CONSULTANT_HOLIDAYS.Update(obj);
+            if (consultantHolidayId != null)
+            {
+                return await _db.CONSULTANT_HOLIDAY_DATES
+              .Where(x => x.ConsultantHolidayId == consultantHolidayId
+                          && x.Date >= startDate
+                          && x.Date <= endDate)
+              .ToListAsync();
+            }
+            else
+            {
+                return null;
+            }
         }
+
+
 
     }
 }

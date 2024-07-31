@@ -1,7 +1,4 @@
-﻿// Utility functions
-const getElementById = id => document.getElementById(id);
-
-//Create update project Variables
+﻿//Create update project Variables
 const createUpdateProjectForm = getElementById('form-create-update');
 const projectIdInputCUP = createUpdateProjectForm.querySelector('[name="projectId"]')
 const projectNameInputCUP = createUpdateProjectForm.querySelector('[name="projectName"]');
