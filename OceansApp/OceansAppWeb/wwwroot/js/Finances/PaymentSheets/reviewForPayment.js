@@ -50,7 +50,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         let totalDebits = 0;
 
         // Project movements
-        if (dataFromApi.reportDetails.projectMovements.length > 0) {
+        if (dataFromApi.reportDetails.listOfMovements.projectMovements.length > 0) {
             const projectMovementsSection = document.createElement('div');
             const projectMovementsTitle = document.createElement('label');
             projectMovementsTitle.innerHTML = `<img class="icon" src="/icons/Shared/laptop-code.svg"> <label>PROJECTS</label>`;
@@ -63,7 +63,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             let projectName = '';
             let projectTotal = 0;
 
-            dataFromApi.reportDetails.projectMovements.forEach(function (obj, index) {
+            dataFromApi.reportDetails.listOfMovements.projectMovements.forEach(function (obj, index) {
                 if (projectName !== obj.projectName) {
                     if (projectName !== '') {
                         // Add total row for the previous project
@@ -140,7 +140,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         }
 
         // Benefits and credits
-        if (dataFromApi.reportDetails.benefitsAndOtherMovements.length > 0) {
+        if (dataFromApi.reportDetails.listOfMovements.benefitsAndOtherMovements.length > 0) {
             const creditsSection = document.createElement('div');
             creditsSection.className = 'global-table-container';
             const creditsTitle = document.createElement('label');
@@ -152,7 +152,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const tableBody = document.createElement('tbody');
             let otherCreditsTotal = 0;
 
-            dataFromApi.reportDetails.benefitsAndOtherMovements.forEach(function (obj, index) {
+            dataFromApi.reportDetails.listOfMovements.benefitsAndOtherMovements.forEach(function (obj, index) {
 
                 // Add movement row
                 const tr = document.createElement('tr');
@@ -197,7 +197,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         }
 
         // Debits
-        if (dataFromApi.reportDetails.debitsMovements.length > 0) {
+        if (dataFromApi.reportDetails.listOfMovements.debitsMovements.length > 0) {
             const debitsSection = document.createElement('div');
             debitsSection.className = 'global-table-container';
             const debitsTitle = document.createElement('label');
@@ -209,7 +209,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const tableBody = document.createElement('tbody');
             let debitsTotal = 0;
 
-            dataFromApi.reportDetails.debitsMovements.forEach(function (obj, index) {
+            dataFromApi.reportDetails.listOfMovements.debitsMovements.forEach(function (obj, index) {
 
                 // Add movement row
                 const tr = document.createElement('tr');

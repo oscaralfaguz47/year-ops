@@ -7,8 +7,6 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public string CompanyId { get; set; }
         public int PaymentMethodId { get; set; }
         public string CountryId { get; set; }
-        public List<GetPaymentDetailsMovementsVM>? ProjectMovements { get; set; }
-        public List<GetPaymentDetailsMovementsVM>? BenefitsAndOtherMovements { get; set; }
-        public List<GetPaymentDetailsMovementsVM>? DebitsMovements { get; set; }
+        public GetListOfMovementsForPaymentVM? ListOfMovements { get; set; }
     }
 }

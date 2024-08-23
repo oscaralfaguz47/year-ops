@@ -57,6 +57,7 @@ namespace OceansApp.DataAccess.Repository
                                 where c.ConsultantId == consultantId
                                 select new ConsultantUserVM
                                 {
+                                    ConsultantId = c.ConsultantId,
                                     Name = u.Name,
                                     LastName = u.LastName,
                                     Email = u.Email,
