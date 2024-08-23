@@ -274,7 +274,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             GetPaymentDetailsMovementsVM holidayMovement = new()
                             {
                                 PaymentType = "Holidays",
-                                MovementTypeName = holiday.Name + "(" + holiday.Date + ")",
+                                MovementTypeName ="Holiday - " + holiday.Name + " (" + holiday.Date.ToString("MM/dd/yyyy") + ")",
                                 Quantity = 8,
                                 UnitPrice = defaultHourlyCalculation
                             };
@@ -339,7 +339,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             PaymentType = "Debit/Credit",
                             MovementTypeName = debitCredit.Detail,
                             Quantity = debitCredit.Quantity,
-                            UnitPrice = -debitCredit.Amount
+                            UnitPrice = debitCredit.Amount
                         };
                         debitsMovements.Add(debitMovement);
                     }

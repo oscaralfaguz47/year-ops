@@ -1,1 +1,78 @@
-﻿
+﻿.action-btns-box{
+    text-align: center;
+    margin-top: 10px;
+}
+.btn-accounts-payable{
+    background-color: gray;
+}
+.btn-make-payment{
+    background-color: var(--clr-blueLight);
+}
+#review-for-payment-container .global-table-container {
+    margin-top: 6px;
+}
+#review-for-payment-container .global-table-container thead {
+    background-color: var(--clr-blueLight);
+    color: #fff !important;
+}
+    #review-for-payment-container .global-table-container thead tr th {
+        color: #fff !important;
+        padding: 1px !important;
+    }
+.icon{
+    width: 22px;
+    margin-right: 3px;
+}
+.icon-debit-credit {
+    width: 16px;
+    margin-right: 3px;
+}
+.section-title {
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    background-color: var(--clr-dark1);
+    padding: 3px;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+}
+.resume-title {
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    background-color: var(--clr-dark1);
+    color: var(--clr-yellow);
+    font-size: 20px;
+}
+.total-label {
+    font-weight: bold;
+    text-align: right !important;
+}
+.td-total-value{
+    font-weight: bold;
+}
+.total-to-pay{
+    font-weight: bold;
+    font-size: 18px !important;
+    background-color: var(--clr-dark2);
+    color: #fff;
+    text-align: center !important;
+}
+    .total-to-pay td {
+        font-size: 18px !important;
+        text-align: center !important;
+    }
+.project-name {
+    font-weight: bold;
+    font-size: 13px !important;
+    text-transform: uppercase;
+}
+.debit-background {
+    background-color: rgb(232, 180, 180, 0.5);
+    font-weight: bold;
+}
+.credit-background {
+    background-color: rgb(26, 174, 5, 0.2);
+    font-weight: bold;
+}
