@@ -1,6 +1,8 @@
 ﻿
 const reviewForApprovalContainer = getElementById('review-for-payment-container');
+const consultantIdInputMP = getElementById('ConsultantIdInput');
 async function displayReviewForPaymentModal(modalId, consultantId) {
+    consultantIdInputMP.value = null;
     let url = "/Finances/PaymentSheets/GetReportToMakePayment?consultantId=" + encodeURIComponent(consultantId)
         + "&startDate=" + encodeURIComponent(dateFromInput.value)
         + "&endDate=" + encodeURIComponent(dateToInput.value);
@@ -24,8 +26,9 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         }
 
         const dataFromApi = await response.json();
+        consultantIdInputMP.value = consultantId;
         console.log(dataFromApi);
-        getElementById('make-payment-modal-title').textContent = dataFromApi.reportDetails.consultantName;
+        getElementById('review-for-payment-modal-title').textContent = dataFromApi.reportDetails.consultantName;
         reviewForApprovalContainer.innerHTML = '';
 
         // Create the table header once

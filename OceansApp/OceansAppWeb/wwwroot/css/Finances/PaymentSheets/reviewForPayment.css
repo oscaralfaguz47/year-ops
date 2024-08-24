@@ -5,7 +5,7 @@
 .btn-accounts-payable{
     background-color: gray;
 }
-.btn-make-payment{
+.btn-report-payment{
     background-color: var(--clr-blueLight);
 }
 #review-for-payment-container .global-table-container {

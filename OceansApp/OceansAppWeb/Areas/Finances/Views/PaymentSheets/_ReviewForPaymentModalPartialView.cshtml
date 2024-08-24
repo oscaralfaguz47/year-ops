@@ -1,4 +1,6 @@
-﻿<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Finances/PaymentSheets/reviewForPayment.css?v=@DateTime.Now.Ticks" />
 
 <div id="modal-review-for-payment" class="global-modal" style="display:none">
@@ -6,18 +8,21 @@
         <div class="container">
             <div>
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-review-for-payment')">x</button></div>
-                <h2 id="make-payment-modal-title"></h2>
+                <h2 id="review-for-payment-modal-title"></h2>
+                <input type="hidden" id="ConsultantIdInput" />
                 <div id="review-for-payment-container">
                 </div>
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-review-for-payment')" class="cancel-btn">Cancel</button>
                     <button class="btn-accounts-payable" onclick="displayApproveRejectConfirmation('Rejected')">Set as accounts payable</button>
-                    <button class="btn-make-payment" onclick="displayApproveRejectConfirmation('Approved')">$ Make Payment</button>
+                    <button class="btn-report-payment" onclick="displayMakePaymentModal('modal-make-payment')">$ Report Payment</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<partial name="_MakePaymentModalPartialView" />
 
 <script src="~/js/Finances/PaymentSheets/reviewForPayment.js?v=@DateTime.Now.Ticks"></script>

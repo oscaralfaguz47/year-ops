@@ -1,0 +1,43 @@
+﻿#consultant-details-div {
+    display: inline-grid;
+    background-color: var(--clr-grayLight);
+    width: 100%;
+    padding: 10px;
+    border-bottom: 2px solid rgb(1, 192, 183, 0.3);
+    border-end-start-radius: 10px;
+    border-end-end-radius: 10px;
+}
+#consultant-details-div label {
+   font-weight: 900;
+}
+    #consultant-details-div label span {
+        font-weight: normal;
+        text-decoration: underline;
+    }
+.save-icon {
+    width: 18px;
+}
+#modal-make-payment .fields-container {
+    background-color: var(--clr-grayLight);
+    margin-top: 8px;
+    padding: 10px;
+    text-align: center;
+}
+#modal-make-payment .fields-container label{
+    font-weight: 900;
+}
+#company-name-div {
+    padding: 7px;
+    margin-top: 11px;
+    background-color: var(--clr-blueLight);
+    border-radius: 10px;
+    color: #fff;
+    font-weight: bold;
+}
+.inputs-amount-container {
+margin-top: 10px;
+border-top: 1px solid var(--clr-blueLight);
+padding-top: 8px;
+}
+.inputs-amount-container input{
+}

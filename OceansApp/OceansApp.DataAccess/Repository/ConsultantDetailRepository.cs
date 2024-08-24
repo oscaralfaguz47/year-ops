@@ -54,6 +54,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 var result = await (from c in _db.CONSULTANT_DETAILS
                                 join u in _db.AspNetUsers on c.UserId equals u.Id
+                                join co in _db.COUNTRY on c.IdCountry equals co.IdCountry
                                 where c.ConsultantId == consultantId
                                 select new ConsultantUserVM
                                 {
@@ -63,7 +64,7 @@ namespace OceansApp.DataAccess.Repository
                                     Email = u.Email,
                                     PaymentMethodId = (int)c.PaymentMethodId,
                                     CompanyId = c.CompanyId,
-                                    CountryId = c.IdCountry,
+                                    CountryName = co.Name,
                                     PaymentPeriod = (int)c.PaymentPeriod,
                                     ConsultantHolidayId = c.ConsultantHolidayId
                                 }).FirstOrDefaultAsync();

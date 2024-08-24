@@ -4,7 +4,6 @@ using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.PaymentSheets;
-using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
@@ -180,12 +179,70 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
 
                 GetReportToMakePaymentVM reportToSend = new();
+
                 reportToSend.ConsultantName = consultant.Name + " " + consultant.LastName;
-                reportToSend.PaymentMethodId = consultant.PaymentMethodId;
-                reportToSend.CountryId = consultant.CountryId;
-                reportToSend.CompanyId = consultant.CompanyId;
+
                 var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
                 reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList;
+
+                return Ok(new
+                {
+                    reportDetails = reportToSend
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+        [HttpGet("GetAmountAndDetailsToMakePayment")]
+        public async Task<IActionResult> GetAmountAndDetailsToMakePayment(int consultantId, DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var consultant = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync(consultantId);
+                if (consultant == null)
+                {
+                    return NotFound(new { error = "Consultant not found." });
+                }
+
+                MakePaymentVM reportToSend = new();
+                reportToSend.ConsultantName = consultant.Name + " " + consultant.LastName;
+                reportToSend.PaymentMethodId = consultant.PaymentMethodId;
+                reportToSend.CountryName = consultant.CountryName;
+                reportToSend.CompanyId = consultant.CompanyId;
+
+                var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
+                decimal totalAmountToPay = 0;
+
+                var listOfMovements = movementsListFromDb.GenericList;
+
+                if (listOfMovements != null)
+                {
+                    foreach (var property in listOfMovements.GetType().GetProperties())
+                    {
+                        if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
+                        {
+                            foreach (var item in list)
+                            {
+                                if (item is GetPaymentDetailsMovementsVM movement)
+                                {
+                                    if (property.Name != "DebitsMovements")
+                                    {
+                                        totalAmountToPay += movement.TotalAmount;
+                                    }
+                                    else
+                                    {
+                                        totalAmountToPay -= movement.TotalAmount;
+                                    }
+                                }
+                               
+                            }
+                        }
+                    }
+                }
+
+                reportToSend.AmountToPay = totalAmountToPay;
 
                 return Ok(new
                 {

@@ -13,7 +13,26 @@ async function getPaymentMethodsWhereCompanyList(companyId) {
             }
         })
         .catch(error => {
-                validateSessionExpiration(error.message);
+            validateSessionExpiration(error.message);
+            displayToasterError(error.message);
+        });
+}
+
+async function getAllPaymentMethodsList() {
+    var url = "/AdminCenter/PaymentMethods/GetAllPaymentMethodsList";
+    return fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    displayToasterError(errorData.error);
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                });
+            }
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
             displayToasterError(error.message);
         });
 }
