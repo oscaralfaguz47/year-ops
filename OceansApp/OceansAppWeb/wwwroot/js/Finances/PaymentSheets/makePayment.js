@@ -5,6 +5,7 @@ const consultantDetailsMP = getElementById('consultant-details-div');
 const accountingDateInputMP = getElementById('accounting-date');
 const referenceNumberInputMP = getElementById('reference-number');
 const totalAmountToPayInputMP = getElementById('total-amount-to-pay');
+const consultantPaymentInputMP = getElementById('ConsultantPaymentInput');
 const companyNameDiv = getElementById('company-name-div');
 let currentPaymentMethodId = null;
 let companyIdMP = null;
@@ -12,10 +13,11 @@ const submitBtnsInitialize = [{ id: 'btn-save-payment', text: 'Save' }];
 const otherBtnsInitialize = ['close-payment-modal-x-btn', 'btn-cancel-payment-modal'];
 const otherBtns = ['btn-cancel-payment-modal', 'close-payment-modal-x-btn'];
 
-async function displayMakePaymentModal(modalId) {
-    let url = "/Finances/PaymentSheets/GetAmountAndDetailsToMakePayment?consultantId=" + encodeURIComponent(consultantIdInputMP.value)
+async function displayMakePaymentModal(modalId, paymentId) {
+    consultantPaymentInputMP.value = paymentId;
+    let url = paymentId === null ? "/Finances/PaymentSheets/GetAmountAndDetailsToMakePayment?consultantId=" + encodeURIComponent(consultantIdInputMP.value)
         + "&startDate=" + encodeURIComponent(dateFromInput.value)
-        + "&endDate=" + encodeURIComponent(dateToInput.value);
+        + "&endDate=" + encodeURIComponent(dateToInput.value) : "/Finances/PaymentSheets/GetPaymentDataByPaymentId?paymentId=" + encodeURIComponent(paymentId);
 
     accountingDateInputMP.value = null;
     referenceNumberInputMP.value = null;
@@ -53,6 +55,9 @@ async function displayMakePaymentModal(modalId) {
         companyNameDiv.textContent = dataFromApi.reportDetails.companyId === "OCE" ? 'Oceans Consulting Firm' : 'OCE LLC';
         totalAmountToPayInputMP.value = dataFromApi.reportDetails.amountToPay.toFixed(2);
         companyIdMP = dataFromApi.reportDetails.companyId;
+        let accountingDateFormat = new Date(dataFromApi.reportDetails.accountingDate);
+        accountingDateInputMP.value = dataFromApi.reportDetails.accountingDate === null ? null : accountingDateFormat.toISOString().split('T')[0];
+        referenceNumberInputMP.value = dataFromApi.reportDetails.referenceNumber;
      
         hideSpinner();
         showModal(modalId);
@@ -156,13 +161,13 @@ async function getBankAccounts(paymentMethodId) {
     }
 }
 
-async function createUpdatePayment(paymentId, modalId) {
+async function createUpdatePayment(modalId) {
     disableButtonsWaitingForPostMethod('btn-save-payment', otherBtns, 'spinner-border')
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
     var data = {
-        ConsultantPaymentId: paymentId,
+        ConsultantPaymentId: consultantPaymentInputMP.value === '' ? null : Number(consultantPaymentInputMP.value),
         ConsultantId: consultantIdInputMP.value === '' ? null : Number(consultantIdInputMP.value),
         StartDatePeriod: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
         EndDatePeriod: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
@@ -204,6 +209,7 @@ async function createUpdatePayment(paymentId, modalId) {
         displayToasterSuccess(dataFromApi.message);
         hideModal(modalId);
         enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
+        await displayReviewForPaymentModal('modal-review-for-payment', consultantIdInputMP.value);
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);

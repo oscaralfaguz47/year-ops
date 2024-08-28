@@ -10,6 +10,7 @@
                 <div>
                     <div id="consultant-details-div"></div>
                     <div class="fields-container">
+                        <input type="hidden" id="ConsultantPaymentInput" />
                         <div class="row">
                             <div class="col-md-4 p-2">
                                 <label for="PaymentMethodSelect">Payment Method</label>
@@ -53,7 +54,7 @@
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-make-payment')" class="cancel-btn" id="btn-cancel-payment-modal">Cancel</button>
-                    <button class="btn-report-payment" onclick="createUpdatePayment(null, 'modal-make-payment')" id="btn-save-payment">
+                    <button class="btn-report-payment" onclick="createUpdatePayment('modal-make-payment')" id="btn-save-payment">
                         <div style="display:flex;align-items:center;">
                             <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
                             </div><span></span>

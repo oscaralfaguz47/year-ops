@@ -276,6 +276,43 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
+        [HttpGet("GetPaymentDataByPaymentId")]
+        public async Task<IActionResult> GetPaymentDataByPaymentId(int paymentId)
+        {
+            try
+            {
+                var existingPayment = await _unitOfWork.ConsultantPayment.GetFirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentId);
+                if (existingPayment == null)
+                {
+                    return NotFound(new { error = "The payment no longer exists." });
+                }
+
+                var consultant = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync(existingPayment.ConsultantId);
+                if (consultant == null)
+                {
+                    return NotFound(new { error = "Consultant not found." });
+                }
+
+                MakePaymentVM reportToSend = new();
+                reportToSend.ConsultantName = consultant.Name + " " + consultant.LastName;
+                reportToSend.PaymentMethodId = existingPayment.PaymentMethodId;
+                reportToSend.CountryName = consultant.CountryName;
+                reportToSend.CompanyId = existingPayment.CompanyId;
+                reportToSend.AmountToPay = existingPayment.PaymentAmount;
+                reportToSend.AccountingDate = existingPayment.AccountingDate;
+                reportToSend.ReferenceNumber = existingPayment.ReferenceNumber;
+
+                return Ok(new
+                {
+                    reportDetails = reportToSend
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
         [HttpPost("CreateUpdatePayment")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUpdatePayment([FromBody] CreateUpdateConsultantPaymentVM paymentData)

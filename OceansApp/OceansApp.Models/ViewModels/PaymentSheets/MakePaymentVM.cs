@@ -10,5 +10,7 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public string CompanyId { get; set; }
         public string CountryName { get; set; }
         public decimal AmountToPay { get; set; }
+        public DateTime? AccountingDate { get; set; }
+        public string? ReferenceNumber { get; set; }
     }
 }

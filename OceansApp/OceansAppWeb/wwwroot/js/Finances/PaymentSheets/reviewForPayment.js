@@ -329,7 +329,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
             const paymentTableThead = document.createElement('thead');
             const paymentTableTr = document.createElement('tr');
-
+            const actionsTh = document.createElement('th');
             const accountingDateTh = document.createElement('th');
             accountingDateTh.textContent = 'Accounting Date';
             const paymentMethodTh = document.createElement('th');
@@ -343,6 +343,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const AmountTh = document.createElement('th');
             AmountTh.textContent = 'Amount';
 
+            paymentTableTr.appendChild(actionsTh);
             paymentTableTr.appendChild(AmountTh);
             paymentTableTr.appendChild(accountingDateTh);
             paymentTableTr.appendChild(paymentMethodTh);
@@ -357,9 +358,24 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const tableBody = document.createElement('tbody');
 
             dataFromApi.reportDetails.paymentsList.forEach(function (obj, index) {
+                var deleteBtn = ``;
+                var editBtn = ``;
+                var menuBtn = ``;
 
+                deleteBtn = `<li onclick="deletePayment(${obj.consultantPaymentId})"><i class="red-label bi bi-x-lg"></i> Delete Payment</li>`;
+                editBtn = `<li onclick="displayMakePaymentModal('modal-make-payment', ${obj.consultantPaymentId})""><i class="bi bi-pencil-square"></i> Edit Payment</li>`;
+                menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-p${obj.consultantPaymentId}', 'menuIcon-p${obj.consultantPaymentId}')" class="bi bi-three-dots-vertical" id="menuIcon-p${obj.consultantPaymentId}"></i>
+                              <div class="menu-options" id="menuOptions-p${obj.consultantPaymentId}">
+                               <ul>
+                                 ${editBtn}
+                                 ${deleteBtn}
+                               </ul>
+                              </div>`;
                 // Add movement row
                 const tr = document.createElement('tr');
+
+                const tdActions = document.createElement('td');
+                tdActions.innerHTML = menuBtn;
                 var accountingDate = new Date(obj.accountingDate);
                 var accountingDateformattedDate = ('0' + (accountingDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + accountingDate.getDate()).slice(-2) + '/' +
@@ -375,8 +391,9 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 const tdreferenceNumber = document.createElement('td');
                 tdreferenceNumber.textContent = obj.referenceNumber;
                 const tdAmount = document.createElement('td');
-                tdAmount.textContent = '$' + obj.paymentAmount.toFixed(2);
+                tdAmount.innerHTML = '$' + obj.paymentAmount.toFixed(2);
 
+                tr.appendChild(tdActions);
                 tr.appendChild(tdAmount);
                 tr.appendChild(tdAccountingDate);
                 tr.appendChild(tdpaymentMethod);
