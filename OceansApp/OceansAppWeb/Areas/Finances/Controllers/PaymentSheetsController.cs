@@ -1,10 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ConsultantPayments;
+using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.PaymentSheets;
+using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Reflection.Metadata;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
@@ -185,6 +191,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
                 reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList;
 
+                List<GetConsultantPaymentsInPeriodVM> paymentsList = await _unitOfWork.ConsultantPayment.GetConsultantPaymentsInPeriod(consultantId,
+                startDate, endDate);
+                reportToSend.PaymentsList = paymentsList;
+
                 return Ok(new
                 {
                     reportDetails = reportToSend
@@ -212,34 +222,45 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 reportToSend.CountryName = consultant.CountryName;
                 reportToSend.CompanyId = consultant.CompanyId;
 
-                var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
+                var accountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId &&
+                x.StartDatePeriod == startDate && x.EndDatePeriod == endDate);
+
                 decimal totalAmountToPay = 0;
 
-                var listOfMovements = movementsListFromDb.GenericList;
-
-                if (listOfMovements != null)
+                if (accountPayable == null)
                 {
-                    foreach (var property in listOfMovements.GetType().GetProperties())
+                    var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
+
+                    var listOfMovements = movementsListFromDb.GenericList;
+
+                    if (listOfMovements != null)
                     {
-                        if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
+                        foreach (var property in listOfMovements.GetType().GetProperties())
                         {
-                            foreach (var item in list)
+                            if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
                             {
-                                if (item is GetPaymentDetailsMovementsVM movement)
+                                foreach (var item in list)
                                 {
-                                    if (property.Name != "DebitsMovements")
+                                    if (item is GetPaymentDetailsMovementsVM movement)
                                     {
-                                        totalAmountToPay += movement.TotalAmount;
+                                        if (property.Name != "DebitsMovements")
+                                        {
+                                            totalAmountToPay += movement.TotalAmount;
+                                        }
+                                        else
+                                        {
+                                            totalAmountToPay -= movement.TotalAmount;
+                                        }
                                     }
-                                    else
-                                    {
-                                        totalAmountToPay -= movement.TotalAmount;
-                                    }
+
                                 }
-                               
                             }
                         }
                     }
+                }
+                else
+                {
+                    totalAmountToPay = accountPayable.BalanceAmount;
                 }
 
                 reportToSend.AmountToPay = totalAmountToPay;
@@ -252,6 +273,129 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("CreateUpdatePayment")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUpdatePayment([FromBody] CreateUpdateConsultantPaymentVM paymentData)
+        {
+            try
+            {
+                if (paymentData == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "ConsultantId", paymentData.ConsultantId, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", paymentData.StartDatePeriod, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", paymentData.StartDatePeriod, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", paymentData.EndDatePeriod, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDatePeriod", "End Date Period", paymentData.EndDatePeriod, ModelState);
+                validateInputs.ValidateDateValidFormat("AccountingDate", "Accounting Date", paymentData.AccountingDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("AccountingDate", "Accounting Date", paymentData.AccountingDate, ModelState);
+                validateInputs.ValidateNoNegativeNumber("PaymentAmount", "Amount to pay", paymentData.PaymentAmount, ModelState);
+                validateInputs.ValidateNumberLessOrEqualThanZero("PaymentAmount", "Amount to pay", paymentData.PaymentAmount, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("PaymentAmount", "Amount to pay", paymentData.PaymentAmount, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("CompanyId", "CompanyId", paymentData.CompanyId, ModelState);
+                validateInputs.ValidateRequiredAndStringLength("CompanyId", "CompanyId", paymentData.CompanyId, 8, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("BankAccountId", "Bank Account", paymentData.BankAccountId, ModelState);
+                validateInputs.ValidateRequiredAndStringLength("ReferenceNumber", "Reference Number", paymentData.ReferenceNumber, 50, ModelState);
+
+                if (ModelState.IsValid)
+                {
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var resultMessage = "";
+
+                    //IF IS NOT PAYMENT ID THEN CREATE THE PAYMENT
+                    if (paymentData.ConsultantPaymentId == null)
+                    {
+                        var consultant = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync((int)paymentData.ConsultantId);
+                        if (consultant == null)
+                        {
+                            return NotFound(new { error = "Consultant not found." });
+                        }
+                        var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, DateTime.Parse(paymentData.StartDatePeriod), 
+                            DateTime.Parse(paymentData.EndDatePeriod));
+                        decimal totalAmountToPay = 0;
+
+                        var listOfMovements = movementsListFromDb.GenericList;
+
+                        if (listOfMovements != null)
+                        {
+                            foreach (var property in listOfMovements.GetType().GetProperties())
+                            {
+                                if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
+                                {
+                                    foreach (var item in list)
+                                    {
+                                        if (item is GetPaymentDetailsMovementsVM movement)
+                                        {
+                                            if (property.Name != "DebitsMovements")
+                                            {
+                                                totalAmountToPay += movement.TotalAmount;
+                                            }
+                                            else
+                                            {
+                                                totalAmountToPay -= movement.TotalAmount;
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+
+                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay);
+
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            if (res.MessageType == "Validation Error")
+                            {
+                                return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                            }
+                            return BadRequest(new { MessageType = res.MessageType, error = res.Message });
+                        }
+                    }
+                    else
+                    {
+                        //IF IS PAYMENT ID THEN UPDATE THE PAYMENT
+                        var res = await _unitOfWork.ConsultantPayment.UpdatePayment(userActionedBy, paymentData);
+                        if (res.Success)
+                        {
+                            resultMessage = res.Message;
+                        }
+                        else
+                        {
+                            if (res.MessageType == "Validation Error")
+                            {
+                                return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                            }
+                            return BadRequest(new { error = res.Message, MessageType = res.MessageType });
+                        }
+                    }
+                    return Ok(new
+                    {
+                        success = true,
+                        message = resultMessage
+                    });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
             }
         }
     }

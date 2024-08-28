@@ -62,7 +62,8 @@ namespace OceansApp.Areas.Admin.Controllers
                             && validateCorrectJsonStructureCountry(obj.DataToSave)
                             && validateCorrectJsonStructureProvider(obj.DataToSave)
                             && validateCorrectJsonStructureDocumentsCC(obj.DataToSave)
-                            && validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
+                            && validateCorrectJsonStructureCostCenterAccount(obj.DataToSave)
+                            && validateCorrectJsonStructureBankAccount(obj.DataToSave))
                         {
                             var updatedSections = "";
 
@@ -470,6 +471,32 @@ namespace OceansApp.Areas.Admin.Controllers
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
 
+                            //INSERT BANK ACCOUNTS
+                            if (jsonFromInput.bankAccounts != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.bankAccounts)
+                                {
+                                    BankAccount bankAccount = new()
+                                    {
+                                        BankAccountCode = jsonMaster.CUENTA_BANCO,
+                                        BankAccountName = jsonMaster.NOMBRE,
+                                        CompanyId = jsonMaster.CompanyId,
+                                        IsActive = jsonMaster.ACTIVA
+                                    };
+                                    if (await _unitOfWork.BankAccount.AddBankAccount(bankAccount))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                        await _unitOfWork.SaveAsync();
+                                    }
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Bank Accounts /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
                             if (updatedSections != "")
                             {
                                 //INSERT DATE
@@ -523,6 +550,10 @@ namespace OceansApp.Areas.Admin.Controllers
                             if (!validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
                             {
                                 ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Costs Centers Accounting Accounts");
+                            }
+                            if (!validateCorrectJsonStructureBankAccount(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Bank Accounts");
                             }
 
                             return View("Index");
@@ -925,6 +956,42 @@ namespace OceansApp.Areas.Admin.Controllers
                         };
                         if (costCenterAccount.Status == null
                             || costCenterAccount.CompanyId == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public bool validateCorrectJsonStructureBankAccount(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.bankAccounts != null)
+                {
+                    foreach (var result in json.bankAccounts)
+                    {
+                        BankAccount bankAccount = new()
+                        {
+                            BankAccountCode = result.CUENTA_BANCO,
+                            BankAccountName = result.NOMBRE,
+                            CompanyId = result.CompanyId,
+                            IsActive = result.ACTIVA
+                        };
+                        if (bankAccount.BankAccountCode == null
+                            || bankAccount.CompanyId == null || bankAccount.BankAccountName == null || bankAccount.IsActive == null)
                         {
                             return false;
                         }

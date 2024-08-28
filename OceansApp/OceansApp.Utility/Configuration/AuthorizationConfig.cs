@@ -268,6 +268,14 @@ namespace OceansApp.Utility.Configuration
 
             services.AddAuthorization(options =>
             {
+                options.AddPolicy("AccessToBankAccountsList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && claim.Value ==
+                        FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue)));
+            });
+
+            services.AddAuthorization(options =>
+            {
                 options.AddPolicy("AccessToListOfPartners", policy =>
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType

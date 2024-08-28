@@ -18,17 +18,7 @@ namespace OceansApp.Models.Models
         [MaxLength(1)]
         public string IsActive { get; set; }
 
-        [Required]
-        public int CostCenterId { get; set; }
-        [Required]
-        public int AccountingAccountId { get; set; }
         [MaxLength(8)]
         public string CompanyId { get; set; }
-
-
-        [ValidateNever]
-        public CostCenter CostCenter { get; set; }
-        [ValidateNever]
-        public AccountingAccount AccountingAccount { get; set; }
     }
 }

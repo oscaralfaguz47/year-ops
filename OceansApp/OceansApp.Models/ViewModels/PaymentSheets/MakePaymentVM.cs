@@ -1,4 +1,6 @@
 ﻿
+using OceansApp.Models.ViewModels.ConsultantPayments;
+
 namespace OceansApp.Models.ViewModels.PaymentSheets
 {
     public class MakePaymentVM

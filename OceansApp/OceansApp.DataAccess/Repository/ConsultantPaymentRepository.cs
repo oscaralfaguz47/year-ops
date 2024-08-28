@@ -4,6 +4,7 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ConsultantPayments;
 using OceansApp.Models.ViewModels.ConsultantPaymentsDebitsCredits;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
 using OceansApp.Models.ViewModels.Consultants;
@@ -205,6 +206,157 @@ namespace OceansApp.DataAccess.Repository
             reportToSend.DebitsMovements = debitsMovements;
 
             return new MethodResponse { Success = true, GenericList = reportToSend };
+        }
+
+        public async Task<MethodResponse> CreatePayment(string userIdCreatedBy,
+            CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount)
+        {
+            if (paymentData == null)
+            {
+                return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
+            }
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
+                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                    //Create the account payable movement
+                    if (existingAccountPayable == null)
+                    {
+                        var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Sent to be paid");
+
+                        AccountPayable accountPayableToCreate = new()
+                        {
+                            ConsultantId = (int)paymentData.ConsultantId,
+                            StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                            EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                            AccountingDate = DateTime.Parse(paymentData.AccountingDate),
+                            Amount = accountPayableAmount,
+                            BalanceAmount = accountPayableAmount,
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userIdCreatedBy,
+                            CompanyId = paymentData.CompanyId,
+                            TransactionStatusId = transactionStatus.TransactionStatusId
+                        };
+
+                        await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
+                        await _db.SaveChangesAsync();
+                        existingAccountPayable = accountPayableToCreate;
+                    }
+                    if (paymentData.PaymentAmount > existingAccountPayable.BalanceAmount)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse($"The amount to pay must be less than or equal to the account payable balance amount.");
+                    }
+                    var consultantPaymentToCreate = new ConsultantPayment
+                    {
+                        ConsultantId = (int)paymentData.ConsultantId,
+                        StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                        EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                        ReferenceNumber = paymentData.ReferenceNumber,
+                        PaymentMethodId = (int)paymentData.PaymentMethodId,
+                        PaymentAmount = (decimal)paymentData.PaymentAmount,
+                        CreationDate = DateTime.UtcNow,
+                        UserCreatedBy = userIdCreatedBy,
+                        CompanyId = paymentData.CompanyId,
+                        BankAccountId = (int)paymentData.BankAccountId,
+                        AccountingDate = DateTime.Parse(paymentData.AccountingDate),
+                        AccountPayableId = existingAccountPayable.AccountPayableId
+                    };
+                    await _db.CONSULTANT_PAYMENTS.AddAsync(consultantPaymentToCreate);
+                    existingAccountPayable.BalanceAmount -= (decimal)paymentData.PaymentAmount;
+                    if (existingAccountPayable.BalanceAmount == 0)
+                    {
+                        var transactionStatusPaid = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Paid");
+                        existingAccountPayable.TransactionStatusId = transactionStatusPaid.TransactionStatusId;
+                    }
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        public async Task<MethodResponse> UpdatePayment(string userIdCreatedBy,
+            CreateUpdateConsultantPaymentVM paymentData)
+        {
+            if (paymentData == null)
+            {
+                return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
+            }
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentData.ConsultantPaymentId);
+                    if (existingPayment == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The payment no longer exists.");
+                    }
+                    var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
+                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+
+                    if (existingAccountPayable == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Account payable does not exist.");
+                    }
+                    if (paymentData.PaymentAmount > (existingAccountPayable.BalanceAmount + (decimal)existingPayment.PaymentAmount))
+                    {
+                        return MethodResponse.CreateFailureValidationResponse($"The amount to pay must be less than or equal to the account payable balance amount.");
+                    }
+
+                    existingAccountPayable.BalanceAmount = (existingPayment.PaymentAmount + (decimal)existingAccountPayable.BalanceAmount) - (decimal)paymentData.PaymentAmount;
+                    if (existingAccountPayable.BalanceAmount == 0)
+                    {
+                        var transactionStatusPaid = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Paid");
+                        existingAccountPayable.TransactionStatusId = transactionStatusPaid.TransactionStatusId;
+                    }
+                    existingPayment.ReferenceNumber = paymentData.ReferenceNumber;
+                    existingPayment.PaymentMethodId = (int)paymentData.PaymentMethodId;
+                    existingPayment.PaymentAmount = (int)paymentData.PaymentAmount;
+                    existingPayment.CompanyId = paymentData.CompanyId;
+                    existingPayment.BankAccountId = (int)paymentData.BankAccountId;
+                    existingPayment.AccountingDate = DateTime.Parse(paymentData.AccountingDate);
+                    existingPayment.UserLastUpdatedBy = userIdCreatedBy;
+                    existingPayment.LastUpdatedDate = DateTime.UtcNow;
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("Payment updated successfully!");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        public async Task<List<GetConsultantPaymentsInPeriodVM>> GetConsultantPaymentsInPeriod(int consultantId, DateTime startDate, 
+            DateTime endDate)
+        {
+            var result = await (from cp in _db.CONSULTANT_PAYMENTS
+                                join pm in _db.PAYMENT_METHODS on cp.PaymentMethodId equals pm.PaymentMethodId
+                                join ba in _db.BANK_ACCOUNTS on cp.BankAccountId equals ba.BankAccountId
+                                where cp.ConsultantId == consultantId && (cp.StartDatePeriod >= startDate && cp.EndDatePeriod <= endDate)
+                                select new GetConsultantPaymentsInPeriodVM
+                                {
+                                    ConsultantPaymentId = cp.ConsultantPaymentId,
+                                    ReferenceNumber = cp.ReferenceNumber,
+                                    AccountingDate = cp.AccountingDate,
+                                    CompanyId = cp.CompanyId,
+                                    PaymentAmount = cp.PaymentAmount,
+                                    PaymentMethodName = pm.Name,
+                                    BankAccountName = ba.BankAccountName
+                                }).ToListAsync();
+            return result;
         }
 
     }

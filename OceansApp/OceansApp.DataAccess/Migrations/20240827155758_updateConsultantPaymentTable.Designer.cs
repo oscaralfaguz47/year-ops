@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240827155758_updateConsultantPaymentTable")]
+    partial class updateConsultantPaymentTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -213,74 +216,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.AccountPayable", b =>
-                {
-                    b.Property<int>("AccountPayableId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountPayableId"));
-
-                    b.Property<DateTime>("AccountingDate")
-                        .HasColumnType("date");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
-
-                    b.Property<int>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EndDatePeriod")
-                        .HasColumnType("date");
-
-                    b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("StartDatePeriod")
-                        .HasColumnType("date");
-
-                    b.Property<int>("TransactionStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserCreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserLastUpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("AccountPayableId");
-
-                    b.HasIndex("AccountingDate");
-
-                    b.HasIndex("BalanceAmount");
-
-                    b.HasIndex("ConsultantId");
-
-                    b.HasIndex("TransactionStatusId");
-
-                    b.HasIndex("UserCreatedBy");
-
-                    b.HasIndex("UserLastUpdatedBy");
-
-                    b.HasIndex("ConsultantId", "StartDatePeriod", "EndDatePeriod");
-
-                    b.ToTable("ACCOUNTS_PAYABLE");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.AccountingAccount", b =>
@@ -1009,9 +944,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultantPaymentId"));
 
-                    b.Property<int>("AccountPayableId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("AccountingDate")
                         .HasColumnType("date");
 
@@ -1041,10 +973,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ReferenceNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                    b.Property<int>("ReferenceNumber")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDatePeriod")
                         .HasColumnType("date");
@@ -1059,8 +989,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ConsultantPaymentId");
-
-                    b.HasIndex("AccountPayableId");
 
                     b.HasIndex("AccountingDate");
 
@@ -2794,40 +2722,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.AccountPayable", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ConsultantDetail", "ConsultantDetail")
-                        .WithMany()
-                        .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.TransactionStatus", "TransactionStatus")
-                        .WithMany()
-                        .HasForeignKey("TransactionStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreatedBy")
-                        .WithMany()
-                        .HasForeignKey("UserCreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserUpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UserLastUpdatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ApplicationUserCreatedBy");
-
-                    b.Navigation("ApplicationUserUpdatedBy");
-
-                    b.Navigation("ConsultantDetail");
-
-                    b.Navigation("TransactionStatus");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.SystemSubArea", "SystemSubArea")
@@ -3000,12 +2894,6 @@ namespace OceansApp.DataAccess.Migrations
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantPayment", b =>
                 {
-                    b.HasOne("OceansApp.Models.Models.AccountPayable", "AccountPayable")
-                        .WithMany()
-                        .HasForeignKey("AccountPayableId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("OceansApp.Models.Models.BankAccount", "BankAccount")
                         .WithMany()
                         .HasForeignKey("BankAccountId")
@@ -3034,8 +2922,6 @@ namespace OceansApp.DataAccess.Migrations
                         .WithMany()
                         .HasForeignKey("UserLastUpdatedBy")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AccountPayable");
 
                     b.Navigation("ApplicationUserCreatedBy");
 

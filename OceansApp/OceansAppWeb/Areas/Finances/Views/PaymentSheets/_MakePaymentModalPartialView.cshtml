@@ -5,13 +5,13 @@
     <div class="global-modal-content">
         <div class="container">
             <div>
-                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-make-payment')">x</button></div>
+                <div class="close-btn-container"><button id="close-payment-modal-x-btn" onclick="hideModal('modal-make-payment')">x</button></div>
                 <h2 id="make-payment-modal-title"></h2>
                 <div>
                     <div id="consultant-details-div"></div>
                     <div class="fields-container">
                         <div class="row">
-                            <div class="col-md-6 p-2">
+                            <div class="col-md-4 p-2">
                                 <label for="PaymentMethodSelect">Payment Method</label>
                                 <div class="custom-select">
                                     <span class="arrow-down"></span>
@@ -19,8 +19,16 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6 p-2">
-                                <label for="PaymentMethodSelect">Company that manages the payment</label>
+                            <div class="col-md-4 p-2">
+                                <label for="BankAccountSelect">Bank Account</label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select class="form-select" id="BankAccountSelect">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4 p-2">
+                                <label for="PaymentMethodSelect">Company</label>
                                 <div id="company-name-div"></div>
                             </div>
                         </div>
@@ -32,7 +40,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label>Reference Number</label>
-                                    <input oninput="limitDigitsAndDecimals(this)" class="form-control" type="number" id="reference-number" />
+                                    <input class="form-control integer-input" type="text" maxlength="50" id="reference-number" />
                                 </div>
                                 <div class="col-md-4">
                                     <label>$ Amount to pay</label>
@@ -44,8 +52,13 @@
                 </div>
 
                 <div class="action-btns-box">
-                    <button onclick="hideModal('modal-make-payment')" class="cancel-btn">Cancel</button>
-                    <button class="btn-report-payment" onclick="displayApproveRejectConfirmation('Approved')">Save</button>
+                    <button onclick="hideModal('modal-make-payment')" class="cancel-btn" id="btn-cancel-payment-modal">Cancel</button>
+                    <button class="btn-report-payment" onclick="createUpdatePayment(null, 'modal-make-payment')" id="btn-save-payment">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -53,6 +66,6 @@
 </div>
 
 <script src="~/js/Finances/PaymentSheets/makePayment.js?v=@DateTime.Now.Ticks"></script>
-<script src="~/js/Shared/FormElements/selets.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/FormElements/selects.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/AdminCenter/PaymentMethods/paymentMethodsFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/inputValidations.js?v=@DateTime.Now.Ticks"></script>

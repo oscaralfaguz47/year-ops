@@ -17,6 +17,7 @@ namespace OceansApp.DataAccess.Repository
             _userManager = userManager;
             _cache = cache;
             AccountingAccounts = new AccountingAccountRepository(_db);
+            AccountPayable = new AccountPayableRepository(_db);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
             DataUpdateDates = new DataUpdateRepository(_db);
@@ -24,6 +25,7 @@ namespace OceansApp.DataAccess.Repository
             ApplicationUserCategory = new ApplicationUserCategoryRepository(_db);
             ApplicationRoleClaim = new ApplicationRoleClaimRepository(_db);
             ApplicationSystemClaim = new ApplicationSystemClaimRepository(_db);
+            BankAccount = new BankAccountRepository(_db);
             CalculatorGlobalConfiguration = new CalculatorGlobalConfigurationRepository(_db);
             CalculatorCostCenterIncreaseConfiguration = new CalculatorCostCenterIncreaseConfigurationRepository(_db);
             CalculatorSearchHistory = new CalculatorSearchHistoryRepository(_db);
@@ -70,12 +72,14 @@ namespace OceansApp.DataAccess.Repository
         }
         public IApplicationSystemClaimRepository ApplicationSystemClaim { get; private set; }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
+        public IAccountPayableRepository AccountPayable { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
         public ILedgerMovementRepository LedgerMovements { get; private set; }
         public IDataUpdateDateRepository DataUpdateDates { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
         public IApplicationUserCategoryRepository ApplicationUserCategory { get; private set; }
         public IApplicationRoleClaimRepository ApplicationRoleClaim { get; private set; }
+        public IBankAccountRepository BankAccount { get; private set; }
         public ICalculatorGlobalConfigurationRepository CalculatorGlobalConfiguration { get; set; }
         public ICalculatorCostCenterIncreaseConfigurationRepository CalculatorCostCenterIncreaseConfiguration { get; set; }
         public ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; set; }

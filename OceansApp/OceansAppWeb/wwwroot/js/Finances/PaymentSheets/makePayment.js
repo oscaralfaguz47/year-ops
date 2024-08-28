@@ -1,11 +1,17 @@
 ﻿let paymentMethodsArray = [];
 const paymentMethodsSelectMP = getElementById('PaymentMethodSelect');
+const bankAccountSelectMP = getElementById('BankAccountSelect');
 const consultantDetailsMP = getElementById('consultant-details-div');
 const accountingDateInputMP = getElementById('accounting-date');
 const referenceNumberInputMP = getElementById('reference-number');
 const totalAmountToPayInputMP = getElementById('total-amount-to-pay');
 const companyNameDiv = getElementById('company-name-div');
 let currentPaymentMethodId = null;
+let companyIdMP = null;
+const submitBtnsInitialize = [{ id: 'btn-save-payment', text: 'Save' }];
+const otherBtnsInitialize = ['close-payment-modal-x-btn', 'btn-cancel-payment-modal'];
+const otherBtns = ['btn-cancel-payment-modal', 'close-payment-modal-x-btn'];
+
 async function displayMakePaymentModal(modalId) {
     let url = "/Finances/PaymentSheets/GetAmountAndDetailsToMakePayment?consultantId=" + encodeURIComponent(consultantIdInputMP.value)
         + "&startDate=" + encodeURIComponent(dateFromInput.value)
@@ -14,6 +20,7 @@ async function displayMakePaymentModal(modalId) {
     accountingDateInputMP.value = null;
     referenceNumberInputMP.value = null;
     displaySpinner();
+    enableModalButtons(submitBtnsInitialize, otherBtns, 'spinner-border');
     if (paymentMethodsArray.length === 0) {
         paymentMethodsArray = await getAllPaymentMethodsList();
         populateSelect('PaymentMethodSelect', paymentMethodsArray.paymentMethods, null, null);
@@ -42,9 +49,10 @@ async function displayMakePaymentModal(modalId) {
         <label>Report total amount: <span>$${dataFromApi.reportDetails.amountToPay.toFixed(2)}</span></label>`;
         paymentMethodsSelectMP.value = dataFromApi.reportDetails.paymentMethodId;
         currentPaymentMethodId = dataFromApi.reportDetails.paymentMethodId;
+        await getBankAccounts(dataFromApi.reportDetails.paymentMethodId)
         companyNameDiv.textContent = dataFromApi.reportDetails.companyId === "OCE" ? 'Oceans Consulting Firm' : 'OCE LLC';
         totalAmountToPayInputMP.value = dataFromApi.reportDetails.amountToPay.toFixed(2);
-        console.log(dataFromApi);
+        companyIdMP = dataFromApi.reportDetails.companyId;
      
         hideSpinner();
         showModal(modalId);
@@ -62,7 +70,7 @@ async function displayMakePaymentModal(modalId) {
 async function changePaymentMethod(select) {
     const confirmation = await Swal.fire({
         title: "Change Payment Method",
-        text: `Are you sure you want to change the default payment method?`,
+        text: `Are you sure you want to change the default payment method for this consultant?`,
         icon: 'warning',
         showCancelButton: true,
         cancelButtonText: 'Cancel',
@@ -97,8 +105,10 @@ async function changePaymentMethod(select) {
         }
 
         const dataFromApi = await response.json();
+        var bankAccounts = await getBankAccounts(select.value);
         currentPaymentMethodId = select.value;
         companyNameDiv.textContent = dataFromApi.companyId === 'OCE' ? 'Oceans Consulting Firm' : 'OCE LLC';
+        companyIdMP = dataFromApi.companyId;
         hideSpinner();
         return dataFromApi;
     }
@@ -108,6 +118,98 @@ async function changePaymentMethod(select) {
         validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err.message);
         displayToasterError('Something went wrong, more details: ' + err);
+        return null;
+    }
+}
+async function getBankAccounts(paymentMethodId) {
+    let url = "/Finances/BankAccounts/GetBankAccountsByPaymentMethodList?paymentMethodId=" + encodeURIComponent(paymentMethodId);
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            paymentMethodsSelectMP.value = currentPaymentMethodId;
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        getElementById('BankAccountSelect').innerHTML = '';
+        populateSelect('BankAccountSelect', dataFromApi.bankAccounts, null, null);
+        return dataFromApi;
+    }
+    catch (err) {
+        hideSpinner();
+        paymentMethodsSelectMP.value = currentPaymentMethodId;
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err.message);
+        displayToasterError('Something went wrong, more details: ' + err);
+        return null;
+    }
+}
+
+async function createUpdatePayment(paymentId, modalId) {
+    disableButtonsWaitingForPostMethod('btn-save-payment', otherBtns, 'spinner-border')
+
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        ConsultantPaymentId: paymentId,
+        ConsultantId: consultantIdInputMP.value === '' ? null : Number(consultantIdInputMP.value),
+        StartDatePeriod: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndDatePeriod: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        ReferenceNumber: referenceNumberInputMP.value,
+        PaymentMethodId: Number(paymentMethodsSelectMP.value),
+        PaymentAmount: totalAmountToPayInputMP.value === '' ? null : Number(totalAmountToPayInputMP.value),
+        AccountingDate: accountingDateInputMP.value === '' ? null : accountingDateInputMP.value.toString(),
+        CompanyId: companyIdMP,
+        BankAccountId: Number(bankAccountSelectMP.value)
+    };
+    console.log(data);
+    try {
+        const response = await fetch('/Finances/PaymentSheets/CreateUpdatePayment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        hideModal(modalId);
+        enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
         return null;
     }
 }

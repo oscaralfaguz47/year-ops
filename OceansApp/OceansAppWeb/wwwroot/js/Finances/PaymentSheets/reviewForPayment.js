@@ -316,6 +316,83 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             reviewForApprovalContainer.appendChild(finalSummarySection);
         }
 
+        // Payments
+        if (dataFromApi.reportDetails.paymentsList.length > 0) {
+            const paymentsSection = document.createElement('div');
+            paymentsSection.className = 'global-table-container';
+
+            const paymentsTitle = document.createElement('div');
+            paymentsTitle.innerHTML = `<label>PAYMENTS</label>`;
+            paymentsTitle.className = 'secundary-title';
+
+            const paymentsTable = document.createElement('table');
+
+            const paymentTableThead = document.createElement('thead');
+            const paymentTableTr = document.createElement('tr');
+
+            const accountingDateTh = document.createElement('th');
+            accountingDateTh.textContent = 'Accounting Date';
+            const paymentMethodTh = document.createElement('th');
+            paymentMethodTh.textContent = 'Payment Method';
+            const bankAccountTh = document.createElement('th');
+            bankAccountTh.textContent = 'Bank Account';
+            const companyTh = document.createElement('th');
+            companyTh.textContent = 'Company';
+            const referenceNumberTh = document.createElement('th');
+            referenceNumberTh.textContent = 'Reference Number';
+            const AmountTh = document.createElement('th');
+            AmountTh.textContent = 'Amount';
+
+            paymentTableTr.appendChild(AmountTh);
+            paymentTableTr.appendChild(accountingDateTh);
+            paymentTableTr.appendChild(paymentMethodTh);
+            paymentTableTr.appendChild(bankAccountTh);
+            paymentTableTr.appendChild(companyTh);
+            paymentTableTr.appendChild(referenceNumberTh);
+
+            paymentTableThead.appendChild(paymentTableTr);
+
+            paymentsTable.appendChild(paymentTableThead);
+
+            const tableBody = document.createElement('tbody');
+
+            dataFromApi.reportDetails.paymentsList.forEach(function (obj, index) {
+
+                // Add movement row
+                const tr = document.createElement('tr');
+                var accountingDate = new Date(obj.accountingDate);
+                var accountingDateformattedDate = ('0' + (accountingDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + accountingDate.getDate()).slice(-2) + '/' +
+                    accountingDate.getFullYear();
+                const tdAccountingDate = document.createElement('td');
+                tdAccountingDate.textContent = accountingDateformattedDate;
+                const tdpaymentMethod = document.createElement('td');
+                tdpaymentMethod.textContent = obj.paymentMethodName;
+                const tdbankAccount = document.createElement('td');
+                tdbankAccount.textContent = obj.bankAccountName;
+                const tdcompany = document.createElement('td');
+                tdcompany.textContent = obj.companyId === 'OCE' ? 'Oceans Consulting Firm' : 'OCE LLC';
+                const tdreferenceNumber = document.createElement('td');
+                tdreferenceNumber.textContent = obj.referenceNumber;
+                const tdAmount = document.createElement('td');
+                tdAmount.textContent = '$' + obj.paymentAmount.toFixed(2);
+
+                tr.appendChild(tdAmount);
+                tr.appendChild(tdAccountingDate);
+                tr.appendChild(tdpaymentMethod);
+                tr.appendChild(tdbankAccount);
+                tr.appendChild(tdcompany);
+                tr.appendChild(tdreferenceNumber);
+                tableBody.appendChild(tr);
+            });
+
+            paymentsTable.appendChild(tableBody);
+            paymentsSection.appendChild(paymentsTable);
+            reviewForApprovalContainer.appendChild(paymentsTitle);
+            reviewForApprovalContainer.appendChild(paymentsSection);
+        }
+
+
         hideSpinner();
         showModal(modalId);
         return dataFromApi;

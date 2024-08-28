@@ -32,3 +32,16 @@ function limitDigitsAndDecimals(inputElement) {
         inputElement.dataset.lastValid = inputValue;
     }
 }
+
+
+document.addEventListener('keydown', function (e) {
+    if (e.target.classList.contains('integer-input')) {
+        const key = e.key;
+        const isNumberKey = /^\d$/.test(key);
+        const allowedKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Tab'];
+
+        if (!isNumberKey && !allowedKeys.includes(key)) {
+            e.preventDefault();
+        }
+    }
+});

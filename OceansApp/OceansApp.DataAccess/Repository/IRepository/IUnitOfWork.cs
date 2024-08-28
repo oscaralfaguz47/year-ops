@@ -3,6 +3,7 @@
     public interface IUnitOfWork
     {
         IAccountingAccountRepository AccountingAccounts{ get; }
+        IAccountPayableRepository AccountPayable { get; }
         ICostCenterRepository CenterOfCosts { get; }
         ILedgerMovementRepository LedgerMovements { get; }
         IDataUpdateDateRepository DataUpdateDates { get; }
@@ -10,6 +11,7 @@
         IApplicationUserCategoryRepository ApplicationUserCategory { get; }
         IApplicationRoleClaimRepository ApplicationRoleClaim { get; }
         IApplicationSystemClaimRepository ApplicationSystemClaim { get; }
+        IBankAccountRepository BankAccount { get; }
         ICalculatorGlobalConfigurationRepository CalculatorGlobalConfiguration { get; }
         ICalculatorCostCenterIncreaseConfigurationRepository CalculatorCostCenterIncreaseConfiguration { get; }
         ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; }
