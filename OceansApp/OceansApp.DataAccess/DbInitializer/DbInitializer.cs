@@ -290,6 +290,30 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 await _db.SaveChangesAsync();
 
+                // ----------------- GLOBAL CONSECUTIVES --------------------------------
+
+                List<GlobalConsecutive> globalConsecutivesList = new List<GlobalConsecutive>
+                {
+                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 1, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "LLC" }
+                };
+
+                foreach (var consecutive in globalConsecutivesList)
+                {
+                    var existingConsecutive = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == consecutive.Name);
+                    if (existingConsecutive == null)
+                    {
+                        GlobalConsecutive conToCreate = new()
+                        {
+                            Name = consecutive.Name,
+                            ConsecutiveNumber = consecutive.ConsecutiveNumber,
+                            CompanyId = consecutive.CompanyId
+                        };
+                        await _db.GLOBAL_CONSECUTIVES.AddAsync(conToCreate);
+                    }
+                }
+                await _db.SaveChangesAsync();
+
                 // ----------------- NOTIFICATIONS MEDIA --------------------------------
 
                 List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>
@@ -652,7 +676,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new TransactionStatus { Name = "Sent to be paid" },
                     new TransactionStatus { Name = "Paid" },
                     new TransactionStatus { Name = "Accounted - Accounts Payable" },
-                    new TransactionStatus { Name = "Done" }
+                    new TransactionStatus { Name = "Done" },
+                    new TransactionStatus { Name = "Pending to register" }
                 };
 
                 foreach (var status in transactionStatusesList)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240828222837_updateForeignKeysForAccountPayableAndJournalTables")]
+    partial class updateForeignKeysForAccountPayableAndJournalTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -246,6 +249,9 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("EndDatePeriod")
                         .HasColumnType("date");
 
+                    b.Property<int>("JournalId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LastUpdatedDate")
                         .HasColumnType("datetime2");
 
@@ -273,6 +279,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("ConsultantId");
+
+                    b.HasIndex("JournalId");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1573,38 +1581,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("DOCUMENTS_CC_NOTIFICATIONS");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.GlobalConsecutive", b =>
-                {
-                    b.Property<int>("GlobalConsecutiveId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GlobalConsecutiveId"));
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
-
-                    b.Property<int>("ConsecutiveNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
-
-                    b.HasKey("GlobalConsecutiveId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("GlobalConsecutiveId");
-
-                    b.HasIndex("Name");
-
-                    b.ToTable("GLOBAL_CONSECUTIVES");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.Interview", b =>
                 {
                     b.Property<int>("InterviewId")
@@ -1654,7 +1630,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("INTERVIEWS");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayable", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.Journal", b =>
                 {
                     b.Property<int>("JournalId")
                         .ValueGeneratedOnAdd()
@@ -1678,9 +1654,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("EndDatePeriod")
-                        .HasColumnType("date");
-
                     b.Property<string>("Entry")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -1693,9 +1666,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<DateTime?>("LastUpdatedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("StartDatePeriod")
-                        .HasColumnType("date");
 
                     b.Property<int>("TransactionStatusId")
                         .HasColumnType("int");
@@ -1717,11 +1687,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("EndDatePeriod");
-
                     b.HasIndex("Entry");
-
-                    b.HasIndex("StartDatePeriod");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1729,19 +1695,16 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UserLastUpdatedBy");
 
-                    b.ToTable("JOURNAL_ACCOUNTS_PAYABLE");
+                    b.ToTable("JOURNAL");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayableEntry", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.JournalEntry", b =>
                 {
                     b.Property<int>("JournalEntryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JournalEntryId"));
-
-                    b.Property<int>("AccountPayableId")
-                        .HasColumnType("int");
 
                     b.Property<int>("AccountingAccountId")
                         .HasColumnType("int");
@@ -1755,17 +1718,12 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<decimal>("Debit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("JournalId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasMaxLength(249)
                         .HasColumnType("varchar(249)");
 
                     b.HasKey("JournalEntryId");
-
-                    b.HasIndex("AccountPayableId");
 
                     b.HasIndex("AccountingAccountId");
 
@@ -1775,9 +1733,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("Debit");
 
-                    b.HasIndex("JournalId");
-
-                    b.ToTable("JOURNAL_ACCOUNTS_PAYABLE_ENTRIES");
+                    b.ToTable("JOURNAL_ENTRIES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>
@@ -2968,6 +2924,12 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OceansApp.Models.Models.Journal", "Journal")
+                        .WithMany()
+                        .HasForeignKey("JournalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("OceansApp.Models.Models.TransactionStatus", "TransactionStatus")
                         .WithMany()
                         .HasForeignKey("TransactionStatusId")
@@ -2992,6 +2954,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("ConsultantDetail");
+
+                    b.Navigation("Journal");
 
                     b.Navigation("TransactionStatus");
                 });
@@ -3451,17 +3415,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("Notification");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.GlobalConsecutive", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-                });
-
             modelBuilder.Entity("OceansApp.Models.Models.Interview", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.ConsultantDetail", "ConsultantDetail")
@@ -3495,7 +3448,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("TransactionStatus");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayable", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.Journal", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.Company", "Company")
                         .WithMany()
@@ -3529,14 +3482,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("TransactionStatus");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayableEntry", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.JournalEntry", b =>
                 {
-                    b.HasOne("OceansApp.Models.Models.AccountPayable", "AccountPayable")
-                        .WithMany()
-                        .HasForeignKey("AccountPayableId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("OceansApp.Models.Models.AccountingAccount", "AccountingAccount")
                         .WithMany()
                         .HasForeignKey("AccountingAccountId")
@@ -3549,19 +3496,9 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OceansApp.Models.Models.JournalAccountPayable", "JournalAccountPayable")
-                        .WithMany()
-                        .HasForeignKey("JournalId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AccountPayable");
-
                     b.Navigation("AccountingAccount");
 
                     b.Navigation("CostCenter");
-
-                    b.Navigation("JournalAccountPayable");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>

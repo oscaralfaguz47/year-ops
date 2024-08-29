@@ -18,6 +18,7 @@ namespace OceansApp.DataAccess.Data
                 .ToTable("Users")
                 .HasKey(u => u.Id);
 
+
             // ACCOUNTS PAYABLE
             modelBuilder.Entity<AccountPayable>(entity =>
             {
@@ -30,6 +31,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.AccountingDate);
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.BalanceAmount);
+                entity.HasIndex(e => e.CompanyId);
 
                 entity.HasOne(cp => cp.ConsultantDetail)
                 .WithMany()
@@ -55,6 +57,11 @@ namespace OceansApp.DataAccess.Data
                  .IsRequired();
                 entity.Property(c => c.CompanyId)
                  .HasColumnType("varchar(8)");
+                entity.HasOne(p => p.Company)
+               .WithMany()
+               .HasForeignKey(p => p.CompanyId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(p => p.TransactionStatus)
               .WithMany()
               .HasForeignKey(p => p.TransactionStatusId)
@@ -253,6 +260,24 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(CC => CC.CreatedBy)
                 .IsRequired();
 
+            // GLOBAL CONSECUTIVES
+            modelBuilder.Entity<GlobalConsecutive>(entity =>
+            {
+                entity.HasIndex(e => e.GlobalConsecutiveId);
+                entity.HasIndex(e => e.Name);
+                entity.HasIndex(e => e.CompanyId);
+
+                entity.Property(c => c.Name)
+                 .HasColumnType("varchar(80)");
+                entity.Property(c => c.CompanyId)
+                 .HasColumnType("varchar(8)");
+
+                entity.HasOne(c => c.Company)
+                .WithMany()
+                .HasForeignKey(c => c.CompanyId)
+                .IsRequired();
+            });
+
             // HOLIDAY DATE
             modelBuilder.Entity<ConsultantHolidayDate>(entity =>
             {
@@ -355,21 +380,21 @@ namespace OceansApp.DataAccess.Data
               .WithMany()
               .HasForeignKey(p => p.UserLastUpdatedBy)
               .OnDelete(DeleteBehavior.Restrict);
-               entity.HasOne(p => p.BankAccount)
-              .WithMany()
-              .HasForeignKey(p => p.BankAccountId)
-              .IsRequired();
-               entity.Property(d => d.AccountingDate)
-                .HasColumnType("date")
-                .IsRequired();
-               entity.Property(d => d.StartDatePeriod)
-                .HasColumnType("date")
-                .IsRequired();
-               entity.Property(d => d.EndDatePeriod)
-                .HasColumnType("date")
-                .IsRequired();
-               entity.Property(c => c.CompanyId)
-                .HasColumnType("varchar(8)");
+                entity.HasOne(p => p.BankAccount)
+               .WithMany()
+               .HasForeignKey(p => p.BankAccountId)
+               .IsRequired();
+                entity.Property(d => d.AccountingDate)
+                 .HasColumnType("date")
+                 .IsRequired();
+                entity.Property(d => d.StartDatePeriod)
+                 .HasColumnType("date")
+                 .IsRequired();
+                entity.Property(d => d.EndDatePeriod)
+                 .HasColumnType("date")
+                 .IsRequired();
+                entity.Property(c => c.CompanyId)
+                 .HasColumnType("varchar(8)");
                 entity.HasOne(p => p.AccountPayable)
               .WithMany()
               .HasForeignKey(p => p.AccountPayableId)
@@ -378,7 +403,7 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(r => r.ReferenceNumber)
                 .HasColumnType("varchar(50)");
             });
-              
+
 
             // CONSULTANT AND POSITIONS
             modelBuilder.Entity<ConsultantAndPosition>(entity =>
@@ -427,6 +452,92 @@ namespace OceansApp.DataAccess.Data
                 .Property(d => d.Date)
                 .HasColumnType("date")
                 .IsRequired();
+
+            // JOURNAL
+            modelBuilder.Entity<JournalAccountPayable>(entity =>
+            {
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.Entry);
+                entity.HasIndex(e => e.AccountingPackage);
+                entity.HasIndex(e => e.UserCreatedBy);
+                entity.HasIndex(e => e.UserLastUpdatedBy);
+                entity.HasIndex(e => e.AccountingDate);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.StartDatePeriod);
+                entity.HasIndex(e => e.EndDatePeriod);
+
+                entity.HasKey(c => new { c.JournalId });
+                entity.Property(c => c.Entry)
+                 .HasColumnType("varchar(10)");
+                entity.Property(c => c.AccountingPackage)
+                 .HasColumnType("varchar(4)");
+                entity.Property(c => c.EntryType)
+                 .HasColumnType("varchar(4)");
+                entity.HasOne(p => p.ApplicationUserCreatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserCreatedBy)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.ApplicationUserUpdatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserLastUpdatedBy)
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(d => d.AccountingDate)
+                 .HasColumnType("date")
+                 .IsRequired();
+                entity.Property(c => c.CompanyId)
+                 .HasColumnType("varchar(8)");
+                entity.HasOne(p => p.Company)
+               .WithMany()
+               .HasForeignKey(p => p.CompanyId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.TransactionStatus)
+              .WithMany()
+              .HasForeignKey(p => p.TransactionStatusId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(d => d.StartDatePeriod)
+                 .HasColumnType("date")
+                 .IsRequired();
+                entity.Property(d => d.EndDatePeriod)
+                 .HasColumnType("date")
+                 .IsRequired();
+            });
+
+            // JOURNAL ENTRIES
+            modelBuilder.Entity<JournalAccountPayableEntry>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.Debit);
+                entity.HasIndex(e => e.Credit);
+                entity.HasIndex(e => e.AccountPayableId);
+
+                entity.HasKey(c => new { c.JournalEntryId });
+                entity.HasOne(p => p.CostCenter)
+              .WithMany()
+              .HasForeignKey(p => p.CostCenterId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.AccountPayable)
+              .WithMany()
+              .HasForeignKey(p => p.AccountPayableId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.AccountingAccount)
+              .WithMany()
+              .HasForeignKey(p => p.AccountingAccountId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.JournalAccountPayable)
+              .WithMany()
+              .HasForeignKey(p => p.JournalId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(c => c.Reference)
+                 .HasColumnType("varchar(249)");
+            });
 
             // LEDGER MOVEMENT
             modelBuilder.Entity<LedgerMovement>(entity =>
@@ -1027,7 +1138,10 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
         public DbSet<ConsultantPositionAccountingConfiguration> CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
+        public DbSet<GlobalConsecutive> GLOBAL_CONSECUTIVES { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
+        public DbSet<JournalAccountPayable> JOURNAL_ACCOUNTS_PAYABLE { get; set; }
+        public DbSet<JournalAccountPayableEntry> JOURNAL_ACCOUNTS_PAYABLE_ENTRIES { get; set; }
         public DbSet<Partner> PARTNERS { get; set; }
         public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
         public DbSet<PaymentMethodBankAccount> PAYMENT_METHOD_AND_BANK_ACCOUNTS { get; set; }

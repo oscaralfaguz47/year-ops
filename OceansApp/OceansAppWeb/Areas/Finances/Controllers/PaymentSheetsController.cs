@@ -435,5 +435,39 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
             }
         }
+
+        [HttpDelete("DeletePayment")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePayment(int paymentId)
+        {
+            try
+            {
+                var existingPayment = await _unitOfWork.ConsultantPayment.GetFirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentId);
+                if (existingPayment == null)
+                {
+                    return NotFound(new { error = "The payment no longer exists." });
+                }
+                var existingAccountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.AccountPayableId == 
+                existingPayment.AccountPayableId);
+
+                if (existingAccountPayable == null)
+                {
+                    return NotFound(new { error = "The account payable no longer exists." });
+                }
+                using var transaction = await _unitOfWork.BeginTranAsync();
+                existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
+
+                _unitOfWork.ConsultantPayment.Remove(existingPayment);
+
+                await _unitOfWork.SaveAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new { success = true, message = "The payment was deleted!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the payment could not be deleted.", result = "ErrorDeleting", detail = ex.Message });
+            }
+        }
     }
 }

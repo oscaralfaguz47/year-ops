@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240829020101_updateAccountsPayableAndJournalEntriesTablesCreateGlobalConsecutives")]
+    partial class updateAccountsPayableAndJournalEntriesTablesCreateGlobalConsecutives
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1654,7 +1657,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("INTERVIEWS");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayable", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.Journal", b =>
                 {
                     b.Property<int>("JournalId")
                         .ValueGeneratedOnAdd()
@@ -1678,9 +1681,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("EndDatePeriod")
-                        .HasColumnType("date");
-
                     b.Property<string>("Entry")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -1693,9 +1693,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<DateTime?>("LastUpdatedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("StartDatePeriod")
-                        .HasColumnType("date");
 
                     b.Property<int>("TransactionStatusId")
                         .HasColumnType("int");
@@ -1717,11 +1714,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("EndDatePeriod");
-
                     b.HasIndex("Entry");
-
-                    b.HasIndex("StartDatePeriod");
 
                     b.HasIndex("TransactionStatusId");
 
@@ -1729,10 +1722,10 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("UserLastUpdatedBy");
 
-                    b.ToTable("JOURNAL_ACCOUNTS_PAYABLE");
+                    b.ToTable("JOURNAL");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayableEntry", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.JournalEntry", b =>
                 {
                     b.Property<int>("JournalEntryId")
                         .ValueGeneratedOnAdd()
@@ -1755,9 +1748,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<decimal>("Debit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("JournalId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasMaxLength(249)
@@ -1775,9 +1765,7 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("Debit");
 
-                    b.HasIndex("JournalId");
-
-                    b.ToTable("JOURNAL_ACCOUNTS_PAYABLE_ENTRIES");
+                    b.ToTable("JOURNAL_ENTRIES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>
@@ -3495,7 +3483,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("TransactionStatus");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayable", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.Journal", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.Company", "Company")
                         .WithMany()
@@ -3529,7 +3517,7 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("TransactionStatus");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.JournalAccountPayableEntry", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.JournalEntry", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.AccountPayable", "AccountPayable")
                         .WithMany()
@@ -3549,19 +3537,11 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OceansApp.Models.Models.JournalAccountPayable", "JournalAccountPayable")
-                        .WithMany()
-                        .HasForeignKey("JournalId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("AccountPayable");
 
                     b.Navigation("AccountingAccount");
 
                     b.Navigation("CostCenter");
-
-                    b.Navigation("JournalAccountPayable");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.LedgerMovement", b =>

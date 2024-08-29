@@ -45,7 +45,7 @@ async function displayMakePaymentModal(modalId, paymentId) {
         }
 
         const dataFromApi = await response.json();
-        getElementById('make-payment-modal-title').textContent = "You'll report a payment";
+        getElementById('make-payment-modal-title').textContent = paymentId === null ? "You'll report a payment" : "Editing Payment";
         consultantDetailsMP.innerHTML = `<label>Consultant Name: <span>${dataFromApi.reportDetails.consultantName}</span></label>
         <label>Country Name: <span>${dataFromApi.reportDetails.countryName}</span></label>
         <label>Report total amount: <span>$${dataFromApi.reportDetails.amountToPay.toFixed(2)}</span></label>`;
@@ -58,7 +58,7 @@ async function displayMakePaymentModal(modalId, paymentId) {
         let accountingDateFormat = new Date(dataFromApi.reportDetails.accountingDate);
         accountingDateInputMP.value = dataFromApi.reportDetails.accountingDate === null ? null : accountingDateFormat.toISOString().split('T')[0];
         referenceNumberInputMP.value = dataFromApi.reportDetails.referenceNumber;
-     
+
         hideSpinner();
         showModal(modalId);
         return dataFromApi;
@@ -216,6 +216,59 @@ async function createUpdatePayment(modalId) {
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
+        return null;
+    }
+}
+
+async function deletePayment(paymentId) {
+    console.log(paymentId);
+    const confirmation = await Swal.fire({
+        title: "Delete Payment",
+        text: `Are you sure you want to delete the payment?`,
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#9ba8b8',
+        confirmButtonColor: '#eeb30f',
+        confirmButtonText: 'Yes, Delete it!'
+    });
+
+    if (!confirmation.isConfirmed) {
+        return;
+    }
+    displaySpinner();
+    try {
+        var token = $('[name="__RequestVerificationToken"]').val();
+        const response = await fetch(`/Finances/PaymentSheets/DeletePayment?paymentId=${paymentId}`, {
+            method: 'DELETE',
+            headers: {
+                RequestVerificationToken: token
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => acc.concat(current), []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+        const dataFromApi = await response.json();
+        await displayReviewForPaymentModal('modal-review-for-payment', consultantIdInputMP.value);
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        return dataFromApi;
+    } catch (err) {
+        hideSpinner();
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         return null;
     }
 }

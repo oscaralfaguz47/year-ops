@@ -221,6 +221,35 @@ namespace OceansApp.DataAccess.Repository
                 {
                     var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
                     x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+
+                    var existingJournal = await _db.JOURNAL_ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) &&
+                        x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                    if (existingJournal == null)
+                    {
+                        var transactionStatusPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                        var journalConsecutive = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == "JOURNAL_CXP" && x.CompanyId == paymentData.CompanyId);
+                        if (journalConsecutive == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Consecutive does not exist.");
+                        }
+                        journalConsecutive.ConsecutiveNumber++;
+                        JournalAccountPayable journalToCreate = new()
+                        {
+                            CompanyId = paymentData.CompanyId,
+                            TransactionStatusId = transactionStatusPending.TransactionStatusId,
+                            StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                            EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                            Entry = $"OCXPF{journalConsecutive.ConsecutiveNumber.ToString().PadLeft(5, '0')}",
+                            AccountingPackage = "OCXP",
+                            EntryType = "OCXP",
+                            AccountingDate = DateTime.Parse(paymentData.EndDatePeriod),
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userIdCreatedBy
+                        };
+                        await _db.JOURNAL_ACCOUNTS_PAYABLE.AddAsync(journalToCreate);
+                        await _db.SaveChangesAsync();
+                        existingJournal = journalToCreate;
+                    }
                     //Create the account payable movement
                     if (existingAccountPayable == null)
                     {
