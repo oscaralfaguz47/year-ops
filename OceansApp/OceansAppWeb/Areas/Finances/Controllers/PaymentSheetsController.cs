@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
-using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.PaymentSheets;
-using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
-using System.Reflection.Metadata;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
@@ -384,7 +379,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             }
                         }
 
-                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay);
+                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay, (GetListOfMovementsForPaymentVM)listOfMovements);
 
                         if (res.Success)
                         {

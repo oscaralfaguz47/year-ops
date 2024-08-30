@@ -603,6 +603,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Indexes
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectId });
+                entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
 

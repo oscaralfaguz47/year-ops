@@ -14,6 +14,8 @@ using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Utility.SharedMethods;
 using System.Data;
+using OceansApp.Models.ViewModels.ProjectConsultantAssignedHistory;
+
 
 
 namespace OceansApp.DataAccess.Repository
@@ -80,7 +82,9 @@ namespace OceansApp.DataAccess.Repository
                                 GetPaymentDetailsMovementsVM paymentProjectMovement = new()
                                 {
                                     PaymentType = "Hours/normal payment",
+                                    ProjectId = project.ProjectId,
                                     ProjectName = project.ProjectName,
+                                    MovementTypeId = movement.MovementTypeId,
                                     MovementTypeName = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? "Hours of professional services" : "Professional services",
                                     Quantity = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? movement.TotalQuantity : 1,
                                     UnitPrice = project.HourlySalary > 0 ? project.HourlySalary : project.IsMonthlySalaryCalculatedPerHour ? (project.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8 : (consultant.PaymentPeriod == 1 ? (project.MonthlySalary / 2) : project.MonthlySalary)
@@ -92,7 +96,9 @@ namespace OceansApp.DataAccess.Repository
                                 GetPaymentDetailsMovementsVM paymentProjectMovement = new()
                                 {
                                     PaymentType = "Hours/normal payment",
+                                    ProjectId = project.ProjectId,
                                     ProjectName = project.ProjectName,
+                                    MovementTypeId = movement.MovementTypeId,
                                     MovementTypeName = movement.MovementTypeName,
                                     Quantity = movement.TotalQuantity,
                                     UnitPrice = movement.MovementTypeName == "On Call Flate Rate" ? 500 : project.HourlySalary > 0 ? (project.HourlySalary * 2) : ((project.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8) * 2
@@ -103,10 +109,14 @@ namespace OceansApp.DataAccess.Repository
                     }
                     else
                     {
+                        var movementTypeNormalHours = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+
                         GetPaymentDetailsMovementsVM paymentProjectMovement = new()
                         {
                             PaymentType = "Hours/normal payment",
+                            ProjectId = project.ProjectId,
                             ProjectName = project.ProjectName,
+                            MovementTypeId = movementTypeNormalHours.MovementTypeId,
                             MovementTypeName = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? "Hours of professional services" : "Professional services",
                             Quantity = !project.IsMonthlySalaryCalculatedPerHour && project.MonthlySalary > 0 ? 1 : consultant.PaymentPeriod == 1 ? 80 : 160,
                             UnitPrice = project.HourlySalary > 0 ? project.HourlySalary :
@@ -129,11 +139,13 @@ namespace OceansApp.DataAccess.Repository
 
                 if (holidays != null)
                 {
+                    var holidaysMovementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Holidays");
                     foreach (var holiday in holidays)
                     {
                         GetPaymentDetailsMovementsVM holidayMovement = new()
-                        {
+                        {   ProjectId = defaultProject.ProjectId,
                             PaymentType = "Holidays",
+                            MovementTypeId = holidaysMovementType.MovementTypeId,
                             MovementTypeName = "Holiday - " + holiday.Name + " (" + holiday.Date.ToString("MM/dd/yyyy") + ")",
                             Quantity = 8,
                             UnitPrice = defaultHourlyCalculation
@@ -150,7 +162,9 @@ namespace OceansApp.DataAccess.Repository
             {
                 GetPaymentDetailsMovementsVM benefitMovement = new()
                 {
+                    ProjectId = defaultProject.ProjectId,
                     PaymentType = "Reimbursed Benefits",
+                    MovementTypeId = benefit.MovementTypeId,
                     MovementTypeName = benefit.MovementTypeName,
                     Quantity = 1,
                     UnitPrice = benefit.AmountReimbursed
@@ -164,7 +178,9 @@ namespace OceansApp.DataAccess.Repository
             {
                 GetPaymentDetailsMovementsVM interviewMovement = new()
                 {
+                    ProjectId = defaultProject.ProjectId,
                     PaymentType = "Interviews",
+                    MovementTypeId = interview.MovementTypeId,
                     MovementTypeName = interview.MovementTypeName,
                     Quantity = interview.TotalDurationHours,
                     UnitPrice = defaultHourlyCalculation
@@ -182,7 +198,9 @@ namespace OceansApp.DataAccess.Repository
                 {
                     GetPaymentDetailsMovementsVM creditMovement = new()
                     {
-                        PaymentType = "Debit/Credit",
+                        ProjectId = defaultProject.ProjectId,
+                        MovementId = debitCredit.ConsultantPaymentDebitsCreditsId,
+                        PaymentType = "Credit",
                         MovementTypeName = debitCredit.Detail,
                         Quantity = debitCredit.Quantity,
                         UnitPrice = debitCredit.Amount
@@ -193,7 +211,9 @@ namespace OceansApp.DataAccess.Repository
                 {
                     GetPaymentDetailsMovementsVM debitMovement = new()
                     {
-                        PaymentType = "Debit/Credit",
+                        ProjectId = defaultProject.ProjectId,
+                        MovementId = debitCredit.ConsultantPaymentDebitsCreditsId,
+                        PaymentType = "Debit",
                         MovementTypeName = debitCredit.Detail,
                         Quantity = debitCredit.Quantity,
                         UnitPrice = debitCredit.Amount
@@ -209,21 +229,54 @@ namespace OceansApp.DataAccess.Repository
         }
 
         public async Task<MethodResponse> CreatePayment(string userIdCreatedBy,
-            CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount)
+            CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment)
         {
             if (paymentData == null)
             {
                 return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
             }
+            var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
+x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+
+            List<JournalAccountPayableEntry> journalEntriesToCreate = new();
+
+            if (existingAccountPayable == null)
+            {
+                journalEntriesToCreate = await GetJournalEntriesReadyToCreate(listOfMovementsForPayment,
+            (int)paymentData.ConsultantId, paymentData.CompanyId, DateTime.Parse(paymentData.EndDatePeriod), accountPayableAmount);
+            }
+            
+
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
-                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                    //Create the account payable movement
+                    if (existingAccountPayable == null)
+                    {
+                        var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Sent to be paid");
 
+                        AccountPayable accountPayableToCreate = new()
+                        {
+                            ConsultantId = (int)paymentData.ConsultantId,
+                            StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                            EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                            AccountingDate = DateTime.Parse(paymentData.AccountingDate),
+                            Amount = accountPayableAmount,
+                            BalanceAmount = accountPayableAmount,
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userIdCreatedBy,
+                            CompanyId = paymentData.CompanyId,
+                            TransactionStatusId = transactionStatus.TransactionStatusId
+                        };
+
+                        await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
+                        await _db.SaveChangesAsync();
+                        existingAccountPayable = accountPayableToCreate;
+                    }
+                    //Create the Journal and Journal Entries
                     var existingJournal = await _db.JOURNAL_ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) &&
-                        x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                        x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod) && x.CompanyId == paymentData.CompanyId);
                     if (existingJournal == null)
                     {
                         var transactionStatusPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
@@ -250,33 +303,22 @@ namespace OceansApp.DataAccess.Repository
                         await _db.SaveChangesAsync();
                         existingJournal = journalToCreate;
                     }
-                    //Create the account payable movement
-                    if (existingAccountPayable == null)
-                    {
-                        var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Sent to be paid");
 
-                        AccountPayable accountPayableToCreate = new()
-                        {
-                            ConsultantId = (int)paymentData.ConsultantId,
-                            StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
-                            EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
-                            AccountingDate = DateTime.Parse(paymentData.AccountingDate),
-                            Amount = accountPayableAmount,
-                            BalanceAmount = accountPayableAmount,
-                            CreationDate = DateTime.UtcNow,
-                            UserCreatedBy = userIdCreatedBy,
-                            CompanyId = paymentData.CompanyId,
-                            TransactionStatusId = transactionStatus.TransactionStatusId
-                        };
-
-                        await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
-                        await _db.SaveChangesAsync();
-                        existingAccountPayable = accountPayableToCreate;
-                    }
-                    if (paymentData.PaymentAmount > existingAccountPayable.BalanceAmount)
+                    if (paymentData.PaymentAmount > Math.Round(existingAccountPayable.BalanceAmount, 2))
                     {
                         return MethodResponse.CreateFailureValidationResponse($"The amount to pay must be less than or equal to the account payable balance amount.");
                     }
+
+                    //Create Journal Entries
+                    foreach (var journalEntry in journalEntriesToCreate)
+                    {
+                        journalEntry.AccountPayableId = existingAccountPayable.AccountPayableId;
+                        journalEntry.JournalId = existingJournal.JournalId;
+
+                        await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.AddAsync(journalEntry);
+                        await _db.SaveChangesAsync();
+                    }
+
                     var consultantPaymentToCreate = new ConsultantPayment
                     {
                         ConsultantId = (int)paymentData.ConsultantId,
@@ -310,6 +352,105 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
+        }
+
+        private async Task<List<JournalAccountPayableEntry>> GetJournalEntriesReadyToCreate(GetListOfMovementsForPaymentVM listOfMovementsForPayment,
+            int consultantId, string companyId, DateTime endDate, decimal accountPayableAmount)
+        {
+            List<JournalAccountPayableEntry> entriesListToReturn = new();
+
+            //Create Journal Entries
+            foreach (var projectMovement in listOfMovementsForPayment.ProjectMovements)
+            {
+                var connection = _db.Database.GetDbConnection();
+                var projectHistoryParameters = new DynamicParameters();
+                projectHistoryParameters.Add("@ConsultantId", consultantId);
+                projectHistoryParameters.Add("@ProjectId", projectMovement.ProjectId);
+                projectHistoryParameters.Add("@EndDate", endDate);
+                var currentProjectHistory = await connection.QueryAsync<GetCurrentHistoryVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_GetCurrentHistory", projectHistoryParameters, commandType: CommandType.StoredProcedure);
+
+                var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.MovementTypeId == projectMovement.MovementTypeId &&
+                x.CompanyId == companyId && x.PositionId == currentProjectHistory.FirstOrDefault().PositionId);
+
+                JournalAccountPayableEntry journalEntryToCreate = new()
+                {
+                    CostCenterId = accountingConfig.CostCenterId,
+                    AccountingAccountId = accountingConfig.AccountingAccountId,
+                    Reference = projectMovement.MovementTypeName,
+                    Debit = projectMovement.TotalAmount,
+                    Credit = 0
+                };
+                entriesListToReturn.Add(journalEntryToCreate);
+            }
+            foreach (var benefitAndCredit in listOfMovementsForPayment.BenefitsAndOtherMovements)
+            {
+                if (benefitAndCredit.MovementId > 0)
+                {
+                    var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS.FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == benefitAndCredit.MovementId);
+                    
+                    JournalAccountPayableEntry journalEntryToCreate = new()
+                    {
+                        CostCenterId = debitCreditMovement.CostCenterId,
+                        AccountingAccountId = debitCreditMovement.AccountingAccountId,
+                        Reference = debitCreditMovement.Detail,
+                        Debit = benefitAndCredit.TotalAmount,
+                        Credit = 0
+                    };
+
+                    entriesListToReturn.Add(journalEntryToCreate);
+                }
+                else
+                {
+                    var connection = _db.Database.GetDbConnection();
+                    var projectHistoryParameters = new DynamicParameters();
+                    projectHistoryParameters.Add("@ConsultantId", consultantId);
+                    projectHistoryParameters.Add("@ProjectId", benefitAndCredit.ProjectId);
+                    projectHistoryParameters.Add("@EndDate", endDate);
+                    var currentProjectHistory = await connection.QueryAsync<GetCurrentHistoryVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_GetCurrentHistory", projectHistoryParameters, commandType: CommandType.StoredProcedure);
+                    var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.MovementTypeId == benefitAndCredit.MovementTypeId &&
+                    x.CompanyId == companyId && x.PositionId == currentProjectHistory.FirstOrDefault().PositionId);
+
+                    JournalAccountPayableEntry journalEntryToCreate = new()
+                    {
+                        CostCenterId = accountingConfig.CostCenterId,
+                        AccountingAccountId = accountingConfig.AccountingAccountId,
+                        Reference = benefitAndCredit.MovementTypeName,
+                        Debit = benefitAndCredit.TotalAmount,
+                        Credit = 0
+                    };
+                    entriesListToReturn.Add(journalEntryToCreate);
+                }
+            }
+            foreach (var debitMovement in listOfMovementsForPayment.DebitsMovements)
+            {
+                var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS.FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == debitMovement.MovementId);
+
+                JournalAccountPayableEntry journalEntryToCreate = new()
+                {
+                    CostCenterId = debitCreditMovement.CostCenterId,
+                    AccountingAccountId = debitCreditMovement.AccountingAccountId,
+                    Reference = debitCreditMovement.Detail,
+                    Debit = 0,
+                    Credit = debitMovement.TotalAmount
+                };
+
+                entriesListToReturn.Add(journalEntryToCreate);
+            }
+            //Accounts payable entry
+            var costCenter = await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterCode == "10-01-08" && x.CompanyId == companyId);
+            var accountingAccount = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountCode.Contains("2-01-01-002-000") 
+            && x.CompanyId == companyId);
+            JournalAccountPayableEntry journalEntryAccountsPayableToCreate = new()
+            {
+                CostCenterId = costCenter.CostCenterId,
+                AccountingAccountId = accountingAccount.AccountingAccountId,
+                Reference = "Cuenta por pagar a consultor",
+                Debit = 0,
+                Credit = accountPayableAmount
+            };
+            entriesListToReturn.Add(journalEntryAccountsPayableToCreate);
+
+            return entriesListToReturn;
         }
 
         public async Task<MethodResponse> UpdatePayment(string userIdCreatedBy,
