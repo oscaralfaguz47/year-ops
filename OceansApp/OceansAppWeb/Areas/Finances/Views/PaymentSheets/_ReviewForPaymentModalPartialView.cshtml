@@ -15,8 +15,8 @@
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-review-for-payment')" class="cancel-btn">Cancel</button>
-                    <button class="btn-accounts-payable" onclick="displayApproveRejectConfirmation('Rejected')">Set as accounts payable</button>
-                    <button class="btn-report-payment" onclick="displayMakePaymentModal('modal-make-payment', null)">$ Report Payment</button>
+                    <button class="btn-accounts-payable" id="btn-set-account-payable" onclick="setAsAccountPayable()">Set as account payable</button>
+                    <button class="btn-report-payment" id="btn-report-payment" onclick="displayMakePaymentModal('modal-make-payment', null)">$ Report Payment</button>
                 </div>
             </div>
         </div>

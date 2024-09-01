@@ -1,4 +1,5 @@
 ﻿using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.AccountsPayable;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
 using OceansApp.Models.ViewModels.Consultants;
@@ -16,5 +17,10 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CreateUpdateConsultantPaymentVM paymentData);
         Task<List<GetConsultantPaymentsInPeriodVM>> GetConsultantPaymentsInPeriod(int consultantId, DateTime startDate,
             DateTime endDate);
+        Task<MethodResponse> SetAsAccountPayable(string userIdCreatedBy,
+            SetAsAccountPayableVM dataFromModel, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment,
+            string companyId);
+        Task UpdateMovementsStatuses(List<TransactionStatus> transactionStatuses, DateTime startDate, DateTime endDate,
+            int consultantId, string newStatus);
     }
 }

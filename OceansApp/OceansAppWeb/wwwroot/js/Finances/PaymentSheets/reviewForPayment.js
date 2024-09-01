@@ -1,8 +1,12 @@
 ﻿
 const reviewForApprovalContainer = getElementById('review-for-payment-container');
 const consultantIdInputMP = getElementById('ConsultantIdInput');
+const setAsAccountsPayableBtn = getElementById('btn-set-account-payable');
+const reportPaymentBtn = getElementById('btn-report-payment');
 async function displayReviewForPaymentModal(modalId, consultantId) {
     consultantIdInputMP.value = null;
+    setAsAccountsPayableBtn.style.display = 'none';
+    reportPaymentBtn.style.display = 'none';
     let url = "/Finances/PaymentSheets/GetReportToMakePayment?consultantId=" + encodeURIComponent(consultantId)
         + "&startDate=" + encodeURIComponent(dateFromInput.value)
         + "&endDate=" + encodeURIComponent(dateToInput.value);
@@ -27,6 +31,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
         const dataFromApi = await response.json();
         consultantIdInputMP.value = consultantId;
+        setAsAccountsPayableBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null ? 'inline' : 'none';
+        reportPaymentBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null || dataFromApi.reportDetails.accountPayableBalance > 0 ? 'inline' : 'none';
         console.log(dataFromApi);
         getElementById('review-for-payment-modal-title').textContent = dataFromApi.reportDetails.consultantName;
         reviewForApprovalContainer.innerHTML = '';
@@ -419,6 +425,72 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         validateSessionExpiration(err.message);
         console.error('Network or fetch error:', err.message);
         displayToasterError('Something went wrong, more details: ' + err);
+        return null;
+    }
+}
+
+async function setAsAccountPayable() {
+
+    const confirmation = await Swal.fire({
+        title: "Set as Account Payable",
+        text: `Are you sure you want to set this as account payable?, the consultant will receive the payment details.`,
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#9ba8b8',
+        confirmButtonColor: '#eeb30f',
+        confirmButtonText: 'Yes, Do it!'
+    });
+
+    if (!confirmation.isConfirmed) {
+        return;
+    }
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        ConsultantId: consultantIdInputMP.value === '' ? null : Number(consultantIdInputMP.value),
+        StartDatePeriod: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndDatePeriod: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2')
+    };
+
+    displaySpinner();
+    try {
+        const response = await fetch('/Finances/PaymentSheets/SetAsAccountPayable', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        await displayReviewForPaymentModal('modal-review-for-payment', consultantIdInputMP.value);
+        return dataFromApi;
+
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        hideSpinner();
         return null;
     }
 }

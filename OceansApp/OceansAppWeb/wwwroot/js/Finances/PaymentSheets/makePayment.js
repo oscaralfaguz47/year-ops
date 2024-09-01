@@ -221,7 +221,6 @@ async function createUpdatePayment(modalId) {
 }
 
 async function deletePayment(paymentId) {
-    console.log(paymentId);
     const confirmation = await Swal.fire({
         title: "Delete Payment",
         text: `Are you sure you want to delete the payment?`,

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.ViewModels.AccountsPayable;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
 using OceansApp.Models.ViewModels.PaymentSheets;
@@ -182,6 +183,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 GetReportToMakePaymentVM reportToSend = new();
 
                 reportToSend.ConsultantName = consultant.Name + " " + consultant.LastName;
+                var accountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId &&
+                x.StartDatePeriod == startDate && x.EndDatePeriod == endDate);
+                reportToSend.AccountPayableBalance = accountPayable == null ? null : accountPayable.BalanceAmount;
 
                 var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
                 reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList;
@@ -348,7 +352,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         {
                             return NotFound(new { error = "Consultant not found." });
                         }
-                        var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, DateTime.Parse(paymentData.StartDatePeriod), 
+                        var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, DateTime.Parse(paymentData.StartDatePeriod),
                             DateTime.Parse(paymentData.EndDatePeriod));
                         decimal totalAmountToPay = 0;
 
@@ -431,6 +435,101 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
+        [HttpPost("SetAsAccountPayable")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetAsAccountPayable([FromBody] SetAsAccountPayableVM dataFromModel)
+        {
+            try
+            {
+                if (dataFromModel == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "ConsultantId", dataFromModel.ConsultantId, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", dataFromModel.StartDatePeriod, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", dataFromModel.StartDatePeriod, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", dataFromModel.EndDatePeriod, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDatePeriod", "End Date Period", dataFromModel.EndDatePeriod, ModelState);
+
+                if (ModelState.IsValid)
+                {
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var resultMessage = "";
+
+                    var consultant = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync((int)dataFromModel.ConsultantId);
+                    if (consultant == null)
+                    {
+                        return NotFound(new { error = "Consultant not found." });
+                    }
+                    var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, DateTime.Parse(dataFromModel.StartDatePeriod),
+                        DateTime.Parse(dataFromModel.EndDatePeriod));
+                    decimal totalAmountToPay = 0;
+
+                    var listOfMovements = movementsListFromDb.GenericList;
+
+                    if (listOfMovements != null)
+                    {
+                        foreach (var property in listOfMovements.GetType().GetProperties())
+                        {
+                            if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
+                            {
+                                foreach (var item in list)
+                                {
+                                    if (item is GetPaymentDetailsMovementsVM movement)
+                                    {
+                                        if (property.Name != "DebitsMovements")
+                                        {
+                                            totalAmountToPay += movement.TotalAmount;
+                                        }
+                                        else
+                                        {
+                                            totalAmountToPay -= movement.TotalAmount;
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+
+                    var res = await _unitOfWork.ConsultantPayment.SetAsAccountPayable(userActionedBy, dataFromModel, totalAmountToPay, 
+                        (GetListOfMovementsForPaymentVM)listOfMovements, consultant.CompanyId);
+
+                    if (res.Success)
+                    {
+                        resultMessage = res.Message;
+                    }
+                    else
+                    {
+                        if (res.MessageType == "Validation Error")
+                        {
+                            return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                        }
+                        return BadRequest(new { MessageType = res.MessageType, error = res.Message });
+                    }
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = resultMessage
+                    });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
+
         [HttpDelete("DeletePayment")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePayment(int paymentId)
@@ -442,7 +541,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     return NotFound(new { error = "The payment no longer exists." });
                 }
-                var existingAccountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.AccountPayableId == 
+                var existingAccountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.AccountPayableId ==
                 existingPayment.AccountPayableId);
 
                 if (existingAccountPayable == null)
@@ -450,6 +549,12 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     return NotFound(new { error = "The account payable no longer exists." });
                 }
                 using var transaction = await _unitOfWork.BeginTranAsync();
+                if (existingAccountPayable.BalanceAmount == 0)
+                {
+                    var transactionStatuses = await _unitOfWork.TransactionStatus.GetAllAsync(x => x.Name == "Sent to be paid" || x.Name == "Rejected");
+                    await _unitOfWork.ConsultantPayment.UpdateMovementsStatuses(transactionStatuses, existingAccountPayable.StartDatePeriod, 
+                       existingAccountPayable.EndDatePeriod, existingAccountPayable.ConsultantId, "Sent to be paid");
+                }
                 existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
 
                 _unitOfWork.ConsultantPayment.Remove(existingPayment);
