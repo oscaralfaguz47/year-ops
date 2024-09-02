@@ -540,78 +540,78 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 // ----------------- PAYMENT METHOD BANK ACCOUNTS --------------------------------
 
-                //var paymentMethods = await _db.PAYMENT_METHODS.ToListAsync();
-                //var bankAccounts = await _db.BANK_ACCOUNTS.ToListAsync();
+                var paymentMethods = await _db.PAYMENT_METHODS.ToListAsync();
+                var bankAccounts = await _db.BANK_ACCOUNTS.ToListAsync();
 
-                //List<PaymentMethodBankAccount> paymentMethodBankAccountList = new List<PaymentMethodBankAccount>
-                //{
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic different from Panamá (Ameritransfer)").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Other banks (International Transfer)").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Payoneer").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113454904").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Banco General (Panamá)").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic (Panamá)").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Mercury").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "202218366303").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Wise").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "9600012642438917").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic Costa Rica (Bac CR to Bac CR)").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "947729737").BankAccountId,
-                //        IsDefault = true
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic Costa Rica (Bac CR to Bac CR)").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "951381904").BankAccountId,
-                //        IsDefault = false
-                //    },
-                //    new PaymentMethodBankAccount {
-                //        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "USA local transfer").PaymentMethodId,
-                //        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "610851399").BankAccountId,
-                //        IsDefault = true
-                //    }
-                //};
+                List<PaymentMethodBankAccount> paymentMethodBankAccountList = new List<PaymentMethodBankAccount>
+                {
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic different from Panamá (Ameritransfer)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Other banks (International Transfer)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Payoneer").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113454904").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Banco General (Panamá)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic (Panamá)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Mercury").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "202218366303").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Wise").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "9600012642438917").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic Costa Rica (Bac CR to Bac CR)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "947729737").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic Costa Rica (Bac CR to Bac CR)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "951381904").BankAccountId,
+                        IsDefault = false
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "USA local transfer").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "610851399").BankAccountId,
+                        IsDefault = true
+                    }
+                };
 
-                //foreach (var paymentMethodBankAccount in paymentMethodBankAccountList)
-                //{
-                //    if (await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.FirstOrDefaultAsync(x => x.PaymentMethodId == paymentMethodBankAccount.PaymentMethodId && 
-                //    x.BankAccountId == paymentMethodBankAccount.BankAccountId) == null)
-                //    {
-                //        PaymentMethodBankAccount pmba = new()
-                //        {
-                //            PaymentMethodId = paymentMethodBankAccount.PaymentMethodId,
-                //            BankAccountId = paymentMethodBankAccount.BankAccountId,
-                //            IsDefault = paymentMethodBankAccount.IsDefault
-                //        };
-                //        await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.AddAsync(pmba);
-                //    }
-                //}
-                //await _db.SaveChangesAsync();
+                foreach (var paymentMethodBankAccount in paymentMethodBankAccountList)
+                {
+                    if (await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.FirstOrDefaultAsync(x => x.PaymentMethodId == paymentMethodBankAccount.PaymentMethodId && 
+                    x.BankAccountId == paymentMethodBankAccount.BankAccountId) == null)
+                    {
+                        PaymentMethodBankAccount pmba = new()
+                        {
+                            PaymentMethodId = paymentMethodBankAccount.PaymentMethodId,
+                            BankAccountId = paymentMethodBankAccount.BankAccountId,
+                            IsDefault = paymentMethodBankAccount.IsDefault
+                        };
+                        await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.AddAsync(pmba);
+                    }
+                }
+                await _db.SaveChangesAsync();
 
                 // ----------------- REPORTING MY TIME MOVEMENT TYPES --------------------------------
 
