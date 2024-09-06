@@ -536,37 +536,20 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         {
             try
             {
-                var existingPayment = await _unitOfWork.ConsultantPayment.GetFirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentId);
-                if (existingPayment == null)
+                MethodResponse res = await _unitOfWork.ConsultantPayment.DeletePayment(paymentId);
+
+                if (res.Success)
                 {
-                    return NotFound(new { error = "The payment no longer exists." });
+                    return Ok(new { success = true, message = res.Message });
                 }
-                var existingAccountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.AccountPayableId ==
-                existingPayment.AccountPayableId);
-
-                if (existingAccountPayable == null)
+                else
                 {
-                    return NotFound(new { error = "The account payable no longer exists." });
+                    return BadRequest(new { MessageType = res.MessageType, error = res.Message });
                 }
-                using var transaction = await _unitOfWork.BeginTranAsync();
-                if (existingAccountPayable.BalanceAmount == 0)
-                {
-                    var transactionStatuses = await _unitOfWork.TransactionStatus.GetAllAsync(x => x.Name == "Sent to be paid" || x.Name == "Rejected");
-                    await _unitOfWork.ConsultantPayment.UpdateMovementsStatuses(transactionStatuses, existingAccountPayable.StartDatePeriod, 
-                       existingAccountPayable.EndDatePeriod, existingAccountPayable.ConsultantId, "Sent to be paid");
-                }
-                existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
-
-                _unitOfWork.ConsultantPayment.Remove(existingPayment);
-
-                await _unitOfWork.SaveAsync();
-                await transaction.CommitAsync();
-
-                return Ok(new { success = true, message = "The payment was deleted!" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = $"There was an error in the server, the payment could not be deleted.", result = "ErrorDeleting", detail = ex.Message });
+                return BadRequest(new { error = $"There was an error in the server, the payment could not be deleted.", detail = ex.Message });
             }
         }
     }

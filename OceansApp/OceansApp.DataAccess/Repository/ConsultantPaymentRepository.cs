@@ -291,6 +291,47 @@ namespace OceansApp.DataAccess.Repository
                        (int)paymentData.ConsultantId, "Paid");
                     }
                     await _db.SaveChangesAsync();
+
+                    //Create Book Entries
+                    var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+
+                    var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == transactionStatusesPending.TransactionStatusId
+                    && x.CompanyId == paymentData.CompanyId);
+                    if (existingBookEntryParent == null)
+                    {
+                        //Create Parent
+                        PaymentBookEntryParent bookEntryParentToCreate = new()
+                        {
+                            TransactionStatusId = transactionStatusesPending.TransactionStatusId,
+                            CompanyId = paymentData.CompanyId,
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userIdCreatedBy
+                        };
+                        await _db.PAYMENT_BOOK_ENTRIES_PARENT.AddAsync(bookEntryParentToCreate);
+                        await _db.SaveChangesAsync();
+                        existingBookEntryParent = bookEntryParentToCreate;
+                    }
+                    //Create Child entry
+                    var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
+                    if (consultantToPay == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
+                    }
+                    var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
+                    if (userToPay == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
+                    }
+                    PaymentBookEntryChild bookEntryChildToCreate = new()
+                    {
+                        ParentId = existingBookEntryParent.ParentId,
+                        ConsultantPaymentId = consultantPaymentToCreate.ConsultantPaymentId,
+                        Notes = $"Pago a: {userToPay.Name} {userToPay.LastName}",
+                        Voided = false
+                    };
+                    await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
+                    await _db.SaveChangesAsync();
+
                     await transaction.CommitAsync();
 
                     return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
@@ -607,10 +648,112 @@ namespace OceansApp.DataAccess.Repository
                     existingPayment.UserLastUpdatedBy = userIdCreatedBy;
                     existingPayment.LastUpdatedDate = DateTime.UtcNow;
 
+                    //Update Book Entries
+                    var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                    if (transactionStatusesPending == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse($"The status Pending to register was not found.");
+                    }
+
+                    var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == transactionStatusesPending.TransactionStatusId
+                    && x.CompanyId == paymentData.CompanyId);
+                    if (existingBookEntryParent == null)
+                    {
+                        //Create Parent
+                        PaymentBookEntryParent bookEntryParentToCreate = new()
+                        {
+                            TransactionStatusId = transactionStatusesPending.TransactionStatusId,
+                            CompanyId = paymentData.CompanyId,
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userIdCreatedBy
+                        };
+                        await _db.PAYMENT_BOOK_ENTRIES_PARENT.AddAsync(bookEntryParentToCreate);
+                        await _db.SaveChangesAsync();
+                        existingBookEntryParent = bookEntryParentToCreate;
+                    }
+                    //Create Child entry if status is diferent than pending to register
+                    var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                        join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                        where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                        && bp.TransactionStatusId == transactionStatusesPending.TransactionStatusId
+                                        select new PaymentBookEntryChild
+                                        {
+                                            ChildId = bc.ChildId
+                                        }).FirstOrDefaultAsync();
+
+                    if (existingChildEntry == null)
+                    {
+                        var existingRegisteredParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId != transactionStatusesPending.TransactionStatusId &&
+                        x.CompanyId == existingPayment.CompanyId);
+                        var childToUpdateVoided = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ConsultantPaymentId == existingPayment.ConsultantPaymentId && 
+                        x.Voided == false);
+                        var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
+                        if (consultantToPay == null)
+                        {
+                            return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
+                        }
+                        var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
+                        if (userToPay == null)
+                        {
+                            return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
+                        }
+                        PaymentBookEntryChild bookEntryChildToCreate = new()
+                        {
+                            ParentId = existingBookEntryParent.ParentId,
+                            ConsultantPaymentId = existingPayment.ConsultantPaymentId,
+                            Notes = $"Pago actualizado a: {userToPay.Name} {userToPay.LastName}",
+                            Voided = false
+                        };
+                        await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
+                        await _db.SaveChangesAsync();
+                    }
+
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     return MethodResponse.CreateSuccessResponse("Payment updated successfully!");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        public async Task<MethodResponse> DeletePayment(int paymentId)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentId);
+                    if (existingPayment == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("The payment no longer exists.");
+                    }
+
+                var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.AccountPayableId ==
+                existingPayment.AccountPayableId);
+
+                    if (existingAccountPayable == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("The account payable no longer exists.");
+                    }
+                    if (existingAccountPayable.BalanceAmount == 0)
+                    {
+                        var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Sent to be paid" || x.Name == "Rejected").ToListAsync();
+                        await UpdateMovementsStatuses(transactionStatuses, existingAccountPayable.StartDatePeriod,
+                           existingAccountPayable.EndDatePeriod, existingAccountPayable.ConsultantId, "Sent to be paid");
+                    }
+                    existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
+
+                    _db.CONSULTANT_PAYMENTS.Remove(existingPayment);
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("The payment was deleted!");
                 }
                 catch (Exception ex)
                 {

@@ -20,6 +20,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> SetAsAccountPayable(string userIdCreatedBy,
             SetAsAccountPayableVM dataFromModel, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment,
             string companyId);
+
+        Task<MethodResponse> DeletePayment(int paymentId);
         Task UpdateMovementsStatuses(List<TransactionStatus> transactionStatuses, DateTime startDate, DateTime endDate,
             int consultantId, string newStatus);
     }

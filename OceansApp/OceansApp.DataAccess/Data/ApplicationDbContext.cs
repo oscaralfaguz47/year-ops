@@ -680,6 +680,50 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("varchar(8)");
             });
 
+            // PAYMENT BOOK ENTRIES PARENT
+            modelBuilder.Entity<PaymentBookEntryParent>(entity =>
+            {
+                entity.HasIndex(e => e.ParentId);
+                entity.HasIndex(e => e.UserCreatedBy);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.CompanyId);
+
+                entity.HasOne(p => p.ApplicationUserCreatedBy)
+              .WithMany()
+              .HasForeignKey(p => p.UserCreatedBy)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(c => c.CompanyId)
+                 .HasColumnType("varchar(8)");
+                entity.HasOne(p => p.Company)
+               .WithMany()
+               .HasForeignKey(p => p.CompanyId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.TransactionStatus)
+              .WithMany()
+              .HasForeignKey(p => p.TransactionStatusId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // PAYMENT BOOK ENTRIES CHILD
+            modelBuilder.Entity<PaymentBookEntryChild>(entity =>
+            {
+                entity.HasIndex(e => e.ChildId);
+                entity.HasIndex(e => e.ParentId);
+                entity.HasIndex(e => e.ConsultantPaymentId);
+
+                entity.HasOne(p => p.PaymentBookEntryParent)
+              .WithMany()
+              .HasForeignKey(p => p.ParentId)
+              .IsRequired();
+                entity.HasOne(p => p.ConsultantPayment)
+              .WithMany()
+              .HasForeignKey(p => p.ConsultantPaymentId)
+              .IsRequired();
+            });
+
             // PAYMENT METHOD AND BANK ACCOUNTS
             modelBuilder.Entity<PaymentMethodBankAccount>(entity =>
             {
@@ -1145,6 +1189,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<JournalAccountPayableEntry> JOURNAL_ACCOUNTS_PAYABLE_ENTRIES { get; set; }
         public DbSet<Partner> PARTNERS { get; set; }
         public DbSet<PaymentMethod> PAYMENT_METHODS { get; set; }
+        public DbSet<PaymentBookEntryParent> PAYMENT_BOOK_ENTRIES_PARENT { get; set; }
+        public DbSet<PaymentBookEntryChild> PAYMENT_BOOK_ENTRIES_CHILD { get; set; }
         public DbSet<PaymentMethodBankAccount> PAYMENT_METHOD_AND_BANK_ACCOUNTS { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
