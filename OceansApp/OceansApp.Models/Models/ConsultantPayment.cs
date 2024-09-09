@@ -38,6 +38,8 @@ namespace OceansApp.Models.Models
         public int BankAccountId { get; set; }
         [Required]
         public int AccountPayableId { get; set; }
+        [Required]
+        public bool Voided { get; set; }
 
 
         [ValidateNever]

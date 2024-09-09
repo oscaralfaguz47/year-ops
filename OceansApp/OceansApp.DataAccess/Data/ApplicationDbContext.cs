@@ -361,6 +361,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.BankAccountId);
                 entity.HasIndex(e => e.AccountingDate);
                 entity.HasIndex(e => e.AccountPayableId);
+                entity.HasIndex(e => e.Voided);
 
                 entity.HasKey(c => new { c.ConsultantPaymentId });
                 entity.HasOne(cp => cp.ConsultantDetail)

@@ -603,11 +603,14 @@ namespace OceansApp.DataAccess.Repository
             {
                 try
                 {
+                    int paymentIdForChildMovement = 0;
                     var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentData.ConsultantPaymentId);
                     if (existingPayment == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The payment no longer exists.");
                     }
+                    paymentIdForChildMovement = existingPayment.ConsultantPaymentId;
+
                     var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
                     x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
 
@@ -639,14 +642,7 @@ namespace OceansApp.DataAccess.Repository
                         await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
                        (int)paymentData.ConsultantId, "Sent to be paid");
                     }
-                    existingPayment.ReferenceNumber = paymentData.ReferenceNumber;
-                    existingPayment.PaymentMethodId = (int)paymentData.PaymentMethodId;
-                    existingPayment.PaymentAmount = (int)paymentData.PaymentAmount;
-                    existingPayment.CompanyId = paymentData.CompanyId;
-                    existingPayment.BankAccountId = (int)paymentData.BankAccountId;
-                    existingPayment.AccountingDate = DateTime.Parse(paymentData.AccountingDate);
-                    existingPayment.UserLastUpdatedBy = userIdCreatedBy;
-                    existingPayment.LastUpdatedDate = DateTime.UtcNow;
+
 
                     //Update Book Entries
                     var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
@@ -671,21 +667,71 @@ namespace OceansApp.DataAccess.Repository
                         await _db.SaveChangesAsync();
                         existingBookEntryParent = bookEntryParentToCreate;
                     }
+
+                    var existingChildEntryToAvoid = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                                    join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                    where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                                    && bp.TransactionStatusId != transactionStatusesPending.TransactionStatusId
+                                                    select new PaymentBookEntryChild
+                                                    {
+                                                        ChildId = bc.ChildId
+                                                    }).FirstOrDefaultAsync();
+
+                    if (existingChildEntryToAvoid != null)
+                    {
+                        existingPayment.Voided = true;
+
+                        //Create new payment with new values
+                        var consultantPaymentToCreate = new ConsultantPayment
+                        {
+                            ConsultantId = (int)paymentData.ConsultantId,
+                            StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                            EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                            ReferenceNumber = paymentData.ReferenceNumber,
+                            PaymentMethodId = (int)paymentData.PaymentMethodId,
+                            PaymentAmount = (decimal)paymentData.PaymentAmount,
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userIdCreatedBy,
+                            CompanyId = paymentData.CompanyId,
+                            BankAccountId = (int)paymentData.BankAccountId,
+                            AccountingDate = DateTime.Parse(paymentData.AccountingDate),
+                            AccountPayableId = existingAccountPayable.AccountPayableId
+                        };
+                        await _db.CONSULTANT_PAYMENTS.AddAsync(consultantPaymentToCreate);
+                        await _db.SaveChangesAsync();
+                        paymentIdForChildMovement = consultantPaymentToCreate.ConsultantPaymentId;
+
+                        var childToAvoid = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntryToAvoid.ChildId);
+                        childToAvoid.Voided = true;
+                        await _db.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        existingPayment.ReferenceNumber = paymentData.ReferenceNumber;
+                        existingPayment.PaymentMethodId = (int)paymentData.PaymentMethodId;
+                        existingPayment.PaymentAmount = (int)paymentData.PaymentAmount;
+                        existingPayment.CompanyId = paymentData.CompanyId;
+                        existingPayment.BankAccountId = (int)paymentData.BankAccountId;
+                        existingPayment.AccountingDate = DateTime.Parse(paymentData.AccountingDate);
+                        existingPayment.UserLastUpdatedBy = userIdCreatedBy;
+                        existingPayment.LastUpdatedDate = DateTime.UtcNow;
+                    }
+
                     //Create Child entry if status is diferent than pending to register
                     var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
-                                        join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
-                                        where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
-                                        && bp.TransactionStatusId == transactionStatusesPending.TransactionStatusId
-                                        select new PaymentBookEntryChild
-                                        {
-                                            ChildId = bc.ChildId
-                                        }).FirstOrDefaultAsync();
+                                                    join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                    where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                                    && bp.TransactionStatusId == transactionStatusesPending.TransactionStatusId
+                                                    select new PaymentBookEntryChild
+                                                    {
+                                                        ChildId = bc.ChildId
+                                                    }).FirstOrDefaultAsync();
 
                     if (existingChildEntry == null)
                     {
                         var existingRegisteredParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId != transactionStatusesPending.TransactionStatusId &&
                         x.CompanyId == existingPayment.CompanyId);
-                        var childToUpdateVoided = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ConsultantPaymentId == existingPayment.ConsultantPaymentId && 
+                        var childToUpdateVoided = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ConsultantPaymentId == existingPayment.ConsultantPaymentId &&
                         x.Voided == false);
                         var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
                         if (consultantToPay == null)
@@ -700,14 +746,13 @@ namespace OceansApp.DataAccess.Repository
                         PaymentBookEntryChild bookEntryChildToCreate = new()
                         {
                             ParentId = existingBookEntryParent.ParentId,
-                            ConsultantPaymentId = existingPayment.ConsultantPaymentId,
+                            ConsultantPaymentId = paymentIdForChildMovement,
                             Notes = $"Pago actualizado a: {userToPay.Name} {userToPay.LastName}",
                             Voided = false
                         };
                         await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
                         await _db.SaveChangesAsync();
                     }
-
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
@@ -748,9 +793,47 @@ namespace OceansApp.DataAccess.Repository
                     }
                     existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
 
-                    _db.CONSULTANT_PAYMENTS.Remove(existingPayment);
+                    existingPayment.Voided = true;
 
                     await _db.SaveChangesAsync();
+
+                    var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                    if (transactionStatusesPending == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse($"The status Pending to register was not found.");
+                    }
+
+                    var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                                           join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                           where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                                           && bp.TransactionStatusId != transactionStatusesPending.TransactionStatusId
+                                                           select new PaymentBookEntryChild
+                                                           {
+                                                               ChildId = bc.ChildId,
+                                                               Voided = bc.Voided
+                                                           }).FirstOrDefaultAsync();
+
+                    if (existingChildEntry != null)
+                    {
+                        var childMovementToAvoid = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntry.ChildId);
+                        childMovementToAvoid.Voided = true;
+                        await _db.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var existingChildEntryNotRegister = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                                        join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                        where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                                        && bp.TransactionStatusId == transactionStatusesPending.TransactionStatusId
+                                                        select new PaymentBookEntryChild
+                                                        {
+                                                            ChildId = bc.ChildId
+                                                        }).FirstOrDefaultAsync();
+                        var childToDelete = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntryNotRegister.ChildId);
+                        _db.PAYMENT_BOOK_ENTRIES_CHILD.Remove(childToDelete);
+                        await _db.SaveChangesAsync();
+                    }
+
                     await transaction.CommitAsync();
 
                     return MethodResponse.CreateSuccessResponse("The payment was deleted!");
@@ -770,6 +853,7 @@ namespace OceansApp.DataAccess.Repository
                                 join pm in _db.PAYMENT_METHODS on cp.PaymentMethodId equals pm.PaymentMethodId
                                 join ba in _db.BANK_ACCOUNTS on cp.BankAccountId equals ba.BankAccountId
                                 where cp.ConsultantId == consultantId && (cp.StartDatePeriod >= startDate && cp.EndDatePeriod <= endDate)
+                                && cp.Voided == false
                                 select new GetConsultantPaymentsInPeriodVM
                                 {
                                     ConsultantPaymentId = cp.ConsultantPaymentId,
