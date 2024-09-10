@@ -231,118 +231,117 @@ namespace OceansApp.DataAccess.Repository
         }
 
         public async Task<MethodResponse> CreatePayment(string userIdCreatedBy,
-            CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment)
+    CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment)
         {
-            if (paymentData == null)
-            {
-                return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
-            }
+            // Validate if payment data is null
+            if (paymentData == null) return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
+
+            // Retrieve the existing account payable by consultant and period
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
-            x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
 
+            // Prepare journal entries if no account payable exists
             List<JournalAccountPayableEntry> journalEntriesToCreate = new();
-
             if (existingAccountPayable == null)
             {
                 journalEntriesToCreate = await GetJournalEntriesReadyToCreate(listOfMovementsForPayment,
-            (int)paymentData.ConsultantId, paymentData.CompanyId, DateTime.Parse(paymentData.EndDatePeriod), accountPayableAmount);
+                    (int)paymentData.ConsultantId, paymentData.CompanyId, DateTime.Parse(paymentData.EndDatePeriod), accountPayableAmount);
             }
 
-            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            // Start database transaction
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
             {
-                try
+                // Create account payable if it doesn't exist
+                if (existingAccountPayable == null)
                 {
-                    //Create the account payable movement
-                    if (existingAccountPayable == null)
-                    {
-                        existingAccountPayable = await CreateAccountPayable(userIdCreatedBy,
+                    existingAccountPayable = await CreateAccountPayable(userIdCreatedBy,
                         paymentData, accountPayableAmount, journalEntriesToCreate);
-                    }
-
-                    if (paymentData.PaymentAmount > Math.Round(existingAccountPayable.BalanceAmount, 2))
-                    {
-                        return MethodResponse.CreateFailureValidationResponse($"The amount to pay must be less than or equal to the account payable balance amount.");
-                    }
-
-                    var consultantPaymentToCreate = new ConsultantPayment
-                    {
-                        ConsultantId = (int)paymentData.ConsultantId,
-                        StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
-                        EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
-                        ReferenceNumber = paymentData.ReferenceNumber,
-                        PaymentMethodId = (int)paymentData.PaymentMethodId,
-                        PaymentAmount = (decimal)paymentData.PaymentAmount,
-                        CreationDate = DateTime.UtcNow,
-                        UserCreatedBy = userIdCreatedBy,
-                        CompanyId = paymentData.CompanyId,
-                        BankAccountId = (int)paymentData.BankAccountId,
-                        AccountingDate = DateTime.Parse(paymentData.AccountingDate),
-                        AccountPayableId = existingAccountPayable.AccountPayableId
-                    };
-                    await _db.CONSULTANT_PAYMENTS.AddAsync(consultantPaymentToCreate);
-                    existingAccountPayable.BalanceAmount -= (decimal)paymentData.PaymentAmount;
-                    if (existingAccountPayable.BalanceAmount == 0)
-                    {
-                        var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Rejected").ToListAsync();
-
-                        existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Paid").TransactionStatusId;
-
-                       await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
-                       (int)paymentData.ConsultantId, "Paid");
-                    }
-                    await _db.SaveChangesAsync();
-
-                    //Create Book Entries
-                    var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
-
-                    var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == transactionStatusesPending.TransactionStatusId
-                    && x.CompanyId == paymentData.CompanyId);
-                    if (existingBookEntryParent == null)
-                    {
-                        //Create Parent
-                        PaymentBookEntryParent bookEntryParentToCreate = new()
-                        {
-                            TransactionStatusId = transactionStatusesPending.TransactionStatusId,
-                            CompanyId = paymentData.CompanyId,
-                            CreationDate = DateTime.UtcNow,
-                            UserCreatedBy = userIdCreatedBy
-                        };
-                        await _db.PAYMENT_BOOK_ENTRIES_PARENT.AddAsync(bookEntryParentToCreate);
-                        await _db.SaveChangesAsync();
-                        existingBookEntryParent = bookEntryParentToCreate;
-                    }
-                    //Create Child entry
-                    var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
-                    if (consultantToPay == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
-                    }
-                    var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
-                    if (userToPay == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
-                    }
-                    PaymentBookEntryChild bookEntryChildToCreate = new()
-                    {
-                        ParentId = existingBookEntryParent.ParentId,
-                        ConsultantPaymentId = consultantPaymentToCreate.ConsultantPaymentId,
-                        Notes = $"Pago a: {userToPay.Name} {userToPay.LastName}",
-                        Voided = false
-                    };
-                    await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
-                    await _db.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
-
-                    return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
                 }
-                catch (Exception ex)
+
+                // Validate if the payment amount exceeds the account payable balance
+                if (paymentData.PaymentAmount > Math.Round(existingAccountPayable.BalanceAmount, 2))
+                    return MethodResponse.CreateFailureValidationResponse("The amount to pay must be less than or equal to the account payable balance.");
+
+                // Create the consultant payment entry
+                var consultantPaymentToCreate = new ConsultantPayment
                 {
-                    await transaction.RollbackAsync();
-                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                    ConsultantId = (int)paymentData.ConsultantId,
+                    StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                    EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                    ReferenceNumber = paymentData.ReferenceNumber,
+                    PaymentMethodId = (int)paymentData.PaymentMethodId,
+                    PaymentAmount = (decimal)paymentData.PaymentAmount,
+                    CreationDate = DateTime.UtcNow,
+                    UserCreatedBy = userIdCreatedBy,
+                    CompanyId = paymentData.CompanyId,
+                    BankAccountId = (int)paymentData.BankAccountId,
+                    AccountingDate = DateTime.Parse(paymentData.AccountingDate),
+                    AccountPayableId = existingAccountPayable.AccountPayableId
+                };
+
+                // Add the new payment entry and update the balance amount
+                await _db.CONSULTANT_PAYMENTS.AddAsync(consultantPaymentToCreate);
+                existingAccountPayable.BalanceAmount -= (decimal)paymentData.PaymentAmount;
+
+                // Update transaction status if the balance becomes zero
+                if (existingAccountPayable.BalanceAmount == 0)
+                {
+                    var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Rejected").ToListAsync();
+                    existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Paid").TransactionStatusId;
+
+                    await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
+                        (int)paymentData.ConsultantId, "Paid");
                 }
+
+                await _db.SaveChangesAsync();
+
+                // Handle book entries: Retrieve or create a parent entry
+                var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == transactionStatusesPending.TransactionStatusId
+                    && x.CompanyId == paymentData.CompanyId);
+                if (existingBookEntryParent == null)
+                {
+                    existingBookEntryParent = new PaymentBookEntryParent
+                    {
+                        TransactionStatusId = transactionStatusesPending.TransactionStatusId,
+                        CompanyId = paymentData.CompanyId,
+                        CreationDate = DateTime.UtcNow,
+                        UserCreatedBy = userIdCreatedBy
+                    };
+                    await _db.PAYMENT_BOOK_ENTRIES_PARENT.AddAsync(existingBookEntryParent);
+                    await _db.SaveChangesAsync();
+                }
+
+                // Create child book entry linked to the payment and parent
+                var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
+                if (consultantToPay == null) return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found.");
+
+                var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
+                if (userToPay == null) return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found.");
+
+                var bookEntryChildToCreate = new PaymentBookEntryChild
+                {
+                    ParentId = existingBookEntryParent.ParentId,
+                    ConsultantPaymentId = consultantPaymentToCreate.ConsultantPaymentId,
+                    Notes = $"Payment to: {userToPay.Name} {userToPay.LastName}",
+                    Voided = false
+                };
+                await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
+                await _db.SaveChangesAsync();
+
+                // Commit the transaction
+                await transaction.CommitAsync();
+                return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
+            }
+            catch (Exception ex)
+            {
+                // Rollback the transaction in case of an error
+                await transaction.RollbackAsync();
+                return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
+
         public async Task UpdateMovementsStatuses(List<TransactionStatus> transactionStatuses, DateTime startDate, DateTime endDate,
             int consultantId, string newStatus)
         {
@@ -378,11 +377,11 @@ namespace OceansApp.DataAccess.Repository
         }
 
         private async Task<List<JournalAccountPayableEntry>> GetJournalEntriesReadyToCreate(GetListOfMovementsForPaymentVM listOfMovementsForPayment,
-            int consultantId, string companyId, DateTime endDate, decimal accountPayableAmount)
+    int consultantId, string companyId, DateTime endDate, decimal accountPayableAmount)
         {
             List<JournalAccountPayableEntry> entriesListToReturn = new();
 
-            //Create Journal Entries
+            // Loop through project movements to create journal entries
             foreach (var projectMovement in listOfMovementsForPayment.ProjectMovements)
             {
                 var connection = _db.Database.GetDbConnection();
@@ -390,11 +389,17 @@ namespace OceansApp.DataAccess.Repository
                 projectHistoryParameters.Add("@ConsultantId", consultantId);
                 projectHistoryParameters.Add("@ProjectId", projectMovement.ProjectId);
                 projectHistoryParameters.Add("@EndDate", endDate);
-                var currentProjectHistory = await connection.QueryAsync<GetCurrentHistoryVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_GetCurrentHistory", projectHistoryParameters, commandType: CommandType.StoredProcedure);
 
-                var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.MovementTypeId == projectMovement.MovementTypeId &&
-                x.CompanyId == companyId && x.PositionId == currentProjectHistory.FirstOrDefault().PositionId);
+                // Execute stored procedure to get current project history
+                var currentProjectHistory = await connection.QueryAsync<GetCurrentHistoryVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_GetCurrentHistory",
+                    projectHistoryParameters, commandType: CommandType.StoredProcedure);
 
+                // Get the accounting configuration based on the movement type and position
+                var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION
+                    .FirstOrDefaultAsync(x => x.MovementTypeId == projectMovement.MovementTypeId && x.CompanyId == companyId &&
+                    x.PositionId == currentProjectHistory.FirstOrDefault().PositionId);
+
+                // Create journal entry for the project movement
                 JournalAccountPayableEntry journalEntryToCreate = new()
                 {
                     CostCenterId = accountingConfig.CostCenterId,
@@ -405,12 +410,16 @@ namespace OceansApp.DataAccess.Repository
                 };
                 entriesListToReturn.Add(journalEntryToCreate);
             }
+
+            // Loop through benefits and other movements to create journal entries
             foreach (var benefitAndCredit in listOfMovementsForPayment.BenefitsAndOtherMovements)
             {
                 if (benefitAndCredit.MovementId > 0)
                 {
-                    var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS.FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == benefitAndCredit.MovementId);
+                    var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS
+                        .FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == benefitAndCredit.MovementId);
 
+                    // Create journal entry for debit/credit movement
                     JournalAccountPayableEntry journalEntryToCreate = new()
                     {
                         CostCenterId = debitCreditMovement.CostCenterId,
@@ -419,19 +428,24 @@ namespace OceansApp.DataAccess.Repository
                         Debit = benefitAndCredit.TotalAmount,
                         Credit = 0
                     };
-
                     entriesListToReturn.Add(journalEntryToCreate);
                 }
                 else
                 {
+                    // Execute stored procedure to get project history if movement does not have an ID
                     var connection = _db.Database.GetDbConnection();
                     var projectHistoryParameters = new DynamicParameters();
                     projectHistoryParameters.Add("@ConsultantId", consultantId);
                     projectHistoryParameters.Add("@ProjectId", benefitAndCredit.ProjectId);
                     projectHistoryParameters.Add("@EndDate", endDate);
-                    var currentProjectHistory = await connection.QueryAsync<GetCurrentHistoryVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_GetCurrentHistory", projectHistoryParameters, commandType: CommandType.StoredProcedure);
-                    var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.MovementTypeId == benefitAndCredit.MovementTypeId &&
-                    x.CompanyId == companyId && x.PositionId == currentProjectHistory.FirstOrDefault().PositionId);
+
+                    var currentProjectHistory = await connection.QueryAsync<GetCurrentHistoryVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_GetCurrentHistory",
+                        projectHistoryParameters, commandType: CommandType.StoredProcedure);
+
+                    // Get accounting configuration and create journal entry for the benefit/credit movement
+                    var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION
+                        .FirstOrDefaultAsync(x => x.MovementTypeId == benefitAndCredit.MovementTypeId && x.CompanyId == companyId &&
+                        x.PositionId == currentProjectHistory.FirstOrDefault().PositionId);
 
                     JournalAccountPayableEntry journalEntryToCreate = new()
                     {
@@ -444,10 +458,14 @@ namespace OceansApp.DataAccess.Repository
                     entriesListToReturn.Add(journalEntryToCreate);
                 }
             }
+
+            // Loop through debit movements to create journal entries
             foreach (var debitMovement in listOfMovementsForPayment.DebitsMovements)
             {
-                var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS.FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == debitMovement.MovementId);
+                var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS
+                    .FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == debitMovement.MovementId);
 
+                // Create journal entry for debit movement
                 JournalAccountPayableEntry journalEntryToCreate = new()
                 {
                     CostCenterId = debitCreditMovement.CostCenterId,
@@ -456,13 +474,14 @@ namespace OceansApp.DataAccess.Repository
                     Debit = 0,
                     Credit = debitMovement.TotalAmount
                 };
-
                 entriesListToReturn.Add(journalEntryToCreate);
             }
-            //Accounts payable entry
+
+            // Create journal entry for accounts payable
             var costCenter = await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterCode == "10-01-08" && x.CompanyId == companyId);
-            var accountingAccount = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountCode.Contains("2-01-01-002-000")
-            && x.CompanyId == companyId);
+            var accountingAccount = await _db.ACCOUNTING_ACCOUNT
+                .FirstOrDefaultAsync(x => x.AccountingAccountCode.Contains("2-01-01-002-000") && x.CompanyId == companyId);
+
             JournalAccountPayableEntry journalEntryAccountsPayableToCreate = new()
             {
                 CostCenterId = costCenter.CostCenterId,
@@ -473,67 +492,69 @@ namespace OceansApp.DataAccess.Repository
             };
             entriesListToReturn.Add(journalEntryAccountsPayableToCreate);
 
+            // Return the list of all created journal entries
             return entriesListToReturn;
         }
 
+
         public async Task<MethodResponse> SetAsAccountPayable(string userIdCreatedBy,
-            SetAsAccountPayableVM dataFromModel, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment,
-            string companyId)
+    SetAsAccountPayableVM dataFromModel, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment,
+    string companyId)
         {
-            if (dataFromModel == null)
-            {
-                return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
-            }
+            // Validate if dataFromModel is null
+            if (dataFromModel == null) return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
+
+            // Check if an account payable for this consultant and period already exists
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == dataFromModel.ConsultantId &&
-            x.StartDatePeriod == DateTime.Parse(dataFromModel.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(dataFromModel.EndDatePeriod));
+                x.StartDatePeriod == DateTime.Parse(dataFromModel.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(dataFromModel.EndDatePeriod));
 
+            // Return a validation failure if an account payable already exists
             if (existingAccountPayable != null)
+                return MethodResponse.CreateFailureValidationResponse("There is already an account payable for this consultant in the period.");
+
+            // Prepare journal entries for the new account payable
+            var journalEntriesToCreate = await GetJournalEntriesReadyToCreate(listOfMovementsForPayment,
+                (int)dataFromModel.ConsultantId, companyId, DateTime.Parse(dataFromModel.EndDatePeriod), accountPayableAmount);
+
+            // Start a database transaction
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
             {
-                return MethodResponse.CreateFailureValidationResponse($"There is already an account payable for this consultant in the period.");
+                // Create a complete model for account payable creation
+                var completeModel = new CreateUpdateConsultantPaymentVM
+                {
+                    ConsultantId = dataFromModel.ConsultantId,
+                    CompanyId = companyId,
+                    StartDatePeriod = dataFromModel.StartDatePeriod,
+                    EndDatePeriod = dataFromModel.EndDatePeriod
+                };
+
+                // Create the new account payable with the provided data and journal entries
+                existingAccountPayable = await CreateAccountPayable(userIdCreatedBy, completeModel, accountPayableAmount, journalEntriesToCreate);
+
+                // Commit the transaction after successful creation
+                await transaction.CommitAsync();
+                return MethodResponse.CreateSuccessResponse("Reported as account payable successfully!");
             }
-
-            List<JournalAccountPayableEntry> journalEntriesToCreate = new();
-
-            journalEntriesToCreate = await GetJournalEntriesReadyToCreate(listOfMovementsForPayment,
-            (int)dataFromModel.ConsultantId, companyId, DateTime.Parse(dataFromModel.EndDatePeriod), accountPayableAmount);
-
-            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            catch (Exception ex)
             {
-                try
-                {
-                    //Create the account payable movement
-                    CreateUpdateConsultantPaymentVM completeModel = new()
-                    {
-                        ConsultantId = dataFromModel.ConsultantId,
-                        CompanyId = companyId,
-                        StartDatePeriod = dataFromModel.StartDatePeriod,
-                        EndDatePeriod = dataFromModel.EndDatePeriod
-                    };
-
-                    existingAccountPayable = await CreateAccountPayable(userIdCreatedBy,
-                    completeModel, accountPayableAmount, journalEntriesToCreate);
-
-                    await transaction.CommitAsync();
-
-                    return MethodResponse.CreateSuccessResponse("Reported as account payable successfully!");
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
-                }
+                // Rollback the transaction in case of an error
+                await transaction.RollbackAsync();
+                return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
 
+
         private async Task<AccountPayable> CreateAccountPayable(string userIdCreatedBy,
-            CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate)
+    CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate)
         {
-            //Create the account payable movement
+            // Get necessary transaction statuses
+            var transactionStatuses = await _db.TRANSACTION_STATUSES
+                .Where(x => x.Name == "Sent to be paid" || x.Name == "Pending to register" || x.Name == "Rejected")
+                .ToListAsync();
 
-            var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Sent to be paid" || 
-            x.Name == "Pending to register" || x.Name == "Rejected").ToListAsync();
-
-            AccountPayable accountPayableToCreate = new()
+            // Create the account payable entity
+            var accountPayableToCreate = new AccountPayable
             {
                 ConsultantId = (int)paymentData.ConsultantId,
                 StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
@@ -547,18 +568,22 @@ namespace OceansApp.DataAccess.Repository
                 TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Sent to be paid").TransactionStatusId
             };
 
+            // Add the new account payable to the database
             await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
             await _db.SaveChangesAsync();
 
-            //Create the Journal and Journal Entries
+            // Retrieve or create a new journal for accounts payable
             var existingJournal = await _db.JOURNAL_ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) &&
                 x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod) && x.CompanyId == paymentData.CompanyId);
+
             if (existingJournal == null)
             {
+                // Get the next journal consecutive number
                 var journalConsecutive = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == "JOURNAL_CXP" && x.CompanyId == paymentData.CompanyId);
-
                 journalConsecutive.ConsecutiveNumber++;
-                JournalAccountPayable journalToCreate = new()
+
+                // Create a new journal entry
+                var journalToCreate = new JournalAccountPayable
                 {
                     CompanyId = paymentData.CompanyId,
                     TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Pending to register").TransactionStatusId,
@@ -571,280 +596,241 @@ namespace OceansApp.DataAccess.Repository
                     CreationDate = DateTime.UtcNow,
                     UserCreatedBy = userIdCreatedBy
                 };
+
+                // Add the new journal to the database
                 await _db.JOURNAL_ACCOUNTS_PAYABLE.AddAsync(journalToCreate);
                 await _db.SaveChangesAsync();
                 existingJournal = journalToCreate;
             }
 
-            //Create Journal Entries
+            // Add journal entries to the database
             foreach (var journalEntry in journalEntriesToCreate)
             {
                 journalEntry.AccountPayableId = accountPayableToCreate.AccountPayableId;
                 journalEntry.JournalId = existingJournal.JournalId;
-
                 await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.AddAsync(journalEntry);
-                await _db.SaveChangesAsync();
             }
-            //Change movements transaction status
+
+            // Save all journal entries
+            await _db.SaveChangesAsync();
+
+            // Update movements statuses based on the period and consultant
             await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
                        (int)paymentData.ConsultantId, "Sent to be paid");
 
+            // Return the newly created account payable
             return accountPayableToCreate;
         }
 
-        public async Task<MethodResponse> UpdatePayment(string userIdCreatedBy,
-            CreateUpdateConsultantPaymentVM paymentData)
+
+        public async Task<MethodResponse> UpdatePayment(string userIdCreatedBy, CreateUpdateConsultantPaymentVM paymentData)
         {
-            if (paymentData == null)
-            {
-                return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
-            }
-            await using (var transaction = await _db.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    int paymentIdForChildMovement = 0;
-                    var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentData.ConsultantPaymentId);
-                    if (existingPayment == null)
-                    {
-                        return MethodResponse.CreateFailureExceptionResponse("The payment no longer exists.");
-                    }
-                    paymentIdForChildMovement = existingPayment.ConsultantPaymentId;
+            // Validate if payment data is null
+            if (paymentData == null) return MethodResponse.CreateFailureExceptionResponse("Data cannot be null.");
 
-                    var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
+            // Start database transaction
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                // Retrieve the existing payment
+                var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentData.ConsultantPaymentId);
+                if (existingPayment == null) return MethodResponse.CreateFailureExceptionResponse("The payment no longer exists.");
+
+                // Retrieve the account payable
+                var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
                     x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                if (existingAccountPayable == null) return MethodResponse.CreateFailureExceptionResponse("Account payable does not exist.");
 
-                    if (existingAccountPayable == null)
-                    {
-                        return MethodResponse.CreateFailureExceptionResponse("Account payable does not exist.");
-                    }
-                    decimal accountPayableDefaultBalance = existingAccountPayable.BalanceAmount;
+                // Calculate new balance
+                var updatedBalance = (existingPayment.PaymentAmount + existingAccountPayable.BalanceAmount) - paymentData.PaymentAmount;
+                if (paymentData.PaymentAmount > (existingAccountPayable.BalanceAmount + existingPayment.PaymentAmount))
+                    return MethodResponse.CreateFailureValidationResponse("The amount to pay must be less than or equal to the account payable balance.");
 
-                    if (paymentData.PaymentAmount > (existingAccountPayable.BalanceAmount + (decimal)existingPayment.PaymentAmount))
-                    {
-                        return MethodResponse.CreateFailureValidationResponse($"The amount to pay must be less than or equal to the account payable balance amount.");
-                    }
+                // Update the balance
+                existingAccountPayable.BalanceAmount = (decimal)updatedBalance;
 
-                    existingAccountPayable.BalanceAmount = (existingPayment.PaymentAmount + (decimal)existingAccountPayable.BalanceAmount) - (decimal)paymentData.PaymentAmount;
-
-                    var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Sent to be paid" || x.Name == "Rejected").ToListAsync();
-                    int transactionStatusPaid = transactionStatuses.FirstOrDefault(x => x.Name == "Paid").TransactionStatusId;
-
-                    if (existingAccountPayable.BalanceAmount == 0)
-                    {
-                        existingAccountPayable.TransactionStatusId = transactionStatusPaid;
-
-                        await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
-                       (int)paymentData.ConsultantId, "Paid");
-                    }
-                    if (accountPayableDefaultBalance == 0)
-                    {
-                        await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
-                       (int)paymentData.ConsultantId, "Sent to be paid");
-                    }
-
-
-                    //Update Book Entries
-                    var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
-                    if (transactionStatusesPending == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse($"The status Pending to register was not found.");
-                    }
-
-                    var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == transactionStatusesPending.TransactionStatusId
-                    && x.CompanyId == paymentData.CompanyId);
-                    if (existingBookEntryParent == null)
-                    {
-                        //Create Parent
-                        PaymentBookEntryParent bookEntryParentToCreate = new()
-                        {
-                            TransactionStatusId = transactionStatusesPending.TransactionStatusId,
-                            CompanyId = paymentData.CompanyId,
-                            CreationDate = DateTime.UtcNow,
-                            UserCreatedBy = userIdCreatedBy
-                        };
-                        await _db.PAYMENT_BOOK_ENTRIES_PARENT.AddAsync(bookEntryParentToCreate);
-                        await _db.SaveChangesAsync();
-                        existingBookEntryParent = bookEntryParentToCreate;
-                    }
-
-                    var existingChildEntryToAvoid = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
-                                                    join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
-                                                    where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
-                                                    && bp.TransactionStatusId != transactionStatusesPending.TransactionStatusId
-                                                    select new PaymentBookEntryChild
-                                                    {
-                                                        ChildId = bc.ChildId
-                                                    }).FirstOrDefaultAsync();
-
-                    if (existingChildEntryToAvoid != null)
-                    {
-                        existingPayment.Voided = true;
-
-                        //Create new payment with new values
-                        var consultantPaymentToCreate = new ConsultantPayment
-                        {
-                            ConsultantId = (int)paymentData.ConsultantId,
-                            StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
-                            EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
-                            ReferenceNumber = paymentData.ReferenceNumber,
-                            PaymentMethodId = (int)paymentData.PaymentMethodId,
-                            PaymentAmount = (decimal)paymentData.PaymentAmount,
-                            CreationDate = DateTime.UtcNow,
-                            UserCreatedBy = userIdCreatedBy,
-                            CompanyId = paymentData.CompanyId,
-                            BankAccountId = (int)paymentData.BankAccountId,
-                            AccountingDate = DateTime.Parse(paymentData.AccountingDate),
-                            AccountPayableId = existingAccountPayable.AccountPayableId
-                        };
-                        await _db.CONSULTANT_PAYMENTS.AddAsync(consultantPaymentToCreate);
-                        await _db.SaveChangesAsync();
-                        paymentIdForChildMovement = consultantPaymentToCreate.ConsultantPaymentId;
-
-                        var childToAvoid = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntryToAvoid.ChildId);
-                        childToAvoid.Voided = true;
-                        await _db.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        existingPayment.ReferenceNumber = paymentData.ReferenceNumber;
-                        existingPayment.PaymentMethodId = (int)paymentData.PaymentMethodId;
-                        existingPayment.PaymentAmount = (int)paymentData.PaymentAmount;
-                        existingPayment.CompanyId = paymentData.CompanyId;
-                        existingPayment.BankAccountId = (int)paymentData.BankAccountId;
-                        existingPayment.AccountingDate = DateTime.Parse(paymentData.AccountingDate);
-                        existingPayment.UserLastUpdatedBy = userIdCreatedBy;
-                        existingPayment.LastUpdatedDate = DateTime.UtcNow;
-                    }
-
-                    //Create Child entry if status is diferent than pending to register
-                    var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
-                                                    join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
-                                                    where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
-                                                    && bp.TransactionStatusId == transactionStatusesPending.TransactionStatusId
-                                                    select new PaymentBookEntryChild
-                                                    {
-                                                        ChildId = bc.ChildId
-                                                    }).FirstOrDefaultAsync();
-
-                    if (existingChildEntry == null)
-                    {
-                        var existingRegisteredParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId != transactionStatusesPending.TransactionStatusId &&
-                        x.CompanyId == existingPayment.CompanyId);
-                        var childToUpdateVoided = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ConsultantPaymentId == existingPayment.ConsultantPaymentId &&
-                        x.Voided == false);
-                        var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
-                        if (consultantToPay == null)
-                        {
-                            return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
-                        }
-                        var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
-                        if (userToPay == null)
-                        {
-                            return MethodResponse.CreateFailureNotFoundResponse($"The consultant was not found.");
-                        }
-                        PaymentBookEntryChild bookEntryChildToCreate = new()
-                        {
-                            ParentId = existingBookEntryParent.ParentId,
-                            ConsultantPaymentId = paymentIdForChildMovement,
-                            Notes = $"Pago actualizado a: {userToPay.Name} {userToPay.LastName}",
-                            Voided = false
-                        };
-                        await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
-                        await _db.SaveChangesAsync();
-                    }
-                    await _db.SaveChangesAsync();
-                    await transaction.CommitAsync();
-
-                    return MethodResponse.CreateSuccessResponse("Payment updated successfully!");
-                }
-                catch (Exception ex)
+                // Check for transaction status changes if balance is zero
+                var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Sent to be paid" || x.Name == "Rejected").ToListAsync();
+                if (existingAccountPayable.BalanceAmount == 0)
                 {
-                    await transaction.RollbackAsync();
-                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                    existingAccountPayable.TransactionStatusId = transactionStatuses.First(x => x.Name == "Paid").TransactionStatusId;
+                    await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod), (int)paymentData.ConsultantId, "Paid");
                 }
+
+                // Check if the 'Pending to register' status exists
+                var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                if (pendingStatus == null) return MethodResponse.CreateFailureNotFoundResponse("Pending to register status not found.");
+
+                // Retrieve or create the parent book entry
+                var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == pendingStatus.TransactionStatusId && x.CompanyId == paymentData.CompanyId);
+                if (existingBookEntryParent == null)
+                {
+                    existingBookEntryParent = new PaymentBookEntryParent
+                    {
+                        TransactionStatusId = pendingStatus.TransactionStatusId,
+                        CompanyId = paymentData.CompanyId,
+                        CreationDate = DateTime.UtcNow,
+                        UserCreatedBy = userIdCreatedBy
+                    };
+                    await _db.PAYMENT_BOOK_ENTRIES_PARENT.AddAsync(existingBookEntryParent);
+                    await _db.SaveChangesAsync();
+                }
+
+                // Check if there is an existing child entry associated with the payment
+                var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                                join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId && bp.TransactionStatusId == pendingStatus.TransactionStatusId
+                                                select bc).FirstOrDefaultAsync();
+
+                // If there is no existing child entry, we need to create a new payment and associate it with a new child entry
+                if (existingChildEntry == null)
+                {
+                    var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
+                    if (consultantToPay == null) return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
+
+                    var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
+                    if (userToPay == null) return MethodResponse.CreateFailureNotFoundResponse("User not found.");
+
+                    // Mark the existing payment as voided
+                    existingPayment.Voided = true;
+
+                    // Create a new payment with updated values
+                    var newPayment = new ConsultantPayment
+                    {
+                        ConsultantId = (int)paymentData.ConsultantId,
+                        StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                        EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                        ReferenceNumber = paymentData.ReferenceNumber,
+                        PaymentMethodId = (int)paymentData.PaymentMethodId,
+                        PaymentAmount = (decimal)paymentData.PaymentAmount,
+                        CreationDate = DateTime.UtcNow,
+                        UserCreatedBy = userIdCreatedBy,
+                        CompanyId = paymentData.CompanyId,
+                        BankAccountId = (int)paymentData.BankAccountId,
+                        AccountingDate = DateTime.Parse(paymentData.AccountingDate),
+                        AccountPayableId = existingAccountPayable.AccountPayableId
+                    };
+                    await _db.CONSULTANT_PAYMENTS.AddAsync(newPayment);
+                    await _db.SaveChangesAsync();
+
+                    // Mark the old child entry as voided (if it exists)
+                    var oldChildEntry = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ConsultantPaymentId == existingPayment.ConsultantPaymentId && x.Voided == false);
+                    if (oldChildEntry != null)
+                    {
+                        oldChildEntry.Voided = true;
+                        await _db.SaveChangesAsync();
+                    }
+
+                    // Create a new child book entry with the newly created payment
+                    var bookEntryChildToCreate = new PaymentBookEntryChild
+                    {
+                        ParentId = existingBookEntryParent.ParentId,
+                        ConsultantPaymentId = newPayment.ConsultantPaymentId,
+                        Notes = $"Payment updated to: {userToPay.Name} {userToPay.LastName}",
+                        Voided = false
+                    };
+                    await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
+                    await _db.SaveChangesAsync();
+                }
+                else
+                {
+                    // Update existing payment details
+                    existingPayment.ReferenceNumber = paymentData.ReferenceNumber;
+                    existingPayment.PaymentMethodId = (int)paymentData.PaymentMethodId;
+                    existingPayment.PaymentAmount = (decimal)paymentData.PaymentAmount;
+                    existingPayment.CompanyId = paymentData.CompanyId;
+                    existingPayment.BankAccountId = (int)paymentData.BankAccountId;
+                    existingPayment.AccountingDate = DateTime.Parse(paymentData.AccountingDate);
+                    existingPayment.UserLastUpdatedBy = userIdCreatedBy;
+                    existingPayment.LastUpdatedDate = DateTime.UtcNow;
+                    await _db.SaveChangesAsync();
+                }
+
+                // Commit the transaction
+                await transaction.CommitAsync();
+                return MethodResponse.CreateSuccessResponse("Payment updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                // Rollback the transaction in case of error
+                await transaction.RollbackAsync();
+                return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
+
+
+
 
         public async Task<MethodResponse> DeletePayment(int paymentId)
         {
-            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            // Start database transaction
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
             {
-                try
+                // Retrieve the existing payment by ID
+                var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentId);
+                if (existingPayment == null) return MethodResponse.CreateFailureNotFoundResponse("The payment no longer exists.");
+
+                // Retrieve the account payable associated with the payment
+                var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.AccountPayableId == existingPayment.AccountPayableId);
+                if (existingAccountPayable == null) return MethodResponse.CreateFailureNotFoundResponse("The account payable no longer exists.");
+
+                // If the balance is zero, update movement statuses
+                if (existingAccountPayable.BalanceAmount == 0)
                 {
-                    var existingPayment = await _db.CONSULTANT_PAYMENTS.FirstOrDefaultAsync(x => x.ConsultantPaymentId == paymentId);
-                    if (existingPayment == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse("The payment no longer exists.");
-                    }
+                    var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Sent to be paid" || x.Name == "Rejected").ToListAsync();
+                    await UpdateMovementsStatuses(transactionStatuses, existingAccountPayable.StartDatePeriod, existingAccountPayable.EndDatePeriod, existingAccountPayable.ConsultantId, "Sent to be paid");
+                }
 
-                var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.AccountPayableId ==
-                existingPayment.AccountPayableId);
+                // Revert the balance by adding the payment amount back to the account payable
+                existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
 
-                    if (existingAccountPayable == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse("The account payable no longer exists.");
-                    }
-                    if (existingAccountPayable.BalanceAmount == 0)
-                    {
-                        var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Sent to be paid" || x.Name == "Rejected").ToListAsync();
-                        await UpdateMovementsStatuses(transactionStatuses, existingAccountPayable.StartDatePeriod,
-                           existingAccountPayable.EndDatePeriod, existingAccountPayable.ConsultantId, "Sent to be paid");
-                    }
-                    existingAccountPayable.BalanceAmount += existingPayment.PaymentAmount;
+                // Mark the payment as voided
+                existingPayment.Voided = true;
+                await _db.SaveChangesAsync();
 
-                    existingPayment.Voided = true;
+                // Handle any associated book entries
+                var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                if (pendingStatus == null) return MethodResponse.CreateFailureNotFoundResponse("Pending to register status not found.");
 
+                var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                                join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                                && bp.TransactionStatusId != pendingStatus.TransactionStatusId
+                                                select bc).FirstOrDefaultAsync();
+
+                if (existingChildEntry != null)
+                {
+                    // Mark child entry as voided
+                    var childMovementToAvoid = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntry.ChildId);
+                    childMovementToAvoid.Voided = true;
                     await _db.SaveChangesAsync();
-
-                    var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
-                    if (transactionStatusesPending == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse($"The status Pending to register was not found.");
-                    }
-
-                    var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
-                                                           join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
-                                                           where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
-                                                           && bp.TransactionStatusId != transactionStatusesPending.TransactionStatusId
-                                                           select new PaymentBookEntryChild
-                                                           {
-                                                               ChildId = bc.ChildId,
-                                                               Voided = bc.Voided
-                                                           }).FirstOrDefaultAsync();
-
-                    if (existingChildEntry != null)
-                    {
-                        var childMovementToAvoid = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntry.ChildId);
-                        childMovementToAvoid.Voided = true;
-                        await _db.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        var existingChildEntryNotRegister = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
-                                                        join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
-                                                        where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
-                                                        && bp.TransactionStatusId == transactionStatusesPending.TransactionStatusId
-                                                        select new PaymentBookEntryChild
-                                                        {
-                                                            ChildId = bc.ChildId
-                                                        }).FirstOrDefaultAsync();
-                        var childToDelete = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntryNotRegister.ChildId);
-                        _db.PAYMENT_BOOK_ENTRIES_CHILD.Remove(childToDelete);
-                        await _db.SaveChangesAsync();
-                    }
-
-                    await transaction.CommitAsync();
-
-                    return MethodResponse.CreateSuccessResponse("The payment was deleted!");
                 }
-                catch (Exception ex)
+                else
                 {
-                    await transaction.RollbackAsync();
-                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                    // Remove child entry if it has not been registered yet
+                    var existingChildEntryNotRegister = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                                               join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId
+                                                               where bc.ConsultantPaymentId == existingPayment.ConsultantPaymentId
+                                                               && bp.TransactionStatusId == pendingStatus.TransactionStatusId
+                                                               select bc).FirstOrDefaultAsync();
+                    var childToDelete = await _db.PAYMENT_BOOK_ENTRIES_CHILD.FirstOrDefaultAsync(x => x.ChildId == existingChildEntryNotRegister.ChildId);
+                    _db.PAYMENT_BOOK_ENTRIES_CHILD.Remove(childToDelete);
+                    await _db.SaveChangesAsync();
                 }
+
+                // Commit the transaction
+                await transaction.CommitAsync();
+                return MethodResponse.CreateSuccessResponse("The payment was deleted!");
+            }
+            catch (Exception ex)
+            {
+                // Rollback the transaction in case of an error
+                await transaction.RollbackAsync();
+                return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
+
 
         public async Task<List<GetConsultantPaymentsInPeriodVM>> GetConsultantPaymentsInPeriod(int consultantId, DateTime startDate,
             DateTime endDate)
