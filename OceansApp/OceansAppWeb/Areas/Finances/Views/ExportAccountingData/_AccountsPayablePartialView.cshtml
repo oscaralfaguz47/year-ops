@@ -1,0 +1,44 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<partial name="_Pagination" />
+
+<div class="global-table-container accounts-payable-table-cont">
+    <table>
+        <thead>
+            <tr>
+                <th onclick="orderByTableList('SeatNumber', 'SeatNumberTableHeader', 'sortArrowSeatNumber')" data-sort="ANY" name="SeatNumberTableHeader" class="sortable-col">
+                    Seat Number
+                    <span class="sort-arrow" id="sortArrowSeatNumber"></span>
+                </th>
+                <th onclick="orderByTableList('CompanyName', 'CompanyNameTableHeader', 'sortArrowCompanyName')" data-sort="ANY" name="CompanyNameTableHeader" class="sortable-col">
+                    Company
+                    <span class="sort-arrow" id="sortArrowCompanyName">
+                    </span>
+                </th>
+                <th onclick="orderByTableList('AccountingDate', 'AccountingDateTableHeader', 'sortArrowAccountingDate')" data-sort="ANY" name="AccountingDateTableHeader" class="sortable-col">
+                    Accounting Date
+                    <span class="sort-arrow" id="sortArrowAccountingDate">
+                    </span>
+                </th>
+                <th onclick="orderByTableList('StartDatePeriod', 'StartDatePeriodTableHeader', 'sortArrowStartDatePeriod')" data-sort="ANY" name="StartDatePeriodTableHeader" class="sortable-col">
+                    Start Date Period
+                    <span class="sort-arrow" id="sortArrowStartDatePeriod"></span>
+                </th>
+                <th onclick="orderByTableList('EndDatePeriod', 'EndDatePeriodTableHeader', 'sortArrowEndDatePeriod')" data-sort="ANY" name="EndDatePeriodTableHeader" class="sortable-col">
+                    End Date Period
+                    <span class="sort-arrow" id="sortArrowEndDatePeriod"></span>
+                </th>
+                <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
+                    Status
+                    <span class="sort-arrow" id="sortArrowTransactionStatusName">
+                    </span>
+                </th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <div class="no-results"></div>
+</div>
+
+<script src="~/js/Finances/ExportAccountingData/accountsPayable.js?v=@DateTime.Now.Ticks"></script>

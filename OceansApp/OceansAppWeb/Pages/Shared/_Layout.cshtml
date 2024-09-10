@@ -117,6 +117,10 @@
                                                     {
                                                         <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="PaymentSheets" asp-action="Index">Payment Sheets</a>
                                                     }
+                                                    @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Access_Export_Accounting_Data_ClaimType && c.Value == FinancesClaimsCD.Access_Export_Accounting_Data_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link text-dark" asp-area="Finances" asp-controller="ExportAccountingData" asp-action="Index">Export Accounting Data</a>
+                                                    }
                                                 </div>
                                             </li>
                                         }

@@ -173,11 +173,9 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<Company>(entity =>
             {
                 entity.HasIndex(e => e.CompanyId);
-            });
-            modelBuilder.Entity<Company>()
-                .HasKey(c => new { c.CompanyId });
-            modelBuilder.Entity<Company>(entity =>
-            {
+                entity.HasIndex(e => e.Name);
+
+                entity.HasKey(c => new { c.CompanyId });
                 entity.Property(c => c.CompanyId)
                 .HasColumnType("varchar(8)");
             });
@@ -469,6 +467,9 @@ namespace OceansApp.DataAccess.Data
             // JOURNAL
             modelBuilder.Entity<JournalAccountPayable>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.CompanyId, e.TransactionStatusId});
+
                 entity.HasIndex(e => e.CompanyId);
                 entity.HasIndex(e => e.Entry);
                 entity.HasIndex(e => e.AccountingPackage);
@@ -990,6 +991,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<TransactionStatus>(entity =>
             {
                 entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.Name);
             });
 
             // CONSULTANTS BENEFITS

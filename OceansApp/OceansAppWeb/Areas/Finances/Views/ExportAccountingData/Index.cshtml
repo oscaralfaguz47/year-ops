@@ -1,0 +1,25 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Finances/ExportAccountingData/exportAccountingData.css?v=@DateTime.Now.Ticks" />
+
+<div class="tabs container">
+    <div class="tab-header">
+        <div class="tab active" data-tab="tab-accounts-payable">Accounts Payable</div>
+        <div class="tab" data-tab="tab-book-entries">Book Entries</div>
+    </div>
+    <div class="tab-content">
+        <div id="tab-accounts-payable" class="tab-panel active">
+            <h3>Export Accounts Payable</h3>
+            <partial name="_AccountsPayablePartialView" />
+        </div>
+        <div id="tab-book-entries" class="tab-panel">
+            <h3>Export Book Entries</h3>
+            <partial name="_BookEntriesPartialView" />
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Finances/ExportAccountingData/exportAccountingData.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>

@@ -440,6 +440,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     new SystemSubArea { SystemAreaId = 2, Name = "Cuentas Por Cobrar" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Payment Sheets" },
+                    new SystemSubArea { SystemAreaId = 2, Name = "Export Accounting Data" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Calculadora Financiera" },
                     new SystemSubArea { SystemAreaId = 3, Name = "Consultants" },
                     new SystemSubArea { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" },
@@ -790,6 +791,15 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue,
                     Description = "Have access to manage the basics of Payment Sheets.",
                     SystemSubAreaId = paymentSheetsSubAreaId.SystemSubAreaId
+                });
+
+                var exportAccountingDataSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Export Accounting Data");
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = FinancesClaimsCD.Access_Export_Accounting_Data_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Access_Export_Accounting_Data_ClaimValue,
+                    Description = "Have access to export the accounting data.",
+                    SystemSubAreaId = exportAccountingDataSubAreaId.SystemSubAreaId
                 });
 
                 // GENERAL - CONSULTANTS

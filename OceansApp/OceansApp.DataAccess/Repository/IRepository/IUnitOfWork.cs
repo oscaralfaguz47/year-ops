@@ -35,6 +35,7 @@
         IConsultantSeniorityRepository ConsultantSeniority { get; }
         ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; }
         IInterviewRepository Interview { get; }
+        IJournalAccountPayableRepository JournalAccountPayable { get; }
         IPaymentMethodRepository PaymentMethod { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
