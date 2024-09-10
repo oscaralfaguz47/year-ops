@@ -256,7 +256,7 @@ namespace OceansApp.DataAccess.Repository
                 if (existingAccountPayable == null)
                 {
                     existingAccountPayable = await CreateAccountPayable(userIdCreatedBy,
-                        paymentData, accountPayableAmount, journalEntriesToCreate);
+                        paymentData, accountPayableAmount, journalEntriesToCreate, listOfMovementsForPayment.BenefitsAndOtherMovements);
                 }
 
                 // Validate if the payment amount exceeds the account payable balance
@@ -530,7 +530,8 @@ namespace OceansApp.DataAccess.Repository
                 };
 
                 // Create the new account payable with the provided data and journal entries
-                existingAccountPayable = await CreateAccountPayable(userIdCreatedBy, completeModel, accountPayableAmount, journalEntriesToCreate);
+                existingAccountPayable = await CreateAccountPayable(userIdCreatedBy, completeModel, accountPayableAmount, journalEntriesToCreate,
+                    listOfMovementsForPayment.BenefitsAndOtherMovements);
 
                 // Commit the transaction after successful creation
                 await transaction.CommitAsync();
@@ -546,7 +547,8 @@ namespace OceansApp.DataAccess.Repository
 
 
         private async Task<AccountPayable> CreateAccountPayable(string userIdCreatedBy,
-    CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate)
+    CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate,
+    List<GetPaymentDetailsMovementsVM>? listOfBenefitsMovements)
         {
             // Get necessary transaction statuses
             var transactionStatuses = await _db.TRANSACTION_STATUSES
@@ -613,6 +615,25 @@ namespace OceansApp.DataAccess.Repository
 
             // Save all journal entries
             await _db.SaveChangesAsync();
+
+            //Register Holidays
+            if (listOfBenefitsMovements != null)
+            {
+                foreach (var benefitsAndOther in listOfBenefitsMovements)
+                {
+                    if (benefitsAndOther.PaymentType == "Holidays")
+                    {
+                        AccountPayableHoliday accountPayableHolidayToCreate = new()
+                        {
+                            AccountPayableId = accountPayableToCreate.AccountPayableId,
+                            Reference = benefitsAndOther.MovementTypeName,
+                            TotalAmount = benefitsAndOther.TotalAmount
+                        };
+                        await _db.ACCOUNT_PAYABLE_HOLIDAYS.AddAsync(accountPayableHolidayToCreate);
+                        await _db.SaveChangesAsync();
+                    }
+                }
+            }
 
             // Update movements statuses based on the period and consultant
             await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),

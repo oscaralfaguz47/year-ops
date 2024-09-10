@@ -23,10 +23,8 @@ async function displayMakePaymentModal(modalId, paymentId) {
     referenceNumberInputMP.value = null;
     displaySpinner();
     enableModalButtons(submitBtnsInitialize, otherBtns, 'spinner-border');
-    if (paymentMethodsArray.length === 0) {
-        paymentMethodsArray = await getAllPaymentMethodsList();
-        populateSelect('PaymentMethodSelect', paymentMethodsArray.paymentMethods, null, null);
-    }
+    paymentMethodsSelectMP.innerHTML = '';
+
     try {
         const response = await fetch(url);
 
@@ -51,6 +49,10 @@ async function displayMakePaymentModal(modalId, paymentId) {
         <label>Report total amount: <span>$${dataFromApi.reportDetails.amountToPay.toFixed(2)}</span></label>`;
         paymentMethodsSelectMP.value = dataFromApi.reportDetails.paymentMethodId;
         currentPaymentMethodId = dataFromApi.reportDetails.paymentMethodId;
+
+        paymentMethodsArray = await getPaymentMethodsWhereCompanyList(dataFromApi.reportDetails.companyId);
+        populateSelect('PaymentMethodSelect', paymentMethodsArray.paymentMethods, null, null);
+
         await getBankAccounts(dataFromApi.reportDetails.paymentMethodId)
         companyNameDiv.textContent = dataFromApi.reportDetails.companyId === "OCE" ? 'Oceans Consulting Firm' : 'OCE LLC';
         totalAmountToPayInputMP.value = dataFromApi.reportDetails.amountToPay.toFixed(2);

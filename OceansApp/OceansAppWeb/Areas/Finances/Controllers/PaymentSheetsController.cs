@@ -183,9 +183,18 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 GetReportToMakePaymentVM reportToSend = new();
 
                 reportToSend.ConsultantName = consultant.Name + " " + consultant.LastName;
-                var accountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId &&
-                x.StartDatePeriod == startDate && x.EndDatePeriod == endDate);
-                reportToSend.AccountPayableBalance = accountPayable == null ? null : accountPayable.BalanceAmount;
+                var accountPayableList = await _unitOfWork.AccountPayable.GetAllAsync(x => x.ConsultantId == consultantId &&
+                x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate);
+                decimal? balanceAmount = null;
+                if (accountPayableList.Count() > 0)
+                {
+                    balanceAmount = 0;
+                    foreach (var accountPayable in accountPayableList)
+                    {
+                        balanceAmount += accountPayable.BalanceAmount;
+                    }
+                }
+                reportToSend.AccountPayableBalance = balanceAmount;
 
                 var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
                 reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList;
@@ -221,12 +230,21 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 reportToSend.CountryName = consultant.CountryName;
                 reportToSend.CompanyId = consultant.CompanyId;
 
-                var accountPayable = await _unitOfWork.AccountPayable.GetFirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId &&
-                x.StartDatePeriod == startDate && x.EndDatePeriod == endDate);
+                var accountPayableList = await _unitOfWork.AccountPayable.GetAllAsync(x => x.ConsultantId == consultant.ConsultantId &&
+                x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate);
+
+                decimal balanceAmount = 0;
+                if (accountPayableList.Count() > 0)
+                {
+                    foreach (var accountPayable in accountPayableList)
+                    {
+                        balanceAmount += accountPayable.BalanceAmount;
+                    }
+                }
 
                 decimal totalAmountToPay = 0;
 
-                if (accountPayable == null)
+                if (accountPayableList.Count() == 0)
                 {
                     var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
 
@@ -259,7 +277,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
                 else
                 {
-                    totalAmountToPay = accountPayable.BalanceAmount;
+                    totalAmountToPay = balanceAmount;
                 }
 
                 reportToSend.AmountToPay = totalAmountToPay;

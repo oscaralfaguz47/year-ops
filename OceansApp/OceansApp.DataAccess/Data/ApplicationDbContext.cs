@@ -69,6 +69,18 @@ namespace OceansApp.DataAccess.Data
               .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // ACCOUNTS PAYABLE HOLIDAYS
+            modelBuilder.Entity<AccountPayableHoliday>(entity =>
+            {
+                entity.HasIndex(e => e.AccountPayableId);
+
+                entity.HasKey(c => new { c.AccountPayableHolidayId });
+                entity.HasOne(a => a.AccountPayable)
+                .WithMany()
+                .HasForeignKey(a => a.AccountPayableId)
+                .IsRequired();
+            });
+
             // APPLICATION USER
             modelBuilder.Entity<ApplicationUser>(entity =>
             {
@@ -1149,6 +1161,7 @@ namespace OceansApp.DataAccess.Data
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
+        public DbSet<AccountPayableHoliday> ACCOUNT_PAYABLE_HOLIDAYS { get; set; }
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
         public DbSet<DataUpdateDate> DATA_UPDATE_DATES { get; set; }
         public DbSet<ApplicationUser> AspNetUsers { get; set; }
