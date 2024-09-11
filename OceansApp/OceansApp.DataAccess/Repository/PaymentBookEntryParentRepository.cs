@@ -3,20 +3,20 @@ using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
-using OceansApp.Models.ViewModels.JournalAccountsPayable;
+using OceansApp.Models.ViewModels.PaymentBookEntries;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository
 {
-    public class JournalAccountPayableRepository : Repository<JournalAccountPayable>, IJournalAccountPayableRepository
+    public class PaymentBookEntryParentRepository : Repository<PaymentBookEntryParent>, IPaymentBookEntryParentRepository
     {
         private ApplicationDbContext _db;
-        public JournalAccountPayableRepository(ApplicationDbContext db) : base(db)
+        public PaymentBookEntryParentRepository(ApplicationDbContext db) : base(db)
         {
             _db = db;
         }
 
-        public async Task<(List<JournalAccountsPayableGetAllWithFiltersVM> journalAccountsPayable, int totalCount)> GetAllJournalAccountsPayableWithFiltersAsync(JournalAccountsPayablePaginationFiltersVM filtersAndPagination)
+        public async Task<(List<BookEntriesGetAllWithFiltersVM> bookEntries, int totalCount)> GetAllBookEntriesWithFiltersAsync(BookEntriesPaginationFiltersVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();
 
@@ -30,11 +30,11 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            var results = await connection.QueryAsync<JournalAccountsPayableGetAllWithFiltersVM>("SP_JOURNAL_ACCOUNTS_PAYABLE_GetAllJournalAccountsPayableWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var results = await connection.QueryAsync<BookEntriesGetAllWithFiltersVM>("SP_PAYMENT_BOOK_ENTRIES_CHILD_GetAllBookEntriesWithFilters", parameters, commandType: CommandType.StoredProcedure);
             var totalCount = parameters.Get<int>("@TotalCount");
-            var journalAccountsPayable = results.ToList();
+            var bookEntries = results.ToList();
 
-            return (journalAccountsPayable, totalCount);
+            return (bookEntries, totalCount);
         }
 
     }

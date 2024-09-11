@@ -1,8 +1,11 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
-<partial name="_Pagination" />
+
+<div id="ap-pagination-container">
+    <partial name="_Pagination" />
+</div>
 
 <div class="global-table-container accounts-payable-table-cont">
-    <table>
+    <table id="accounts-payable-table" style="display: none">
         <thead>
             <tr>
                 <th onclick="orderByTableList('SeatNumber', 'SeatNumberTableHeader', 'sortArrowSeatNumber')" data-sort="ANY" name="SeatNumberTableHeader" class="sortable-col">
@@ -38,7 +41,4 @@
         <tbody>
         </tbody>
     </table>
-    <div class="no-results"></div>
 </div>
-
-<script src="~/js/Finances/ExportAccountingData/accountsPayable.js?v=@DateTime.Now.Ticks"></script>

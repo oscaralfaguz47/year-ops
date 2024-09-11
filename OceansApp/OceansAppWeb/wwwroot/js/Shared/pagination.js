@@ -99,3 +99,23 @@ function orderByTableList(columnName, value, sortArrow) {
     inputDirectionOrder.value = th.getAttribute("data-sort");
     paginationSubmit(false, false);
 }
+
+async function getPaginationComponent() {
+    const url = `/Pagination/GetPagination`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorData = await response.text();
+            displayToasterError("Error loading pagination component");
+            throw new Error(`The request to the server failed! More details: ${errorData}`);
+        }
+
+        const htmlContent = await response.text(); 
+        return htmlContent;  
+    } catch (error) {
+        validateSessionExpiration(error.message);
+        displayToasterError("Internet connection failed");
+        throw new Error(`Network error or unable to reach the server. More details: ${error.message}`);
+    }
+}
+

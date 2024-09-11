@@ -1,29 +1,36 @@
-﻿<div class="global-table-container">
-    <table>
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div id="be-pagination-container">
+    <partial name="_Pagination" />
+</div>
+
+<div class="global-table-container book-entries-table-cont">
+    <table id="book-entries-table" style="display: none">
         <thead>
             <tr>
-                <th onclick="orderByTableList('LastSubmissionDate', 'LastSubmissionDateTableHeader', 'sortArrowLastSubmissionDate')" data-sort="ANY" name="LastSubmissionDateTableHeader" class="sortable-col">
+                <th onclick="orderByTableList('ParentId', 'ParentIdTableHeader', 'sortArrowParentId')" data-sort="ANY" name="ParentIdTableHeader" class="sortable-col">
                     Book Entry Id
-                    <span class="sort-arrow" id="sortArrowLastSubmissionDate"></span>
+                    <span class="sort-arrow" id="sortArrowParentId"></span>
                 </th>
-                <th onclick="orderByTableList('ConsultantName', 'ConsultantNameTableHeader', 'sortArrowConsultantName')" data-sort="ANY" name="ConsultantNameTableHeader" class="sortable-col">
+                <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">
                     Creation Date
-                    <span class="sort-arrow" id="sortArrowConsultantName">
+                    <span class="sort-arrow" id="sortArrowCreationDate">
                     </span>
                 </th>
-                <th onclick="orderByTableList('ProjectName', 'ProjectNameTableHeader', 'sortArrowProjectName')" data-sort="ANY" name="ProjectNameTableHeader" class="sortable-col">
+                <th onclick="orderByTableList('CompanyName', 'CompanyNameTableHeader', 'sortArrowCompanyName')" data-sort="ANY" name="CompanyNameTableHeader" class="sortable-col">
+                    Company
+                    <span class="sort-arrow" id="sortArrowCompanyName"></span>
+                </th>
+                <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
                     Status
-                    <span class="sort-arrow" id="sortArrowProjectName"></span>
+                    <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
                 </th>
-                <th onclick="orderByTableList('LastSubmissionDate', 'LastSubmissionDateTableHeader', 'sortArrowLastSubmissionDate')" data-sort="ANY" name="LastSubmissionDateTableHeader" class="sortable-col">
-                   Company
-                    <span class="sort-arrow" id="sortArrowLastSubmissionDate"></span>
-                </th>
+                 <th># Valid Movements</th>
+                <th># Voided Movements</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
     </table>
-    <div class="no-results a-p-no-results"></div>
 </div>

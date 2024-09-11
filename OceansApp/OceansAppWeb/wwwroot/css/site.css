@@ -235,7 +235,29 @@ nav {
     border: var(--clr-blueDark) solid 5px;
     border-right-color: transparent;
 }
+.global-internal-spinner-cont{
+    text-align: center;
+    font-weight: 900;
+}
 
+.global-internal-spinner {
+    border: 5px solid rgba(0, 0, 0, 0.2);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border-left-color: transparent;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
 .tooltip-container {
     position: relative;
     display: inline-block;

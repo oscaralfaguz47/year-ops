@@ -6,20 +6,42 @@
 
 <div class="tabs container">
     <div class="tab-header">
-        <div class="tab active" data-tab="tab-accounts-payable">Accounts Payable</div>
-        <div class="tab" data-tab="tab-book-entries">Book Entries</div>
+        <div class="tab active" onclick="bookEntriesPartial = null; getJournalAccountsPayableList(true, false)" data-tab="tab-accounts-payable">Accounts Payable</div>
+        <div class="tab" onclick="accountsPayablePartial = null; getBookEntriesList(true, false)" data-tab="tab-book-entries">Book Entries</div>
     </div>
     <div class="tab-content">
         <div id="tab-accounts-payable" class="tab-panel active">
             <h3>Export Accounts Payable</h3>
-            <partial name="_AccountsPayablePartialView" />
+            <div id="accounts-payable-tab-content">
+                <div class="no-results a-p-no-results"></div>
+                <div id="ap-spinner" class="global-internal-spinner-cont">
+                    <div>
+                        <div class="global-internal-spinner"></div>
+                        <div>
+                            <p><strong>Loading data, wait...</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="tab-book-entries" class="tab-panel">
             <h3>Export Book Entries</h3>
-            <partial name="_BookEntriesPartialView" />
+            <div id="book-entriies-tab-content">
+                <div class="no-results a-p-no-results"></div>
+                <div id="ap-spinner" class="global-internal-spinner-cont">
+                    <div>
+                        <div class="global-internal-spinner"></div>
+                        <div>
+                            <p><strong>Loading data, wait...</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="~/js/Finances/ExportAccountingData/exportAccountingData.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/ExportAccountingData/accountsPayable.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/ExportAccountingData/bookEntries.js?v=@DateTime.Now.Ticks"></script>

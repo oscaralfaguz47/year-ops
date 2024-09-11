@@ -697,6 +697,7 @@ namespace OceansApp.DataAccess.Data
             // PAYMENT BOOK ENTRIES PARENT
             modelBuilder.Entity<PaymentBookEntryParent>(entity =>
             {
+                entity.HasIndex(e => new { e.CompanyId, e.TransactionStatusId, e.ParentId });
                 entity.HasIndex(e => e.ParentId);
                 entity.HasIndex(e => e.UserCreatedBy);
                 entity.HasIndex(e => e.TransactionStatusId);
@@ -727,6 +728,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ChildId);
                 entity.HasIndex(e => e.ParentId);
                 entity.HasIndex(e => e.ConsultantPaymentId);
+                entity.HasIndex(e => e.Voided);
 
                 entity.HasOne(p => p.PaymentBookEntryParent)
               .WithMany()

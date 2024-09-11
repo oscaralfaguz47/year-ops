@@ -37,6 +37,7 @@
         IInterviewRepository Interview { get; }
         IJournalAccountPayableRepository JournalAccountPayable { get; }
         IPaymentMethodRepository PaymentMethod { get; }
+        IPaymentBookEntryParentRepository PaymentBookEntryParent { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; }

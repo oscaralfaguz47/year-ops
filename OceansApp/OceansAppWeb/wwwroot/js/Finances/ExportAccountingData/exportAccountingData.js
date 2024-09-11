@@ -1,4 +1,6 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿let bookEntriesPartial = null;
+let accountsPayablePartial = null;
+document.addEventListener("DOMContentLoaded", function () {
     const tabs = document.querySelectorAll(".tab");
     const panels = document.querySelectorAll(".tab-panel");
 
@@ -20,3 +22,10 @@
 $(document).ready(function () {
    getJournalAccountsPayableList(true, false);
 });
+function paginationSubmit(firstTime, filters) {
+    if (bookEntriesPartial === null) {
+        getJournalAccountsPayableList(firstTime, filters);
+    } else {
+        getBookEntriesList(firstTime, filters);
+    }
+}

@@ -545,7 +545,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-
         private async Task<AccountPayable> CreateAccountPayable(string userIdCreatedBy,
     CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate,
     List<GetPaymentDetailsMovementsVM>? listOfBenefitsMovements)
@@ -591,9 +590,9 @@ namespace OceansApp.DataAccess.Repository
                     TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Pending to register").TransactionStatusId,
                     StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
                     EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
-                    Entry = $"OCXPF{journalConsecutive.ConsecutiveNumber.ToString().PadLeft(5, '0')}",
-                    AccountingPackage = "OCXP",
-                    EntryType = "OCXP",
+                    Entry = $"{paymentData.CompanyId}{journalConsecutive.ConsecutiveNumber.ToString().PadLeft(7, '0')}",
+                    AccountingPackage = paymentData.CompanyId,
+                    EntryType = paymentData.CompanyId,
                     AccountingDate = DateTime.Parse(paymentData.EndDatePeriod),
                     CreationDate = DateTime.UtcNow,
                     UserCreatedBy = userIdCreatedBy

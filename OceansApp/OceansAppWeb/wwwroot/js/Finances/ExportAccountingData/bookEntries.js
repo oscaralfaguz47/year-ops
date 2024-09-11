@@ -1,20 +1,17 @@
-﻿
-const noResultsMessage = $(".a-p-no-results");
+﻿const beNoResultsMessage = $(".b-e-no-results");
+const bookEntriesContent = getElementById('book-entriies-tab-content');
 
-const accountsPayableContent = getElementById('accounts-payable-tab-content');
-
-async function getJournalAccountsPayableList(firstTime, filters) {
-    bookEntriesPartial = null;
-    bookEntriesContent.innerHTML = '';
-    if (accountsPayablePartial === null) {
-        accountsPayablePartial = await getAccountsPayablePartialView();
-        accountsPayableContent.innerHTML = accountsPayablePartial;
+async function getBookEntriesList(firstTime, filters) {
+    accountsPayablePartial = null;
+    accountsPayableContent.innerHTML = '';
+    if (bookEntriesPartial === null) {
+        booEntriesPartial = await getBookEntriesPartialView();
+        bookEntriesContent.innerHTML = booEntriesPartial;
     }
-
     var formData = recolectDataFromForm(filters, firstTime);
     console.log(formData);
     var queryString = JSON.stringify(formData);
-    var url = "/Finances/ExportAccountingData/GetJournalAccountsPayableList?model=" + encodeURIComponent(queryString);
+    var url = "/Finances/ExportAccountingData/GetBookEntriesList?model=" + encodeURIComponent(queryString);
 
     fetch(url)
         .then(response => {
@@ -28,44 +25,35 @@ async function getJournalAccountsPayableList(firstTime, filters) {
             }
         })
         .then(data => {
-            var tbody = $(".accounts-payable-table-cont table tbody");
-            var tableRows = $(".accounts-payable-table-cont table");
-            noResultsMessage.empty();
+            var tbody = $(".book-entries-table-cont table tbody");
+            var tableRows = $(".book-entries-table-cont table");
+            beNoResultsMessage.empty();
             tbody.empty();
-            data.journalAccountsPayableList.forEach(function (obj, index) {
-                var accountingDate = new Date(obj.accountingDate);
-                var accountingDateformattedDate = ('0' + (accountingDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + accountingDate.getDate()).slice(-2) + '/' +
-                    accountingDate.getFullYear();
-
-                var startPeriodDate = new Date(obj.startDatePeriod);
-                var startPeriodDateformattedDate = ('0' + (startPeriodDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + startPeriodDate.getDate()).slice(-2) + '/' +
-                    startPeriodDate.getFullYear();
-
-                var endPeriodDate = new Date(obj.endDatePeriod);
-                var endPeriodDateformattedDate = ('0' + (endPeriodDate.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + endPeriodDate.getDate()).slice(-2) + '/' +
-                    endPeriodDate.getFullYear();
+            data.bookEntriesList.forEach(function (obj, index) {
+                var creationDate = new Date(obj.creationDate);
+                var creationDateformattedDate = ('0' + (creationDate.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + creationDate.getDate()).slice(-2) + '/' +
+                    creationDate.getFullYear();
 
                 var row = `<tr class="hover-group">
-                  <td>${obj.seatNumber}</td>
+                  <td>${obj.parentId}</td>
+                  <td>${creationDateformattedDate}</td>
                   <td>${obj.companyName}</td>
-                  <td>${accountingDateformattedDate}</td>
-                  <td>${startPeriodDateformattedDate}</td>
-                  <td>${endPeriodDateformattedDate}</td>
                   <td>${obj.transactionStatusName}</td>
+                  <td>${obj.numValidChildren}</td>
+                  <td>${obj.numVoidedChildren}</td>
                   <td></td>
               </tr>`;
                 tbody.append(row);
             });
 
-            if (data.journalAccountsPayableList.length === 0) {
-                noResultsMessage.text("NO RECORDS FOUND");
+            if (data.bookEntriesList.length === 0) {
+                beNoResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
             } else {
                 tableRows.css("display", "block");
             };
+            console.log(data.paginationFilters.paginationWithoutFilters.pagination);
             updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
         })
         .catch(error => {
@@ -108,8 +96,8 @@ function updatePagination(paginationData) {
 }
 
 
-async function getAccountsPayablePartialView() {
-    const url = `/Finances/ExportAccountingData/GetAccountsPayablePartial`;
+async function getBookEntriesPartialView() {
+    const url = `/Finances/ExportAccountingData/GetBookEntriesPartial`;
 
     try {
         const response = await fetch(url);

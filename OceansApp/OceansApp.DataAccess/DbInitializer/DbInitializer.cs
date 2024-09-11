@@ -294,7 +294,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 List<GlobalConsecutive> globalConsecutivesList = new List<GlobalConsecutive>
                 {
-                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 1, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "OCE" },
                     new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "LLC" }
                 };
 
