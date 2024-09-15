@@ -37,5 +37,25 @@ namespace OceansApp.DataAccess.Repository
             return (bookEntries, totalCount);
         }
 
+        public async Task<List<BookEntriesToExportVM>> GetBookEntriesToExport(int parentId)
+        {
+            var result = await (from bec in _db.PAYMENT_BOOK_ENTRIES_CHILD
+                                join p in _db.CONSULTANT_PAYMENTS on bec.ConsultantPaymentId equals p.ConsultantPaymentId
+                                join ba in _db.BANK_ACCOUNTS on p.BankAccountId equals ba.BankAccountId
+                                where bec.ParentId == parentId
+                                select new BookEntriesToExportVM
+                                {
+                                    BankAccount = ba.BankAccountCode,
+                                    AccountingDate = p.AccountingDate,
+                                    ReferenceNumber = p.ReferenceNumber,
+                                    Notes = bec.Notes,
+                                    PaymentAmount = p.PaymentAmount,
+                                    DocumentSubType = p.CompanyId == "OCE" ? 110 : 20,
+                                    EntryType = p.CompanyId == "OCE" ? "OCE" : "LLC",
+                                    TaxCode = "ND"
+                                }).ToListAsync();
+            return result;
+        }
+
     }
 }

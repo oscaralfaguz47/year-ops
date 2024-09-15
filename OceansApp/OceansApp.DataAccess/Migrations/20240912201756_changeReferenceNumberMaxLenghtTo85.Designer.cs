@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240912201756_changeReferenceNumberMaxLenghtTo85")]
+    partial class changeReferenceNumberMaxLenghtTo85
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1103,14 +1106,14 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("PaymentMethodId");
 
+                    b.HasIndex("ReferenceNumber")
+                        .IsUnique();
+
                     b.HasIndex("UserCreatedBy");
 
                     b.HasIndex("UserLastUpdatedBy");
 
                     b.HasIndex("Voided");
-
-                    b.HasIndex("ReferenceNumber", "BankAccountId")
-                        .IsUnique();
 
                     b.HasIndex("ConsultantId", "StartDatePeriod", "EndDatePeriod");
 
@@ -1714,9 +1717,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DownloadsNumber")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("EndDatePeriod")
                         .HasColumnType("date");
 
@@ -2135,9 +2135,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("DownloadsNumber")
-                        .HasColumnType("int");
 
                     b.Property<int>("TransactionStatusId")
                         .HasColumnType("int");

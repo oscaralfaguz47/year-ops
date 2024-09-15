@@ -49,6 +49,7 @@ namespace OceansApp.DataAccess.Repository
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
             Interview = new InterviewRepository(_db);
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
+            JournalAccountPayableEntry = new JournalAccountPayableEntryRepository(_db);
             Partner = new PartnerRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
             PaymentBookEntryParent = new PaymentBookEntryParentRepository(_db);
@@ -106,6 +107,7 @@ namespace OceansApp.DataAccess.Repository
         public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
         public IInterviewRepository Interview { get; set; }
         public IJournalAccountPayableRepository JournalAccountPayable { get; set; }
+        public IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; set; }
         public IPaymentMethodRepository PaymentMethod { get; set; }
         public IPaymentBookEntryParentRepository PaymentBookEntryParent { get; set; }
         public IProjectRepository Project { get; set; }

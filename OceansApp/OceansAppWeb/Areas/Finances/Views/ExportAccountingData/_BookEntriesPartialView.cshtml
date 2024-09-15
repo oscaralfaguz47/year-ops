@@ -1,36 +1,48 @@
 ﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <div id="be-pagination-container">
-    <partial name="_Pagination" />
+    <partial name="_Pagination2" />
 </div>
 
 <div class="global-table-container book-entries-table-cont">
     <table id="book-entries-table" style="display: none">
         <thead>
             <tr>
-                <th onclick="orderByTableList('ParentId', 'ParentIdTableHeader', 'sortArrowParentId')" data-sort="ANY" name="ParentIdTableHeader" class="sortable-col">
+                <th onclick="orderByTableListP2('ParentId', 'ParentIdTableHeader', 'sortArrowParentId')" data-sort="ANY" name="ParentIdTableHeader" class="sortable-col">
                     Book Entry Id
                     <span class="sort-arrow" id="sortArrowParentId"></span>
                 </th>
-                <th onclick="orderByTableList('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">
+                <th onclick="orderByTableListP2('CreationDate', 'CreationDateTableHeader', 'sortArrowCreationDate')" data-sort="ANY" name="CreationDateTableHeader" class="sortable-col">
                     Creation Date
                     <span class="sort-arrow" id="sortArrowCreationDate">
                     </span>
                 </th>
-                <th onclick="orderByTableList('CompanyName', 'CompanyNameTableHeader', 'sortArrowCompanyName')" data-sort="ANY" name="CompanyNameTableHeader" class="sortable-col">
+                <th onclick="orderByTableListP2('CompanyName', 'CompanyNameBETableHeader', 'sortArrowCompanyNameBE')" data-sort="ANY" name="CompanyNameBETableHeader" class="sortable-col">
                     Company
-                    <span class="sort-arrow" id="sortArrowCompanyName"></span>
-                </th>
-                <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
-                    Status
-                    <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
+                    <span class="sort-arrow" id="sortArrowCompanyNameBE"></span>
                 </th>
                  <th># Valid Movements</th>
                 <th># Voided Movements</th>
+                <th onclick="orderByTableListP2('TransactionStatusName', 'TransactionStatusNameBETableHeader', 'sortArrowTransactionStatusNameBE')" data-sort="ANY" name="TransactionStatusNameBETableHeader" class="sortable-col">
+                    Status
+                    <span class="sort-arrow" id="sortArrowTransactionStatusNameBE"></span>
+                </th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
     </table>
+    <div class="no-results" id="be-no-results"></div>
+    <div id="be-spinner" class="global-internal-spinner-cont">
+        <div>
+            <div class="global-internal-spinner"></div>
+            <div>
+                <p><strong>Loading data, wait...</strong></p>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="~/js/Shared/pagination2.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/ExportAccountingData/bookEntries.js?v=@DateTime.Now.Ticks"></script>

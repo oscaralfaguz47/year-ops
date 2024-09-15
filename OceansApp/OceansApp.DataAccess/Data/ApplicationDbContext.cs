@@ -372,6 +372,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.AccountingDate);
                 entity.HasIndex(e => e.AccountPayableId);
                 entity.HasIndex(e => e.Voided);
+                entity.HasIndex(e => new { e.ReferenceNumber, e.BankAccountId }).IsUnique();
 
                 entity.HasKey(c => new { c.ConsultantPaymentId });
                 entity.HasOne(cp => cp.ConsultantDetail)
@@ -412,7 +413,8 @@ namespace OceansApp.DataAccess.Data
               .IsRequired()
               .OnDelete(DeleteBehavior.Restrict);
                 entity.Property(r => r.ReferenceNumber)
-                .HasColumnType("varchar(50)");
+                .HasColumnType("varchar(85)")
+                .IsRequired();
             });
 
 

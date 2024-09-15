@@ -16,6 +16,7 @@ using OceansApp.Utility.SharedMethods;
 using System.Data;
 using OceansApp.Models.ViewModels.ProjectConsultantAssignedHistory;
 using OceansApp.Models.ViewModels.AccountsPayable;
+using Microsoft.Data.SqlClient;
 
 
 
@@ -297,7 +298,7 @@ namespace OceansApp.DataAccess.Repository
                 await _db.SaveChangesAsync();
 
                 // Handle book entries: Retrieve or create a parent entry
-                var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
+                var transactionStatusesPending = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending Accounting");
                 var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == transactionStatusesPending.TransactionStatusId
                     && x.CompanyId == paymentData.CompanyId);
                 if (existingBookEntryParent == null)
@@ -333,6 +334,22 @@ namespace OceansApp.DataAccess.Repository
                 // Commit the transaction
                 await transaction.CommitAsync();
                 return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
+            }
+            catch (DbUpdateException ex)
+            {
+                // Rollback the transaction in case of an error
+                await transaction.RollbackAsync();
+
+                // Check if the exception is caused by a unique constraint violation
+                if (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2601) // SqlException error code 2601 is for duplicate keys
+                {
+                    return MethodResponse.CreateFailureValidationResponse("The reference number already exists. Please use a different one.");
+                }
+                else
+                {
+                    // Handle other exceptions
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -551,7 +568,7 @@ namespace OceansApp.DataAccess.Repository
         {
             // Get necessary transaction statuses
             var transactionStatuses = await _db.TRANSACTION_STATUSES
-                .Where(x => x.Name == "Sent to be paid" || x.Name == "Pending to register" || x.Name == "Rejected")
+                .Where(x => x.Name == "Sent to be paid" || x.Name == "Pending Accounting" || x.Name == "Rejected")
                 .ToListAsync();
 
             // Create the account payable entity
@@ -587,7 +604,7 @@ namespace OceansApp.DataAccess.Repository
                 var journalToCreate = new JournalAccountPayable
                 {
                     CompanyId = paymentData.CompanyId,
-                    TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Pending to register").TransactionStatusId,
+                    TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Pending Accounting").TransactionStatusId,
                     StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
                     EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
                     Entry = $"{paymentData.CompanyId}{journalConsecutive.ConsecutiveNumber.ToString().PadLeft(7, '0')}",
@@ -677,9 +694,9 @@ namespace OceansApp.DataAccess.Repository
                     await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod), (int)paymentData.ConsultantId, "Paid");
                 }
 
-                // Check if the 'Pending to register' status exists
-                var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
-                if (pendingStatus == null) return MethodResponse.CreateFailureNotFoundResponse("Pending to register status not found.");
+                // Check if the 'Pending Accounting' status exists
+                var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending Accounting");
+                if (pendingStatus == null) return MethodResponse.CreateFailureNotFoundResponse("Pending Accounting status not found.");
 
                 // Retrieve or create the parent book entry
                 var existingBookEntryParent = await _db.PAYMENT_BOOK_ENTRIES_PARENT.FirstOrDefaultAsync(x => x.TransactionStatusId == pendingStatus.TransactionStatusId && x.CompanyId == paymentData.CompanyId);
@@ -770,6 +787,22 @@ namespace OceansApp.DataAccess.Repository
                 await transaction.CommitAsync();
                 return MethodResponse.CreateSuccessResponse("Payment updated successfully!");
             }
+            catch (DbUpdateException ex)
+            {
+                // Rollback the transaction in case of an error
+                await transaction.RollbackAsync();
+
+                // Check if the exception is caused by a unique constraint violation
+                if (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2601) // SqlException error code 2601 is for duplicate keys
+                {
+                    return MethodResponse.CreateFailureValidationResponse("The reference number already exists for the selected Bank Account. Please use a different one.");
+                }
+                else
+                {
+                    // Handle other exceptions
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
             catch (Exception ex)
             {
                 // Rollback the transaction in case of error
@@ -777,9 +810,6 @@ namespace OceansApp.DataAccess.Repository
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
-
-
-
 
         public async Task<MethodResponse> DeletePayment(int paymentId)
         {
@@ -807,11 +837,13 @@ namespace OceansApp.DataAccess.Repository
 
                 // Mark the payment as voided
                 existingPayment.Voided = true;
+                long uniqueNumber = DateTime.UtcNow.Ticks * 1000 + new Random().Next(1000);
+                existingPayment.ReferenceNumber = $"Voided({existingPayment.ReferenceNumber})" + uniqueNumber;
                 await _db.SaveChangesAsync();
 
                 // Handle any associated book entries
-                var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending to register");
-                if (pendingStatus == null) return MethodResponse.CreateFailureNotFoundResponse("Pending to register status not found.");
+                var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending Accounting");
+                if (pendingStatus == null) return MethodResponse.CreateFailureNotFoundResponse("Pending Accounting status not found.");
 
                 var existingChildEntry = await (from bc in _db.PAYMENT_BOOK_ENTRIES_CHILD
                                                 join bp in _db.PAYMENT_BOOK_ENTRIES_PARENT on bc.ParentId equals bp.ParentId

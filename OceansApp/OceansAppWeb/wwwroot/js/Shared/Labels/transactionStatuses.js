@@ -12,12 +12,12 @@
         statusLabel = `<span class="cel-status waiting-label"><img class="status-img" src="/img/globalIcons/waiting.webp">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Accounted - Accounts Payable') {
         statusLabel = `<span class="cel-status accounted-label"><img class="status-img" src="/img/globalIcons/accounted.webp">${transactionStatusName}</span>`;
-    } else if (transactionStatusName === 'Done') {
+    } else if (transactionStatusName === 'Accounted') {
         statusLabel = `<span class="cel-status done-label"><img class="status-img" src="/img/globalIcons/done.webp">${transactionStatusName}</span>`;
-    } if (transactionStatusName === 'Pending') {
-        statusLabel = `<span class="cel-status pending-label"><img class="status-img" src="/img/globalIcons/pending.webp">Pending</span>`;
+    } if (transactionStatusName === 'Pending' || transactionStatusName === 'Pending Accounting') {
+        statusLabel = `<span class="cel-status pending-label"><img class="status-img" src="/img/globalIcons/pending.webp">${transactionStatusName}</span>`;
     }
-    return statusLabel;
+    return statusLabel === `` ? transactionStatusName : statusLabel;
 }
 
 function getStatusColor(statusName) {

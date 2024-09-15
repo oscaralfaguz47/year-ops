@@ -36,6 +36,7 @@
         ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; }
         IInterviewRepository Interview { get; }
         IJournalAccountPayableRepository JournalAccountPayable { get; }
+        IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; }
         IPaymentMethodRepository PaymentMethod { get; }
         IPaymentBookEntryParentRepository PaymentBookEntryParent { get; }
         IProjectRepository Project { get; }

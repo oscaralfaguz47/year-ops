@@ -16,7 +16,7 @@ namespace OceansApp.Models.Models
         [Required]
         public DateTime EndDatePeriod { get; set; }
         [Required]
-        [MaxLength(50)]
+        [MaxLength(85)]
         public string ReferenceNumber { get; set; }
         [Required]
         public int PaymentMethodId { get; set; }

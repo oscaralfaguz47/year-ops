@@ -19,9 +19,7 @@
 }
 
     .tab:hover {
-        background-color: var(--clr-grayDark);
-        transform: scale(1.01);
-        color: #fff;
+        transform: scale(1.02);
     }
 
     .tab.active {
@@ -43,3 +41,20 @@
         display: block;
     }
 
+.export-btn {
+    border: none;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(26, 174, 5, 0.2);
+    border-radius: 10px;
+    padding: 2px 8px;
+    width: 125px;
+}
+.export-btn:hover {
+    background-color: rgb(26, 174, 5, 0.6);
+}
+.button-spinner{
+    margin-right: 5px;
+}

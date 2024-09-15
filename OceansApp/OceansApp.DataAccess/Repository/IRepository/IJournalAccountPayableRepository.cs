@@ -1,6 +1,5 @@
 ﻿using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.JournalAccountsPayable;
-using OceansApp.Models.ViewModels.PaymentBookEntries;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {

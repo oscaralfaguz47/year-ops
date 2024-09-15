@@ -1,15 +1,14 @@
-﻿const beNoResultsMessage = $(".b-e-no-results");
-const bookEntriesContent = getElementById('book-entriies-tab-content');
+﻿const beNoResultsMessage = getElementById("be-no-results");
+const beSpinner = getElementById('be-spinner');
+const bePagination = getElementById('be-pagination-container');
+const beTable = getElementById('book-entries-table');
 
 async function getBookEntriesList(firstTime, filters) {
-    accountsPayablePartial = null;
-    accountsPayableContent.innerHTML = '';
-    if (bookEntriesPartial === null) {
-        booEntriesPartial = await getBookEntriesPartialView();
-        bookEntriesContent.innerHTML = booEntriesPartial;
-    }
-    var formData = recolectDataFromForm(filters, firstTime);
-    console.log(formData);
+    beSpinner.style.display = 'block';
+    beNoResultsMessage.innerText = '';
+    bePagination.style.display = 'none';
+    beTable.style.display = 'none';
+    var formData = recolectDataFromFormBE(filters, firstTime);
     var queryString = JSON.stringify(formData);
     var url = "/Finances/ExportAccountingData/GetBookEntriesList?model=" + encodeURIComponent(queryString);
 
@@ -27,7 +26,6 @@ async function getBookEntriesList(firstTime, filters) {
         .then(data => {
             var tbody = $(".book-entries-table-cont table tbody");
             var tableRows = $(".book-entries-table-cont table");
-            beNoResultsMessage.empty();
             tbody.empty();
             data.bookEntriesList.forEach(function (obj, index) {
                 var creationDate = new Date(obj.creationDate);
@@ -39,46 +37,49 @@ async function getBookEntriesList(firstTime, filters) {
                   <td>${obj.parentId}</td>
                   <td>${creationDateformattedDate}</td>
                   <td>${obj.companyName}</td>
-                  <td>${obj.transactionStatusName}</td>
                   <td>${obj.numValidChildren}</td>
                   <td>${obj.numVoidedChildren}</td>
-                  <td></td>
+                  <td id="td-be-status-${obj.parentId}">${getStatusLabel(obj.transactionStatusName)}</td>
+                  <td><button onclick="exportBookEntriesData(this, ${obj.parentId}, '${obj.transactionStatusName}')" class="export-btn"><img class="global-icon" src="/icons/Shared/download.svg">Export Data</button></td>
               </tr>`;
                 tbody.append(row);
             });
 
             if (data.bookEntriesList.length === 0) {
-                beNoResultsMessage.text("NO RECORDS FOUND");
+                beNoResultsMessage.innerText = 'NO RECORDS FOUND';
                 tableRows.css("display", "none");
             } else {
                 tableRows.css("display", "block");
             };
-            console.log(data.paginationFilters.paginationWithoutFilters.pagination);
-            updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
+            updatePaginationBE(data.paginationFilters.paginationWithoutFilters.pagination);
         })
         .catch(error => {
             validateSessionExpiration(error.message);
         })
         .finally(() => {
-
+            bePagination.style.display = 'block';
+            beTable.style.display = 'block';
+            beSpinner.style.display = 'none';
         });
 }
 
 //Pagination and Filters
-
-function recolectDataFromForm(filters) {
+function paginationSubmitP2(firstTime, filters) {
+    getBookEntriesList(firstTime, filters);
+}
+function recolectDataFromFormBE(filters) {
     {
         var filtersData = {
             CompanyId: null,
             TransactionStatusId: null
         };
-        var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
-        var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
+        var inputFieldToOrder = document.getElementsByName('fieldToOrderP2')[0];
+        var inputDirectionOrder = document.getElementsByName('directionOrderP2')[0];
         var orderByData = {
             FieldToOrder: inputFieldToOrder.value,
             DirectionOrder: inputDirectionOrder.value
         }
-        var paginationData = returnCurrentPaginationValues();
+        var paginationData = returnCurrentPaginationValuesP2();
         var paginationWithoutFilters = {
             Pagination: paginationData,
             RequestFromFilters: filters,
@@ -91,27 +92,92 @@ function recolectDataFromForm(filters) {
         };
     }
 }
-function updatePagination(paginationData) {
-    updatePaginationValues(paginationData);
+function updatePaginationBE(paginationData) {
+    updatePaginationValuesP2(paginationData);
 }
 
 
-async function getBookEntriesPartialView() {
-    const url = `/Finances/ExportAccountingData/GetBookEntriesPartial`;
 
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            const errorData = await response.text();
-            displayToasterError("Error loading component");
-            throw new Error(`The request to the server failed! More details: ${errorData}`);
+async function exportBookEntriesData(downloadButton, parentId, status) {
+    if (status !== "Accounted") {
+        const confirmation = await Swal.fire({
+            title: "Download File",
+            text: `By downloading the file, you accept that it will be imported into Softland and the status will change. Do you want to continue?`,
+            icon: 'warning',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            cancelButtonColor: '#9ba8b8',
+            confirmButtonColor: '#eeb30f',
+            confirmButtonText: 'Yes, Download!'
+        });
+
+        if (!confirmation.isConfirmed) {
+            return;
         }
+        downloadButton.onclick = function () {
+            exportBookEntriesData(downloadButton, parentId, "Accounted");
+        };
+    }
+    downloadButton.innerHTML = `<div class="button-spinner"></div> In Progress...`;
+    const tdStatus = getElementById(`td-be-status-${parentId}`);
+    const buttonDefaultContent = `<img class="global-icon" src="/icons/Shared/download.svg">Export Data</button>`;
+    try {
+        downloadButton.disabled = true;
+        url = `/Finances/ExportAccountingData/ExportBookEntries?parentId=${encodeURIComponent(parentId)}`;
+        const response = await fetch(url);
 
-        const htmlContent = await response.text();
-        return htmlContent;
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            downloadButton.disabled = false;
+            downloadButton.innerHTML = buttonDefaultContent;
+            return null;
+        }
+        const dataFromApi = await response.json();
+
+        let dataToExportList = [];
+        dataFromApi.bookEntriesData.forEach(function (obj, index) {
+            let bookEntryMovement = {
+                "Cuenta Bancaria": obj.bankAccount,
+                "Fecha": formatDateMmDdYyyy(obj.accountingDate),
+                "Número": obj.referenceNumber,
+                "Concepto": obj.notes,
+                "Monto": obj.paymentAmount,
+                "Tipo Documento": obj.documentSubType,
+                "Subtipo Documento": obj.documentSubType,
+                "Fecha Contable": formatDateMmDdYyyy(obj.accountingDate),
+                "Tipo Asiento": obj.entryType,
+                "Paquete": obj.entryType,
+                "Cod Impuesto": obj.taxCode
+            };
+
+            dataToExportList.push(bookEntryMovement);
+        });
+
+        const workbook = XLSX.utils.book_new();
+
+        const worksheet1 = XLSX.utils.json_to_sheet(dataToExportList);
+
+        XLSX.utils.book_append_sheet(workbook, worksheet1, 'movimientos_en_libros');
+
+        const now = new Date().toLocaleString().replace(/[\/, ]/g, "_").replace(/:/g, "-");
+        XLSX.writeFile(workbook, `Movimientos en libros_${now}.xlsx`);
+
+        displayToasterSuccess("The file was downloaded sucessfully");
+        tdStatus.innerHTML = getStatusLabel('Accounted');
+        downloadButton.disabled = false;
+        downloadButton.innerHTML = buttonDefaultContent;
     } catch (error) {
+        downloadButton.disabled = false;
+        downloadButton.innerHTML = buttonDefaultContent;
         validateSessionExpiration(error.message);
-        displayToasterError("Internet connection failed");
-        throw new Error(`Network error or unable to reach the server. More details: ${error.message}`);
+        console.error('Network or fetch error:', error.message);
+        displayToasterError('Something went wrong, more details: ' + error);
     }
 }

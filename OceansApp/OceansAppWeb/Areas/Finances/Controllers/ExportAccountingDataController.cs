@@ -177,5 +177,79 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 return BadRequest(new { errors = new[] { $"There was an error fetching the list of book entries." }, success = false });
             }
         }
+
+        [HttpGet("ExportJournalAccountsPayable")]
+        public async Task<IActionResult> ExportJournalAccountsPayable(int journalId)
+        {
+            try
+            {
+                var journalAccountPayable = await _unitOfWork.JournalAccountPayable.GetFirstOrDefaultAsync(x => x.JournalId == journalId);
+                if (journalAccountPayable == null)
+                {
+                    return BadRequest(new { error = "The Journal Payable is not longer in the database." });
+                }
+                var journalEntries = await _unitOfWork.JournalAccountPayableEntry.GetJournalAccountPayableEntries(journalId);
+
+                JournalAccountPayableToExportVM dataToExport = new()
+                {
+                    Entry = journalAccountPayable.Entry,
+                    AccountingPackage = journalAccountPayable.AccountingPackage,
+                    EntryType = journalAccountPayable.EntryType,
+                    AccountingDate = journalAccountPayable.AccountingDate,
+                    Accounting = "F",
+                    entriesList = journalEntries
+                };
+
+                var statusAccounted = await _unitOfWork.TransactionStatus.GetFirstOrDefaultAsync(x => x.Name == "Accounted");
+                if (statusAccounted == null)
+                {
+                    return BadRequest(new { error = "The Accounted is not longer in the database." });
+                }
+
+                journalAccountPayable.TransactionStatus = statusAccounted;
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new
+                {
+                    journalAccountPayableData = dataToExport
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [HttpGet("ExportBookEntries")]
+        public async Task<IActionResult> ExportBookEntries(int parentId)
+        {
+            try
+            {
+                var bookParent = await _unitOfWork.PaymentBookEntryParent.GetFirstOrDefaultAsync(x => x.ParentId == parentId);
+                if (bookParent == null)
+                {
+                    return BadRequest(new { error = "The Book Entry is no longer in the database." });
+                }
+                var bookEntries = await _unitOfWork.PaymentBookEntryParent.GetBookEntriesToExport(parentId);
+
+                var statusAccounted = await _unitOfWork.TransactionStatus.GetFirstOrDefaultAsync(x => x.Name == "Accounted");
+                if (statusAccounted == null)
+                {
+                    return BadRequest(new { error = "The Accounted is not longer in the database." });
+                }
+
+                bookParent.TransactionStatus = statusAccounted;
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new
+                {
+                    bookEntriesData = bookEntries
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

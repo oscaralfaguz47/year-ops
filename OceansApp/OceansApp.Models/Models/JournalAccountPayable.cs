@@ -37,6 +37,8 @@ namespace OceansApp.Models.Models
         public DateTime? LastUpdatedDate { get; set; }
         [MaxLength(450)]
         public string? UserLastUpdatedBy { get; set; }
+        [Required]
+        public int DownloadsNumber { get; set; }
 
 
         [ValidateNever]

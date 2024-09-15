@@ -19,6 +19,9 @@ namespace OceansApp.Models.Models
         [Required]
         [MaxLength(450)]
         public string UserCreatedBy { get; set; }
+        [Required]
+        public int DownloadsNumber { get; set; }
+
 
         [ValidateNever]
         public ApplicationUser ApplicationUserCreatedBy { get; set; }

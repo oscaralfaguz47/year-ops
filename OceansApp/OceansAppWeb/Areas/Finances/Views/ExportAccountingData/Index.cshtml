@@ -2,6 +2,8 @@
 
 <link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Finances/ExportAccountingData/exportAccountingData.css?v=@DateTime.Now.Ticks" />
 
 <div class="tabs container">
@@ -12,36 +14,15 @@
     <div class="tab-content">
         <div id="tab-accounts-payable" class="tab-panel active">
             <h3>Export Accounts Payable</h3>
-            <div id="accounts-payable-tab-content">
-                <div class="no-results a-p-no-results"></div>
-                <div id="ap-spinner" class="global-internal-spinner-cont">
-                    <div>
-                        <div class="global-internal-spinner"></div>
-                        <div>
-                            <p><strong>Loading data, wait...</strong></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <partial name="_AccountsPayablePartialView" />
         </div>
         <div id="tab-book-entries" class="tab-panel">
             <h3>Export Book Entries</h3>
-            <div id="book-entriies-tab-content">
-                <div class="no-results a-p-no-results"></div>
-                <div id="ap-spinner" class="global-internal-spinner-cont">
-                    <div>
-                        <div class="global-internal-spinner"></div>
-                        <div>
-                            <p><strong>Loading data, wait...</strong></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <partial name="_BookEntriesPartialView" />
         </div>
     </div>
 </div>
 
 <script src="~/js/Finances/ExportAccountingData/exportAccountingData.js?v=@DateTime.Now.Ticks"></script>
-<script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
-<script src="~/js/Finances/ExportAccountingData/accountsPayable.js?v=@DateTime.Now.Ticks"></script>
-<script src="~/js/Finances/ExportAccountingData/bookEntries.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
+<script src="/lib/xlsx/xlsx.full.min.js"></script>
