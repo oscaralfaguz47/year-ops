@@ -676,8 +676,6 @@ namespace OceansApp.DataAccess.DbInitializer
                     new TransactionStatus { Name = "Rejected" },
                     new TransactionStatus { Name = "Sent to be paid" },
                     new TransactionStatus { Name = "Paid" },
-                    new TransactionStatus { Name = "Accounted - Accounts Payable" },
-                    new TransactionStatus { Name = "Done" },
                     new TransactionStatus { Name = "Pending Accounting" },
                     new TransactionStatus { Name = "Accounted" }
                 };
