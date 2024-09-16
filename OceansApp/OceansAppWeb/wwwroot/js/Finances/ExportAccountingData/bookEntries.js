@@ -149,7 +149,7 @@ async function exportBookEntriesData(downloadButton, parentId, status) {
                 "Número": obj.referenceNumber,
                 "Concepto": obj.notes,
                 "Monto": obj.paymentAmount,
-                "Tipo Documento": obj.documentSubType,
+                "Tipo Documento": obj.documentType,
                 "Subtipo Documento": obj.documentSubType,
                 "Fecha Contable": formatDateMmDdYyyy(obj.accountingDate),
                 "Tipo Asiento": obj.entryType,
