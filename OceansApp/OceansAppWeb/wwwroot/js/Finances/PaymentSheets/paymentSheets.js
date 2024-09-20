@@ -38,9 +38,9 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
-            var tbody = $(".global-table-container table tbody");
-            var tableRows = $(".global-table-container table");
-            var noResultsMessage = $(".no-results");
+            var tbody = $(".cl-payment-sheets-table table tbody");
+            var tableRows = $(".cl-payment-sheets-table table");
+            var noResultsMessage = $(".cl-payment-sheets-table .no-results");
             noResultsMessage.empty();
             tbody.empty();
 

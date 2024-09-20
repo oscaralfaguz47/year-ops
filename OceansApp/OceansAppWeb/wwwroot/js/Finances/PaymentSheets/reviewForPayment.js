@@ -30,6 +30,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         }
 
         const dataFromApi = await response.json();
+        console.log(dataFromApi);
         consultantIdInputMP.value = consultantId;
         setAsAccountsPayableBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null ? 'inline' : 'none';
         reportPaymentBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null || dataFromApi.reportDetails.accountPayableBalance > 0 ? 'inline' : 'none';

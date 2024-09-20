@@ -49,7 +49,11 @@ namespace OceansApp.DataAccess.Repository
 
             if (defaultProject == null)
             {
-                return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Default project not found." };
+                defaultProject = activeProjects.FirstOrDefault();
+                if (defaultProject == null)
+                {
+                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Default project not found." };
+                }
             }
 
             bool holidaysMustBePaid = defaultProject.IsDefaultProject && defaultProject.HolidaysMustBePaid ? true : false;

@@ -40,9 +40,10 @@
                     </div>
                 </div>
                 <button class="refresh-btn" onclick="getListOfResults(false, true)"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
+            <button class="refresh-btn" onclick="displayRemovedProjectsModal('modal-removed-projects')"><img src="/icons/Shared/trash-arrow-up.svg"> Removed Projects in this period</button>
         </div>
     </div>
-    <div class="global-table-container">
+    <div class="global-table-container cl-payment-sheets-table">
 
         <table id="payment-sheets-table" style="display:none">
             <thead>
@@ -83,6 +84,10 @@
     </div>
 </div>
 <partial name="_SidebarRightPartial" />
+
+<div>
+    <partial name="_RemovedProjectsModalPartialView" />
+</div>
 
 <div>
     <partial name="_ReviewForApprovalModalPartialView" />

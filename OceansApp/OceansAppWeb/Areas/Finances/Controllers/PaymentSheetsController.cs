@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -515,7 +516,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         }
                     }
 
-                    var res = await _unitOfWork.ConsultantPayment.SetAsAccountPayable(userActionedBy, dataFromModel, totalAmountToPay, 
+                    var res = await _unitOfWork.ConsultantPayment.SetAsAccountPayable(userActionedBy, dataFromModel, totalAmountToPay,
                         (GetListOfMovementsForPaymentVM)listOfMovements, consultant.CompanyId);
 
                     if (res.Success)
@@ -623,6 +624,51 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
+        [HttpGet("GetRemovedProjectsInPeriod")]
+        public async Task<IActionResult> GetRemovedProjectsInPeriod(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var removedProjectsList = await _unitOfWork.ProjectConsultantPeriodDisabledTracking.GetRemovedProjectsInPeriodAsync(startDate, endDate);
+
+                return Ok(new
+                {
+                    removedProjectsList = removedProjectsList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("AddProjectInPeriod")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddProjectInPeriod([FromForm] int id)
+        {
+            try
+            {
+                var removedProject = await _unitOfWork.ProjectConsultantPeriodDisabledTracking.GetFirstOrDefaultAsync(x => x.Id == id);
+                if (removedProject == null)
+                {
+                    return BadRequest(new { error = "The removed project was not found" });
+                }
+                var accountsPayable = await _unitOfWork.AccountPayable
+    .GetFirstOrDefaultAsync(
+        x => x.ConsultantId == removedProject.ConsultantId &&
+             x.StartDatePeriod == removedProject.StartPeriodDate &&
+             x.EndDatePeriod == removedProject.EndPeriodDate);
+                _unitOfWork.ProjectConsultantPeriodDisabledTracking.Remove(removedProject);
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new { success = true, message = "The project was added successfully to the period." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = $"There was an error in the server, the project could not be added.", result = "ErrorDeleting", detail = ex.Message });
             }
         }
     }
