@@ -33,7 +33,6 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         consultantIdInputMP.value = consultantId;
         setAsAccountsPayableBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null ? 'inline' : 'none';
         reportPaymentBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null || dataFromApi.reportDetails.accountPayableBalance > 0 ? 'inline' : 'none';
-        console.log(dataFromApi);
         getElementById('review-for-payment-modal-title').textContent = dataFromApi.reportDetails.consultantName;
         reviewForApprovalContainer.innerHTML = '';
 
@@ -414,7 +413,6 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             reviewForApprovalContainer.appendChild(paymentsTitle);
             reviewForApprovalContainer.appendChild(paymentsSection);
         }
-
 
         hideSpinner();
         showModal(modalId);

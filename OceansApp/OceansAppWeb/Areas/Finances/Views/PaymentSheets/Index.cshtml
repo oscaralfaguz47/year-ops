@@ -52,6 +52,11 @@
                         <span class="sort-arrow" id="sortArrowConsultantName">
                         </span>
                     </th>
+                    <th onclick="orderByTableList('PaymentStatus', 'PaymentStatusTableHeader', 'sortArrowPaymentStatus')" data-sort="ANY" name="PaymentStatusTableHeader" class="sortable-col">
+                       Payment Status
+                        <span class="sort-arrow" id="sortArrowPaymentStatus">
+                        </span>
+                    </th>
                     <th onclick="orderByTableList('ProjectName', 'ProjectNameTableHeader', 'sortArrowProjectName')" data-sort="ANY" name="ProjectNameTableHeader" class="sortable-col">
                         Project Name
                         <span class="sort-arrow" id="sortArrowProjectName"></span>
@@ -65,10 +70,10 @@
                         <span class="sort-arrow" id="sortArrowSubmissionDate"></span>
                     </th>
                     <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
-                        Status
+                        Submission Status
                         <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
                     </th>
-                    <th>Status Actions</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>

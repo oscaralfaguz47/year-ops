@@ -55,6 +55,7 @@ namespace OceansApp.DataAccess.Repository
             PaymentBookEntryParent = new PaymentBookEntryParentRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
+            ProjectConsultantPeriodDisabledTracking = new ProjectConsultantPeriodDisabledTrackingRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ProviderEvent = new ProviderEventRepository(_db);
@@ -112,6 +113,7 @@ namespace OceansApp.DataAccess.Repository
         public IPaymentBookEntryParentRepository PaymentBookEntryParent { get; set; }
         public IProjectRepository Project { get; set; }
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
+        public IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; set; }
         public IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; set; }
         public IProviderEventRepository ProviderEvent { get; set; }
         public IProviderEventDateRepository ProviderEventDate { get; set; }

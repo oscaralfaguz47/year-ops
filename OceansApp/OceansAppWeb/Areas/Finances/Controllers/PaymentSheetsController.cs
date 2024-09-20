@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AccountsPayable;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
 using OceansApp.Models.ViewModels.PaymentSheets;
+using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
@@ -50,9 +52,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             ValidateInputs validateInputs = new();
                             //Validate Filter inputs
                             validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
+                            validateInputs.ValidateNotRequiredAndStringLength("TransactionStatusName", "TransactionStatusName", jsonToValidate["Filters"]["TransactionStatusName"].ToString(), 80, ModelState);
+                            validateInputs.ValidateNotRequiredAndStringLength("AccountsPayableStatusName", "AccountsPayableStatusName", jsonToValidate["Filters"]["AccountsPayableStatusName"].ToString(), 20, ModelState);
                             validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"], ModelState);
                             validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"], ModelState);
-                            validateInputs.ValidateNonRequiredFieldIntType("TransactionStatusId", "Transaction Status", (int?)jsonToValidate["Filters"]["TransactionStatusId"], ModelState);
                             validateInputs.ValidateNonRequiredFieldIntType("ProjectId", "Project", (int?)jsonToValidate["Filters"]["ProjectId"], ModelState);
                             validateInputs.ValidateNonRequiredFieldIntType("PaymentPeriod", "Payment Period", (int?)jsonToValidate["Filters"]["PaymentPeriod"], ModelState);
 
@@ -568,6 +571,58 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = $"There was an error in the server, the payment could not be deleted.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("RemoveProjectConsultantInPeriod")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveProjectConsultantInPeriod([FromBody] RemoveProjectConsultantInPeriodVM model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldIntType("ProjectId", "ProjectId", model.ProjectId, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("ConsultantId", "ConsultantId", model.ConsultantId, ModelState);
+            validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", model.EndPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("EndtDatePeriod", "End Date Period", model.EndPeriodDate, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                }
+                ProjectConsultantPeriodDisabledTracking disableTracking = new()
+                {
+                    ProjectId = model.ProjectId,
+                    ConsultantId = model.ConsultantId,
+                    StartPeriodDate = model.StartPeriodDate,
+                    EndPeriodDate = model.EndPeriodDate,
+                    CreationDate = DateTime.UtcNow,
+                    CreatedBy = userActionedBy
+                };
+                await _unitOfWork.ProjectConsultantPeriodDisabledTracking.AddAsync(disableTracking);
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new { success = true, message = "The project was removed for this period" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
             }
         }
     }

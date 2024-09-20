@@ -12,8 +12,8 @@
                 </div>
 
                 <div class="action-btns-box">
-                    <button class="cancel-btn" onclick="displayApproveRejectConfirmation('Rejected')">Reject</button>
-                    <button class="btn-primary-submit" onclick="displayApproveRejectConfirmation('Approved')">Approve</button>
+                    <button class="cancel-btn" onclick="displayApproveRejectConfirmation('Rejected', 'ReviewForApproval')">Reject</button>
+                    <button class="btn-primary-submit" onclick="displayApproveRejectConfirmation('Approved', 'ReviewForApproval')">Approve</button>
                 </div>
             </div>
         </div>
@@ -33,7 +33,7 @@
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-approve-reject-submission')" class="cancel-btn">Cancel</button>
-                    <button class="btn-primary-submit" id="confirm-approve-reject-btn" onclick="approveRejectSubmission()"></button>
+                    <button class="btn-primary-submit" id="confirm-approve-reject-btn"></button>
                 </div>
             </div>
         </div>

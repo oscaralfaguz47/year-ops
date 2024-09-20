@@ -286,13 +286,17 @@ namespace OceansApp.DataAccess.Repository
                 existingAccountPayable.BalanceAmount -= (decimal)paymentData.PaymentAmount;
 
                 // Update transaction status if the balance becomes zero
+                var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Rejected" || x.Name == "Sent to be paid").ToListAsync();
                 if (existingAccountPayable.BalanceAmount == 0)
                 {
-                    var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Rejected").ToListAsync();
                     existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Paid").TransactionStatusId;
 
                     await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
                         (int)paymentData.ConsultantId, "Paid");
+                }
+                else
+                {
+                    existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Sent to be paid").TransactionStatusId;
                 }
 
                 await _db.SaveChangesAsync();
@@ -693,6 +697,10 @@ namespace OceansApp.DataAccess.Repository
                     existingAccountPayable.TransactionStatusId = transactionStatuses.First(x => x.Name == "Paid").TransactionStatusId;
                     await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod), (int)paymentData.ConsultantId, "Paid");
                 }
+                else
+                {
+                    existingAccountPayable.TransactionStatusId = transactionStatuses.First(x => x.Name == "Sent to be paid").TransactionStatusId;
+                }
 
                 // Check if the 'Pending Accounting' status exists
                 var pendingStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending Accounting");
@@ -730,6 +738,8 @@ namespace OceansApp.DataAccess.Repository
 
                     // Mark the existing payment as voided
                     existingPayment.Voided = true;
+                    long uniqueNumber = DateTime.UtcNow.Ticks * 1000 + new Random().Next(1000);
+                    existingPayment.ReferenceNumber = $"Voided({existingPayment.ReferenceNumber})" + uniqueNumber;
 
                     // Create a new payment with updated values
                     var newPayment = new ConsultantPayment
@@ -830,6 +840,7 @@ namespace OceansApp.DataAccess.Repository
                 {
                     var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Sent to be paid" || x.Name == "Rejected").ToListAsync();
                     await UpdateMovementsStatuses(transactionStatuses, existingAccountPayable.StartDatePeriod, existingAccountPayable.EndDatePeriod, existingAccountPayable.ConsultantId, "Sent to be paid");
+                    existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Sent to be paid").TransactionStatusId;
                 }
 
                 // Revert the balance by adding the payment amount back to the account payable

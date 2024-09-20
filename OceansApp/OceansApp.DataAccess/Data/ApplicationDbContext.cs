@@ -24,6 +24,8 @@ namespace OceansApp.DataAccess.Data
             {
                 // Composite index
                 entity.HasIndex(e => new { e.ConsultantId, e.StartDatePeriod, e.EndDatePeriod });
+                entity.HasIndex(e => new { e.ConsultantId, e.TransactionStatusId, e.StartDatePeriod, e.EndDatePeriod });
+                entity.HasIndex(e => new { e.StartDatePeriod, e.EndDatePeriod });
 
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.UserCreatedBy);
@@ -994,6 +996,7 @@ namespace OceansApp.DataAccess.Data
             // TRANSACTION STATUSES
             modelBuilder.Entity<TransactionStatus>(entity =>
             {
+                entity.HasIndex(e => new { e.TransactionStatusId, e.Name });
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.Name);
             });

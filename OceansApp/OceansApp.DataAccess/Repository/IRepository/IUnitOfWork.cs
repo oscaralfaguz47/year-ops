@@ -41,6 +41,7 @@
         IPaymentBookEntryParentRepository PaymentBookEntryParent { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
+        IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; }
         IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; }
         IProviderEventRepository ProviderEvent { get; }
         IProviderEventDateRepository ProviderEventDate { get; }
