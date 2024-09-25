@@ -677,7 +677,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new TransactionStatus { Name = "Sent to be paid" },
                     new TransactionStatus { Name = "Paid" },
                     new TransactionStatus { Name = "Pending Accounting" },
-                    new TransactionStatus { Name = "Accounted" }
+                    new TransactionStatus { Name = "Accounted" },
+                    new TransactionStatus { Name = "Updated - Pending Review" }
                 };
 
                 foreach (var status in transactionStatusesList)

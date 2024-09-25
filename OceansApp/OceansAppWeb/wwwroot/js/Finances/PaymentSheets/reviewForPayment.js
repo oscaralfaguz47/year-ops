@@ -72,81 +72,94 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             let projectName = '';
             let projectTotal = 0;
 
-            dataFromApi.reportDetails.listOfMovements.projectMovements.forEach(function (obj, index) {
-                if (projectName !== obj.projectName) {
-                    if (projectName !== '') {
-                        // Add total row for the previous project
-                        const trTotal = document.createElement('tr');
-                        const tdTotalLabel = document.createElement('td');
-                        tdTotalLabel.textContent = "Project Total Amount";
-                        tdTotalLabel.className = 'total-label';
-                        tdTotalLabel.colSpan = 3;
-                        const tdTotalValue = document.createElement('td');
-                        tdTotalValue.className = 'td-total-value';
-                        tdTotalValue.textContent = '$' + projectTotal.toFixed(2);
+            // Agrupar movimientos por projectName y luego por movementTypeName
+            const movementsGroupedByProject = {};
 
-                        trTotal.appendChild(tdTotalLabel);
-                        trTotal.appendChild(tdTotalValue);
-                        trTotal.className = 'credit-background';
-                        tableBody.appendChild(trTotal);
-
-                        totalCredits += projectTotal; // Sum project total to credits
-
-                        projectTotal = 0; // Reset project total
-                    }
-
-                    // Add project name row
-                    const trProjectName = document.createElement('tr');
-                    const tdProjectName = document.createElement('td');
-                    tdProjectName.textContent = obj.projectName;
-                    tdProjectName.colSpan = 4; // Make the td span all columns
-                    tdProjectName.className = 'project-name';
-                    trProjectName.appendChild(tdProjectName);
-                    tableBody.appendChild(trProjectName);
-                    projectName = obj.projectName; // Update the project name
+            dataFromApi.reportDetails.listOfMovements.projectMovements.forEach(function (obj) {
+                // Agrupar movimientos por projectName
+                if (!movementsGroupedByProject[obj.projectName]) {
+                    movementsGroupedByProject[obj.projectName] = {};
                 }
 
-                // Add movement row
-                const tr = document.createElement('tr');
-                const tdDescription = document.createElement('td');
-                tdDescription.textContent = obj.movementTypeName;
-                const tdQuantity = document.createElement('td');
-                tdQuantity.textContent = obj.quantity.toFixed(2);
-                const tdUnitPrice = document.createElement('td');
-                tdUnitPrice.textContent = '$' + obj.unitPrice.toFixed(2);
-                const tdSubtotal = document.createElement('td');
-                tdSubtotal.textContent = '$' + obj.totalAmount.toFixed(2);
+                // Agrupar movimientos por movementTypeName dentro del proyecto
+                const projectGroup = movementsGroupedByProject[obj.projectName];
+                if (!projectGroup[obj.movementTypeName]) {
+                    projectGroup[obj.movementTypeName] = {
+                        movementTypeName: obj.movementTypeName,
+                        quantity: 0,
+                        unitPrice: obj.unitPrice,
+                        totalAmount: 0
+                    };
+                }
 
-                tr.appendChild(tdDescription);
-                tr.appendChild(tdQuantity);
-                tr.appendChild(tdUnitPrice);
-                tr.appendChild(tdSubtotal);
-                tableBody.appendChild(tr);
-
-                projectTotal += parseFloat(obj.totalAmount); // Add to project total
+                // Sumar la cantidad y recalcular el totalAmount
+                projectGroup[obj.movementTypeName].quantity += obj.quantity;
+                projectGroup[obj.movementTypeName].totalAmount = projectGroup[obj.movementTypeName].quantity * projectGroup[obj.movementTypeName].unitPrice;
             });
 
-            // Add total row for the last project
-            const trTotal = document.createElement('tr');
-            const tdTotalLabel = document.createElement('td');
-            tdTotalLabel.textContent = "Project Total Amount";
-            tdTotalLabel.className = 'total-label';
-            tdTotalLabel.colSpan = 3;
-            const tdTotalValue = document.createElement('td');
-            tdTotalValue.className = 'td-total-value';
-            tdTotalValue.textContent = '$' + projectTotal.toFixed(2);
+            // Después de agrupar, recorremos los proyectos y luego sus movimientos agrupados
+            Object.keys(movementsGroupedByProject).forEach(function (projectName) {
+                const projectGroup = movementsGroupedByProject[projectName];
 
-            trTotal.appendChild(tdTotalLabel);
-            trTotal.appendChild(tdTotalValue);
-            trTotal.className = 'credit-background';
-            tableBody.appendChild(trTotal);
+                // Añadir la fila del nombre del proyecto
+                const trProjectName = document.createElement('tr');
+                const tdProjectName = document.createElement('td');
+                tdProjectName.textContent = projectName;
+                tdProjectName.colSpan = 4; // Que abarque todas las columnas
+                tdProjectName.className = 'project-name';
+                trProjectName.appendChild(tdProjectName);
+                tableBody.appendChild(trProjectName);
 
-            totalCredits += projectTotal; // Sum last project total to credits
+                // Inicializar el total del proyecto
+                projectTotal = 0;
+
+                // Recorrer los movimientos agrupados por movementTypeName
+                Object.keys(projectGroup).forEach(function (movementTypeName) {
+                    const obj = projectGroup[movementTypeName];
+
+                    // Crear la fila para cada movimiento
+                    const tr = document.createElement('tr');
+                    const tdDescription = document.createElement('td');
+                    tdDescription.textContent = obj.movementTypeName;
+                    const tdQuantity = document.createElement('td');
+                    tdQuantity.textContent = obj.quantity.toFixed(2);
+                    const tdUnitPrice = document.createElement('td');
+                    tdUnitPrice.textContent = '$' + obj.unitPrice.toFixed(2);
+                    const tdSubtotal = document.createElement('td');
+                    tdSubtotal.textContent = '$' + obj.totalAmount.toFixed(2);
+
+                    tr.appendChild(tdDescription);
+                    tr.appendChild(tdQuantity);
+                    tr.appendChild(tdUnitPrice);
+                    tr.appendChild(tdSubtotal);
+                    tableBody.appendChild(tr);
+
+                    projectTotal += parseFloat(obj.totalAmount); // Sum al total del proyecto actual
+                });
+
+                // Agregar la fila de total del proyecto
+                const trTotal = document.createElement('tr');
+                const tdTotalLabel = document.createElement('td');
+                tdTotalLabel.textContent = "Project Total Amount";
+                tdTotalLabel.className = 'total-label';
+                tdTotalLabel.colSpan = 3;
+                const tdTotalValue = document.createElement('td');
+                tdTotalValue.className = 'td-total-value';
+                tdTotalValue.textContent = '$' + projectTotal.toFixed(2);
+
+                trTotal.appendChild(tdTotalLabel);
+                trTotal.appendChild(tdTotalValue);
+                trTotal.className = 'credit-background';
+                tableBody.appendChild(trTotal);
+
+                totalCredits += projectTotal; // Sumar el total del proyecto actual
+            });
 
             projectMovementsTable.appendChild(tableBody);
             projectMovementsSection.appendChild(projectMovementsTable);
             reviewForApprovalContainer.appendChild(projectMovementsSection);
         }
+
 
         // Benefits and credits
         if (dataFromApi.reportDetails.listOfMovements.benefitsAndOtherMovements.length > 0) {

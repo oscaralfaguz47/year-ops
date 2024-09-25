@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240925023836_updateAccountPayableMovementsTable")]
+    partial class updateAccountPayableMovementsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,6 +295,32 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ConsultantId", "TransactionStatusId", "StartDatePeriod", "EndDatePeriod");
 
                     b.ToTable("ACCOUNTS_PAYABLE");
+                });
+
+            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableHoliday", b =>
+                {
+                    b.Property<int>("AccountPayableHolidayId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountPayableHolidayId"));
+
+                    b.Property<int>("AccountPayableId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(249)
+                        .HasColumnType("nvarchar(249)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("AccountPayableHolidayId");
+
+                    b.HasIndex("AccountPayableId");
+
+                    b.ToTable("ACCOUNT_PAYABLE_HOLIDAYS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.AccountPayableMovement", b =>
@@ -3148,6 +3177,17 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantDetail");
 
                     b.Navigation("TransactionStatus");
+                });
+
+            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableHoliday", b =>
+                {
+                    b.HasOne("OceansApp.Models.Models.AccountPayable", "AccountPayable")
+                        .WithMany()
+                        .HasForeignKey("AccountPayableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountPayable");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.AccountPayableMovement", b =>

@@ -62,12 +62,22 @@ function validateRatesInputs() {
         hourlySalaryInputCUCP.value = null;
         isMonthlySalaryCalculatedPerHourElCUCP.style.display = 'block';
         calculationMethodCheckboxCUCP.checked = true;
+        accessToTrackingToolCheckboxCUCP.disabled = false;
+        if (!accessToTrackingToolCheckboxCUCP.checked) {
+            calculationMethodCheckboxCUCP.checked = false;
+            calculationMethodCheckboxCUCP.disabled = true;
+        } else {
+            calculationMethodCheckboxCUCP.checked = true;
+            calculationMethodCheckboxCUCP.disabled = false;
+        }
     } else if (consultantRateMethod.value === 'H') {
         monthlyConsultantSalaryElCUCP.style.display = 'none';
         hourlyConsultantSalaryElCUCP.style.display = 'block';
         monthlySalaryInputCUCP.value = null;
         isMonthlySalaryCalculatedPerHourElCUCP.style.display = 'none';
-        calculationMethodCheckboxCUCP.checked = false;
+        calculationMethodCheckboxCUCP.checked = true;
+        accessToTrackingToolCheckboxCUCP.checked = true;
+        accessToTrackingToolCheckboxCUCP.disabled = true;
     }
 }
 function hideShowMustPayHolidaysCheckbox(isDefault) {

@@ -33,6 +33,8 @@ namespace OceansApp.Models.Models
         public string CompanyId { get; set; }
         [Required]
         public int TransactionStatusId { get; set; }
+        [Required]
+        public bool Voided { get; set; }
 
 
         [ValidateNever]

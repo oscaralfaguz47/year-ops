@@ -24,5 +24,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> DeletePayment(int paymentId);
         Task UpdateMovementsStatuses(List<TransactionStatus> transactionStatuses, DateTime startDate, DateTime endDate,
             int consultantId, string newStatus);
+        decimal GetConsultantTotalAmountToPay(GetListOfMovementsForPaymentVM? listOfMovements);
     }
 }

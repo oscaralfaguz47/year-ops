@@ -18,6 +18,7 @@ namespace OceansApp.DataAccess.Repository
             _cache = cache;
             AccountingAccounts = new AccountingAccountRepository(_db);
             AccountPayable = new AccountPayableRepository(_db);
+            AccountPayableMovement = new AccountPayableMovementRepository(_db);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
             DataUpdateDates = new DataUpdateRepository(_db);
@@ -77,6 +78,7 @@ namespace OceansApp.DataAccess.Repository
         public IApplicationSystemClaimRepository ApplicationSystemClaim { get; private set; }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
         public IAccountPayableRepository AccountPayable { get; private set; }
+        public IAccountPayableMovementRepository AccountPayableMovement { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
         public ILedgerMovementRepository LedgerMovements { get; private set; }
         public IDataUpdateDateRepository DataUpdateDates { get; private set; }

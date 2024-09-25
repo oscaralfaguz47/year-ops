@@ -34,6 +34,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.BalanceAmount);
                 entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.Voided);
 
                 entity.HasOne(cp => cp.ConsultantDetail)
                 .WithMany()
@@ -71,16 +72,26 @@ namespace OceansApp.DataAccess.Data
               .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ACCOUNTS PAYABLE HOLIDAYS
-            modelBuilder.Entity<AccountPayableHoliday>(entity =>
+            // ACCOUNTS PAYABLE MOVEMENTS
+            modelBuilder.Entity<AccountPayableMovement>(entity =>
             {
                 entity.HasIndex(e => e.AccountPayableId);
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.MovementTypeId);
 
-                entity.HasKey(c => new { c.AccountPayableHolidayId });
-                entity.HasOne(a => a.AccountPayable)
+                entity.HasKey(c => new { c.Id });
+                entity.HasOne(cp => cp.Project)
                 .WithMany()
-                .HasForeignKey(a => a.AccountPayableId)
-                .IsRequired();
+                .HasForeignKey(cp => cp.ProjectId);
+                entity.HasOne(p => p.MovementType)
+              .WithMany()
+              .HasForeignKey(p => p.MovementTypeId)
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.AccountPayable)
+              .WithMany()
+              .HasForeignKey(p => p.AccountPayableId)
+              .OnDelete(DeleteBehavior.Restrict)
+              .IsRequired();
             });
 
             // APPLICATION USER
@@ -1170,7 +1181,7 @@ namespace OceansApp.DataAccess.Data
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
-        public DbSet<AccountPayableHoliday> ACCOUNT_PAYABLE_HOLIDAYS { get; set; }
+        public DbSet<AccountPayableMovement> ACCOUNTS_PAYABLE_MOVEMENTS { get; set; }
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
         public DbSet<DataUpdateDate> DATA_UPDATE_DATES { get; set; }
         public DbSet<ApplicationUser> AspNetUsers { get; set; }

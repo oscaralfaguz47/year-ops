@@ -37,202 +37,304 @@ namespace OceansApp.DataAccess.Repository
                 return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Consultant not found." };
             }
 
-            var connection = _db.Database.GetDbConnection();
-            var sharedParameters = new DynamicParameters();
-            sharedParameters.Add("@ConsultantId", consultant.ConsultantId);
-            sharedParameters.Add("@StartDate", startDate);
-            sharedParameters.Add("@EndDate", endDate);
+            var existingAccountsPayableList = await _db.ACCOUNTS_PAYABLE.Where(x => x.Voided == false && x.ConsultantId == consultant.ConsultantId && (x.StartDatePeriod >= startDate &&
+            x.EndDatePeriod <= endDate)).Include(x => x.TransactionStatus).ToListAsync();
 
-            var activeProjects = await connection.QueryAsync<GetProjectInfoWhereConsultantIsActiveInProjectVM>("SP_PAYMENT_SHEETS_GetProjectsInfoWhereConsultantIsActiveInPeriod", sharedParameters, commandType: CommandType.StoredProcedure);
+            var closestToEndDate = existingAccountsPayableList
+    .OrderBy(x => Math.Abs((x.EndDatePeriod - endDate).TotalDays))
+    .FirstOrDefault();
 
-            var defaultProject = activeProjects.FirstOrDefault(p => p.IsDefaultProject == true);
-
-            if (defaultProject == null)
-            {
-                defaultProject = activeProjects.FirstOrDefault();
-                if (defaultProject == null)
-                {
-                    return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Default project not found." };
-                }
-            }
-
-            bool holidaysMustBePaid = defaultProject.IsDefaultProject && defaultProject.HolidaysMustBePaid ? true : false;
-            decimal defaultHourlyCalculation = defaultProject.HourlySalary;
-
-            if (defaultProject.MonthlySalary > 0 && defaultProject.IsMonthlySalaryCalculatedPerHour)
-            {
-                defaultHourlyCalculation = (defaultProject.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8;
-            }
             GetListOfMovementsForPaymentVM reportToSend = new();
 
-            List<GetPaymentDetailsMovementsVM> paymentProjectMovements = new();
-
-            //Add movement for every project
-            foreach (var project in activeProjects)
+            if (existingAccountsPayableList.Count > 0 &&
+    (closestToEndDate != null &&
+    (closestToEndDate.TransactionStatus.Name == "Paid" ||
+     closestToEndDate.TransactionStatus.Name == "Sent to be paid")))
             {
-                var projectMovementsParameters = new DynamicParameters();
-                projectMovementsParameters.Add("@ConsultantId", consultant.ConsultantId);
-                projectMovementsParameters.Add("@ProjectId", project.ProjectId);
-                projectMovementsParameters.Add("@StartDate", startDate);
-                projectMovementsParameters.Add("@EndDate", endDate);
-
-                var projectMovements = await connection.QueryAsync<GetApprovedMovementsWhereConsultantVM>("SP_REPORTING_MY_TIME_MOVEMENTS_GetApprovedMovementsWhereConsultant", projectMovementsParameters, commandType: CommandType.StoredProcedure);
-                if (project.MonthlySalary > 0 || project.HourlySalary > 0)
+                for (int i = 0; i < existingAccountsPayableList.Count; i++)
                 {
-                    if (project.AccessToTrackingTool)
+                    var accountPayable = existingAccountsPayableList[i];
+                    var movementsList = await GetPaidMovementsAsync(accountPayable.AccountPayableId);
+
+                    if (movementsList.ProjectMovements != null)
                     {
-                        foreach (var movement in projectMovements)
+                        reportToSend.ProjectMovements = new List<GetPaymentDetailsMovementsVM>();
+                        foreach (var movement in movementsList.ProjectMovements)
                         {
-                            if (movement.MovementTypeName == "Normal Hours")
+                            reportToSend.ProjectMovements.Add(movement);
+                        }
+                    }
+                    if (movementsList.BenefitsAndOtherMovements != null)
+                    {
+                        reportToSend.BenefitsAndOtherMovements = new List<GetPaymentDetailsMovementsVM>();
+                        foreach (var movement in movementsList.BenefitsAndOtherMovements)
+                        {
+                            reportToSend.BenefitsAndOtherMovements.Add(movement);
+                        }
+                    }
+                    if (movementsList.DebitsMovements != null)
+                    {
+                        reportToSend.DebitsMovements = new List<GetPaymentDetailsMovementsVM>();
+                        foreach (var movement in movementsList.DebitsMovements)
+                        {
+                            reportToSend.DebitsMovements.Add(movement);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var connection = _db.Database.GetDbConnection();
+                var sharedParameters = new DynamicParameters();
+                sharedParameters.Add("@ConsultantId", consultant.ConsultantId);
+                sharedParameters.Add("@StartDate", startDate);
+                sharedParameters.Add("@EndDate", endDate);
+
+                var activeProjects = await connection.QueryAsync<GetProjectInfoWhereConsultantIsActiveInProjectVM>("SP_PAYMENT_SHEETS_GetProjectsInfoWhereConsultantIsActiveInPeriod", sharedParameters, commandType: CommandType.StoredProcedure);
+
+                var defaultProject = activeProjects.FirstOrDefault(p => p.IsDefaultProject == true);
+
+                if (defaultProject == null)
+                {
+                    defaultProject = activeProjects.FirstOrDefault();
+                    if (defaultProject == null)
+                    {
+                        return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Default project not found." };
+                    }
+                }
+
+                bool holidaysMustBePaid = defaultProject.IsDefaultProject && defaultProject.HolidaysMustBePaid ? true : false;
+                decimal defaultHourlyCalculation = defaultProject.MonthlySalaryPartner > 0 ? ((defaultProject.MonthlySalaryPartner / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8) + defaultProject.HourlySalary : defaultProject.HourlySalary;
+
+                if (defaultProject.MonthlySalary > 0)
+                {
+                    defaultHourlyCalculation = defaultProject.MonthlySalaryPartner > 0 ? ((defaultProject.MonthlySalaryPartner / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8) + (defaultProject.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8 : (defaultProject.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8;
+                }
+
+                List<GetPaymentDetailsMovementsVM> paymentProjectMovements = new();
+
+                //Add movement for every project
+                foreach (var project in activeProjects)
+                {
+                    var projectMovementsParameters = new DynamicParameters();
+                    projectMovementsParameters.Add("@ConsultantId", consultant.ConsultantId);
+                    projectMovementsParameters.Add("@ProjectId", project.ProjectId);
+                    projectMovementsParameters.Add("@StartDate", startDate);
+                    projectMovementsParameters.Add("@EndDate", endDate);
+
+                    var projectMovements = await connection.QueryAsync<GetApprovedMovementsWhereConsultantVM>("SP_REPORTING_MY_TIME_MOVEMENTS_GetApprovedMovementsWhereConsultant", projectMovementsParameters, commandType: CommandType.StoredProcedure);
+                    if (project.MonthlySalary > 0 || project.HourlySalary > 0)
+                    {
+                        if (project.AccessToTrackingTool && project.IsMonthlySalaryCalculatedPerHour)
+                        {
+                            foreach (var movement in projectMovements)
                             {
-                                GetPaymentDetailsMovementsVM paymentProjectMovement = new()
+                                if (movement.MovementTypeName == "Normal Hours")
                                 {
-                                    PaymentType = "Hours/normal payment",
-                                    ProjectId = project.ProjectId,
-                                    ProjectName = project.ProjectName,
-                                    MovementTypeId = movement.MovementTypeId,
-                                    MovementTypeName = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? "Hours of professional services" : "Professional services",
-                                    Quantity = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? movement.TotalQuantity : 1,
-                                    UnitPrice = project.HourlySalary > 0 ? project.HourlySalary : project.IsMonthlySalaryCalculatedPerHour ? (project.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8 : (consultant.PaymentPeriod == 1 ? (project.MonthlySalary / 2) : project.MonthlySalary)
-                                };
-                                paymentProjectMovements.Add(paymentProjectMovement);
-                            }
-                            else
-                            {
-                                GetPaymentDetailsMovementsVM paymentProjectMovement = new()
+                                    GetPaymentDetailsMovementsVM paymentProjectMovement = new()
+                                    {
+                                        MovementId = movement.MovementId,
+                                        PaymentType = "Hours/normal payment",
+                                        ProjectId = project.ProjectId,
+                                        ProjectName = project.ProjectName,
+                                        MovementTypeId = movement.MovementTypeId,
+                                        MovementTypeName = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? "Hours of professional services" : "Professional services",
+                                        Quantity = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? movement.TotalQuantity : 1,
+                                        UnitPrice = project.HourlySalary > 0 ? project.HourlySalary : project.IsMonthlySalaryCalculatedPerHour ? (project.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8 : (consultant.PaymentPeriod == 1 ? (project.MonthlySalary / 2) : project.MonthlySalary)
+                                    };
+                                    paymentProjectMovements.Add(paymentProjectMovement);
+                                }
+                                else
                                 {
-                                    PaymentType = "Hours/normal payment",
-                                    ProjectId = project.ProjectId,
-                                    ProjectName = project.ProjectName,
-                                    MovementTypeId = movement.MovementTypeId,
-                                    MovementTypeName = movement.MovementTypeName,
-                                    Quantity = movement.TotalQuantity,
-                                    UnitPrice = movement.MovementTypeName == "On Call Flate Rate" ? 500 : project.HourlySalary > 0 ? (project.HourlySalary * 2) : ((project.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8) * 2
-                                };
-                                paymentProjectMovements.Add(paymentProjectMovement);
+                                    GetPaymentDetailsMovementsVM paymentProjectMovement = new()
+                                    {
+                                        MovementId = movement.MovementId,
+                                        PaymentType = "Hours/normal payment",
+                                        ProjectId = project.ProjectId,
+                                        ProjectName = project.ProjectName,
+                                        MovementTypeId = movement.MovementTypeId,
+                                        MovementTypeName = movement.MovementTypeName,
+                                        Quantity = movement.TotalQuantity,
+                                        UnitPrice = movement.MovementTypeName == "On Call Flate Rate" ? 500 : project.HourlySalary > 0 ? (project.HourlySalary * 2) : ((project.MonthlySalary / DateAndTimes.GetWorkingDaysInMonth(startDate)) / 8) * 2
+                                    };
+                                    paymentProjectMovements.Add(paymentProjectMovement);
+                                }
                             }
                         }
+                        else
+                        {
+                            var movementTypeNormalHours = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+
+                            GetPaymentDetailsMovementsVM paymentProjectMovement = new()
+                            {
+                                PaymentType = "Hours/normal payment",
+                                ProjectId = project.ProjectId,
+                                ProjectName = project.ProjectName,
+                                MovementTypeId = movementTypeNormalHours.MovementTypeId,
+                                MovementTypeName = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? "Hours of professional services" : "Professional services",
+                                Quantity = 1,
+                                UnitPrice = consultant.PaymentPeriod == 1 ? (project.MonthlySalary / 2) : project.MonthlySalary
+                            };
+                            paymentProjectMovements.Add(paymentProjectMovement);
+                        }
+                    }
+                }
+                List<GetPaymentDetailsMovementsVM> benefitsAndOtherMovements = new();
+
+                //Add Holidays
+                if (holidaysMustBePaid)
+                {
+                    var holidays = consultant.ConsultantHolidayId == null ? null : await _db.CONSULTANT_HOLIDAY_DATES
+                  .Where(x => x.ConsultantHolidayId == consultant.ConsultantHolidayId
+                              && x.Date >= startDate
+                              && x.Date <= endDate)
+                  .ToListAsync();
+
+                    if (holidays != null)
+                    {
+                        var holidaysMovementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Holidays");
+                        foreach (var holiday in holidays)
+                        {
+                            GetPaymentDetailsMovementsVM holidayMovement = new()
+                            {
+                                ProjectId = defaultProject.ProjectId,
+                                PaymentType = "Holidays",
+                                MovementTypeId = holidaysMovementType.MovementTypeId,
+                                MovementTypeName = "Holiday - " + holiday.Name + " (" + holiday.Date.ToString("MM/dd/yyyy") + ")",
+                                Quantity = 8,
+                                UnitPrice = defaultHourlyCalculation
+                            };
+                            benefitsAndOtherMovements.Add(holidayMovement);
+                        }
+                    }
+                }
+
+                //Add Benefits
+                var benefits = await connection.QueryAsync<GetApprovedBenefitsWhereConsultant>("SP_CONSULTANT_REIMBURSED_BENEFITS_GetApprovedBenefitsWhereConsultantInThePeriod", sharedParameters, commandType: CommandType.StoredProcedure);
+
+                foreach (var benefit in benefits)
+                {
+                    GetPaymentDetailsMovementsVM benefitMovement = new()
+                    {
+                        MovementId = benefit.MovementId,
+                        ProjectId = defaultProject.ProjectId,
+                        PaymentType = "Reimbursed Benefits",
+                        MovementTypeId = benefit.MovementTypeId,
+                        MovementTypeName = benefit.MovementTypeName,
+                        Quantity = 1,
+                        UnitPrice = benefit.AmountReimbursed
+                    };
+                    benefitsAndOtherMovements.Add(benefitMovement);
+                }
+                //Add Interviews
+                var interviews = await connection.QueryAsync<GetApprovedInterviewsWhereConsultantVM>("SP_INTERVIEWS_GetApprovedInterviewsWhereConsultantInThePeriod", sharedParameters, commandType: CommandType.StoredProcedure);
+
+                foreach (var interview in interviews)
+                {
+                    GetPaymentDetailsMovementsVM interviewMovement = new()
+                    {
+                        MovementId = interview.MovementId,
+                        ProjectId = defaultProject.ProjectId,
+                        PaymentType = "Interviews",
+                        MovementTypeId = interview.MovementTypeId,
+                        MovementTypeName = interview.MovementTypeName,
+                        Quantity = interview.TotalDurationHours,
+                        UnitPrice = defaultHourlyCalculation
+                    };
+                    benefitsAndOtherMovements.Add(interviewMovement);
+                }
+                //Add Debits and Credits
+                var debitsAndCredits = await connection.QueryAsync<GetApprovedDebitsCreditsWhereConsultantVM>("SP_CONSULTANT_PAYMENTS_DEBITS_CREDITS_GetApprovedDebitCreditWhereConsultantInThePeriod", sharedParameters, commandType: CommandType.StoredProcedure);
+
+                List<GetPaymentDetailsMovementsVM> debitsMovements = new();
+
+                foreach (var debitCredit in debitsAndCredits)
+                {
+                    if (debitCredit.TransactionTypeName == "Credit")
+                    {
+                        GetPaymentDetailsMovementsVM creditMovement = new()
+                        {
+                            ProjectId = defaultProject.ProjectId,
+                            MovementId = debitCredit.ConsultantPaymentDebitsCreditsId,
+                            PaymentType = "Credit",
+                            MovementTypeName = debitCredit.Detail,
+                            Quantity = debitCredit.Quantity,
+                            UnitPrice = debitCredit.Amount
+                        };
+                        benefitsAndOtherMovements.Add(creditMovement);
                     }
                     else
                     {
-                        var movementTypeNormalHours = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
-
-                        GetPaymentDetailsMovementsVM paymentProjectMovement = new()
-                        {
-                            PaymentType = "Hours/normal payment",
-                            ProjectId = project.ProjectId,
-                            ProjectName = project.ProjectName,
-                            MovementTypeId = movementTypeNormalHours.MovementTypeId,
-                            MovementTypeName = project.IsMonthlySalaryCalculatedPerHour || project.HourlySalary > 0 ? "Hours of professional services" : "Professional services",
-                            Quantity = !project.IsMonthlySalaryCalculatedPerHour && project.MonthlySalary > 0 ? 1 : consultant.PaymentPeriod == 1 ? 80 : 160,
-                            UnitPrice = project.HourlySalary > 0 ? project.HourlySalary :
-                            project.IsMonthlySalaryCalculatedPerHour && project.MonthlySalary > 0 ? ((consultant.PaymentPeriod == 1 ? (project.MonthlySalary / 2) : project.MonthlySalary) / (consultant.PaymentPeriod == 1 ? 80 : 160)) : (consultant.PaymentPeriod == 1 ? (project.MonthlySalary / 2) : project.MonthlySalary)
-                        };
-                        paymentProjectMovements.Add(paymentProjectMovement);
-                    }
-                }
-            }
-            List<GetPaymentDetailsMovementsVM> benefitsAndOtherMovements = new();
-
-            //Add Holidays
-            if (holidaysMustBePaid)
-            {
-                var holidays = consultant.ConsultantHolidayId == null ? null : await _db.CONSULTANT_HOLIDAY_DATES
-              .Where(x => x.ConsultantHolidayId == consultant.ConsultantHolidayId
-                          && x.Date >= startDate
-                          && x.Date <= endDate)
-              .ToListAsync();
-
-                if (holidays != null)
-                {
-                    var holidaysMovementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Holidays");
-                    foreach (var holiday in holidays)
-                    {
-                        GetPaymentDetailsMovementsVM holidayMovement = new()
+                        GetPaymentDetailsMovementsVM debitMovement = new()
                         {
                             ProjectId = defaultProject.ProjectId,
-                            PaymentType = "Holidays",
-                            MovementTypeId = holidaysMovementType.MovementTypeId,
-                            MovementTypeName = "Holiday - " + holiday.Name + " (" + holiday.Date.ToString("MM/dd/yyyy") + ")",
-                            Quantity = 8,
-                            UnitPrice = defaultHourlyCalculation
+                            MovementId = debitCredit.ConsultantPaymentDebitsCreditsId,
+                            PaymentType = "Debit",
+                            MovementTypeName = debitCredit.Detail,
+                            Quantity = debitCredit.Quantity,
+                            UnitPrice = debitCredit.Amount
                         };
-                        benefitsAndOtherMovements.Add(holidayMovement);
+                        debitsMovements.Add(debitMovement);
                     }
                 }
+                reportToSend.ProjectMovements = paymentProjectMovements;
+                reportToSend.BenefitsAndOtherMovements = benefitsAndOtherMovements;
+                reportToSend.DebitsMovements = debitsMovements;
             }
-
-            //Add Benefits
-            var benefits = await connection.QueryAsync<GetApprovedBenefitsWhereConsultant>("SP_CONSULTANT_REIMBURSED_BENEFITS_GetApprovedBenefitsWhereConsultantInThePeriod", sharedParameters, commandType: CommandType.StoredProcedure);
-
-            foreach (var benefit in benefits)
-            {
-                GetPaymentDetailsMovementsVM benefitMovement = new()
-                {
-                    ProjectId = defaultProject.ProjectId,
-                    PaymentType = "Reimbursed Benefits",
-                    MovementTypeId = benefit.MovementTypeId,
-                    MovementTypeName = benefit.MovementTypeName,
-                    Quantity = 1,
-                    UnitPrice = benefit.AmountReimbursed
-                };
-                benefitsAndOtherMovements.Add(benefitMovement);
-            }
-            //Add Interviews
-            var interviews = await connection.QueryAsync<GetApprovedInterviewsWhereConsultantVM>("SP_INTERVIEWS_GetApprovedInterviewsWhereConsultantInThePeriod", sharedParameters, commandType: CommandType.StoredProcedure);
-
-            foreach (var interview in interviews)
-            {
-                GetPaymentDetailsMovementsVM interviewMovement = new()
-                {
-                    ProjectId = defaultProject.ProjectId,
-                    PaymentType = "Interviews",
-                    MovementTypeId = interview.MovementTypeId,
-                    MovementTypeName = interview.MovementTypeName,
-                    Quantity = interview.TotalDurationHours,
-                    UnitPrice = defaultHourlyCalculation
-                };
-                benefitsAndOtherMovements.Add(interviewMovement);
-            }
-            //Add Debits and Credits
-            var debitsAndCredits = await connection.QueryAsync<GetApprovedDebitsCreditsWhereConsultantVM>("SP_CONSULTANT_PAYMENTS_DEBITS_CREDITS_GetApprovedDebitCreditWhereConsultantInThePeriod", sharedParameters, commandType: CommandType.StoredProcedure);
-
-            List<GetPaymentDetailsMovementsVM> debitsMovements = new();
-
-            foreach (var debitCredit in debitsAndCredits)
-            {
-                if (debitCredit.TransactionTypeName == "Credit")
-                {
-                    GetPaymentDetailsMovementsVM creditMovement = new()
-                    {
-                        ProjectId = defaultProject.ProjectId,
-                        MovementId = debitCredit.ConsultantPaymentDebitsCreditsId,
-                        PaymentType = "Credit",
-                        MovementTypeName = debitCredit.Detail,
-                        Quantity = debitCredit.Quantity,
-                        UnitPrice = debitCredit.Amount
-                    };
-                    benefitsAndOtherMovements.Add(creditMovement);
-                }
-                else
-                {
-                    GetPaymentDetailsMovementsVM debitMovement = new()
-                    {
-                        ProjectId = defaultProject.ProjectId,
-                        MovementId = debitCredit.ConsultantPaymentDebitsCreditsId,
-                        PaymentType = "Debit",
-                        MovementTypeName = debitCredit.Detail,
-                        Quantity = debitCredit.Quantity,
-                        UnitPrice = debitCredit.Amount
-                    };
-                    debitsMovements.Add(debitMovement);
-                }
-            }
-            reportToSend.ProjectMovements = paymentProjectMovements;
-            reportToSend.BenefitsAndOtherMovements = benefitsAndOtherMovements;
-            reportToSend.DebitsMovements = debitsMovements;
-
             return new MethodResponse { Success = true, GenericList = reportToSend };
+        }
+
+        private async Task<GetListOfMovementsForPaymentVM> GetPaidMovementsAsync(int accountPayableId)
+        {
+            try
+            {
+                GetListOfMovementsForPaymentVM dataToReturn = new();
+
+                var projectMovements = await (from apm in _db.ACCOUNTS_PAYABLE_MOVEMENTS
+                                              join p in _db.PROJECTS on apm.ProjectId equals p.ProjectId into projectGroup
+                                              from p in projectGroup.DefaultIfEmpty() // Left join with Projects
+                                              where apm.AccountPayableId == accountPayableId
+                                              && apm.Type == "Hours/normal payment"
+                                              select new GetPaymentDetailsMovementsVM
+                                              {
+                                                  MovementTypeName = apm.Description,
+                                                  ProjectName = p.Name,
+                                                  Quantity = apm.Quantity,
+                                                  UnitPrice = apm.UnitPrice
+                                              }).ToListAsync();
+
+                dataToReturn.ProjectMovements = projectMovements;
+
+                var benefitsAndOtherMovements = await (from apm in _db.ACCOUNTS_PAYABLE_MOVEMENTS
+                                                       where apm.AccountPayableId == accountPayableId
+                                                       && apm.Type != "Hours/normal payment" && apm.Type != "Debit"
+                                                       select new GetPaymentDetailsMovementsVM
+                                                       {
+                                                           MovementTypeName = apm.Description,
+                                                           Quantity = apm.Quantity,
+                                                           UnitPrice = apm.UnitPrice
+                                                       }).ToListAsync();
+
+                dataToReturn.BenefitsAndOtherMovements = benefitsAndOtherMovements;
+
+                var debitsMovements = await (from apm in _db.ACCOUNTS_PAYABLE_MOVEMENTS
+                                             where apm.AccountPayableId == accountPayableId
+                                             && apm.Type == "Debit"
+                                             select new GetPaymentDetailsMovementsVM
+                                             {
+                                                 MovementTypeName = apm.Description,
+                                                 Quantity = apm.Quantity,
+                                                 UnitPrice = apm.UnitPrice
+                                             }).ToListAsync();
+
+                dataToReturn.DebitsMovements = debitsMovements;
+
+                return dataToReturn;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<MethodResponse> CreatePayment(string userIdCreatedBy,
@@ -261,7 +363,7 @@ namespace OceansApp.DataAccess.Repository
                 if (existingAccountPayable == null)
                 {
                     existingAccountPayable = await CreateAccountPayable(userIdCreatedBy,
-                        paymentData, accountPayableAmount, journalEntriesToCreate, listOfMovementsForPayment.BenefitsAndOtherMovements);
+                        paymentData, accountPayableAmount, journalEntriesToCreate, listOfMovementsForPayment);
                 }
 
                 // Validate if the payment amount exceeds the account payable balance
@@ -439,7 +541,7 @@ namespace OceansApp.DataAccess.Repository
             // Loop through benefits and other movements to create journal entries
             foreach (var benefitAndCredit in listOfMovementsForPayment.BenefitsAndOtherMovements)
             {
-                if (benefitAndCredit.MovementId > 0)
+                if (benefitAndCredit.PaymentType == "Debit" || benefitAndCredit.PaymentType == "Credit")
                 {
                     var debitCreditMovement = await _db.CONSULTANT_PAYMENTS_DEBITS_CREDITS
                         .FirstOrDefaultAsync(x => x.ConsultantPaymentDebitsCreditsId == benefitAndCredit.MovementId);
@@ -556,7 +658,7 @@ namespace OceansApp.DataAccess.Repository
 
                 // Create the new account payable with the provided data and journal entries
                 existingAccountPayable = await CreateAccountPayable(userIdCreatedBy, completeModel, accountPayableAmount, journalEntriesToCreate,
-                    listOfMovementsForPayment.BenefitsAndOtherMovements);
+                    listOfMovementsForPayment);
 
                 // Commit the transaction after successful creation
                 await transaction.CommitAsync();
@@ -572,7 +674,7 @@ namespace OceansApp.DataAccess.Repository
 
         private async Task<AccountPayable> CreateAccountPayable(string userIdCreatedBy,
     CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate,
-    List<GetPaymentDetailsMovementsVM>? listOfBenefitsMovements)
+    GetListOfMovementsForPaymentVM listOfBenefitsMovements)
         {
             // Get necessary transaction statuses
             var transactionStatuses = await _db.TRANSACTION_STATUSES
@@ -597,6 +699,55 @@ namespace OceansApp.DataAccess.Repository
             // Add the new account payable to the database
             await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
             await _db.SaveChangesAsync();
+
+            foreach (var movement in listOfBenefitsMovements.ProjectMovements)
+            {
+                AccountPayableMovement movementToCreate = new()
+                {
+                    MovementId = movement.MovementId,
+                    ProjectId = movement.ProjectId,
+                    Description = movement.MovementTypeName,
+                    MovementTypeId = movement.MovementTypeId,
+                    Type = movement.PaymentType,
+                    Quantity = movement.Quantity,
+                    UnitPrice = movement.UnitPrice,
+                    AccountPayableId = accountPayableToCreate.AccountPayableId
+                };
+                await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                await _db.SaveChangesAsync();
+            }
+            foreach (var movement in listOfBenefitsMovements.BenefitsAndOtherMovements)
+            {
+                AccountPayableMovement movementToCreate = new()
+                {
+                    MovementId = movement.MovementId,
+                    ProjectId = movement.ProjectId,
+                    Description = movement.MovementTypeName,
+                    MovementTypeId = movement.MovementTypeId,
+                    Type = movement.PaymentType,
+                    Quantity = movement.Quantity,
+                    UnitPrice = movement.UnitPrice,
+                    AccountPayableId = accountPayableToCreate.AccountPayableId
+                };
+                await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                await _db.SaveChangesAsync();
+            }
+            foreach (var movement in listOfBenefitsMovements.DebitsMovements)
+            {
+                AccountPayableMovement movementToCreate = new()
+                {
+                    MovementId = movement.MovementId,
+                    ProjectId = movement.ProjectId,
+                    Description = movement.MovementTypeName,
+                    MovementTypeId = movement.MovementTypeId,
+                    Type = movement.PaymentType,
+                    Quantity = movement.Quantity,
+                    UnitPrice = movement.UnitPrice,
+                    AccountPayableId = accountPayableToCreate.AccountPayableId
+                };
+                await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                await _db.SaveChangesAsync();
+            }
 
             // Retrieve or create a new journal for accounts payable
             var existingJournal = await _db.JOURNAL_ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) &&
@@ -630,34 +781,45 @@ namespace OceansApp.DataAccess.Repository
             }
 
             // Add journal entries to the database
+            var mergedJournalEntries = new List<JournalAccountPayableEntry>();
+
             foreach (var journalEntry in journalEntriesToCreate)
             {
-                journalEntry.AccountPayableId = accountPayableToCreate.AccountPayableId;
-                journalEntry.JournalId = existingJournal.JournalId;
-                await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.AddAsync(journalEntry);
+                // Look for an existing entry with the same properties
+                var existingEntry = mergedJournalEntries.FirstOrDefault(e =>
+                    e.CostCenterId == journalEntry.CostCenterId &&
+                    e.AccountingAccountId == journalEntry.AccountingAccountId &&
+                    e.Reference == journalEntry.Reference);
+
+                if (existingEntry != null)
+                {
+                    // If it exists, sum Debit or Credit accordingly
+                    if (journalEntry.Debit > 0)
+                    {
+                        existingEntry.Debit += journalEntry.Debit;
+                    }
+                    else if (journalEntry.Credit > 0)
+                    {
+                        existingEntry.Credit += journalEntry.Credit;
+                    }
+                }
+                else
+                {
+                    // If it doesn't exist, add it to the list of merged entries
+                    journalEntry.AccountPayableId = accountPayableToCreate.AccountPayableId;
+                    journalEntry.JournalId = existingJournal.JournalId;
+                    mergedJournalEntries.Add(journalEntry);
+                }
             }
 
+            // Now add the merged entries to the database
+            foreach (var mergedEntry in mergedJournalEntries)
+            {
+                await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.AddAsync(mergedEntry);
+            }
             // Save all journal entries
             await _db.SaveChangesAsync();
 
-            //Register Holidays
-            if (listOfBenefitsMovements != null)
-            {
-                foreach (var benefitsAndOther in listOfBenefitsMovements)
-                {
-                    if (benefitsAndOther.PaymentType == "Holidays")
-                    {
-                        AccountPayableHoliday accountPayableHolidayToCreate = new()
-                        {
-                            AccountPayableId = accountPayableToCreate.AccountPayableId,
-                            Reference = benefitsAndOther.MovementTypeName,
-                            TotalAmount = benefitsAndOther.TotalAmount
-                        };
-                        await _db.ACCOUNT_PAYABLE_HOLIDAYS.AddAsync(accountPayableHolidayToCreate);
-                        await _db.SaveChangesAsync();
-                    }
-                }
-            }
 
             // Update movements statuses based on the period and consultant
             await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
@@ -918,6 +1080,36 @@ namespace OceansApp.DataAccess.Repository
                                     BankAccountName = ba.BankAccountName
                                 }).ToListAsync();
             return result;
+        }
+
+        public decimal GetConsultantTotalAmountToPay(GetListOfMovementsForPaymentVM? listOfMovements)
+        {
+            decimal totalAmountToPay = 0;
+
+            if (listOfMovements != null)
+            {
+                foreach (var property in listOfMovements.GetType().GetProperties())
+                {
+                    if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
+                    {
+                        foreach (var item in list)
+                        {
+                            if (item is GetPaymentDetailsMovementsVM movement)
+                            {
+                                if (property.Name != "DebitsMovements")
+                                {
+                                    totalAmountToPay += movement.TotalAmount;
+                                }
+                                else
+                                {
+                                    totalAmountToPay -= movement.TotalAmount;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return totalAmountToPay;
         }
 
     }

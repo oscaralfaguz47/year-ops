@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240924222703_createAccountsPayableMovementsTable")]
+    partial class createAccountsPayableMovementsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -294,7 +297,33 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("ACCOUNTS_PAYABLE");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableMovement", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableHoliday", b =>
+                {
+                    b.Property<int>("AccountPayableHolidayId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountPayableHolidayId"));
+
+                    b.Property<int>("AccountPayableId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(249)
+                        .HasColumnType("nvarchar(249)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("AccountPayableHolidayId");
+
+                    b.HasIndex("AccountPayableId");
+
+                    b.ToTable("ACCOUNT_PAYABLE_HOLIDAYS");
+                });
+
+            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableMovements", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -305,27 +334,22 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("AccountPayableId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int?>("MovementId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MovementTypeId")
+                    b.Property<int>("MovementTypeId")
                         .HasColumnType("int");
+
+                    b.Property<string>("MovementTypeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("ProjectId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
@@ -3150,7 +3174,18 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("TransactionStatus");
                 });
 
-            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableMovement", b =>
+            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableHoliday", b =>
+                {
+                    b.HasOne("OceansApp.Models.Models.AccountPayable", "AccountPayable")
+                        .WithMany()
+                        .HasForeignKey("AccountPayableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountPayable");
+                });
+
+            modelBuilder.Entity("OceansApp.Models.Models.AccountPayableMovements", b =>
                 {
                     b.HasOne("OceansApp.Models.Models.AccountPayable", "AccountPayable")
                         .WithMany()
@@ -3161,7 +3196,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasOne("OceansApp.Models.Models.ReportingMyTimeMovementType", "MovementType")
                         .WithMany()
                         .HasForeignKey("MovementTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("OceansApp.Models.Models.Project", "Project")
                         .WithMany()

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -252,32 +251,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
 
-                    var listOfMovements = movementsListFromDb.GenericList;
-
-                    if (listOfMovements != null)
-                    {
-                        foreach (var property in listOfMovements.GetType().GetProperties())
-                        {
-                            if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
-                            {
-                                foreach (var item in list)
-                                {
-                                    if (item is GetPaymentDetailsMovementsVM movement)
-                                    {
-                                        if (property.Name != "DebitsMovements")
-                                        {
-                                            totalAmountToPay += movement.TotalAmount;
-                                        }
-                                        else
-                                        {
-                                            totalAmountToPay -= movement.TotalAmount;
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
-                    }
+                    totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
                 }
                 else
                 {
@@ -378,34 +352,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             DateTime.Parse(paymentData.EndDatePeriod));
                         decimal totalAmountToPay = 0;
 
-                        var listOfMovements = movementsListFromDb.GenericList;
+                        totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
 
-                        if (listOfMovements != null)
-                        {
-                            foreach (var property in listOfMovements.GetType().GetProperties())
-                            {
-                                if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
-                                {
-                                    foreach (var item in list)
-                                    {
-                                        if (item is GetPaymentDetailsMovementsVM movement)
-                                        {
-                                            if (property.Name != "DebitsMovements")
-                                            {
-                                                totalAmountToPay += movement.TotalAmount;
-                                            }
-                                            else
-                                            {
-                                                totalAmountToPay -= movement.TotalAmount;
-                                            }
-                                        }
-
-                                    }
-                                }
-                            }
-                        }
-
-                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay, (GetListOfMovementsForPaymentVM)listOfMovements);
+                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay, (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList);
 
                         if (res.Success)
                         {
@@ -489,35 +438,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         DateTime.Parse(dataFromModel.EndDatePeriod));
                     decimal totalAmountToPay = 0;
 
-                    var listOfMovements = movementsListFromDb.GenericList;
-
-                    if (listOfMovements != null)
-                    {
-                        foreach (var property in listOfMovements.GetType().GetProperties())
-                        {
-                            if (property.GetValue(listOfMovements) is IEnumerable<object> list && list.Any())
-                            {
-                                foreach (var item in list)
-                                {
-                                    if (item is GetPaymentDetailsMovementsVM movement)
-                                    {
-                                        if (property.Name != "DebitsMovements")
-                                        {
-                                            totalAmountToPay += movement.TotalAmount;
-                                        }
-                                        else
-                                        {
-                                            totalAmountToPay -= movement.TotalAmount;
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
-                    }
+                    totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
 
                     var res = await _unitOfWork.ConsultantPayment.SetAsAccountPayable(userActionedBy, dataFromModel, totalAmountToPay,
-                        (GetListOfMovementsForPaymentVM)listOfMovements, consultant.CompanyId);
+                        (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultant.CompanyId);
 
                     if (res.Success)
                     {
