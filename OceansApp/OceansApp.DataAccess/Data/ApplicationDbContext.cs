@@ -573,9 +573,9 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(c => c.Reference)
                  .HasColumnType("varchar(249)");
                 entity.Property(e => e.Debit)
-                .HasColumnType("decimal(18, 2)");
+                .HasColumnType("decimal(18, 6)");
                 entity.Property(e => e.Credit)
-                .HasColumnType("decimal(18, 2)");
+                .HasColumnType("decimal(18, 6)");
             });
 
             // LEDGER MOVEMENT

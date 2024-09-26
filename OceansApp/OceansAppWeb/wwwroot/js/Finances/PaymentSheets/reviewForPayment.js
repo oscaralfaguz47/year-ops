@@ -59,8 +59,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
         let totalCredits = 0;
         let totalDebits = 0;
-        let totalToPay = 0;
         let paymentsAmount = 0;
+        let totalFinal = 0;
 
         // Project movements
         if (dataFromApi.reportDetails.listOfMovements.projectMovements.length > 0) {
@@ -79,6 +79,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const movementsGroupedByProject = {};
 
             dataFromApi.reportDetails.listOfMovements.projectMovements.forEach(function (obj) {
+                totalFinal += obj.totalAmount;
                 // Group movements by projectName
                 if (!movementsGroupedByProject[obj.projectName]) {
                     movementsGroupedByProject[obj.projectName] = {};
@@ -137,7 +138,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                     tr.appendChild(tdSubtotal);
                     tableBody.appendChild(tr);
 
-                    projectTotal += parseFloat(obj.totalAmount);
+                    projectTotal += parseFloat(obj.totalAmount.toFixed(2));
                 });
 
                 // Add project total row
@@ -178,7 +179,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             let otherCreditsTotal = 0;
 
             dataFromApi.reportDetails.listOfMovements.benefitsAndOtherMovements.forEach(function (obj, index) {
-
+                totalFinal += obj.totalAmount;
                 // Add movement row
                 const tr = document.createElement('tr');
                 const tdDescription = document.createElement('td');
@@ -198,7 +199,6 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
                 otherCreditsTotal += parseFloat(obj.totalAmount); // Add to other credits total
             });
-            console.log("Other total credits: " + otherCreditsTotal);
             // Add total row for the last credits category
             const trTotal = document.createElement('tr');
             const tdTotalLabel = document.createElement('td');
@@ -223,6 +223,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
         // Debits
         if (dataFromApi.reportDetails.listOfMovements.debitsMovements.length > 0) {
+            
             const debitsSection = document.createElement('div');
             debitsSection.className = 'global-table-container';
             const debitsTitle = document.createElement('label');
@@ -235,7 +236,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             let debitsTotal = 0;
 
             dataFromApi.reportDetails.listOfMovements.debitsMovements.forEach(function (obj, index) {
-
+                totalFinal -= obj.totalAmount;
                 // Add movement row
                 const tr = document.createElement('tr');
                 const tdDescription = document.createElement('td');
@@ -277,7 +278,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             debitsSection.appendChild(debitsTable);
             reviewForApprovalContainer.appendChild(debitsSection);
         }
-
+        console.log("TOTAL: " + totalFinal.toFixed(2));
         // Final Summary Table with "Resume" Label
         if (totalCredits > 0 || totalDebits > 0) {
             const finalSummarySection = document.createElement('div');
@@ -325,7 +326,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             tdTotalToPayLabel.colSpan = 3;
             const tdTotalToPayValue = document.createElement('td');
             totalToPay = totalCredits - totalDebits;
-            tdTotalToPayValue.textContent = '$' + totalToPay.toFixed(2);
+            tdTotalToPayValue.textContent = '$' + totalFinal.toFixed(2);
             tdTotalToPayValue.className = 'total-to-pay';
 
             trTotalToPay.appendChild(tdTotalToPayLabel);
@@ -432,13 +433,13 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             reviewForApprovalContainer.appendChild(paymentsTitle);
             reviewForApprovalContainer.appendChild(paymentsSection);
         }
-        console.log(paymentsAmount);
-        if (dataFromApi.reportDetails.accountPayableAmount !== null && (dataFromApi.reportDetails.accountPayableAmount.toFixed(2) !== totalToPay.toFixed(2))) {
+
+        if (dataFromApi.reportDetails.accountPayableAmount !== null && (dataFromApi.reportDetails.accountPayableAmount.toFixed(2) !== totalFinal.toFixed(2))) {
             const informationSectionDiv = document.createElement('div');
             const headerDiv = document.createElement('div');
             const actionsBtnsDiv = document.createElement('div');
             actionsBtnsDiv.className = 'actions-container';
-            let differenceAmount = (Number(totalToPay.toFixed(2)) - Number(dataFromApi.reportDetails.accountPayableAmount.toFixed(2))).toFixed(2);
+            let differenceAmount = (Number(totalFinal.toFixed(2)) - Number(dataFromApi.reportDetails.accountPayableAmount.toFixed(2))).toFixed(2);
             let savedAccountsPayableAmount = dataFromApi.reportDetails.accountPayableAmount.toFixed(2);
             let existsPayment = dataFromApi.reportDetails.existsPayment;
 
@@ -452,17 +453,17 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             <img src="/icons/Shared/red-info.svg">
             <p>There's a difference between the account payable and payment amount. Please choose an action bellow to resolve it.</p>
              <label>Current Account Payable Amount: <span>$${savedAccountsPayableAmount}</span></label>
-                <label>Total Report Amount: <span>$${totalToPay.toFixed(2)}</span></label>
+                <label>Total Report Amount: <span>$${totalFinal.toFixed(2)}</span></label>
                 <div class="difference-container">
                 <label class="${differenceAmount > 0 ? 'green-difference' : 'red-difference'}">Difference: <span>$${differenceAmount}</span></label>
                 </div>
             </div>
             </div>`;
-            const fixBtn = `<button class="fix-btn"><img style="width:25px" src="/icons/Shared/fix.svg"> Fix Difference to Pay Today</button>`;
+            const fixBtn = `<button onclick="fixDifference(${existsPayment})" class="fix-btn"><img style="width:25px" src="/icons/Shared/fix.svg"> ${!existsPayment ? 'Fix Difference' : 'Fix Difference and Pay Today'}</button>`;
             const deferBtn = `<button class="defer-btn"><img style="width:25px" src="/icons/Shared/next-arrow.svg"> Defer To Next Period</button>`;
 
             if (existsPayment) {
-                let paymentBalance = totalToPay.toFixed(2) - paymentsAmount;
+                let paymentBalance = totalFinal.toFixed(2) - paymentsAmount;
                 let adjustedAmount = paymentBalance - (differenceAmount < 0 ? Math.abs(differenceAmount) : differenceAmount);
                 if (adjustedAmount > 0) {
                     actionsBtnsDiv.innerHTML = `${fixBtn}`; // If positive
@@ -516,6 +517,74 @@ async function setAsAccountPayable() {
     displaySpinner();
     try {
         const response = await fetch('/Finances/PaymentSheets/SetAsAccountPayable', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        await displayReviewForPaymentModal('modal-review-for-payment', consultantIdInputMP.value);
+        return dataFromApi;
+
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        hideSpinner();
+        return null;
+    }
+}
+
+async function fixDifference(existsPayment) {
+    if (existsPayment) {
+        const confirmation = await Swal.fire({
+            title: "Fix Difference Today",
+            text: `Keep in mind that you already made a payment. Are you sure you want to make another payment today for the difference?`,
+            icon: 'warning',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            cancelButtonColor: '#9ba8b8',
+            confirmButtonColor: '#eeb30f',
+            confirmButtonText: 'Yes, Do it!'
+        });
+
+        if (!confirmation.isConfirmed) {
+            return;
+        }
+    }
+    
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        ConsultantId: consultantIdInputMP.value === '' ? null : Number(consultantIdInputMP.value),
+        StartDatePeriod: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndDatePeriod: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2')
+    };
+
+    displaySpinner();
+    try {
+        const response = await fetch('/Finances/PaymentSheets/FixDifferenceToMakePaymentToday', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

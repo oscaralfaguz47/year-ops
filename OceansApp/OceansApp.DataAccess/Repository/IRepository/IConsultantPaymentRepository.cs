@@ -28,5 +28,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser);
         Task<bool?> AccountPayableIsAccountedAsync(int accountPayableId);
         Task<bool> ExistsPaymentForAccountPayableAsync(int accountPayableId);
+        Task<MethodResponse> FixDifferenceToMayPaymentAsync(int consultantId, DateTime startDate, DateTime endDate,
+            string userActionedBy);
     }
 }

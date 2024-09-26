@@ -36,7 +36,7 @@ namespace OceansApp.DataAccess.Repository
             Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
-            ConsultantPayment = new ConsultantPaymentRepository(_db);
+            ConsultantPayment = new ConsultantPaymentRepository(_db, this);
             ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db);
             ConsultantPosition = new ConsultantPositionRepository(_db);
             ConsultantBenefit = new ConsultantBenefitRepository(_db);

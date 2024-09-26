@@ -7,7 +7,6 @@ using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
 using OceansApp.Models.ViewModels.ConsultantPaymentsDebitsCredits;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
-using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.Interviews;
 using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
@@ -17,6 +16,7 @@ using System.Data;
 using OceansApp.Models.ViewModels.ProjectConsultantAssignedHistory;
 using OceansApp.Models.ViewModels.AccountsPayable;
 using Microsoft.Data.SqlClient;
+using OceansApp.Models.ViewModels.Consultants;
 
 
 
@@ -25,9 +25,11 @@ namespace OceansApp.DataAccess.Repository
     public class ConsultantPaymentRepository : Repository<ConsultantPayment>, IConsultantPaymentRepository
     {
         private ApplicationDbContext _db;
-        public ConsultantPaymentRepository(ApplicationDbContext db) : base(db)
+        private readonly IConsultantDetailRepository _consultantDetailRepository;
+        public ConsultantPaymentRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
+            _consultantDetailRepository = unitOfWork.ConsultantDetail;
         }
         public async Task<MethodResponse> GetMovementsToPay(ConsultantUserVM consultant, DateTime startDate,
             DateTime endDate)
@@ -38,7 +40,7 @@ namespace OceansApp.DataAccess.Repository
             }
 
             var existingAccountsPayableList = await _db.ACCOUNTS_PAYABLE.Where(x => x.Voided == false && x.ConsultantId == consultant.ConsultantId && (x.StartDatePeriod >= startDate &&
-            x.EndDatePeriod <= endDate) && x.Voided == false).Include(x => x.TransactionStatus).ToListAsync();
+            x.EndDatePeriod <= endDate)).Include(x => x.TransactionStatus).ToListAsync();
 
             var closestToEndDate = existingAccountsPayableList
     .OrderBy(x => Math.Abs((x.EndDatePeriod - endDate).TotalDays))
@@ -616,14 +618,13 @@ namespace OceansApp.DataAccess.Repository
                 AccountingAccountId = accountingAccount.AccountingAccountId,
                 Reference = "Cuenta por pagar a consultor",
                 Debit = 0,
-                Credit = accountPayableAmount
+                Credit = Math.Round(accountPayableAmount, 2)
             };
             entriesListToReturn.Add(journalEntryAccountsPayableToCreate);
 
             // Return the list of all created journal entries
             return entriesListToReturn;
         }
-
 
         public async Task<MethodResponse> SetAsAccountPayable(string userIdCreatedBy,
     SetAsAccountPayableVM dataFromModel, decimal accountPayableAmount, GetListOfMovementsForPaymentVM listOfMovementsForPayment,
@@ -634,7 +635,8 @@ namespace OceansApp.DataAccess.Repository
 
             // Check if an account payable for this consultant and period already exists
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == dataFromModel.ConsultantId &&
-                x.StartDatePeriod == DateTime.Parse(dataFromModel.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(dataFromModel.EndDatePeriod));
+                x.StartDatePeriod == DateTime.Parse(dataFromModel.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(dataFromModel.EndDatePeriod)
+                && x.Voided == false);
 
             // Return a validation failure if an account payable already exists
             if (existingAccountPayable != null)
@@ -751,37 +753,24 @@ namespace OceansApp.DataAccess.Repository
             }
 
             // Retrieve or create a new journal for accounts payable
-            var existingJournal = await _db.JOURNAL_ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) &&
-                x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod) && x.CompanyId == paymentData.CompanyId);
-
-            if (existingJournal == null)
-            {
-                // Get the next journal consecutive number
-                var journalConsecutive = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == "JOURNAL_CXP" && x.CompanyId == paymentData.CompanyId);
-                journalConsecutive.ConsecutiveNumber++;
-
-                // Create a new journal entry
-                var journalToCreate = new JournalAccountPayable
-                {
-                    CompanyId = paymentData.CompanyId,
-                    TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Pending Accounting").TransactionStatusId,
-                    StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
-                    EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
-                    Entry = $"{paymentData.CompanyId}{journalConsecutive.ConsecutiveNumber.ToString().PadLeft(7, '0')}",
-                    AccountingPackage = paymentData.CompanyId,
-                    EntryType = paymentData.CompanyId,
-                    AccountingDate = DateTime.Parse(paymentData.EndDatePeriod),
-                    CreationDate = DateTime.UtcNow,
-                    UserCreatedBy = userIdCreatedBy
-                };
-
-                // Add the new journal to the database
-                await _db.JOURNAL_ACCOUNTS_PAYABLE.AddAsync(journalToCreate);
-                await _db.SaveChangesAsync();
-                existingJournal = journalToCreate;
-            }
+            var existingJournal = await GetExistingOrCreateJournalAccountPayable(DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod), paymentData.CompanyId,
+            userIdCreatedBy);
 
             // Add journal entries to the database
+            await CreateJournalAccountPayableEntries(journalEntriesToCreate,
+            existingJournal.JournalId, accountPayableToCreate.AccountPayableId);
+
+            // Update movements statuses based on the period and consultant
+            await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
+                       (int)paymentData.ConsultantId, "Sent to be paid");
+
+            // Return the newly created account payable
+            return accountPayableToCreate;
+        }
+
+        private async Task CreateJournalAccountPayableEntries(List<JournalAccountPayableEntry> journalEntriesToCreate,
+            int journalParentId, int accountPayableId)
+        {
             var mergedJournalEntries = new List<JournalAccountPayableEntry>();
 
             foreach (var journalEntry in journalEntriesToCreate)
@@ -807,8 +796,8 @@ namespace OceansApp.DataAccess.Repository
                 else
                 {
                     // If it doesn't exist, add it to the list of merged entries
-                    journalEntry.AccountPayableId = accountPayableToCreate.AccountPayableId;
-                    journalEntry.JournalId = existingJournal.JournalId;
+                    journalEntry.AccountPayableId = accountPayableId;
+                    journalEntry.JournalId = journalParentId;
                     mergedJournalEntries.Add(journalEntry);
                 }
             }
@@ -820,16 +809,44 @@ namespace OceansApp.DataAccess.Repository
             }
             // Save all journal entries
             await _db.SaveChangesAsync();
-
-
-            // Update movements statuses based on the period and consultant
-            await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
-                       (int)paymentData.ConsultantId, "Sent to be paid");
-
-            // Return the newly created account payable
-            return accountPayableToCreate;
         }
 
+        private async Task<JournalAccountPayable> GetExistingOrCreateJournalAccountPayable(DateTime startDate, DateTime endDate, string companyId,
+            string userActionedBy)
+        {
+            var existingJournal = await _db.JOURNAL_ACCOUNTS_PAYABLE.Include(x => x.TransactionStatus)
+                .FirstOrDefaultAsync(x => x.StartDatePeriod == startDate &&
+                x.EndDatePeriod == endDate && x.CompanyId == companyId && x.TransactionStatus.Name == "Pending Accounting");
+
+            if (existingJournal == null)
+            {
+                // Get the next journal consecutive number
+                var journalConsecutive = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == "JOURNAL_CXP" && x.CompanyId == companyId);
+                journalConsecutive.ConsecutiveNumber++;
+
+                var statusPendingAccounting = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Pending Accounting");
+                // Create a new journal entry
+                var journalToCreate = new JournalAccountPayable
+                {
+                    CompanyId = companyId,
+                    TransactionStatusId = statusPendingAccounting.TransactionStatusId,
+                    StartDatePeriod = startDate,
+                    EndDatePeriod = endDate,
+                    Entry = $"{companyId}{journalConsecutive.ConsecutiveNumber.ToString().PadLeft(7, '0')}",
+                    AccountingPackage = companyId,
+                    EntryType = companyId,
+                    AccountingDate = endDate,
+                    CreationDate = DateTime.UtcNow,
+                    UserCreatedBy = userActionedBy
+                };
+
+                // Add the new journal to the database
+                await _db.JOURNAL_ACCOUNTS_PAYABLE.AddAsync(journalToCreate);
+                await _db.SaveChangesAsync();
+                existingJournal = journalToCreate;
+            }
+            return existingJournal;
+        }
 
         public async Task<MethodResponse> UpdatePayment(string userIdCreatedBy, CreateUpdateConsultantPaymentVM paymentData)
         {
@@ -846,7 +863,8 @@ namespace OceansApp.DataAccess.Repository
 
                 // Retrieve the account payable
                 var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
-                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod) 
+                    && x.Voided == false);
                 if (existingAccountPayable == null) return MethodResponse.CreateFailureExceptionResponse("Account payable does not exist.");
 
                 // Calculate new balance
@@ -1213,12 +1231,212 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
         {
             var payment = await _db.CONSULTANT_PAYMENTS
                      .Where(x => x.AccountPayableId == accountPayableId && x.Voided == false)
-                     .OrderByDescending(x => x.EndDatePeriod) 
+                     .OrderByDescending(x => x.EndDatePeriod)
                      .FirstOrDefaultAsync();
 
             if (payment == null) return false;
 
             return true;
+        }
+
+        public async Task<MethodResponse> FixDifferenceToMayPaymentAsync(int consultantId, DateTime startDate, DateTime endDate,
+            string userActionedBy)
+        {
+            var consultant = await _consultantDetailRepository.GetConsultantWithUserAsync(consultantId);
+
+            //var consultant = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == consultantId);
+
+            if (consultant == null) return MethodResponse.CreateFailureNotFoundResponse("The Consultant was not found");
+
+            var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId &&
+            x.StartDatePeriod == startDate && x.EndDatePeriod == endDate && x.Voided == false);
+
+            if (existingAccountPayable == null) return MethodResponse.CreateFailureNotFoundResponse("The payment details doen't have an account payable.");
+
+            bool? accountPayableAccuntedStatus = await AccountPayableIsAccountedAsync(existingAccountPayable.AccountPayableId);
+
+            if (accountPayableAccuntedStatus == null) return MethodResponse.CreateFailureNotFoundResponse("The Accounted status was not found");
+
+            var movementsListFromDb = await GetMovementsToPay(consultant, startDate, endDate);
+
+            decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
+
+            var journalEntriesToCreate = await GetJournalEntriesReadyToCreate((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList,
+consultantId, consultant.CompanyId, endDate, totalAmountToPay);
+
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var accountPayable = existingAccountPayable;
+                    var statusSentToBePaid = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Sent to be paid");
+
+                    if (statusSentToBePaid == null) return MethodResponse.CreateFailureNotFoundResponse("The status 'Sent to be paid' was not found");
+
+                    if ((bool)accountPayableAccuntedStatus) //If account payable is already accounted
+                    {
+                        //Void the existing account payable
+                        existingAccountPayable.Voided = true;
+                        await _db.SaveChangesAsync();
+
+                        //Create new Account Payable
+                        AccountPayable newAccountPayable = new()
+                        {
+                            ConsultantId = existingAccountPayable.ConsultantId,
+                            StartDatePeriod = existingAccountPayable.StartDatePeriod,
+                            EndDatePeriod = existingAccountPayable.EndDatePeriod,
+                            AccountingDate = existingAccountPayable.AccountingDate,
+                            Amount = existingAccountPayable.Amount,
+                            BalanceAmount = existingAccountPayable.BalanceAmount,
+                            CreationDate = DateTime.UtcNow,
+                            UserCreatedBy = userActionedBy,
+                            CompanyId = existingAccountPayable.CompanyId,
+                            TransactionStatusId = existingAccountPayable.TransactionStatusId
+                        };
+                        await _db.ACCOUNTS_PAYABLE.AddAsync(newAccountPayable);
+                        await _db.SaveChangesAsync();
+                        accountPayable = newAccountPayable;
+
+                        //Create new journal entries
+                        var existingOrNewJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId,
+            userActionedBy);
+
+                        var journalEntriesToCreateReverse = await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES
+                            .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId).ToListAsync();
+
+                        List<JournalAccountPayableEntry> journalEntriesToCreateReverseList = new();
+                        foreach (var entryToReverse in journalEntriesToCreateReverse)
+                        {
+                            JournalAccountPayableEntry newEntry = new()
+                            {
+                                CostCenterId = entryToReverse.CostCenterId,
+                                AccountingAccountId = entryToReverse.AccountingAccountId,
+                                Reference = entryToReverse.Reference,
+                                Debit = entryToReverse.Credit,
+                                Credit = entryToReverse.Debit,
+                                AccountPayableId = existingAccountPayable.AccountPayableId,
+                                JournalId = existingOrNewJournal.JournalId
+                            };
+                            journalEntriesToCreateReverseList.Add(newEntry);
+                        }
+
+                        await CreateJournalAccountPayableEntries(journalEntriesToCreateReverseList,
+            existingOrNewJournal.JournalId, existingAccountPayable.AccountPayableId);
+
+                        // Update AccountPayableId to payments if exists
+                        var payments = await _db.CONSULTANT_PAYMENTS
+                            .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId)
+                            .ToListAsync();
+                        foreach (var payment in payments)
+                        {
+                            payment.AccountPayableId = accountPayable.AccountPayableId;
+                            await _db.SaveChangesAsync();
+                        }
+                    }
+                    else //If account payable is no accounted
+                    {
+                        //Remove old accounts payable movements
+                        var existingAccountPayableMovements = await _db.ACCOUNTS_PAYABLE_MOVEMENTS
+                            .Where(x => x.AccountPayableId == accountPayable.AccountPayableId).ToListAsync();
+
+                        foreach (var existingMovement in existingAccountPayableMovements)
+                        {
+                            _db.ACCOUNTS_PAYABLE_MOVEMENTS.Remove(existingMovement);
+                        }
+                        await _db.SaveChangesAsync();
+
+                        //Remove old journal entries
+                        var existingJournalEntries = await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES
+                            .Where(x => x.AccountPayableId == accountPayable.AccountPayableId).ToListAsync();
+
+                        foreach (var entryToDelete in existingJournalEntries)
+                        {
+                            _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.Remove(entryToDelete);
+                        }
+                        await _db.SaveChangesAsync();
+                    }
+
+                    //Account payable must be updated
+                    if (totalAmountToPay > accountPayable.Amount)
+                    {
+                        accountPayable.BalanceAmount += (totalAmountToPay - accountPayable.Amount);
+                    }
+                    else
+                    {
+                        accountPayable.BalanceAmount -= (accountPayable.Amount - totalAmountToPay);
+                    }
+                    accountPayable.Amount = totalAmountToPay;
+                    accountPayable.TransactionStatusId = statusSentToBePaid.TransactionStatusId;
+                    accountPayable.LastUpdatedDate = DateTime.UtcNow;
+                    accountPayable.UserLastUpdatedBy = userActionedBy;
+                    await _db.SaveChangesAsync();
+
+                    //Create new accounts payable movements
+
+                    GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList;
+                    foreach (var movement in movementsToPayList.ProjectMovements)
+                    {
+                        AccountPayableMovement movementToCreate = new()
+                        {
+                            MovementId = movement.MovementId,
+                            ProjectId = movement.ProjectId,
+                            Description = movement.MovementTypeName,
+                            MovementTypeId = movement.MovementTypeId,
+                            Type = movement.PaymentType,
+                            Quantity = movement.Quantity,
+                            UnitPrice = movement.UnitPrice,
+                            AccountPayableId = accountPayable.AccountPayableId
+                        };
+                        await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                    }
+                    foreach (var movement in movementsToPayList.BenefitsAndOtherMovements)
+                    {
+                        AccountPayableMovement movementToCreate = new()
+                        {
+                            MovementId = movement.MovementId,
+                            ProjectId = movement.ProjectId,
+                            Description = movement.MovementTypeName,
+                            MovementTypeId = movement.MovementTypeId,
+                            Type = movement.PaymentType,
+                            Quantity = movement.Quantity,
+                            UnitPrice = movement.UnitPrice,
+                            AccountPayableId = accountPayable.AccountPayableId
+                        };
+                        await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                    }
+                    foreach (var movement in movementsToPayList.DebitsMovements)
+                    {
+                        AccountPayableMovement movementToCreate = new()
+                        {
+                            MovementId = movement.MovementId,
+                            ProjectId = movement.ProjectId,
+                            Description = movement.MovementTypeName,
+                            MovementTypeId = movement.MovementTypeId,
+                            Type = movement.PaymentType,
+                            Quantity = movement.Quantity,
+                            UnitPrice = movement.UnitPrice,
+                            AccountPayableId = accountPayable.AccountPayableId
+                        };
+                        await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                    }
+                    await _db.SaveChangesAsync();
+
+                    //Create new journal entries
+                    var existingOrCreatedJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId,
+        userActionedBy);
+
+                    await CreateJournalAccountPayableEntries(journalEntriesToCreate,
+        existingOrCreatedJournal.JournalId, accountPayable.AccountPayableId);
+
+                    await transaction.CommitAsync();
+                    return new MethodResponse { Success = true, Message = "The account payable was fixed" };
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
         }
 
     }

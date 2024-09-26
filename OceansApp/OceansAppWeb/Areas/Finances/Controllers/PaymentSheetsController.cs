@@ -252,7 +252,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 reportToSend.CompanyId = consultant.CompanyId;
 
                 var accountPayableList = await _unitOfWork.AccountPayable.GetAllAsync(x => x.ConsultantId == consultant.ConsultantId &&
-                x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate);
+                x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate && x.Voided == false);
 
                 decimal balanceAmount = 0;
                 if (accountPayableList.Count() > 0)
@@ -611,6 +611,64 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = $"There was an error in the server, the project could not be added.", result = "ErrorDeleting", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("FixDifferenceToMakePaymentToday")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FixDifferenceToMakePaymentToday([FromBody] SetAsAccountPayableVM dataFromModel)
+        {
+            try
+            {
+                if (dataFromModel == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "ConsultantId", dataFromModel.ConsultantId, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", dataFromModel.StartDatePeriod, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", dataFromModel.StartDatePeriod, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", dataFromModel.EndDatePeriod, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDatePeriod", "End Date Period", dataFromModel.EndDatePeriod, ModelState);
+
+                if (ModelState.IsValid)
+                {
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var resultMessage = "";
+
+                    var res = await _unitOfWork.ConsultantPayment.FixDifferenceToMayPaymentAsync((int)dataFromModel.ConsultantId, 
+                        DateTime.Parse(dataFromModel.StartDatePeriod), DateTime.Parse(dataFromModel.EndDatePeriod),
+            userActionedBy);
+
+                    if (res.Success)
+                    {
+                        return Ok(new
+                        {
+                            success = true,
+                            message = res.Message
+                        });
+                    }
+                    else
+                    {
+                        if (res.MessageType == "Validation Error")
+                        {
+                            return BadRequest(new { MessageType = "Validation Error", errors = new[] { res.Message } });
+                        }
+                        return BadRequest(new { MessageType = res.MessageType, error = res.Message });
+                    }
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
             }
         }
     }
