@@ -11,6 +11,6 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public string? PaymentType { get; set; }
         public decimal Quantity { get; set; }
         public decimal UnitPrice { get; set; }
-        public decimal TotalAmount => decimal.Round(Quantity * UnitPrice, 2);
+        public decimal TotalAmount => Quantity * UnitPrice;
     }
 }

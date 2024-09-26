@@ -70,6 +70,10 @@ namespace OceansApp.DataAccess.Data
               .HasForeignKey(p => p.TransactionStatusId)
               .IsRequired()
               .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.Amount)
+                .HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.BalanceAmount)
+                .HasColumnType("decimal(18, 2)");
             });
 
             // ACCOUNTS PAYABLE MOVEMENTS
@@ -92,6 +96,8 @@ namespace OceansApp.DataAccess.Data
               .HasForeignKey(p => p.AccountPayableId)
               .OnDelete(DeleteBehavior.Restrict)
               .IsRequired();
+                entity.Property(e => e.UnitPrice)
+                .HasColumnType("decimal(18, 6)");
             });
 
             // APPLICATION USER
@@ -566,6 +572,10 @@ namespace OceansApp.DataAccess.Data
               .OnDelete(DeleteBehavior.Restrict);
                 entity.Property(c => c.Reference)
                  .HasColumnType("varchar(249)");
+                entity.Property(e => e.Debit)
+                .HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Credit)
+                .HasColumnType("decimal(18, 2)");
             });
 
             // LEDGER MOVEMENT

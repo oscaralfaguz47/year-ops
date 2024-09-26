@@ -36,6 +36,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         reportPaymentBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null || dataFromApi.reportDetails.accountPayableBalance > 0 ? 'inline' : 'none';
         getElementById('review-for-payment-modal-title').textContent = dataFromApi.reportDetails.consultantName;
         reviewForApprovalContainer.innerHTML = '';
+        const divMessageContainer = document.createElement('div');
+        reviewForApprovalContainer.appendChild(divMessageContainer);
 
         // Create the table header once
         const tableThead = document.createElement('thead');
@@ -57,6 +59,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
         let totalCredits = 0;
         let totalDebits = 0;
+        let totalToPay = 0;
+        let paymentsAmount = 0;
 
         // Project movements
         if (dataFromApi.reportDetails.listOfMovements.projectMovements.length > 0) {
@@ -69,19 +73,18 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const projectMovementsTable = document.createElement('table');
             projectMovementsTable.appendChild(tableThead.cloneNode(true)); // Clone the header
             const tableBody = document.createElement('tbody');
-            let projectName = '';
             let projectTotal = 0;
 
-            // Agrupar movimientos por projectName y luego por movementTypeName
+            // Group movements by project Name and then by movement TypeName
             const movementsGroupedByProject = {};
 
             dataFromApi.reportDetails.listOfMovements.projectMovements.forEach(function (obj) {
-                // Agrupar movimientos por projectName
+                // Group movements by projectName
                 if (!movementsGroupedByProject[obj.projectName]) {
                     movementsGroupedByProject[obj.projectName] = {};
                 }
 
-                // Agrupar movimientos por movementTypeName dentro del proyecto
+                // Group movements by movementTypeName within the project
                 const projectGroup = movementsGroupedByProject[obj.projectName];
                 if (!projectGroup[obj.movementTypeName]) {
                     projectGroup[obj.movementTypeName] = {
@@ -92,16 +95,16 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                     };
                 }
 
-                // Sumar la cantidad y recalcular el totalAmount
+                // Add the amount and recalculate the totalAmount
                 projectGroup[obj.movementTypeName].quantity += obj.quantity;
                 projectGroup[obj.movementTypeName].totalAmount = projectGroup[obj.movementTypeName].quantity * projectGroup[obj.movementTypeName].unitPrice;
             });
 
-            // Después de agrupar, recorremos los proyectos y luego sus movimientos agrupados
+            // After grouping, we go through the projects and then their grouped movements
             Object.keys(movementsGroupedByProject).forEach(function (projectName) {
                 const projectGroup = movementsGroupedByProject[projectName];
 
-                // Añadir la fila del nombre del proyecto
+                // Add project name row
                 const trProjectName = document.createElement('tr');
                 const tdProjectName = document.createElement('td');
                 tdProjectName.textContent = projectName;
@@ -110,14 +113,14 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 trProjectName.appendChild(tdProjectName);
                 tableBody.appendChild(trProjectName);
 
-                // Inicializar el total del proyecto
+                // Initialize the total project
                 projectTotal = 0;
 
-                // Recorrer los movimientos agrupados por movementTypeName
+                // Loop through movements grouped by movementTypeName
                 Object.keys(projectGroup).forEach(function (movementTypeName) {
                     const obj = projectGroup[movementTypeName];
 
-                    // Crear la fila para cada movimiento
+                    // Create the queue for each movement
                     const tr = document.createElement('tr');
                     const tdDescription = document.createElement('td');
                     tdDescription.textContent = obj.movementTypeName;
@@ -134,10 +137,10 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                     tr.appendChild(tdSubtotal);
                     tableBody.appendChild(tr);
 
-                    projectTotal += parseFloat(obj.totalAmount); // Sum al total del proyecto actual
+                    projectTotal += parseFloat(obj.totalAmount);
                 });
 
-                // Agregar la fila de total del proyecto
+                // Add project total row
                 const trTotal = document.createElement('tr');
                 const tdTotalLabel = document.createElement('td');
                 tdTotalLabel.textContent = "Project Total Amount";
@@ -152,7 +155,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 trTotal.className = 'credit-background';
                 tableBody.appendChild(trTotal);
 
-                totalCredits += projectTotal; // Sumar el total del proyecto actual
+                totalCredits += projectTotal; //Add up the total of the current project
             });
 
             projectMovementsTable.appendChild(tableBody);
@@ -195,7 +198,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
                 otherCreditsTotal += parseFloat(obj.totalAmount); // Add to other credits total
             });
-
+            console.log("Other total credits: " + otherCreditsTotal);
             // Add total row for the last credits category
             const trTotal = document.createElement('tr');
             const tdTotalLabel = document.createElement('td');
@@ -321,7 +324,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             tdTotalToPayLabel.textContent = 'TOTAL TO PAY';
             tdTotalToPayLabel.colSpan = 3;
             const tdTotalToPayValue = document.createElement('td');
-            const totalToPay = totalCredits - totalDebits;
+            totalToPay = totalCredits - totalDebits;
             tdTotalToPayValue.textContent = '$' + totalToPay.toFixed(2);
             tdTotalToPayValue.className = 'total-to-pay';
 
@@ -381,6 +384,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 var editBtn = ``;
                 var menuBtn = ``;
 
+                paymentsAmount += obj.paymentAmount;
+
                 deleteBtn = `<li onclick="deletePayment(${obj.consultantPaymentId})"><i class="red-label bi bi-x-lg"></i> Delete Payment</li>`;
                 editBtn = `<li onclick="displayMakePaymentModal('modal-make-payment', ${obj.consultantPaymentId})""><i class="bi bi-pencil-square"></i> Edit Payment</li>`;
                 menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-p${obj.consultantPaymentId}', 'menuIcon-p${obj.consultantPaymentId}')" class="bi bi-three-dots-vertical" id="menuIcon-p${obj.consultantPaymentId}"></i>
@@ -427,7 +432,50 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             reviewForApprovalContainer.appendChild(paymentsTitle);
             reviewForApprovalContainer.appendChild(paymentsSection);
         }
+        console.log(paymentsAmount);
+        if (dataFromApi.reportDetails.accountPayableAmount !== null && (dataFromApi.reportDetails.accountPayableAmount.toFixed(2) !== totalToPay.toFixed(2))) {
+            const informationSectionDiv = document.createElement('div');
+            const headerDiv = document.createElement('div');
+            const actionsBtnsDiv = document.createElement('div');
+            actionsBtnsDiv.className = 'actions-container';
+            let differenceAmount = (Number(totalToPay.toFixed(2)) - Number(dataFromApi.reportDetails.accountPayableAmount.toFixed(2))).toFixed(2);
+            let savedAccountsPayableAmount = dataFromApi.reportDetails.accountPayableAmount.toFixed(2);
+            let existsPayment = dataFromApi.reportDetails.existsPayment;
 
+            reportPaymentBtn.style.display = 'none';
+
+            informationSectionDiv.className = 'information-section-container';
+            informationSectionDiv.appendChild(headerDiv);
+            informationSectionDiv.appendChild(actionsBtnsDiv);
+            headerDiv.innerHTML = `<div>
+            <div class="info-cont">
+            <img src="/icons/Shared/red-info.svg">
+            <p>There's a difference between the account payable and payment amount. Please choose an action bellow to resolve it.</p>
+             <label>Current Account Payable Amount: <span>$${savedAccountsPayableAmount}</span></label>
+                <label>Total Report Amount: <span>$${totalToPay.toFixed(2)}</span></label>
+                <div class="difference-container">
+                <label class="${differenceAmount > 0 ? 'green-difference' : 'red-difference'}">Difference: <span>$${differenceAmount}</span></label>
+                </div>
+            </div>
+            </div>`;
+            const fixBtn = `<button class="fix-btn"><img style="width:25px" src="/icons/Shared/fix.svg"> Fix Difference to Pay Today</button>`;
+            const deferBtn = `<button class="defer-btn"><img style="width:25px" src="/icons/Shared/next-arrow.svg"> Defer To Next Period</button>`;
+
+            if (existsPayment) {
+                let paymentBalance = totalToPay.toFixed(2) - paymentsAmount;
+                let adjustedAmount = paymentBalance - (differenceAmount < 0 ? Math.abs(differenceAmount) : differenceAmount);
+                if (adjustedAmount > 0) {
+                    actionsBtnsDiv.innerHTML = `${fixBtn}`; // If positive
+                } else {
+                    actionsBtnsDiv.innerHTML = `${(differenceAmount > 0 ? fixBtn: '') + deferBtn
+                }`; // If negative or zero
+                }
+            } else {
+                actionsBtnsDiv.innerHTML = `${fixBtn}`;
+            }
+
+            divMessageContainer.appendChild(informationSectionDiv);
+        }
         hideSpinner();
         showModal(modalId);
         return dataFromApi;

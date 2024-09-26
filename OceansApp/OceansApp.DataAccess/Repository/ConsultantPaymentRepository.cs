@@ -38,7 +38,7 @@ namespace OceansApp.DataAccess.Repository
             }
 
             var existingAccountsPayableList = await _db.ACCOUNTS_PAYABLE.Where(x => x.Voided == false && x.ConsultantId == consultant.ConsultantId && (x.StartDatePeriod >= startDate &&
-            x.EndDatePeriod <= endDate)).Include(x => x.TransactionStatus).ToListAsync();
+            x.EndDatePeriod <= endDate) && x.Voided == false).Include(x => x.TransactionStatus).ToListAsync();
 
             var closestToEndDate = existingAccountsPayableList
     .OrderBy(x => Math.Abs((x.EndDatePeriod - endDate).TotalDays))
@@ -345,7 +345,8 @@ namespace OceansApp.DataAccess.Repository
 
             // Retrieve the existing account payable by consultant and period
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
-                x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod));
+                x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod)
+                && x.Voided == false);
 
             // Prepare journal entries if no account payable exists
             List<JournalAccountPayableEntry> journalEntriesToCreate = new();
@@ -1060,7 +1061,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-
         public async Task<List<GetConsultantPaymentsInPeriodVM>> GetConsultantPaymentsInPeriod(int consultantId, DateTime startDate,
             DateTime endDate)
         {
@@ -1110,6 +1110,115 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
             return totalAmountToPay;
+        }
+
+        public async Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var submission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.FirstOrDefaultAsync(x => x.SubmissionId == dataFromUser.SubmissionId);
+                    if (submission == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Submission does not exist.");
+                    }
+
+                    var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == submission.ProjectId &&
+                    x.ConsultantId == submission.ConsultantId && (x.ActionDate >= submission.StartPeriodDate &&
+                    x.ActionDate <= submission.EndPeriodDate)).ToListAsync();
+
+                    var transactionStatusFromDb = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == dataFromUser.TransactionStatus);
+                    if (transactionStatusFromDb == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status '" + dataFromUser.TransactionStatus + "' not found.");
+                    }
+
+                    foreach (var repMovement in movements)
+                    {
+                        repMovement.TransactionStatusId = transactionStatusFromDb.TransactionStatusId;
+                    }
+
+                    submission.TransactionStatusId = transactionStatusFromDb.TransactionStatusId;
+
+                    if (dataFromUser.TransactionStatus == "Rejected")
+                    {
+                        var commentToCreate = new ReportingMyTimeComments
+                        {
+                            ConsultantId = submission.ConsultantId,
+                            ProjectId = submission.ProjectId,
+                            Body = dataFromUser.Body,
+                            CreationDate = DateTime.UtcNow,
+                            ActionDate = submission.EndPeriodDate,
+                            UserId = userIdCreatedBy,
+                            SubmissionId = submission.SubmissionId
+                        };
+                        await _db.REPORTING_MY_TIME_COMMENTS.AddAsync(commentToCreate);
+
+                        await UpdateAccountsPayableStatusWhenChangesAsync(submission.StartPeriodDate, submission.EndPeriodDate,
+                            submission.ConsultantId);
+                    }
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("You have " + dataFromUser.TransactionStatus + " the submission!");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        private async Task UpdateAccountsPayableStatusWhenChangesAsync(DateTime startDate, DateTime endDate, int consultantId)
+        {
+            try
+            {
+                var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.Include(x => x.TransactionStatus).FirstOrDefaultAsync(x =>
+x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
+&& x.ConsultantId == consultantId && x.Voided == false);
+
+                if (existingAccountPayable != null)
+                {
+                    if (existingAccountPayable.TransactionStatus.Name != "Updated - Pending Review")
+                    {
+                        var transactionStatusPendingReview = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Updated - Pending Review");
+                        existingAccountPayable.TransactionStatusId = transactionStatusPendingReview.TransactionStatusId;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool?> AccountPayableIsAccountedAsync(int accountPayableId)
+        {
+            var entry = await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES
+                                 .FirstOrDefaultAsync(x => x.AccountPayableId == accountPayableId);
+
+            if (entry == null) return null;
+
+            var existingAccountPayable = await _db.JOURNAL_ACCOUNTS_PAYABLE
+                                                  .Include(x => x.TransactionStatus)
+                                                  .FirstOrDefaultAsync(x => x.JournalId == entry.JournalId);
+
+            return existingAccountPayable?.TransactionStatus.Name == "Accounted" ? true : (bool?)false;
+        }
+        public async Task<bool> ExistsPaymentForAccountPayableAsync(int accountPayableId)
+        {
+            var payment = await _db.CONSULTANT_PAYMENTS
+                     .Where(x => x.AccountPayableId == accountPayableId && x.Voided == false)
+                     .OrderByDescending(x => x.EndDatePeriod) 
+                     .FirstOrDefaultAsync();
+
+            if (payment == null) return false;
+
+            return true;
         }
 
     }

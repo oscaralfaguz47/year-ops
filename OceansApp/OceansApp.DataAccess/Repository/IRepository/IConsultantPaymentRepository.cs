@@ -25,5 +25,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task UpdateMovementsStatuses(List<TransactionStatus> transactionStatuses, DateTime startDate, DateTime endDate,
             int consultantId, string newStatus);
         decimal GetConsultantTotalAmountToPay(GetListOfMovementsForPaymentVM? listOfMovements);
+        Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser);
+        Task<bool?> AccountPayableIsAccountedAsync(int accountPayableId);
+        Task<bool> ExistsPaymentForAccountPayableAsync(int accountPayableId);
     }
 }

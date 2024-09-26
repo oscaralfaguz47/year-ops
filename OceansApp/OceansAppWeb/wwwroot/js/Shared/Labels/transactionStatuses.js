@@ -17,6 +17,9 @@
     } if (transactionStatusName === 'Pending' || transactionStatusName === 'Pending Accounting') {
         statusLabel = `<span class="cel-status pending-label"><img class="status-img" src="/img/globalIcons/pending.webp">${transactionStatusName}</span>`;
     }
+    if (transactionStatusName === 'Updated - Pending Review') {
+        statusLabel = `<span class="cel-status pending-review-label"><img src="/icons/Shared/pending-review.svg"> ${transactionStatusName}</span>`;
+    }
     return statusLabel === `` ? transactionStatusName : statusLabel;
 }
 

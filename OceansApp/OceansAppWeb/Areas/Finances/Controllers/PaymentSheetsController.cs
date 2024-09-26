@@ -53,7 +53,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             //Validate Filter inputs
                             validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
                             validateInputs.ValidateNotRequiredAndStringLength("TransactionStatusName", "TransactionStatusName", jsonToValidate["Filters"]["TransactionStatusName"].ToString(), 80, ModelState);
-                            validateInputs.ValidateNotRequiredAndStringLength("AccountsPayableStatusName", "AccountsPayableStatusName", jsonToValidate["Filters"]["AccountsPayableStatusName"].ToString(), 20, ModelState);
+                            validateInputs.ValidateNotRequiredAndStringLength("AccountsPayableStatusName", "AccountsPayableStatusName", jsonToValidate["Filters"]["AccountsPayableStatusName"].ToString(), 30, ModelState);
                             validateInputs.ValidateDateValidFormat("StartDate", "Start Date", jsonToValidate["Filters"]["StartDate"], ModelState);
                             validateInputs.ValidateDateValidFormat("EndDate", "End Date", jsonToValidate["Filters"]["EndDate"], ModelState);
                             validateInputs.ValidateNonRequiredFieldIntType("ProjectId", "Project", (int?)jsonToValidate["Filters"]["ProjectId"], ModelState);
@@ -159,7 +159,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
                 }
 
-                MethodResponse response = await _unitOfWork.ConsultantDetail.ApproveAndRejectSubmission(userActionedBy, dataFromUser);
+                MethodResponse response = await _unitOfWork.ConsultantPayment.ApproveAndRejectSubmission(userActionedBy, dataFromUser);
                 if (!response.Success)
                 {
                     return BadRequest(new { error = response.Message, messageType = response.MessageType });
@@ -187,17 +187,35 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
                 reportToSend.ConsultantName = consultant.Name + " " + consultant.LastName;
                 var accountPayableList = await _unitOfWork.AccountPayable.GetAllAsync(x => x.ConsultantId == consultantId &&
-                x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate);
+                x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate && x.Voided == false);
+
+                var closestToEndDateAP = accountPayableList
+    .OrderBy(x => Math.Abs((x.EndDatePeriod - endDate).TotalDays))
+    .FirstOrDefault();
+                if (closestToEndDateAP != null)
+                {
+                    bool? accountPayableIsAccounted = await _unitOfWork.ConsultantPayment.AccountPayableIsAccountedAsync(closestToEndDateAP.AccountPayableId);
+                    reportToSend.AccountPayableIsAccounted = accountPayableIsAccounted == null ? false : accountPayableIsAccounted == true ? true : false;
+
+                    bool existsPayment = await _unitOfWork.ConsultantPayment.ExistsPaymentForAccountPayableAsync(closestToEndDateAP.AccountPayableId);
+                    reportToSend.ExistsPayment = existsPayment;
+                }
+
                 decimal? balanceAmount = null;
+                decimal? accountPayableAmount = null;
+
                 if (accountPayableList.Count() > 0)
                 {
                     balanceAmount = 0;
+                    accountPayableAmount = 0;
                     foreach (var accountPayable in accountPayableList)
                     {
                         balanceAmount += accountPayable.BalanceAmount;
+                        accountPayableAmount += accountPayable.Amount;
                     }
                 }
                 reportToSend.AccountPayableBalance = balanceAmount;
+                reportToSend.AccountPayableAmount = accountPayableAmount;
 
                 var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
                 reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList;

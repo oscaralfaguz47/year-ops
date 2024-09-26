@@ -325,6 +325,7 @@ async function displayMoreFiltersPaymentSheet() {
                     <option value="Paid">Paid</option>
                     <option value="Pending">Pending</option>
                     <option value="Sent to be paid">Sent to be paid</option>
+                    <option value="Updated - Pending Review">Updated - Pending Review</option>
                 </select>
             </div>
              <div class="select-container">
