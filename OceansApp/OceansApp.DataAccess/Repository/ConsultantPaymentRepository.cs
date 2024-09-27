@@ -26,10 +26,12 @@ namespace OceansApp.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         private readonly IConsultantDetailRepository _consultantDetailRepository;
+        private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
         public ConsultantPaymentRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
             _consultantDetailRepository = unitOfWork.ConsultantDetail;
+            _projectConsultantAssignedHistoryRepository = unitOfWork.ProjectConsultantAssignedHistory;
         }
         public async Task<MethodResponse> GetMovementsToPay(ConsultantUserVM consultant, DateTime startDate,
             DateTime endDate)
@@ -1437,10 +1439,8 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             }
         }
 
-        public async Task<List<ListOfMovementsToDeferToNextPeriodVM>> GetListOfMovementsToDeferAsync(int consultantId, DateTime startDate, DateTime endDate)
+        public async Task<GetDataForDeferToNextPeriodVM> GetMovementsToDeferAsync(int consultantId, DateTime startDate, DateTime endDate)
         {
-            List<ListOfMovementsToDeferToNextPeriodVM> listOfMovementsToReturn = new();
-
             var consultant = await _consultantDetailRepository.GetConsultantWithUserAsync(consultantId);
 
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE
@@ -1449,6 +1449,8 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
 
             var movementsListFromDb = await GetMovementsToPay(consultant, startDate, endDate);
             GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList;
+
+            decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
 
             var existingAccountPayableMovements = await _db.ACCOUNTS_PAYABLE_MOVEMENTS
             .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId)
@@ -1462,6 +1464,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             {
                 GetAccountPayableMovementVM newMovement = new()
                 {
+                    ProjectId = (int)realMovement.ProjectId,
                     Quantity = realMovement.Quantity,
                     TotalAmount = realMovement.TotalAmount,
                     Type = realMovement.PaymentType,
@@ -1473,7 +1476,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             {
                 GetAccountPayableMovementVM newMovement = new()
                 {
-                    MovementId = realMovement.MovementId,
+                    ProjectId = (int)realMovement.ProjectId,
                     Quantity = realMovement.Quantity,
                     TotalAmount = realMovement.TotalAmount,
                     Type = realMovement.PaymentType,
@@ -1485,7 +1488,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             {
                 GetAccountPayableMovementVM newMovement = new()
                 {
-                    MovementId = realMovement.MovementId,
+                    ProjectId = (int)realMovement.ProjectId,
                     Quantity = realMovement.Quantity,
                     TotalAmount = realMovement.TotalAmount,
                     Type = realMovement.PaymentType,
@@ -1498,7 +1501,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             {
                 GetAccountPayableMovementVM newMovement = new()
                 {
-                    MovementId = paidMovement.MovementId,
+                    ProjectId = (int)paidMovement.ProjectId,
                     Quantity = paidMovement.Quantity,
                     TotalAmount = (paidMovement.Quantity * paidMovement.UnitPrice),
                     Type = paidMovement.Type,
@@ -1521,7 +1524,8 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                     MovementTypeId = g.Key.MovementTypeId,
                     Type = g.Key.Type,
                     Quantity = g.Sum(x => x.Quantity),
-                    TotalAmount = g.Sum(x => x.TotalAmount)
+                    TotalAmount = g.Sum(x => x.TotalAmount),
+                    ProjectId = g.First().ProjectId // Include ProjectId as part of the data
                 })
                 .ToList();
 
@@ -1533,7 +1537,8 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                     MovementTypeId = g.Key.MovementTypeId,
                     Type = g.Key.Type,
                     Quantity = g.Sum(x => x.Quantity),
-                    TotalAmount = g.Sum(x => x.TotalAmount)
+                    TotalAmount = g.Sum(x => x.TotalAmount),
+                    ProjectId = g.First().ProjectId // Include ProjectId as part of the data
                 })
                 .ToList();
 
@@ -1555,13 +1560,123 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                                                   : movementAll.Quantity, // Keep original Quantity if no match
                                        TotalAmount = movementPaid != null
                                                      ? Math.Abs(movementAll.TotalAmount - movementPaid.TotalAmount)
-                                                     : movementAll.TotalAmount // Keep original TotalAmount if no match
+                                                     : movementAll.TotalAmount, // Keep original TotalAmount if no match
+                                       ProjectId = movementAll.ProjectId // Include ProjectId, but don't use it for the comparison
                                    }).ToList();
 
+            decimal differenceAmount = totalAmountToPay - existingAccountPayable.Amount;
+            List<ListOfMovementsToDeferToNextPeriodVM> listOfMovementsToReturn = new();
 
+            foreach (var difference in differencesList)
+            {
+                if (_projectConsultantAssignedHistoryRepository == null)
+                {
+                    throw new Exception("The repository _projectConsultantAssignedHistoryRepository is not initialized.");
+                }
 
+                var currentHistory = await _projectConsultantAssignedHistoryRepository.GetCurrentProjectConsultantHistoryAsync(
+                    consultantId, difference.ProjectId, endDate);
 
-            return listOfMovementsToReturn;
+                var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.PositionId
+                == currentHistory.PositionId && x.CompanyId == consultant.CompanyId);
+
+                string transactionTypeName = "Credit";
+                string detail = "";
+
+                if (difference.MovementTypeId == null)
+                {
+                    transactionTypeName = difference.Type;
+                    detail = $"({difference}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
+                }
+                if (difference.MovementTypeId != null && differenceAmount < tolerance)
+                {
+                    transactionTypeName = "Debit";
+                }
+                if (difference.MovementTypeId != null)
+                {
+                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId 
+                    == difference.MovementTypeId);
+                    detail = $"({movementType}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
+                }
+
+                var costCenter = await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterId == accountingConfig.CostCenterId);
+                var accountingAccount = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountId == accountingConfig.AccountingAccountId);
+
+                ListOfMovementsToDeferToNextPeriodVM finalItemToAdd = new()
+                {
+                    CostCenterId = accountingConfig.CostCenterId,
+                    CostCenterName = $"({costCenter.CostCenterCode}) {costCenter.Description}",
+                    AccountingAccountId = accountingConfig.AccountingAccountId,
+                    AccountingAccountName = $"({accountingAccount.AccountingAccountCode}) {accountingAccount.Description}",
+                    TransactionTypeName = transactionTypeName,
+                    Quantity = difference.Quantity,
+                    Amount = (difference.TotalAmount / difference.Quantity),
+                    Detail = detail
+                };
+
+                listOfMovementsToReturn.Add(finalItemToAdd);
+            }
+            DateTime firstEmptyPeriod = FindFirstEmptyPeriod(consultant.PaymentPeriod, endDate, consultant.ConsultantId);
+
+            GetDataForDeferToNextPeriodVM dataToReturn = new()
+            {
+                ActionDate = firstEmptyPeriod,
+                ListOfMovementsToDefer = listOfMovementsToReturn
+            };
+
+            return dataToReturn;
         }
+
+        public DateTime FindFirstEmptyPeriod(int periodId, DateTime endDate, int consultantId)
+        {
+            DateTime currentStartDate = endDate.AddDays(1); // Start searching the day after endDate
+
+            while (true)
+            {
+                DateTime currentEndDate = GetPeriodEndDate(periodId, currentStartDate); // Get the appropriate end date for the period
+
+                if (!HasRecordsInRange(currentStartDate, currentEndDate, consultantId))
+                {
+                    return currentStartDate; // No records found, return the start date of this period
+                }
+
+                // Move to the next period (quincena or month)
+                currentStartDate = GetNextPeriodStartDate(periodId, currentStartDate);
+            }
+        }
+
+        // Helper method to get the period's end date based on the period type (quincenal or monthly)
+        private DateTime GetPeriodEndDate(int periodId, DateTime startDate)
+        {
+            if (periodId == 1) // Quincenal
+            {
+                return (startDate.Day <= 15)
+                    ? new DateTime(startDate.Year, startDate.Month, 15) // First half of the month (1-15)
+                    : new DateTime(startDate.Year, startDate.Month, DateTime.DaysInMonth(startDate.Year, startDate.Month)); // Second half of the month (16-end)
+            }
+            // Monthly: Return the last day of the month
+            return new DateTime(startDate.Year, startDate.Month, DateTime.DaysInMonth(startDate.Year, startDate.Month));
+        }
+
+        // Helper method to move to the next period start date
+        private DateTime GetNextPeriodStartDate(int periodId, DateTime startDate)
+        {
+            if (periodId == 1) // Quincenal
+            {
+                return (startDate.Day <= 15)
+                    ? new DateTime(startDate.Year, startDate.Month, 16) // Move to the second half of the month (16-end)
+                    : startDate.AddMonths(1).AddDays(-startDate.Day + 1); // Move to the first day of the next month
+            }
+            // Monthly: Move to the first day of the next month
+            return startDate.AddMonths(1).AddDays(-startDate.Day + 1);
+        }
+
+        // Helper method to check if there are records within the given date range
+        private bool HasRecordsInRange(DateTime startDate, DateTime endDate, int consultantId)
+        {
+            return _db.CONSULTANT_PAYMENTS.Any(x => x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate
+            && x.ConsultantId == consultantId);
+        }
+
     }
 }

@@ -685,13 +685,8 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                    var movementsToDefer = await _unitOfWork.ConsultantPayment.GetListOfMovementsToDeferAsync(consultantId, 
+                    var dataToReturn = await _unitOfWork.ConsultantPayment.GetMovementsToDeferAsync(consultantId, 
                         startDate, endDate);
-
-                    GetDataForDeferToNextPeriodVM dataToReturn = new()
-                    {
-                        
-                    };
 
                     return Ok(new
                     {
