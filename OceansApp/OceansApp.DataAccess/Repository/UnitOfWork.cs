@@ -11,8 +11,10 @@ namespace OceansApp.DataAccess.Repository
         private ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IMemoryCache _cache;
-        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, IMemoryCache cache)
+        private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
+        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, IMemoryCache cache, IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository)
         {
+            ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
             _db = db;
             _userManager = userManager;
             _cache = cache;

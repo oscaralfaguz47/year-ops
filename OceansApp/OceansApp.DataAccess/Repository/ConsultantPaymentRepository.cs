@@ -1554,31 +1554,38 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                                    select new GetAccountPayableMovementVM
                                    {
                                        MovementTypeId = movementAll.MovementTypeId,
-                                       Type = movementAll.Type,
+
+                                       // Leave as Debit if it's already Debit, otherwise adjust based on the difference
+                                       Type = movementAll.Type == "Debit"
+                                              ? "Debit" // Leave as Debit if it's already Debit
+                                              : (movementPaid == null || movementAll.TotalAmount > movementPaid.TotalAmount
+                                                ? "Credit"  // Difference is in groupedAllMovementsList (movementAll has more)
+                                                : "Debit"), // Difference is in groupedPaidMovementsList (movementPaid has more)
+
                                        Quantity = movementPaid != null
-                                                  ? Math.Abs(movementAll.Quantity - movementPaid.Quantity)
+                                                  ? movementAll.Quantity - movementPaid.Quantity // Now we are keeping the sign of the difference
                                                   : movementAll.Quantity, // Keep original Quantity if no match
+
                                        TotalAmount = movementPaid != null
-                                                     ? Math.Abs(movementAll.TotalAmount - movementPaid.TotalAmount)
+                                                     ? movementAll.TotalAmount - movementPaid.TotalAmount // Keep the sign of the difference
                                                      : movementAll.TotalAmount, // Keep original TotalAmount if no match
+
                                        ProjectId = movementAll.ProjectId // Include ProjectId, but don't use it for the comparison
                                    }).ToList();
+
+
+
 
             decimal differenceAmount = totalAmountToPay - existingAccountPayable.Amount;
             List<ListOfMovementsToDeferToNextPeriodVM> listOfMovementsToReturn = new();
 
             foreach (var difference in differencesList)
             {
-                if (_projectConsultantAssignedHistoryRepository == null)
-                {
-                    throw new Exception("The repository _projectConsultantAssignedHistoryRepository is not initialized.");
-                }
-
                 var currentHistory = await _projectConsultantAssignedHistoryRepository.GetCurrentProjectConsultantHistoryAsync(
                     consultantId, difference.ProjectId, endDate);
 
-                var accountingConfig = await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.PositionId
-                == currentHistory.PositionId && x.CompanyId == consultant.CompanyId);
+                var accountingConfig = difference.MovementTypeId == null ? null : await _db.CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION.FirstOrDefaultAsync(x => x.PositionId
+                == currentHistory.PositionId && x.CompanyId == consultant.CompanyId && x.MovementTypeId == difference.MovementTypeId);
 
                 string transactionTypeName = "Credit";
                 string detail = "";
@@ -1586,7 +1593,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                 if (difference.MovementTypeId == null)
                 {
                     transactionTypeName = difference.Type;
-                    detail = $"({difference}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
+                    detail = $"({difference.Type}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
                 }
                 if (difference.MovementTypeId != null && differenceAmount < tolerance)
                 {
@@ -1596,19 +1603,19 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                 {
                     var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId 
                     == difference.MovementTypeId);
-                    detail = $"({movementType}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
+                    detail = $"({movementType.Name}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
                 }
 
-                var costCenter = await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterId == accountingConfig.CostCenterId);
-                var accountingAccount = await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountId == accountingConfig.AccountingAccountId);
+                var costCenter = accountingConfig == null ? null : await _db.COST_CENTER.FirstOrDefaultAsync(x => x.CostCenterId == accountingConfig.CostCenterId);
+                var accountingAccount = accountingConfig == null ? null : await _db.ACCOUNTING_ACCOUNT.FirstOrDefaultAsync(x => x.AccountingAccountId == accountingConfig.AccountingAccountId);
 
                 ListOfMovementsToDeferToNextPeriodVM finalItemToAdd = new()
                 {
-                    CostCenterId = accountingConfig.CostCenterId,
-                    CostCenterName = $"({costCenter.CostCenterCode}) {costCenter.Description}",
-                    AccountingAccountId = accountingConfig.AccountingAccountId,
-                    AccountingAccountName = $"({accountingAccount.AccountingAccountCode}) {accountingAccount.Description}",
-                    TransactionTypeName = transactionTypeName,
+                    CostCenterId = accountingConfig == null ? null : accountingConfig.CostCenterId,
+                    CostCenterName = accountingConfig == null ? null : $"({costCenter.CostCenterCode}) {costCenter.Description}",
+                    AccountingAccountId = accountingConfig == null ? null : accountingConfig.AccountingAccountId,
+                    AccountingAccountName = accountingConfig == null ? null :  $"({accountingAccount.AccountingAccountCode}) {accountingAccount.Description}",
+                    TransactionTypeName = difference.Type,
                     Quantity = difference.Quantity,
                     Amount = (difference.TotalAmount / difference.Quantity),
                     Detail = detail

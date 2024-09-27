@@ -55,6 +55,7 @@ builder.Services.AddScoped<IAzureBlobRepository, AzureBlobRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<IAzureBlobRepository>)); //Lazy Loading
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<BackgroundTaskService>();
+builder.Services.AddScoped<IProjectConsultantAssignedHistoryRepository, ProjectConsultantAssignedHistoryRepository>();
 builder.Services.Configure<IdentityOptions>(opt =>
 {
     opt.Password.RequiredLength = 8;
