@@ -1244,8 +1244,6 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
         {
             var consultant = await _consultantDetailRepository.GetConsultantWithUserAsync(consultantId);
 
-            //var consultant = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == consultantId);
-
             if (consultant == null) return MethodResponse.CreateFailureNotFoundResponse("The Consultant was not found");
 
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId &&
@@ -1439,5 +1437,131 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             }
         }
 
+        public async Task<List<ListOfMovementsToDeferToNextPeriodVM>> GetListOfMovementsToDeferAsync(int consultantId, DateTime startDate, DateTime endDate)
+        {
+            List<ListOfMovementsToDeferToNextPeriodVM> listOfMovementsToReturn = new();
+
+            var consultant = await _consultantDetailRepository.GetConsultantWithUserAsync(consultantId);
+
+            var existingAccountPayable = await _db.ACCOUNTS_PAYABLE
+                .FirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId &&
+            x.StartDatePeriod == startDate && x.EndDatePeriod == endDate && x.Voided == false);
+
+            var movementsListFromDb = await GetMovementsToPay(consultant, startDate, endDate);
+            GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList;
+
+            var existingAccountPayableMovements = await _db.ACCOUNTS_PAYABLE_MOVEMENTS
+            .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId)
+            .OrderBy(x => x.Type).ToListAsync();
+
+            List<GetAccountPayableMovementVM> mergedAllMovementsList = new();
+
+            List<GetAccountPayableMovementVM> mergedPaidMovementsList = new();
+
+            foreach (var realMovement in movementsToPayList.ProjectMovements)
+            {
+                GetAccountPayableMovementVM newMovement = new()
+                {
+                    Quantity = realMovement.Quantity,
+                    TotalAmount = realMovement.TotalAmount,
+                    Type = realMovement.PaymentType,
+                    MovementTypeId = realMovement.MovementTypeId
+                };
+                mergedAllMovementsList.Add(newMovement);
+            }
+            foreach (var realMovement in movementsToPayList.BenefitsAndOtherMovements)
+            {
+                GetAccountPayableMovementVM newMovement = new()
+                {
+                    MovementId = realMovement.MovementId,
+                    Quantity = realMovement.Quantity,
+                    TotalAmount = realMovement.TotalAmount,
+                    Type = realMovement.PaymentType,
+                    MovementTypeId = realMovement.MovementTypeId
+                };
+                mergedAllMovementsList.Add(newMovement);
+            }
+            foreach (var realMovement in movementsToPayList.DebitsMovements)
+            {
+                GetAccountPayableMovementVM newMovement = new()
+                {
+                    MovementId = realMovement.MovementId,
+                    Quantity = realMovement.Quantity,
+                    TotalAmount = realMovement.TotalAmount,
+                    Type = realMovement.PaymentType,
+                    MovementTypeId = realMovement.MovementTypeId
+                };
+                mergedAllMovementsList.Add(newMovement);
+            }
+            //Paid movements
+            foreach (var paidMovement in existingAccountPayableMovements)
+            {
+                GetAccountPayableMovementVM newMovement = new()
+                {
+                    MovementId = paidMovement.MovementId,
+                    Quantity = paidMovement.Quantity,
+                    TotalAmount = (paidMovement.Quantity * paidMovement.UnitPrice),
+                    Type = paidMovement.Type,
+                    MovementTypeId = paidMovement.MovementTypeId
+                };
+                mergedPaidMovementsList.Add(newMovement);
+            }
+
+            mergedAllMovementsList = mergedAllMovementsList.OrderBy(x => x.Type).ToList();
+            mergedPaidMovementsList = mergedPaidMovementsList.OrderBy(x => x.Type).ToList();
+
+            // Define a tolerance for the differences (e.g., 0.01 for small differences)
+            decimal tolerance = 0.0001m;
+
+            // Step 1: Group and sum within mergedAllMovementsList
+            var groupedAllMovementsList = mergedAllMovementsList
+                .GroupBy(x => new { x.MovementTypeId, x.Type }) // Group by MovementTypeId and Type
+                .Select(g => new GetAccountPayableMovementVM
+                {
+                    MovementTypeId = g.Key.MovementTypeId,
+                    Type = g.Key.Type,
+                    Quantity = g.Sum(x => x.Quantity),
+                    TotalAmount = g.Sum(x => x.TotalAmount)
+                })
+                .ToList();
+
+            // Step 2: Group and sum within mergedPaidMovementsList
+            var groupedPaidMovementsList = mergedPaidMovementsList
+                .GroupBy(x => new { x.MovementTypeId, x.Type }) // Group by MovementTypeId and Type
+                .Select(g => new GetAccountPayableMovementVM
+                {
+                    MovementTypeId = g.Key.MovementTypeId,
+                    Type = g.Key.Type,
+                    Quantity = g.Sum(x => x.Quantity),
+                    TotalAmount = g.Sum(x => x.TotalAmount)
+                })
+                .ToList();
+
+            // Step 3: Find the differences between the two lists
+            var differencesList = (from movementAll in groupedAllMovementsList
+                                   join movementPaid in groupedPaidMovementsList
+                                   on new { MovementTypeId = movementAll.MovementTypeId, Type = movementAll.Type }
+                                   equals new { MovementTypeId = movementPaid.MovementTypeId, Type = movementPaid.Type }
+                                   into matchedMovements
+                                   from movementPaid in matchedMovements.DefaultIfEmpty() // Handle when there's no match
+                                   where movementPaid == null // Include if not found in the paid list
+                                   || Math.Abs(movementAll.TotalAmount - movementPaid.TotalAmount) > tolerance // Ignore small differences
+                                   select new GetAccountPayableMovementVM
+                                   {
+                                       MovementTypeId = movementAll.MovementTypeId,
+                                       Type = movementAll.Type,
+                                       Quantity = movementPaid != null
+                                                  ? Math.Abs(movementAll.Quantity - movementPaid.Quantity)
+                                                  : movementAll.Quantity, // Keep original Quantity if no match
+                                       TotalAmount = movementPaid != null
+                                                     ? Math.Abs(movementAll.TotalAmount - movementPaid.TotalAmount)
+                                                     : movementAll.TotalAmount // Keep original TotalAmount if no match
+                                   }).ToList();
+
+
+
+
+            return listOfMovementsToReturn;
+        }
     }
 }

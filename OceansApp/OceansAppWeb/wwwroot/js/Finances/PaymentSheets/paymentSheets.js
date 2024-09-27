@@ -184,7 +184,7 @@ async function rejectApprovement() {
         Body: commentInputValue,
         TransactionStatus: 'Rejected'
     };
-    console.log(data);
+
     try {
         const response = await fetch('/Finances/PaymentSheets/RejectApproveSubmission', {
             method: 'POST',

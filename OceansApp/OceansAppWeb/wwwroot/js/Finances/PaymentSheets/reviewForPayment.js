@@ -223,7 +223,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
 
         // Debits
         if (dataFromApi.reportDetails.listOfMovements.debitsMovements.length > 0) {
-            
+
             const debitsSection = document.createElement('div');
             debitsSection.className = 'global-table-container';
             const debitsTitle = document.createElement('label');
@@ -278,7 +278,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             debitsSection.appendChild(debitsTable);
             reviewForApprovalContainer.appendChild(debitsSection);
         }
-        console.log("TOTAL: " + totalFinal.toFixed(2));
+
         // Final Summary Table with "Resume" Label
         if (totalCredits > 0 || totalDebits > 0) {
             const finalSummarySection = document.createElement('div');
@@ -459,17 +459,18 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 </div>
             </div>
             </div>`;
-            const fixBtn = `<button onclick="fixDifference(${existsPayment})" class="fix-btn"><img style="width:25px" src="/icons/Shared/fix.svg"> ${!existsPayment ? 'Fix Difference' : 'Fix Difference and Pay Today'}</button>`;
-            const deferBtn = `<button class="defer-btn"><img style="width:25px" src="/icons/Shared/next-arrow.svg"> Defer To Next Period</button>`;
+            let paymentBalance = totalFinal.toFixed(2) - paymentsAmount.toFixed(2);
+            let adjustedAmount = paymentBalance.toFixed(2) - (differenceAmount < 0 ? Math.abs(differenceAmount) : differenceAmount);
+            const fixBtn = `<button onclick="fixDifference(${existsPayment}, ${adjustedAmount.toFixed(2)})" class="fix-btn"><img style="width:25px" src="/icons/Shared/fix.svg"> ${!existsPayment ? 'Fix Difference' : adjustedAmount.toFixed(2) > 0 && differenceAmount < 0 ? 'Fix Difference with balance' : 'Fix Difference and Pay Today'
+        }</button >`;
+            const deferBtn = `<button onclick="displayReviewForDeferModal('modal-defer-next-period', ${consultantIdInputMP.value})" class="defer-btn"><img style="width:25px" src="/icons/Shared/next-arrow.svg"> Defer To Next Period</button>`;
 
             if (existsPayment) {
-                let paymentBalance = totalFinal.toFixed(2) - paymentsAmount;
-                let adjustedAmount = paymentBalance - (differenceAmount < 0 ? Math.abs(differenceAmount) : differenceAmount);
-                if (adjustedAmount > 0) {
+                console.log(adjustedAmount);
+                if (adjustedAmount.toFixed(2) > 0) {
                     actionsBtnsDiv.innerHTML = `${fixBtn}`; // If positive
                 } else {
-                    actionsBtnsDiv.innerHTML = `${(differenceAmount > 0 ? fixBtn: '') + deferBtn
-                }`; // If negative or zero
+                    actionsBtnsDiv.innerHTML = `${(differenceAmount > 0 ? fixBtn : '') + deferBtn}`; // If negative or zero
                 }
             } else {
                 actionsBtnsDiv.innerHTML = `${fixBtn}`;
@@ -556,8 +557,8 @@ async function setAsAccountPayable() {
     }
 }
 
-async function fixDifference(existsPayment) {
-    if (existsPayment) {
+async function fixDifference(existsPayment, adjustedAmount) {    
+    if (existsPayment && adjustedAmount <= 0) {
         const confirmation = await Swal.fire({
             title: "Fix Difference Today",
             text: `Keep in mind that you already made a payment. Are you sure you want to make another payment today for the difference?`,
@@ -573,7 +574,7 @@ async function fixDifference(existsPayment) {
             return;
         }
     }
-    
+
     var token = $('[name="__RequestVerificationToken"]').val();
 
     var data = {
@@ -623,3 +624,4 @@ async function fixDifference(existsPayment) {
         return null;
     }
 }
+

@@ -30,5 +30,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<bool> ExistsPaymentForAccountPayableAsync(int accountPayableId);
         Task<MethodResponse> FixDifferenceToMayPaymentAsync(int consultantId, DateTime startDate, DateTime endDate,
             string userActionedBy);
+        Task<List<ListOfMovementsToDeferToNextPeriodVM>> GetListOfMovementsToDeferAsync(int consultantId, DateTime startDate, DateTime endDate);
     }
 }

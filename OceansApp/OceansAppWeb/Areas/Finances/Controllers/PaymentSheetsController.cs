@@ -194,9 +194,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     .FirstOrDefault();
                 if (closestToEndDateAP != null)
                 {
-                    bool? accountPayableIsAccounted = await _unitOfWork.ConsultantPayment.AccountPayableIsAccountedAsync(closestToEndDateAP.AccountPayableId);
-                    reportToSend.AccountPayableIsAccounted = accountPayableIsAccounted == null ? false : accountPayableIsAccounted == true ? true : false;
-
                     bool existsPayment = await _unitOfWork.ConsultantPayment.ExistsPaymentForAccountPayableAsync(closestToEndDateAP.AccountPayableId);
                     reportToSend.ExistsPayment = existsPayment;
                 }
@@ -635,7 +632,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 if (ModelState.IsValid)
                 {
                     string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    var resultMessage = "";
 
                     var res = await _unitOfWork.ConsultantPayment.FixDifferenceToMayPaymentAsync((int)dataFromModel.ConsultantId, 
                         DateTime.Parse(dataFromModel.StartDatePeriod), DateTime.Parse(dataFromModel.EndDatePeriod),
@@ -657,6 +653,50 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         }
                         return BadRequest(new { MessageType = res.MessageType, error = res.Message });
                     }
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
+
+        [HttpGet("GetDifferenceToDeferNextPeriod")]
+        public async Task<IActionResult> GetDifferenceToDeferNextPeriod(int consultantId, DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "ConsultantId", consultantId, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", startDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", startDate, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", endDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDatePeriod", "End Date Period", endDate, ModelState);
+
+                if (ModelState.IsValid)
+                {
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                    var movementsToDefer = await _unitOfWork.ConsultantPayment.GetListOfMovementsToDeferAsync(consultantId, 
+                        startDate, endDate);
+
+                    GetDataForDeferToNextPeriodVM dataToReturn = new()
+                    {
+                        
+                    };
+
+                    return Ok(new
+                    {
+                        data = dataToReturn
+                    });
                 }
                 else
                 {
