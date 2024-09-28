@@ -1616,8 +1616,8 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                     AccountingAccountId = accountingConfig == null ? null : accountingConfig.AccountingAccountId,
                     AccountingAccountName = accountingConfig == null ? null :  $"({accountingAccount.AccountingAccountCode}) {accountingAccount.Description}",
                     TransactionTypeName = difference.Type,
-                    Quantity = difference.Quantity,
-                    Amount = (difference.TotalAmount / difference.Quantity),
+                    Quantity = Math.Abs(difference.Quantity),
+                    Amount = Math.Abs((difference.TotalAmount / difference.Quantity)),
                     Detail = detail
                 };
 
@@ -1628,6 +1628,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             GetDataForDeferToNextPeriodVM dataToReturn = new()
             {
                 ActionDate = firstEmptyPeriod,
+                CompanyId = consultant.CompanyId,
                 ListOfMovementsToDefer = listOfMovementsToReturn
             };
 

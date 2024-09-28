@@ -27,7 +27,7 @@
 
                 <div class="action-btns-box">
                     <button onclick="hideModal('modal-defer-next-period')" class="cancel-btn">Cancel</button>
-                    <button class="btn-primary-submit" onclick="">
+                    <button class="btn-primary-submit" onclick="createDebitsCredits()">
                         Defer to the next period
                     </button>
                 </div>
@@ -37,3 +37,6 @@
 </div>
 
 <script src="~/js/Finances/PaymentSheets/reviewForDefer.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/CostsCenters/costsCentersHttpRequests.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/AccountingAccounts/accountingAccountsHttpRequests.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/FormElements/select.js?v=@DateTime.Now.Ticks"></script>

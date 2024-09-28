@@ -60,3 +60,8 @@
     .action-date-cont .tooltip-container{
         margin-right: 5px;
     }
+.option-no-accept-data {
+    font-weight: bold;
+    background-color: var(--clr-grayLight);
+    color: #000;
+}

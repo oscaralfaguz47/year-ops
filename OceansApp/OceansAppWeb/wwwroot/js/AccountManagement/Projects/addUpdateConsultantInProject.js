@@ -115,7 +115,7 @@ function disableActionDateDatePicker(date) {
     let dateFormatted = dateTimeFormat.toISOString().substr(0, 10);
     let todaysDate = new Date();
     let todaysDateFormated = todaysDate.toISOString().substr(0, 10);
-    console.log(dateFormatted + " " + todaysDateFormated);
+
     if (dateFormatted < todaysDateFormated) {
         actionDate.min = todaysDateFormated;
     } else {
