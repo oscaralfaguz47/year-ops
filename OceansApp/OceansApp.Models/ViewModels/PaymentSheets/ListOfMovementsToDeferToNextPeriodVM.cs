@@ -4,6 +4,7 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
 {
     public class ListOfMovementsToDeferToNextPeriodVM
     {
+        public int Id { get; set; }
         public int? CostCenterId { get; set; }
         public string? CostCenterName { get; set; }
         public int? AccountingAccountId { get; set; }

@@ -6,6 +6,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.AccountsPayable;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
+using OceansApp.Models.ViewModels.ConsultantPaymentsDebitsCredits;
 using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Utility.SharedMethods.InputValidations;
@@ -633,7 +634,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                    var res = await _unitOfWork.ConsultantPayment.FixDifferenceToMayPaymentAsync((int)dataFromModel.ConsultantId, 
+                    var res = await _unitOfWork.ConsultantPayment.FixDifferenceToMayPaymentAsync((int)dataFromModel.ConsultantId,
                         DateTime.Parse(dataFromModel.StartDatePeriod), DateTime.Parse(dataFromModel.EndDatePeriod),
             userActionedBy);
 
@@ -685,13 +686,91 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                    var dataToReturn = await _unitOfWork.ConsultantPayment.GetMovementsToDeferAsync(consultantId, 
+                    var dataToReturn = await _unitOfWork.ConsultantPayment.GetMovementsToDeferAsync(consultantId,
                         startDate, endDate);
 
                     return Ok(new
                     {
                         data = dataToReturn
                     });
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
+            }
+        }
+
+        [HttpPost("DeferDebitCredit")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeferDebitCredit([FromBody] DeferDebitCreditVM modelData)
+        {
+            try
+            {
+                if (modelData == null)
+                {
+                    return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+                }
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant Id", modelData.ConsultantId, ModelState);
+                validateInputs.ValidateDateValidFormat("ActionDate", "Action Date", modelData.ActionDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("ActionDate", "Action Date", modelData.ActionDate, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", modelData.StartDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", modelData.StartDate, ModelState);
+                validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", modelData.EndDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("EndDatePeriod", "End Date Period", modelData.EndDate, ModelState);
+
+                if (modelData.MovementsList == null)
+                {
+                    ModelState.AddModelError("Movements", "The movements are required.");
+                }
+                else
+                {
+                    foreach (var movement in modelData.MovementsList)
+                    {
+                        validateInputs.ValidateRequiredFieldIntType("MovementId", "Movement Id", movement.Id, ModelState);
+                        validateInputs.ValidateRequiredFieldIntType("AccountingAccountId", "Accounting Account", movement.AccountingAccountId, ModelState);
+                        validateInputs.ValidateRequiredFieldIntType("CostCenterId", "Cost Center", movement.CostCenterId, ModelState);
+                        validateInputs.ValidateRequiredFieldStringValue("Description", "Description", movement.Description, ModelState);
+                        validateInputs.ValidateRequiredAndStringLength("Description", "Description", movement.Description, 100, ModelState);
+                    }
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (userActionedBy == null)
+                    {
+                        return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                    }
+
+                    var res = await _unitOfWork.ConsultantPaymentsDebitsCredits
+                        .CreateDebitCreditWithListAsync(userActionedBy, modelData);
+
+                    if (res.Success)
+                    {
+                        return Ok(new
+                        {
+                            success = true,
+                            message = res.Message
+                        });
+                    }
+                    else
+                    {
+                        return BadRequest(new
+                        {
+                            MessageType = res.MessageType,
+                            errors = new[] { res.Message }
+                        });
+                    }
                 }
                 else
                 {

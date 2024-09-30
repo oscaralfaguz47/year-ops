@@ -36,6 +36,7 @@ async function displayReviewForDeferModal(modalId, consultantId) {
         }
 
         const dataFromApi = await response.json();
+        console.log(dataFromApi);
         if (costCentersArray.length === 0) {
             costCentersArray = await getCostsCentersWhereCompanyList(dataFromApi.data.companyId);
         }
@@ -53,6 +54,7 @@ async function displayReviewForDeferModal(modalId, consultantId) {
             // Template HTML creation
             let createdElement = `
             <div>
+              <input type="hidden" id="mo-id-${index}" value="${obj.id}">
               <h5 class="${obj.transactionTypeName === 'Credit' ? 'credit-background' : 'debit-background'}">${obj.transactionTypeName === 'Credit' ? '<img class="icon-debit-credit" src="/icons/Shared/square-plus.svg">' : '<img class="icon-debit-credit" src="/icons/Shared/square-minus.svg">'}${obj.transactionTypeName}</h5>
             </div>
             <div class="numbers-cont">
@@ -175,22 +177,69 @@ async function fillAccountingAccountsForSelect(selectedValue, selectEl) {
         selectElement.add(option);
     });
     hideSpinner();
-
 }
 
-function createDebitsCredits() {
+async function DeferDebitsCredits(modalId) {
     let valuesArray = [];
     document.querySelectorAll('.movement-row').forEach(function (row, index) {
         let rowData = {
-            quantity: Number(getElementById(`quantity-${index}`).value),
-            unitPrice: Number(getElementById(`unitPrice-${index}`).value),
-            costCenterId: getElementById(`sel-${index}`) ? getElementById(`sel-${index}`).value === '' ? null : Number(getElementById(`sel-${index}`).value) : null,
-            accountingAccountId: getElementById(`aa-${index}`) ? document.getElementById(`aa-${index}`).value === '' ? null : Number(document.getElementById(`aa-${index}`).value) : null,
-            description: getElementById(`description-${index}`).value === '' ? null : getElementById(`description-${index}`).value
+            Id: Number(getElementById(`mo-id-${index}`).value),
+            CostCenterId: getElementById(`sel-${index}`) ? getElementById(`sel-${index}`).value === '' ? null : Number(getElementById(`sel-${index}`).value) : null,
+            AccountingAccountId: getElementById(`aa-${index}`) ? document.getElementById(`aa-${index}`).value === '' ? null : Number(document.getElementById(`aa-${index}`).value) : null,
+            Description: getElementById(`description-${index}`).value === '' ? null : getElementById(`description-${index}`).value
         };
-
         valuesArray.push(rowData);
     });
+    var token = $('[name="__RequestVerificationToken"]').val();
 
-    console.log(valuesArray);
+    var data = {
+        ConsultantId: consultantIdInputMP.value === '' ? null : Number(consultantIdInputMP.value),
+        StartDate: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndDate: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        ActionDate: actionDateRD.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        MovementsList: valuesArray
+    };
+    console.log(data);
+
+    displaySpinner();
+    try {
+        const response = await fetch('/Finances/PaymentSheets/DeferDebitCredit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+        hideModal(modalId);
+        hideModal('modal-review-for-payment');
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        await getListOfResults(false, true);
+        return dataFromApi;
+
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        hideSpinner();
+        return null;
+    }
 }

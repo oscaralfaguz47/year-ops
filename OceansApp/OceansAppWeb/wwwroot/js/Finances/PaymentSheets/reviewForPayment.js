@@ -30,7 +30,6 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
         }
 
         const dataFromApi = await response.json();
-        console.log(dataFromApi);
         consultantIdInputMP.value = consultantId;
         setAsAccountsPayableBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null ? 'inline' : 'none';
         reportPaymentBtn.style.display = dataFromApi.reportDetails.accountPayableBalance === null || dataFromApi.reportDetails.accountPayableBalance > 0 ? 'inline' : 'none';
@@ -466,7 +465,6 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             const deferBtn = `<button onclick="displayReviewForDeferModal('modal-defer-next-period', ${consultantIdInputMP.value})" class="defer-btn"><img style="width:25px" src="/icons/Shared/next-arrow.svg"> Defer To Next Period</button>`;
 
             if (existsPayment) {
-                console.log(adjustedAmount);
                 if (adjustedAmount.toFixed(2) > 0) {
                     actionsBtnsDiv.innerHTML = `${fixBtn}`; // If positive
                 } else {

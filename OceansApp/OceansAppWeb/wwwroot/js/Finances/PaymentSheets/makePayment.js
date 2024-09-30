@@ -112,7 +112,6 @@ async function changePaymentMethod(select) {
         }
 
         const dataFromApi = await response.json();
-        var bankAccounts = await getBankAccounts(select.value);
         currentPaymentMethodId = select.value;
         companyNameDiv.textContent = dataFromApi.companyId === 'OCE' ? 'Oceans Consulting Firm' : 'OCE LLC';
         companyIdMP = dataFromApi.companyId;
@@ -180,7 +179,7 @@ async function createUpdatePayment(modalId) {
         CompanyId: companyIdMP,
         BankAccountId: Number(bankAccountSelectMP.value)
     };
-    console.log(data);
+
     try {
         const response = await fetch('/Finances/PaymentSheets/CreateUpdatePayment', {
             method: 'POST',

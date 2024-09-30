@@ -1579,6 +1579,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             decimal differenceAmount = totalAmountToPay - existingAccountPayable.Amount;
             List<ListOfMovementsToDeferToNextPeriodVM> listOfMovementsToReturn = new();
 
+            int index = 0;
             foreach (var difference in differencesList)
             {
                 var currentHistory = await _projectConsultantAssignedHistoryRepository.GetCurrentProjectConsultantHistoryAsync(
@@ -1611,6 +1612,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
 
                 ListOfMovementsToDeferToNextPeriodVM finalItemToAdd = new()
                 {
+                    Id = index,
                     CostCenterId = accountingConfig == null ? null : accountingConfig.CostCenterId,
                     CostCenterName = accountingConfig == null ? null : $"({costCenter.CostCenterCode}) {costCenter.Description}",
                     AccountingAccountId = accountingConfig == null ? null : accountingConfig.AccountingAccountId,
@@ -1622,6 +1624,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                 };
 
                 listOfMovementsToReturn.Add(finalItemToAdd);
+                index++;
             }
             DateTime firstEmptyPeriod = FindFirstEmptyPeriod(consultant.PaymentPeriod, endDate, consultant.ConsultantId);
 
