@@ -28,6 +28,7 @@
     width: auto;
     margin: 0px 5px;
 }
+
 .movement-row .select-cont {
     display: grid;
     width: 100%;
@@ -64,4 +65,14 @@
     font-weight: bold;
     background-color: var(--clr-grayLight);
     color: #000;
+}
+
+@media only screen and (max-width: 767px) {
+        .numbers-cont input {
+            width: 98%;
+            margin: 0 2px;
+        }
+    .movement-row .selects-cont {
+        display: inline-block;
+    }
 }
