@@ -398,7 +398,7 @@ namespace OceansApp.DataAccess.Repository
 
                 // Update transaction status if the balance becomes zero
                 var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Rejected" || x.Name == "Sent to be paid").ToListAsync();
-                if (existingAccountPayable.BalanceAmount == 0)
+                if (existingAccountPayable.BalanceAmount <= 0.0030m)
                 {
                     existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Paid").TransactionStatusId;
 
@@ -1573,9 +1573,6 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                                        ProjectId = movementAll.ProjectId // Include ProjectId, but don't use it for the comparison
                                    }).ToList();
 
-
-
-
             decimal differenceAmount = totalAmountToPay - existingAccountPayable.Amount;
             List<ListOfMovementsToDeferToNextPeriodVM> listOfMovementsToReturn = new();
 
@@ -1688,6 +1685,14 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
             return _db.CONSULTANT_PAYMENTS.Any(x => x.StartDatePeriod >= startDate && x.EndDatePeriod <= endDate
             && x.ConsultantId == consultantId);
         }
+
+        public async Task<bool> ValidateConsultantPaymentByDateAsync(DateTime actionDate, int consultantId)
+        {
+            return await _db.CONSULTANT_PAYMENTS
+                .AnyAsync(cp => (cp.StartDatePeriod.Date <= actionDate.Date && cp.EndDatePeriod.Date >= actionDate.Date)
+                && cp.ConsultantId == consultantId && cp.Voided == false);
+        }
+
 
     }
 }

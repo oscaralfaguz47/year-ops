@@ -1023,7 +1023,6 @@ namespace OceansApp.DataAccess.Data
             });
 
             // CONSULTANTS BENEFITS
-            // REPORTING MY TIME SUBMISSIONS
             modelBuilder.Entity<ConsultantBenefit>(entity =>
             {
                 // Índices en fechas
@@ -1032,9 +1031,57 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.BenefitPeriod);
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.EndDate);
+
+                entity.HasKey(c => new { c.BenefitId});
             });
-            modelBuilder.Entity<ConsultantBenefit>()
-                .HasKey(c => new { c.BenefitId });
+
+            // CONSULTANTS AND BENEFITS
+            modelBuilder.Entity<ConsultantAndBenefit>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.BenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.BalanceAmount);
+
+                entity.HasKey(c => new {c.Id});
+                entity.HasOne(cc => cc.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cc => cc.ConsultantId)
+                .IsRequired();
+                entity.HasOne(cc => cc.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.BenefitId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // CONSULTANTS AND BENEFITS HISTORY
+            modelBuilder.Entity<ConsultantAndBenefitHistory>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ConsultantAndBenefitId);
+                entity.HasIndex(e => e.UserCreatedById);
+                entity.HasIndex(e => e.ReimbursedBenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.HistoryId);
+
+                entity.HasKey(c => new { c.HistoryId });
+                entity.HasOne(cc => cc.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(cc => cc.UserCreatedById)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cc => cc.ConsultantAndBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.ConsultantAndBenefitId)
+                .IsRequired();
+                entity.HasOne(cc => cc.ConsultantReimbursedBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.ReimbursedBenefitId);
+            });
 
             // CONSULTANTS BENEFITS COMPANIES
             modelBuilder.Entity<ConsultantBenefitCompany>(entity =>
@@ -1064,6 +1111,7 @@ namespace OceansApp.DataAccess.Data
                 .WithMany()
                 .HasForeignKey(cc => cc.AccountingAccountId)
                 .IsRequired();
+
 
             // CONSULTANTS BENEFITS CATEGORIES
             modelBuilder.Entity<ConsultantBenefitCategory>(entity =>
@@ -1222,6 +1270,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantHolidayDate> CONSULTANT_HOLIDAY_DATES { get; set; }
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
         public DbSet<ConsultantBenefit> CONSULTANT_BENEFITS { get; set; }
+        public DbSet<ConsultantAndBenefit> CONSULTANTS_AND_BENEFITS { get; set; }
+        public DbSet<ConsultantAndBenefitHistory> CONSULTANTS_AND_BENEFITS_HISTORY { get; set; }
         public DbSet<ConsultantBenefitCompany> CONSULTANT_BENEFIT_COMPANIES { get; set; }
         public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }

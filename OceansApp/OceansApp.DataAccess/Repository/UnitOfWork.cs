@@ -10,13 +10,16 @@ namespace OceansApp.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMemoryCache _cache;
         private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
-        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, IMemoryCache cache, IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository)
+        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IMemoryCache cache, 
+            IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository)
         {
             ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
             _db = db;
             _userManager = userManager;
+            _roleManager = roleManager;
             _cache = cache;
             AccountingAccounts = new AccountingAccountRepository(_db);
             AccountPayable = new AccountPayableRepository(_db);
@@ -26,7 +29,7 @@ namespace OceansApp.DataAccess.Repository
             DataUpdateDates = new DataUpdateRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
             ApplicationUserCategory = new ApplicationUserCategoryRepository(_db);
-            ApplicationRoleClaim = new ApplicationRoleClaimRepository(_db);
+            ApplicationRoleClaim = new ApplicationRoleClaimRepository(_db, _userManager, _roleManager);
             ApplicationSystemClaim = new ApplicationSystemClaimRepository(_db);
             BankAccount = new BankAccountRepository(_db);
             CalculatorGlobalConfiguration = new CalculatorGlobalConfigurationRepository(_db);
@@ -42,15 +45,16 @@ namespace OceansApp.DataAccess.Repository
             ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db, this);
             ConsultantPosition = new ConsultantPositionRepository(_db);
             ConsultantBenefit = new ConsultantBenefitRepository(_db);
+            ConsultantAndBenefit = new ConsultantAndBenefitRepository(_db);
             ConsultantBenefitCategory = new ConsultantBenefitCategoryRepository(_db);
-            ConsultantReimbursedBenefit = new ConsultantReimbursedBenefitRepository(_db);
+            ConsultantReimbursedBenefit = new ConsultantReimbursedBenefitRepository(_db, this);
             ConsultantHoliday = new ConsultantHolidayRepository(_db);
             ConsultantRole = new ConsultantRoleRepository(_db);
             ConsultantQualityLevel = new ConsultantQualityLevelRepository(_db);
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
-            Interview = new InterviewRepository(_db);
+            Interview = new InterviewRepository(_db, this);
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
             JournalAccountPayableEntry = new JournalAccountPayableEntryRepository(_db);
             Partner = new PartnerRepository(_db);
@@ -103,6 +107,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; set; }
         public IConsultantPositionRepository ConsultantPosition { get; set; }
         public IConsultantBenefitRepository ConsultantBenefit { get; set; }
+        public IConsultantAndBenefitRepository ConsultantAndBenefit { get; set; }
         public IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; set; }
         public IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; set; }
         public IConsultantRoleRepository ConsultantRole { get; set; }

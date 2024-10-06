@@ -31,5 +31,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> FixDifferenceToMayPaymentAsync(int consultantId, DateTime startDate, DateTime endDate,
             string userActionedBy);
         Task<GetDataForDeferToNextPeriodVM> GetMovementsToDeferAsync(int consultantId, DateTime startDate, DateTime endDate);
+        DateTime FindFirstEmptyPeriod(int periodId, DateTime endDate, int consultantId);
+        Task<bool> ValidateConsultantPaymentByDateAsync(DateTime actionDate, int consultantId);
     }
 }

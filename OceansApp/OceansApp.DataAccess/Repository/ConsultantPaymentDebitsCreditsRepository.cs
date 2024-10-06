@@ -14,10 +14,12 @@ namespace OceansApp.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         private readonly IConsultantPaymentRepository _consultantPaymentRepository;
+        private readonly IApplicationRoleClaimRepository _applicationRoleClaimRepository;
         public ConsultantPaymentDebitsCreditsRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
             _consultantPaymentRepository = unitOfWork.ConsultantPayment;
+            _applicationRoleClaimRepository = unitOfWork.ApplicationRoleClaim;
         }
 
         public async Task<(List<ConsultantPaymentDebitsCreditsGetAllWithFiltersVM> debitsCredits, int totalCount)> GetAllPaymentsDebitsCreditsWithFiltersAsync(ConsultantPaymentsDebitsCreditsPaginationFiltersVM filtersAndPagination)
@@ -47,6 +49,15 @@ namespace OceansApp.DataAccess.Repository
         public async Task<MethodResponse> CreateDebitCredit(string userIdCreatedBy,
             CreateUpdateConsultantPaymentDebitCreditVM debitCreditData)
         {
+            bool isAuthorizedToCreateInPaidPeriod = await _applicationRoleClaimRepository.ValidateRoleClaimAsync(userIdCreatedBy, "BasicPaymentSheets", "Have access to manage the basics of payment sheets");
+
+            bool existsPayment = await _consultantPaymentRepository
+                .ValidateConsultantPaymentByDateAsync((DateTime)debitCreditData.ActionDateWithinFortnight,
+                (int)debitCreditData.ConsultantId);
+
+            if (existsPayment && !isAuthorizedToCreateInPaidPeriod) return MethodResponse
+                    .CreateFailureValidationResponse($"The action date: '{debitCreditData.ActionDateWithinFortnight.Value.ToString("MM/dd/yyyy")}' is not allowed, the consultant already has a payment for that period.");
+
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try

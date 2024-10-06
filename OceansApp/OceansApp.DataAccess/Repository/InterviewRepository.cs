@@ -12,9 +12,13 @@ namespace OceansApp.DataAccess.Repository
     public class InterviewRepository : Repository<Interview>, IInterviewRepository
     {
         private ApplicationDbContext _db;
-        public InterviewRepository(ApplicationDbContext db) : base(db)
+        private readonly IApplicationRoleClaimRepository _applicationRoleClaimRepository;
+        private readonly IConsultantPaymentRepository _consultantPaymentRepository;
+        public InterviewRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
+            _consultantPaymentRepository = unitOfWork.ConsultantPayment;
+            _applicationRoleClaimRepository = unitOfWork.ApplicationRoleClaim;
         }
 
         public async Task<(List<InterviewsGetAllWithFiltersVM> interviews, int totalCount)> GetAllInterviewsWithFiltersAsync(InterviewsPaginationFiltersVM filtersAndPagination)
@@ -43,6 +47,14 @@ namespace OceansApp.DataAccess.Repository
         public async Task<MethodResponse> CreateInterview(string userIdCreatedBy,
             CreateUpdateInterviewVM interviewData)
         {
+            bool isAuthorizedToCreateInPaidPeriod = await _applicationRoleClaimRepository.ValidateRoleClaimAsync(userIdCreatedBy, "BasicPaymentSheets", "Have access to manage the basics of payment sheets");
+
+            bool existsPayment = await _consultantPaymentRepository
+                .ValidateConsultantPaymentByDateAsync((DateTime)interviewData.Date,
+                (int)interviewData.ConsultantId);
+
+            if (existsPayment && !isAuthorizedToCreateInPaidPeriod) return MethodResponse
+                    .CreateFailureValidationResponse($"The action date: '{interviewData.Date.Value.ToString("MM/dd/yyyy")}' is not allowed, the consultant already has a payment for that period.");
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try

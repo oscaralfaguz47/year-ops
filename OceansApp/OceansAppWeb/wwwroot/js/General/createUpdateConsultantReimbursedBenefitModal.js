@@ -24,6 +24,7 @@ async function displayUpdateCreateReimbursementModal(modalId, id) {
         benefitsArray = await getBenefitsList();
         hideSpinner();
     }
+    benefitSelect.innerHTML = '';
     populateSelect('BenefitSelect', benefitsArray.benefits, '-Select a benefit-', null);
     createUpdateForm.find('[name="reimburseBenefitId"]').val("");
     createUpdateForm.find('[name="consultantIdFromSearch"]').val("");
@@ -119,7 +120,7 @@ async function createUpdateBenefitReimbursement(modalId) {
     var createUpdateForm = $('#form-create-update');
     var reimburseBenefitIdData = createUpdateForm.find('[name="reimburseBenefitId"]').val() || null;
     var consultantIdData = createUpdateForm.find('[name="consultantIdFromSearch"]').val() || null;
-    var idBenefitData = createUpdateForm.find('[name="idBenefit"]').val() || null;
+    var idBenefitData = createUpdateForm.find('[name="idBenefit"]').val() === 'null' ? null : createUpdateForm.find('[name="idBenefit"]').val();
     var benefitCategoryIdData = createUpdateForm.find('[name="benefitCategoryId"]').val() || null;
     var amountReimbursedData = createUpdateForm.find('[name="amountReimbursed"]').val() || null;
     var dateToBeReimbursedData = createUpdateForm.find('[name="dateToBeReimbursed"]').val() || null;
@@ -136,6 +137,7 @@ async function createUpdateBenefitReimbursement(modalId) {
         DateToBeReimbursed: dateToBeReimbursedData,
         BenefitCategoryId: benefitCategoryIdData
     };
+    console.log(data);
     fetch('/General/ConsultantReimbursedBenefits/CreateUpdateBenefitReimbursement', {
         method: 'POST',
         headers: {

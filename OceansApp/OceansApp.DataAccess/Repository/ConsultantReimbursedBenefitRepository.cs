@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -13,9 +12,15 @@ namespace OceansApp.DataAccess.Repository
     public class ConsultantReimbursedBenefitRepository : Repository<ConsultantReimbursedBenefit>, IConsultantReimbursedBenefitRepository
     {
         private ApplicationDbContext _db;
-        public ConsultantReimbursedBenefitRepository(ApplicationDbContext db) : base(db)
+        private readonly IConsultantAndBenefitRepository _consultantAndConsultantRepository;
+        private readonly IConsultantPaymentRepository _consultantPaymentRepository;
+        private readonly IApplicationRoleClaimRepository _applicationRoleClaimRepository;
+        public ConsultantReimbursedBenefitRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
+            _consultantAndConsultantRepository = unitOfWork.ConsultantAndBenefit;
+            _consultantPaymentRepository = unitOfWork.ConsultantPayment;
+            _applicationRoleClaimRepository = unitOfWork.ApplicationRoleClaim;
         }
 
         public async Task<(List<ConsultantReimbursedBenefitsGetAllWithFiltersVM> reimbursedBenefits, int totalCount)> GetAllConsultantsReimbursedBenefitsWithFiltersAsync(ConsultantReimbursedBenefitsPaginationFiltersVM filtersAndPagination)
@@ -46,25 +51,45 @@ namespace OceansApp.DataAccess.Repository
         public async Task<MethodResponse> CreateBenefitReimbursement(string userIdCreatedBy,
             CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
-            using (var transaction = await _db.Database.BeginTransactionAsync())
+            bool isAuthorizedToCreateInPaidPeriod = await _applicationRoleClaimRepository.ValidateRoleClaimAsync(userIdCreatedBy, "BasicPaymentSheets", "Have access to manage the basics of payment sheets");
+
+            bool existsPayment = await _consultantPaymentRepository
+                .ValidateConsultantPaymentByDateAsync((DateTime)benefitReimbursementData.DateToBeReimbursed,
+                (int)benefitReimbursementData.ConsultantId);
+
+            if (existsPayment && !isAuthorizedToCreateInPaidPeriod) return MethodResponse
+                    .CreateFailureValidationResponse($"The action date: '{benefitReimbursementData.DateToBeReimbursed.Value.ToString("MM/dd/yyyy")}' is not allowed, the consultant already has a payment for that period.");
+
+            var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+            if (currentUser == null) return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The consultant was not found." };
+
+            var approvedStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Approved");
+            if (approvedStatus == null) return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction status 'Approved' was not found." };
+
+            var benefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.BenefitId == benefitReimbursementData.BenefitId);
+            if (benefit == null) return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The benefit was not found." };
+
+            using (var transaction = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 try
                 {
-                    var dateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed;
-                    MethodResponse lastVerificationBalance = await VerifyBenefitReimbursementBalance((int)benefitReimbursementData.ConsultantId,
-    (int)benefitReimbursementData.BenefitId, dateToBeReimbursed.Year, (decimal)benefitReimbursementData.AmountReimbursed,
-    benefitReimbursementData.ReimbursedBenefitId, transaction.GetDbTransaction());
-                    if (!lastVerificationBalance.Success)
+                    var existingConsultantAndBenefit = await _consultantAndConsultantRepository
+                .CreateConsultantAndBenefitIfNotExists((int)benefitReimbursementData.ConsultantId, benefit);
+
+                    if (benefitReimbursementData.AmountReimbursed > existingConsultantAndBenefit.BalanceAmount || benefitReimbursementData.AmountReimbursed > benefit.Amount)
                     {
+                        string validationMessage = $"You cannot apply an amount greater than ${benefit.Amount} for the seleted benefit. The current balance for " +
+                            $"the selected consultant is: ${existingConsultantAndBenefit.BalanceAmount}";
+
+                        if (currentUser.ConsultantId == benefitReimbursementData.ConsultantId)
+                        {
+                            validationMessage = $"You cannot apply an amount greater than ${benefit.Amount} for the seleted benefit. Your current balance " +
+                            $"is: ${existingConsultantAndBenefit.BalanceAmount}";
+                        }
                         await transaction.RollbackAsync();
-                        return lastVerificationBalance;
+                        return MethodResponse.CreateFailureValidationResponse(validationMessage);
                     }
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
-                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Approved");
-                    if (transactionStatus == null)
-                    {
-                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction status 'Approved' was not found." };
-                    }
+
                     ConsultantReimbursedBenefit benefitReimbursementToCreate = new()
                     {
                         BenefitId = (int)benefitReimbursementData.BenefitId,
@@ -72,27 +97,36 @@ namespace OceansApp.DataAccess.Repository
                         ConsultantId = (int)benefitReimbursementData.ConsultantId,
                         AmountReimbursed = (decimal)benefitReimbursementData.AmountReimbursed,
                         DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed,
-                        TransactionStatusId = transactionStatus.TransactionStatusId,
+                        TransactionStatusId = approvedStatus.TransactionStatusId,
                         CreationDate = DateTime.UtcNow,
                         ConsultantIdCreatedBy = currentUser.ConsultantId,
                         BenefitCategoryId = (int)benefitReimbursementData.BenefitCategoryId
                     };
-                    var createdBenefitReimbursement = await _db.CONSULTANT_REIMBURSED_BENEFITS.AddAsync(benefitReimbursementToCreate);
+
+                    await _db.CONSULTANT_REIMBURSED_BENEFITS.AddAsync(benefitReimbursementToCreate);
                     await _db.SaveChangesAsync();
-                    if (createdBenefitReimbursement.Entity.ConsultantId > 0)
+
+                    ConsultantAndBenefitHistory historyToCreate = new()
                     {
-                        await transaction.CommitAsync();
-                        return new MethodResponse
-                        {
-                            Success = true,
-                            Message = $"The Benefit Reimbursement was created successfully."
-                        };
-                    }
-                    else
+                        CreationDate = DateTime.UtcNow,
+                        UserCreatedById = userIdCreatedBy,
+                        ConsultantAndBenefitId = existingConsultantAndBenefit.Id,
+                        OldValue = existingConsultantAndBenefit.BalanceAmount,
+                        NewValue = (existingConsultantAndBenefit.BalanceAmount - (decimal)benefitReimbursementData.AmountReimbursed),
+                        ReimbursedBenefitId = benefitReimbursementToCreate.ReimbursedBenefitId
+                    };
+                    await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
+                    await _db.SaveChangesAsync();
+
+                    existingConsultantAndBenefit.BalanceAmount -= (decimal)benefitReimbursementData.AmountReimbursed;
+                    await _db.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    return new MethodResponse
                     {
-                        await transaction.RollbackAsync();
-                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the benefit reimburesement, please try again." };
-                    }
+                        Success = true,
+                        Message = $"The Benefit Reimbursement was created successfully."
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -102,30 +136,173 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy, CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
+        public async Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy,
+   CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
-            using (var transaction = await _db.Database.BeginTransactionAsync())
+            bool existsPayment = await _consultantPaymentRepository
+                .ValidateConsultantPaymentByDateAsync((DateTime)benefitReimbursementData.DateToBeReimbursed,
+                (int)benefitReimbursementData.ConsultantId);
+
+            if (existsPayment) return MethodResponse
+                    .CreateFailureValidationResponse($"The action date: '{benefitReimbursementData.DateToBeReimbursed.Value.ToString("MM/dd/yyyy")}' is not allowed, the consultant already has a payment for that period.");
+
+            var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+            if (currentUser == null)
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The consultant was not found." };
+
+            var benefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.BenefitId == benefitReimbursementData.BenefitId);
+            if (benefit == null)
+                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The benefit was not found." };
+
+            using (var transaction = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 try
                 {
-                    var dateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed;
-                    MethodResponse lastVerificationBalance = await VerifyBenefitReimbursementBalance((int)benefitReimbursementData.ConsultantId,
-    (int)benefitReimbursementData.BenefitId, dateToBeReimbursed.Year, (decimal)benefitReimbursementData.AmountReimbursed,
-    benefitReimbursementData.ReimbursedBenefitId, transaction.GetDbTransaction());
-                    if (!lastVerificationBalance.Success)
-                    {
-                        await transaction.RollbackAsync();
-                        return lastVerificationBalance;
-                    }
-                    var existingBenefitReimbursement = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benefitReimbursementData.ReimbursedBenefitId);
+                    var existingBenefitReimbursement = await _db.CONSULTANT_REIMBURSED_BENEFITS
+                        .FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benefitReimbursementData.ReimbursedBenefitId);
                     if (existingBenefitReimbursement == null)
-                    {
-                        await transaction.RollbackAsync();
                         return new MethodResponse { MessageType = "Not Found", Success = false, Message = "The Benefit Reimbursement was not found." };
+
+                    // Check for changes in benefit details
+                    bool isBenefitChanged = existingBenefitReimbursement.BenefitId != benefitReimbursementData.BenefitId;
+                    bool isConsultantChanged = existingBenefitReimbursement.ConsultantId != benefitReimbursementData.ConsultantId;
+                    bool isAmountReimbursedChanged = Math.Round(existingBenefitReimbursement.AmountReimbursed, 2) != Math.Round((decimal)benefitReimbursementData.AmountReimbursed, 2);
+
+                    if (!isAmountReimbursedChanged &&
+                        existingBenefitReimbursement.ConsultantId == benefitReimbursementData.ConsultantId &&
+                        existingBenefitReimbursement.BenefitId == benefitReimbursementData.BenefitId &&
+                        existingBenefitReimbursement.BenefitCategoryId == benefitReimbursementData.BenefitCategoryId &&
+                        existingBenefitReimbursement.DateToBeReimbursed == benefitReimbursementData.DateToBeReimbursed &&
+                        existingBenefitReimbursement.Detail == benefitReimbursementData.Detail)
+                    {
+                        return new MethodResponse { Success = true, Message = $"No changes were detected." };
                     }
 
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                    // Fetch existing benefit associated with the consultant (OLD Consultant)
+                    var consultantAndBenefitExists = await _db.CONSULTANTS_AND_BENEFITS
+                        .FirstOrDefaultAsync(x => x.ConsultantId == existingBenefitReimbursement.ConsultantId &&
+                        x.BenefitId == existingBenefitReimbursement.BenefitId);
 
+                    // Fetch benefit associated with the new Consultant and Benefit (NEW Consultant and Benefit)
+                    var consultantAndBenefitEditedExists = await _db.CONSULTANTS_AND_BENEFITS
+                        .FirstOrDefaultAsync(x => x.ConsultantId == benefitReimbursementData.ConsultantId &&
+                        x.BenefitId == benefit.BenefitId);
+
+                    // --- VALIDATIONS ----
+
+                    // Scenario 1: If the refunded amount is greater than the new benefit limit, block it
+                    if (benefitReimbursementData.AmountReimbursed > benefit.Amount)
+                    {
+                        string validationMessage = $"You cannot apply an amount greater than ${benefit.Amount} for the selected benefit.";
+
+                        // Show balance if record exists
+                        if (consultantAndBenefitEditedExists != null)
+                        {
+                            validationMessage += $" The current balance for the selected consultant is: ${consultantAndBenefitEditedExists.BalanceAmount}";
+                        }
+                        await transaction.RollbackAsync();
+                        return MethodResponse.CreateFailureValidationResponse(validationMessage);
+                    }
+
+                    // Scenario 2: Validate against current balance (for consultant or benefit changes)
+                    if (isConsultantChanged || isBenefitChanged)
+                    {
+                        if (consultantAndBenefitEditedExists != null)
+                        {
+                            if (benefitReimbursementData.AmountReimbursed > consultantAndBenefitEditedExists.BalanceAmount)
+                            {
+                                string validationMessage = $"You cannot apply an amount greater than ${benefit.Amount} for the selected benefit. The current balance for " +
+                                                           $"the selected consultant is: ${consultantAndBenefitEditedExists.BalanceAmount}";
+                                await transaction.RollbackAsync();
+                                return MethodResponse.CreateFailureValidationResponse(validationMessage);
+                            }
+                        }
+                        else
+                        {
+                            if (benefitReimbursementData.AmountReimbursed > benefit.Amount)
+                            {
+                                string validationMessage = $"You cannot apply an amount greater than ${benefit.Amount} for the selected benefit.";
+                                await transaction.RollbackAsync();
+                                return MethodResponse.CreateFailureValidationResponse(validationMessage);
+                            }
+                        }
+                    }
+
+                    // Scenario 3: Validate against current balance (for the same consultant and same benefit)
+                    if (!isConsultantChanged && !isBenefitChanged && consultantAndBenefitExists != null)
+                    {
+                        if (benefitReimbursementData.AmountReimbursed > consultantAndBenefitExists.BalanceAmount)
+                        {
+                            string validationMessage = $"You cannot apply an amount greater than ${benefit.Amount} for the selected benefit. The current balance for " +
+                                                       $"the selected consultant is: ${consultantAndBenefitExists.BalanceAmount}";
+                            await transaction.RollbackAsync();
+                            return MethodResponse.CreateFailureValidationResponse(validationMessage);
+                        }
+                    }
+
+                    // Handle ConsultantId and BenefitId changes and adjust balances
+                    if (isConsultantChanged || isBenefitChanged)
+                    {
+                        if (consultantAndBenefitExists != null)
+                        {
+                            ConsultantAndBenefitHistory historyForOldConsultant = new()
+                            {
+                                CreationDate = DateTime.UtcNow,
+                                UserCreatedById = userActionedBy,
+                                ConsultantAndBenefitId = consultantAndBenefitExists.Id,
+                                OldValue = consultantAndBenefitExists.BalanceAmount,
+                                NewValue = consultantAndBenefitExists.BalanceAmount + existingBenefitReimbursement.AmountReimbursed,
+                                ReimbursedBenefitId = existingBenefitReimbursement.ReimbursedBenefitId
+                            };
+                            await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyForOldConsultant);
+                            await _db.SaveChangesAsync();
+
+                            // Adjust the balance for the old consultant and benefit
+                            consultantAndBenefitExists.BalanceAmount += existingBenefitReimbursement.AmountReimbursed;
+                            await _db.SaveChangesAsync();
+                        }
+
+                        if (consultantAndBenefitEditedExists == null)
+                        {
+                            var newConsultantAndBenefit = await _consultantAndConsultantRepository
+                                .CreateConsultantAndBenefitIfNotExists((int)benefitReimbursementData.ConsultantId, benefit);
+
+                            ConsultantAndBenefitHistory historyForNewConsultant = new()
+                            {
+                                CreationDate = DateTime.UtcNow,
+                                UserCreatedById = userActionedBy,
+                                ConsultantAndBenefitId = newConsultantAndBenefit.Id,
+                                OldValue = newConsultantAndBenefit.BalanceAmount,
+                                NewValue = newConsultantAndBenefit.BalanceAmount - (decimal)benefitReimbursementData.AmountReimbursed,
+                                ReimbursedBenefitId = existingBenefitReimbursement.ReimbursedBenefitId
+                            };
+                            await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyForNewConsultant);
+                            await _db.SaveChangesAsync();
+
+                            // Adjust the balance for the new consultant and new benefit
+                            newConsultantAndBenefit.BalanceAmount -= (decimal)benefitReimbursementData.AmountReimbursed;
+                            await _db.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            ConsultantAndBenefitHistory historyForEditedConsultant = new()
+                            {
+                                CreationDate = DateTime.UtcNow,
+                                UserCreatedById = userActionedBy,
+                                ConsultantAndBenefitId = consultantAndBenefitEditedExists.Id,
+                                OldValue = consultantAndBenefitEditedExists.BalanceAmount,
+                                NewValue = consultantAndBenefitEditedExists.BalanceAmount - (decimal)benefitReimbursementData.AmountReimbursed,
+                                ReimbursedBenefitId = existingBenefitReimbursement.ReimbursedBenefitId
+                            };
+                            await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyForEditedConsultant);
+                            await _db.SaveChangesAsync();
+
+                            consultantAndBenefitEditedExists.BalanceAmount -= (decimal)benefitReimbursementData.AmountReimbursed;
+                            await _db.SaveChangesAsync();
+                        }
+                    }
+
+                    // Update existing benefit reimbursement details
                     existingBenefitReimbursement.BenefitId = (int)benefitReimbursementData.BenefitId;
                     existingBenefitReimbursement.BenefitCategoryId = (int)benefitReimbursementData.BenefitCategoryId;
                     existingBenefitReimbursement.Detail = benefitReimbursementData.Detail;
@@ -134,15 +311,15 @@ namespace OceansApp.DataAccess.Repository
                     existingBenefitReimbursement.DateToBeReimbursed = (DateTime)benefitReimbursementData.DateToBeReimbursed;
                     existingBenefitReimbursement.LastUpdateDate = DateTime.UtcNow;
                     existingBenefitReimbursement.ConsultantIdLastUpdatedBy = currentUser.ConsultantId;
-
                     await _db.SaveChangesAsync();
+
                     await transaction.CommitAsync();
-                    return new MethodResponse { Success = true, Message = $"The Consultant reimbursement was updated successfully." };
+                    return MethodResponse.CreateSuccessResponse("The Consultant reimbursement was updated successfully");
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
         }
@@ -170,64 +347,61 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<MethodResponse> RejectBenefitReimbursement(string userActionedBy, int benetifReimbursementId)
         {
-            try
-            {
-                var benefitReimbursementToReject = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benetifReimbursementId);
-                if (benefitReimbursementToReject == null)
-                {
-                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The Benefit Reimbursement is no longer in the database, it was removed before your request." };
-                }
-                var transactionRejectedStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
-                if (transactionRejectedStatus == null)
-                {
-                    return new MethodResponse { MessageType = "Exception Error", Success = false, Message = $"The transaction 'Rejected' was not found in the database." };
-                }
-                var consultantUserActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
-                benefitReimbursementToReject.TransactionStatusId = transactionRejectedStatus.TransactionStatusId;
-                benefitReimbursementToReject.ConsultantIdLastUpdatedBy = consultantUserActionedBy.ConsultantId;
-                benefitReimbursementToReject.LastUpdateDate = DateTime.UtcNow;
+            var transactionRejectedStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Rejected");
+            if (transactionRejectedStatus == null)
+                return MethodResponse.CreateFailureNotFoundResponse("The transaction 'Rejected' was not found in the database");
 
-                await _db.SaveChangesAsync();
-                return new MethodResponse { Success = true, Message = $"The Benefit Reimbursement was rejected successfully." };
-            }
-            catch (Exception ex)
+            var consultantUserActionedBy = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+            if (consultantUserActionedBy == null)
+                return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found");
+
+            using (var transaction = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
-                return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
-            }
-        }
-        private async Task<MethodResponse> VerifyBenefitReimbursementBalance(int consultantId, int benefitId, int year, decimal amountToBeReimbursed,
-        int? reimbursedBenefitIdToIgnore, IDbTransaction transaction)
-        {
-            GetConsumedAmountVM currentConsumedAmount = await GetConsumedAmountPerYearByConsultant(consultantId,
-                   benefitId, year, amountToBeReimbursed, reimbursedBenefitIdToIgnore, transaction);
-            if (!currentConsumedAmount.Applicable && currentConsumedAmount.ConsumedAmount == 0)
-            {
-                return new MethodResponse
+                try
                 {
-                    MessageType = "Validation Error",
-                    Success = false,
-                    Message = $"You cannot apply an amount greater than ${currentConsumedAmount.ConfiguredBenefitAmount} for the selected benefit."
-                };
-            }
-            if (!currentConsumedAmount.Applicable && currentConsumedAmount.ConsumedAmount > 0)
-            {
-                var secondMessage = "";
-                if (currentConsumedAmount.ConsumedAmount != currentConsumedAmount.ConfiguredBenefitAmount)
-                {
-                    secondMessage = $"Try with an amount of ${(currentConsumedAmount.ConfiguredBenefitAmount - currentConsumedAmount.ConsumedAmount)} or less.";
+                    var benefitReimbursementToReject = await _db.CONSULTANT_REIMBURSED_BENEFITS.FirstOrDefaultAsync(x => x.ReimbursedBenefitId == benetifReimbursementId);
+                    if (benefitReimbursementToReject == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return MethodResponse.CreateFailureNotFoundResponse("The Benefit Reimbursement is no longer in the database, it was removed before your request");
+                    }
+
+                    benefitReimbursementToReject.TransactionStatusId = transactionRejectedStatus.TransactionStatusId;
+                    benefitReimbursementToReject.ConsultantIdLastUpdatedBy = consultantUserActionedBy.ConsultantId;
+                    benefitReimbursementToReject.LastUpdateDate = DateTime.UtcNow;
+
+                    await _db.SaveChangesAsync();
+
+                    var consultantAndBenefitExists = await _db.CONSULTANTS_AND_BENEFITS
+                        .FirstOrDefaultAsync(x => x.ConsultantId == benefitReimbursementToReject.ConsultantId &&
+                        x.BenefitId == benefitReimbursementToReject.BenefitId);
+
+                    ConsultantAndBenefitHistory historyToCreate = new()
+                    {
+                        CreationDate = DateTime.UtcNow,
+                        UserCreatedById = userActionedBy,
+                        ConsultantAndBenefitId = consultantAndBenefitExists.Id,
+                        OldValue = consultantAndBenefitExists.BalanceAmount,
+                        NewValue = consultantAndBenefitExists.BalanceAmount + benefitReimbursementToReject.AmountReimbursed,
+                        ReimbursedBenefitId = benefitReimbursementToReject.ReimbursedBenefitId
+                    };
+                    await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
+                    await _db.SaveChangesAsync();
+
+                    consultantAndBenefitExists.BalanceAmount += benefitReimbursementToReject.AmountReimbursed;
+                    await _db.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    return MethodResponse.CreateSuccessResponse("The Benefit Reimbursement was rejected successfully.");
                 }
-                return new MethodResponse
+                catch (Exception ex)
                 {
-                    MessageType = "Validation Error",
-                    Success = false,
-                    Message = $"The consultant consumed amount is: ${currentConsumedAmount.ConsumedAmount}. The maximun amount allowed is ${currentConsumedAmount.ConfiguredBenefitAmount} for the selected benefit. {secondMessage}"
-                };
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
             }
-            return new MethodResponse
-            {
-                Success = true
-            };
         }
+
         public async Task<GetConsumedAmountVM> GetConsumedAmountPerYearByConsultant(
      int consultantId,
      int benefitId,

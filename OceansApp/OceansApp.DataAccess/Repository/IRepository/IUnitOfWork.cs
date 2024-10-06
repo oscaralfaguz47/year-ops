@@ -23,6 +23,7 @@
         IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
         IConsultantBenefitRepository ConsultantBenefit { get; }
+        IConsultantAndBenefitRepository ConsultantAndBenefit { get; }
         IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; }
         IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; }
         IConsultantDetailRepository ConsultantDetail { get; }
