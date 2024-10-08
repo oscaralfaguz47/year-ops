@@ -129,7 +129,9 @@ namespace OceansApp.DataAccess.Repository
                     UserCreatedBy = userIdCreatedBy,
                     PaymentPeriod = consultantData.PaymentPeriod,
                     ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls,
-                    ConsultantHolidayId = consultantData.ConsultantHolidayId
+                    ConsultantHolidayId = consultantData.ConsultantHolidayId,
+                    WorkingModel = (int)consultantData.WorkingModel,
+                    StartDate = (DateTime)consultantData.StartDate
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -233,6 +235,8 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
                 existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;
                 existingConsultant.ConsultantHolidayId = consultantData.ConsultantHolidayId;
+                existingConsultant.WorkingModel = (int)consultantData.WorkingModel;
+                existingConsultant.StartDate = (DateTime)consultantData.StartDate;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -282,6 +286,8 @@ namespace OceansApp.DataAccess.Repository
                         ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,
+                        WorkingModel = consultant.WorkingModel,
+                        StartDate = consultant.StartDate,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }
@@ -293,10 +299,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public void Update(ConsultantDetail obj)
-        {
-            _db.CONSULTANT_DETAILS.Update(obj);
-        }
 
         //PAYMENT SHEETS
         public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
@@ -337,7 +339,6 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
-
         public async Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId)
         {
             var connection = _db.Database.GetDbConnection();

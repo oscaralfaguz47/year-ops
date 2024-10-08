@@ -37,8 +37,6 @@ namespace OceansApp.DataAccess.Repository
             CalculatorSearchHistory = new CalculatorSearchHistoryRepository(_db);
             CalculatorAccountingAccountToIgnore = new CalculatorAccountingAccountToIgnoreRepository(_db);
             Client = new ClientRepository(_db);
-            ProviderCategory = new ProviderCategoryRepository(_db);
-            Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
             ConsultantPayment = new ConsultantPaymentRepository(_db, this);
@@ -65,8 +63,6 @@ namespace OceansApp.DataAccess.Repository
             ProjectConsultantPeriodDisabledTracking = new ProjectConsultantPeriodDisabledTrackingRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
-            ProviderEvent = new ProviderEventRepository(_db);
-            ProviderEventDate = new ProviderEventDateRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
             ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);
             ReportingMyTimeMovementType = new ReportingMyTimeMovementTypeRepository(_db);
@@ -98,8 +94,6 @@ namespace OceansApp.DataAccess.Repository
         public ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; set; }
         public IClientRepository Client { get; set; }
         public IPartnerRepository Partner { get; set; }
-        public IProviderCategoryRepository ProviderCategory { get; set; }
-        public IProviderRepository Provider { get; set; }
         public ICountryRepository Country { get; set; }
         public IConsultantHolidayRepository ConsultantHoliday { get; set; }
         public IConsultantDetailRepository ConsultantDetail { get; set; }
@@ -124,8 +118,6 @@ namespace OceansApp.DataAccess.Repository
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
         public IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; set; }
         public IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; set; }
-        public IProviderEventRepository ProviderEvent { get; set; }
-        public IProviderEventDateRepository ProviderEventDate { get; set; }
         public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
         public IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; set; }
         public IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; set; }

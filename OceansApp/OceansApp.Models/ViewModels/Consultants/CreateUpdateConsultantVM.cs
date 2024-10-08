@@ -29,6 +29,8 @@ namespace OceansApp.Models.ViewModels.Consultants
         public bool ParticipatesInOnCalls { get; set; } = false;
         public int? ConsultantHolidayId { get; set; }
         public string? ConsultantHolidayName { get; set; }
+        public int? WorkingModel { get; set; }
+        public DateTime? StartDate { get; set; }
         public List<CreateUpdateConsultantsAndPositionsVM>? Positions { get; set; }
     }
 }

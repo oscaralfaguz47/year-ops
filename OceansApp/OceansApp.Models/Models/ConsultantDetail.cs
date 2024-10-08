@@ -36,6 +36,10 @@ namespace OceansApp.Models.Models
         [Required]
         public bool ParticipatesInOnCalls { get; set; } = false;
         public int? ConsultantHolidayId { get; set; }
+        [Required]
+        public DateTime StartDate { get; set; }
+        [Required]
+        public int WorkingModel { get; set; }
 
 
         [ValidateNever]

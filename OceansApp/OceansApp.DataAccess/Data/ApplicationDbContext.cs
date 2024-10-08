@@ -14,10 +14,11 @@ namespace OceansApp.DataAccess.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configuración de ASP.NET Core Identity
-            modelBuilder.Entity<IdentityUser>()
-                .ToTable("Users")
+            modelBuilder.Entity<IdentityUser>(entity =>
+            {
+                entity.ToTable("Users")
                 .HasKey(u => u.Id);
-
+            });
 
             // ACCOUNTS PAYABLE
             modelBuilder.Entity<AccountPayable>(entity =>
@@ -131,61 +132,66 @@ namespace OceansApp.DataAccess.Data
                 .HasDefaultValue(true);
             });
 
-
             // APPLICATION USER CATEGORIES
             modelBuilder.Entity<ApplicationUserCategory>(entity =>
             {
                 entity.HasIndex(e => e.UserCategoryId);
             });
 
-            modelBuilder.Entity<ApplicationUserClaim>()
-                .HasDiscriminator<string>("Discriminator")
+            // APPLICATION USER CLAIM
+            modelBuilder.Entity<ApplicationUserClaim>(entity =>
+            {
+                entity.HasDiscriminator<string>("Discriminator")
                 .HasValue<ApplicationUserClaim>("ApplicationUser");
+            });
 
-            modelBuilder.Entity<IdentityRole>()
-                .ToTable("Roles")
+            // IDENTITY ROLE
+            modelBuilder.Entity<IdentityRole>(entity =>
+            {
+                entity.ToTable("Roles")
                 .HasKey(r => r.Id);
+            });
 
-            modelBuilder.Entity<IdentityUserLogin<string>>()
-                .HasKey(login => new { login.LoginProvider, login.ProviderKey });
+            // IDENTITY USER LOGIN
+            modelBuilder.Entity<IdentityUserLogin<string>>(entity =>
+            {
+                entity.HasKey(login => new { login.LoginProvider, login.ProviderKey });
+            });
 
-            modelBuilder.Entity<IdentityUserRole<string>>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
+            // IDENTITY USER ROLE
+            modelBuilder.Entity<IdentityUserRole<string>>(entity =>
+            {
+                entity.HasKey(ur => new { ur.UserId, ur.RoleId });
+            });
 
-            modelBuilder.Entity<IdentityUserToken<string>>()
-                .HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
+            // IDENTITY USER TOKEN
+            modelBuilder.Entity<IdentityUserToken<string>>(entity =>
+            {
+                entity.HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
+            });
 
-            modelBuilder.Entity<ConsultantRolesQualityLevels>()
-                .HasKey(rq => new { rq.ConsultantRoleId, rq.ConsultantQualityLevelId, rq.ConsultantSeniorityId });
-            modelBuilder.Entity<ConsultantRolesQualityLevels>()
-                .HasOne(rq => rq.ConsultantSeniority)
+            // CONSULTANT ROLES QUALITY LEVELS
+            modelBuilder.Entity<ConsultantRolesQualityLevels>(entity =>
+            {
+                entity.HasKey(rq => new { rq.ConsultantRoleId, rq.ConsultantQualityLevelId, rq.ConsultantSeniorityId });
+                entity.HasOne(rq => rq.ConsultantSeniority)
                 .WithMany()
                 .HasForeignKey(rq => rq.ConsultantSeniorityId)
                 .IsRequired();
+            });
 
             // BANK ACCOUNTS
-
-            modelBuilder.Entity<BankAccount>()
-                .HasKey(c => new { c.BankAccountId });
             modelBuilder.Entity<BankAccount>(entity =>
             {
+                entity.HasKey(c => new { c.BankAccountId });
                 entity.Property(c => c.BankAccountName)
                 .HasColumnType("varchar(40)");
-            });
-            modelBuilder.Entity<BankAccount>(entity =>
-            {
                 entity.Property(c => c.BankAccountCode)
-                .HasColumnType("varchar(20)");
-            });
-            modelBuilder.Entity<BankAccount>(entity =>
-            {
+               .HasColumnType("varchar(20)");
                 entity.Property(c => c.IsActive)
-                .HasColumnType("varchar(1)");
-            });
-            modelBuilder.Entity<BankAccount>(entity =>
-            {
+               .HasColumnType("varchar(1)");
                 entity.Property(c => c.CompanyId)
-                .HasColumnType("varchar(8)");
+               .HasColumnType("varchar(8)");
             });
 
             // COMPANIES
@@ -206,21 +212,19 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.AccountingAccountId);
                 entity.HasIndex(e => e.CompanyId);
                 entity.HasIndex(e => e.Status);
-            });
-            modelBuilder.Entity<CostCenterAccountingAccount>()
-                .HasKey(ca => new { ca.CostCenterAccountingAccountId });
-            modelBuilder.Entity<CostCenterAccountingAccount>()
-                .HasOne(cc => cc.CostCenter)
+
+                entity.HasKey(ca => new { ca.CostCenterAccountingAccountId });
+                entity.HasOne(cc => cc.CostCenter)
                 .WithMany()
                 .HasForeignKey(cc => cc.CostCenterId)
                 .IsRequired();
-            modelBuilder.Entity<CostCenterAccountingAccount>()
-                .HasOne(cc => cc.AccountingAccount)
+                entity.HasOne(cc => cc.AccountingAccount)
                 .WithMany()
                 .HasForeignKey(cc => cc.AccountingAccountId)
                 .IsRequired();
+            });
 
-            //CONSULTANT_DETAIL TABLE
+            //CONSULTANT DETAILS 
             modelBuilder.Entity<ConsultantDetail>(entity =>
             {
                 // Composite index
@@ -242,39 +246,36 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.CompanyId);
                 entity.HasIndex(e => e.PaymentPeriod);
                 entity.HasIndex(e => e.ParticipatesInOnCalls);
+                entity.HasIndex(e => e.WorkingModel);
+                entity.HasIndex(e => e.StartDate);
 
-            });
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasKey(rq => new { rq.ConsultantId });
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasOne(cc => cc.ApplicationUser)
+                entity.HasKey(rq => new { rq.ConsultantId });
+                entity.HasOne(cc => cc.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(CC => CC.UserId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantDetail>()
-               .HasOne(cc => cc.ApplicationUserCreated)
+                entity.HasOne(cc => cc.ApplicationUserCreated)
                .WithMany()
                .HasForeignKey(CC => CC.UserCreatedBy);
-            modelBuilder.Entity<ConsultantDetail>()
-               .HasOne(cc => cc.ApplicationUserUpdated)
+                entity.HasOne(cc => cc.ApplicationUserUpdated)
                .WithMany()
                .HasForeignKey(CC => CC.UserLastUpdatedBy);
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasOne(cc => cc.Country)
+                entity.HasOne(cc => cc.Country)
                 .WithMany()
                 .HasForeignKey(CC => CC.IdCountry)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasOne(p => p.PaymentMethod)
+                entity.HasOne(p => p.PaymentMethod)
                 .WithMany()
                 .HasForeignKey(p => p.PaymentMethodId);
-            modelBuilder.Entity<ConsultantDetail>()
-                .HasOne(x => x.ConsultantHoliday)
+                entity.HasOne(x => x.ConsultantHoliday)
                 .WithMany()
                 .HasForeignKey(x => x.ConsultantHolidayId);
-            modelBuilder.Entity<ConsultantDetail>()
-        .Ignore(c => c.ProjectsConsultantsAssigned)
+                entity.Ignore(c => c.ProjectsConsultantsAssigned)
         .Ignore(c => c.ReportingMyTimeMovements);
+                entity.Property(d => d.StartDate)
+                .HasColumnType("date")
+                .IsRequired();
+            });
 
             //  CONSULTANT HOLIDAY
             modelBuilder.Entity<ConsultantHoliday>(entity =>
@@ -282,12 +283,12 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ConsultantHolidayId);
                 entity.HasIndex(e => e.CreatedBy);
                 entity.HasIndex(e => e.Name);
-            });
-            modelBuilder.Entity<ConsultantHoliday>()
-                .HasOne(cc => cc.ApplicationUser)
+
+                entity.HasOne(cc => cc.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(CC => CC.CreatedBy)
                 .IsRequired();
+            });
 
             // GLOBAL CONSECUTIVES
             modelBuilder.Entity<GlobalConsecutive>(entity =>
@@ -318,32 +319,30 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.CreatedBy);
                 entity.HasIndex(e => e.UpdatedBy);
                 entity.HasIndex(e => e.Name);
-            });
-            modelBuilder.Entity<ConsultantHolidayDate>()
-                .HasOne(cc => cc.ConsultantHoliday)
+
+                entity.HasOne(cc => cc.ConsultantHoliday)
                 .WithMany()
                 .HasForeignKey(CC => CC.ConsultantHolidayId)
                 .IsRequired();
-
-            modelBuilder.Entity<ConsultantHolidayDate>()
-                .HasOne(cc => cc.ApplicationUserCreated)
+                entity.HasOne(cc => cc.ApplicationUserCreated)
                 .WithMany()
                 .HasForeignKey(CC => CC.CreatedBy)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ConsultantHolidayDate>()
-                .HasOne(cc => cc.ApplicationUserUpdated)
+                entity.HasOne(cc => cc.ApplicationUserUpdated)
                 .WithMany()
                 .HasForeignKey(CC => CC.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantHolidayDate>()
-                .Property(d => d.Date)
+                entity.Property(d => d.Date)
                 .HasColumnType("date")
                 .IsRequired();
+            });
 
-            modelBuilder.Entity<DocumentsCCNotification>()
-               .HasKey(d => new { d.DocumentCCId, d.NotificationId });
+            // DOCUMENTS CC NOTIFICATIONS
+            modelBuilder.Entity<DocumentsCCNotification>(entity =>
+            {
+                entity.HasKey(d => new { d.DocumentCCId, d.NotificationId });
+            });
 
             // DOCUMENT CC
             modelBuilder.Entity<DocumentCC>(entity =>
@@ -372,10 +371,10 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.AllowSentLatePaymentNotifications);
                 entity.HasIndex(e => e.SuccessManager);
 
-            });
-            modelBuilder.Entity<Client>()
-                .Property(p => p.LatePaymentFee)
+                entity.Property(p => p.LatePaymentFee)
                 .HasColumnType("decimal(18, 4)");
+
+            });
 
             // CONSULTANT PAYMENTS
             modelBuilder.Entity<ConsultantPayment>(entity =>
@@ -436,7 +435,6 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
             });
 
-
             // CONSULTANT AND POSITIONS
             modelBuilder.Entity<ConsultantAndPosition>(entity =>
             {
@@ -445,7 +443,6 @@ namespace OceansApp.DataAccess.Data
 
                 entity.HasKey(cp => new { cp.ConsultantId, cp.ConsultantPositionId });
             });
-
 
             // INTERVIEWS
             modelBuilder.Entity<Interview>(entity =>
@@ -456,40 +453,35 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.DurationMinutes);
                 entity.HasIndex(e => e.Date);
-            });
-            modelBuilder.Entity<Interview>()
-                .HasKey(c => new { c.InterviewId });
-            modelBuilder.Entity<Interview>()
-                .HasOne(cp => cp.ConsultantDetail)
+
+                entity.HasKey(c => new { c.InterviewId });
+                entity.HasOne(cp => cp.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantId)
                 .IsRequired();
-            modelBuilder.Entity<Interview>()
-                .HasOne(cp => cp.ConsultantDetailCreatedBy)
+                entity.HasOne(cp => cp.ConsultantDetailCreatedBy)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantIdCreatedBy)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Interview>()
-                .HasOne(cp => cp.ConsultantDetailUpdatedBy)
+                entity.HasOne(cp => cp.ConsultantDetailUpdatedBy)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
-            modelBuilder.Entity<Interview>()
-                .HasOne(cc => cc.TransactionStatus)
+                entity.HasOne(cc => cc.TransactionStatus)
                 .WithMany()
                 .HasForeignKey(cc => cc.TransactionStatusId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Interview>()
-                .Property(d => d.Date)
+                entity.Property(d => d.Date)
                 .HasColumnType("date")
                 .IsRequired();
+            });
 
             // JOURNAL
             modelBuilder.Entity<JournalAccountPayable>(entity =>
             {
                 // Composite index
-                entity.HasIndex(e => new { e.CompanyId, e.TransactionStatusId});
+                entity.HasIndex(e => new { e.CompanyId, e.TransactionStatusId });
 
                 entity.HasIndex(e => e.CompanyId);
                 entity.HasIndex(e => e.Entry);
@@ -588,15 +580,16 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.LocalDebit);
                 entity.HasIndex(e => e.LocalCredit);
             });
+
             //PARTNERS
-            modelBuilder.Entity<Partner>()
-                .HasKey(x => new { x.PartnerId });
-            modelBuilder.Entity<Partner>()
-                .HasOne(c => c.Country)
+            modelBuilder.Entity<Partner>(entity =>
+            {
+                entity.HasKey(x => new { x.PartnerId });
+                entity.HasOne(c => c.Country)
                 .WithMany()
                 .HasForeignKey(c => c.IdCountry)
                 .IsRequired();
-
+            });
 
             //PROJECTS
             modelBuilder.Entity<Project>(entity =>
@@ -612,30 +605,26 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ClientHasTrackingTool);
                 entity.HasIndex(e => e.IsBillable);
                 entity.HasIndex(e => e.Name);
-            });
-            modelBuilder.Entity<Project>()
-                .HasKey(p => new { p.ProjectId });
-            modelBuilder.Entity<Project>()
-                .HasOne(p => p.ApplicationUserCreated)
+
+                entity.HasKey(p => new { p.ProjectId });
+                entity.HasOne(p => p.ApplicationUserCreated)
                 .WithMany()
                 .HasForeignKey(p => p.CreatedBy)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Project>()
-                .HasOne(p => p.ApplicationUserUpdated)
+                entity.HasOne(p => p.ApplicationUserUpdated)
                 .WithMany()
                 .HasForeignKey(p => p.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Project>()
-                .HasOne(p => p.Client)
+                entity.HasOne(p => p.Client)
                 .WithMany()
                 .HasForeignKey(p => p.ClientId)
                 .IsRequired();
-            modelBuilder.Entity<Project>()
-                .HasOne(p => p.ConsultantDetail)
+                entity.HasOne(p => p.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(p => p.SuccessManagerId)
                 .IsRequired();
+            });
 
             // PROJECTS CONSULTANTS ASSIGNED
             modelBuilder.Entity<ProjectConsultantAssigned>(entity =>
@@ -709,14 +698,6 @@ namespace OceansApp.DataAccess.Data
                .WithMany()
                .HasForeignKey(p => p.ProjectId)
                .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            });
-
-
-            // CONSULTANT PAYMENTS
-            modelBuilder.Entity<ConsultantPayment>(entity =>
-            {
-                entity.Property(c => c.CompanyId)
-                .HasColumnType("varchar(8)");
             });
 
             // PAYMENT BOOK ENTRIES PARENT
@@ -824,32 +805,35 @@ namespace OceansApp.DataAccess.Data
             });
 
             // REPORTING MY TIME COMMENTS
-            modelBuilder.Entity<ReportingMyTimeComments>()
-                .HasKey(r => new { r.CommentId });
-            modelBuilder.Entity<ReportingMyTimeComments>()
-                .HasOne(p => p.Project)
-                .WithMany()
-                .HasForeignKey(p => p.ProjectId)
-                .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeComments>()
-                .HasOne(c => c.ConsultantDetail)
+            modelBuilder.Entity<ReportingMyTimeComments>(entity =>
+            {
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.SubmissionId);
+                entity.HasIndex(e => e.ActionDate);
+
+                entity.HasKey(r => new { r.CommentId });
+                entity.HasOne(p => p.Project)
+                    .WithMany()
+                    .HasForeignKey(p => p.ProjectId)
+                    .IsRequired();
+                entity.HasOne(c => c.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(c => c.ConsultantId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReportingMyTimeComments>()
-                .HasOne(c => c.ReportingMyTimeMovementSubmission)
+                entity.HasOne(c => c.ReportingMyTimeMovementSubmission)
                 .WithMany()
                 .HasForeignKey(c => c.SubmissionId)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReportingMyTimeComments>()
-                .HasOne(c => c.ApplicationUser)
+                entity.HasOne(c => c.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReportingMyTimeComments>()
-                .Property(d => d.ActionDate)
+                entity.Property(d => d.ActionDate)
                 .HasColumnType("date")
                 .IsRequired();
+            });
 
             // CONSULTANT POSITIONS ACCOUNTING CONFIGURATION
             modelBuilder.Entity<ConsultantPositionAccountingConfiguration>(entity =>
@@ -858,33 +842,28 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.AccountingAccountId);
                 entity.HasIndex(e => e.MovementTypeId);
                 entity.HasIndex(e => e.PositionId);
-            });
-            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
-                .HasKey(r => new { r.Id });
-            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
-                .HasOne(c => c.CostCenter)
+
+                entity.HasKey(r => new { r.Id });
+                entity.HasOne(c => c.CostCenter)
                 .WithMany()
                 .HasForeignKey(c => c.CostCenterId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
-                .HasOne(a => a.AccountingAccount)
+                entity.HasOne(a => a.AccountingAccount)
                 .WithMany()
                 .HasForeignKey(a => a.AccountingAccountId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
-                .HasOne(r => r.ConsultantPosition)
+                entity.HasOne(r => r.ConsultantPosition)
                 .WithMany()
                 .HasForeignKey(r => r.PositionId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
-               .HasOne(m => m.MovementType)
+                entity.HasOne(m => m.MovementType)
                .WithMany()
                .HasForeignKey(m => m.MovementTypeId)
                .IsRequired();
-            modelBuilder.Entity<ConsultantPositionAccountingConfiguration>()
-                .Property(d => d.CompanyId)
+                entity.Property(d => d.CompanyId)
                 .HasColumnType("varchar")
                 .IsRequired();
+            });
 
             // REPORTING MY TIME MOVEMENTS
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
@@ -898,78 +877,55 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.MovementTypeId);
-            });
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .HasKey(r => new { r.MovementId });
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .HasOne(p => p.Project)
+
+                entity.HasKey(r => new { r.MovementId });
+                entity.HasOne(p => p.Project)
                 .WithMany()
                 .HasForeignKey(p => p.ProjectId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .HasOne(c => c.ConsultantDetail)
+                entity.HasOne(c => c.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(c => c.ConsultantId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .HasOne(t => t.TransactionStatus)
+                entity.HasOne(t => t.TransactionStatus)
                 .WithMany()
                 .HasForeignKey(t => t.TransactionStatusId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .HasOne(r => r.ReportingMyTimeMovementType)
+                entity.HasOne(r => r.ReportingMyTimeMovementType)
                 .WithMany()
                 .HasForeignKey(r => r.MovementTypeId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .Property(d => d.ActionDate)
+                entity.Property(d => d.ActionDate)
                 .HasColumnType("date")
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .Property(d => d.TimeFrom)
+                entity.Property(d => d.TimeFrom)
                 .HasColumnType("varchar");
-            modelBuilder.Entity<ReportingMyTimeMovement>()
-                .Property(d => d.TimeTo)
+                entity.Property(d => d.TimeTo)
                 .HasColumnType("varchar");
+            });
 
             // REPORTING MY TIME MOVEMENT BLOBS
             modelBuilder.Entity<ReportingMyTimeMovementBlob>(entity =>
             {
                 entity.HasIndex(e => e.MovementId);
-            });
-            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
-                .HasKey(r => new { r.InternalBlobId });
-            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
-                .HasOne(p => p.ReportingMyTimeMovement)
+
+                entity.HasKey(r => new { r.InternalBlobId });
+                entity.HasOne(p => p.ReportingMyTimeMovement)
                 .WithMany()
                 .HasForeignKey(p => p.MovementId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
-                .Property(c => c.ContainerId)
+                entity.Property(c => c.ContainerId)
                 .HasColumnType("VARCHAR(255)");
-            modelBuilder.Entity<ReportingMyTimeMovementBlob>()
-                .Property(c => c.ContentType)
+                entity.Property(c => c.ContentType)
                 .HasColumnType("VARCHAR(255)");
-
-            // REPORTING MY TIME SUBMISSIONS
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
-            {
-                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
-
-                entity.HasIndex(e => e.SubmissionId);
-                entity.HasIndex(e => e.SubmissionDate);
-                entity.HasIndex(e => e.LastSubmissionDate);
-                entity.HasIndex(e => e.ProjectId);
-                entity.HasIndex(e => e.ConsultantId);
-                entity.HasIndex(e => e.StartPeriodDate);
-                entity.HasIndex(e => e.EndPeriodDate);
-                entity.HasIndex(e => e.TransactionStatusId);
             });
+
             modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
             {
                 // Composite index
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.StartPeriodDate, e.EndPeriodDate });
                 entity.HasIndex(e => new { e.TransactionStatusId, e.StartPeriodDate, e.EndPeriodDate });
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.ProjectId);
@@ -977,32 +933,30 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.SubmissionDate);
                 entity.HasIndex(e => e.LastSubmissionDate);
-            });
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
-                .HasKey(r => new { r.SubmissionId });
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
-                .HasOne(p => p.Project)
+                entity.HasIndex(e => e.SubmissionId);
+                entity.HasIndex(e => e.StartPeriodDate);
+                entity.HasIndex(e => e.EndPeriodDate);
+
+                entity.HasKey(r => new { r.SubmissionId });
+                entity.HasOne(p => p.Project)
                 .WithMany()
                 .HasForeignKey(p => p.ProjectId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
-                .HasOne(c => c.ConsultantDetail)
+                entity.HasOne(c => c.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(c => c.ConsultantId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
-                .HasOne(t => t.TransactionStatus)
+                entity.HasOne(t => t.TransactionStatus)
                 .WithMany()
                 .HasForeignKey(t => t.TransactionStatusId)
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
-                .Property(d => d.StartPeriodDate)
+                entity.Property(d => d.StartPeriodDate)
                 .HasColumnType("date")
                 .IsRequired();
-            modelBuilder.Entity<ReportingMyTimeMovementSubmission>()
-                .Property(d => d.EndPeriodDate)
+                entity.Property(d => d.EndPeriodDate)
                 .HasColumnType("date")
                 .IsRequired();
+            });
 
             // REPORTING MY TIME MOVEMENTS TYPES
             modelBuilder.Entity<ReportingMyTimeMovementType>(entity =>
@@ -1032,7 +986,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.EndDate);
 
-                entity.HasKey(c => new { c.BenefitId});
+                entity.HasKey(c => new { c.BenefitId });
             });
 
             // CONSULTANTS AND BENEFITS
@@ -1045,7 +999,7 @@ namespace OceansApp.DataAccess.Data
                 // Indexes for columns
                 entity.HasIndex(e => e.BalanceAmount);
 
-                entity.HasKey(c => new {c.Id});
+                entity.HasKey(c => new { c.Id });
                 entity.HasOne(cc => cc.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(cc => cc.ConsultantId)
@@ -1093,25 +1047,21 @@ namespace OceansApp.DataAccess.Data
 
                 // Indexes for columns
                 entity.HasIndex(e => e.CompanyId);
-            });
-            modelBuilder.Entity<ConsultantBenefitCompany>()
-                .HasKey(c => new { c.ConsultantaBenefitCompanyId });
-            modelBuilder.Entity<ConsultantBenefitCompany>()
-                .HasOne(cc => cc.ConsultantBenefit)
+
+                entity.HasKey(c => new { c.ConsultantaBenefitCompanyId });
+                entity.HasOne(cc => cc.ConsultantBenefit)
                 .WithMany()
                 .HasForeignKey(cc => cc.BenefitId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantBenefitCompany>()
-                .HasOne(cc => cc.CostCenter)
+                entity.HasOne(cc => cc.CostCenter)
                 .WithMany()
                 .HasForeignKey(cc => cc.CostCenterId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantBenefitCompany>()
-                .HasOne(cc => cc.AccountingAccount)
+                entity.HasOne(cc => cc.AccountingAccount)
                 .WithMany()
                 .HasForeignKey(cc => cc.AccountingAccountId)
                 .IsRequired();
-
+            });
 
             // CONSULTANTS BENEFITS CATEGORIES
             modelBuilder.Entity<ConsultantBenefitCategory>(entity =>
@@ -1121,14 +1071,13 @@ namespace OceansApp.DataAccess.Data
 
                 // Indexes for columns
                 entity.HasIndex(e => e.Name);
-            });
-            modelBuilder.Entity<ConsultantBenefitCategory>()
-                .HasKey(c => new { c.BenefitCategoryId });
-            modelBuilder.Entity<ConsultantBenefitCategory>()
-                .HasOne(cb => cb.ConsultantBenefit)
+
+                entity.HasKey(c => new { c.BenefitCategoryId });
+                entity.HasOne(cb => cb.ConsultantBenefit)
                 .WithMany()
                 .HasForeignKey(cb => cb.BenefitId)
                 .IsRequired();
+            });
 
             // CONSULTANTS REIMBURSED BENEFITS
             modelBuilder.Entity<ConsultantReimbursedBenefit>(entity =>
@@ -1141,46 +1090,39 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
                 entity.HasIndex(e => e.BenefitCategoryId);
                 entity.HasIndex(e => e.TransactionStatusId);
-            });
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasKey(c => new { c.ReimbursedBenefitId });
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasOne(cb => cb.ConsultantBenefit)
+
+                entity.HasKey(c => new { c.ReimbursedBenefitId });
+                entity.HasOne(cb => cb.ConsultantBenefit)
                 .WithMany()
                 .HasForeignKey(cb => cb.BenefitId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasOne(cb => cb.ConsultantDetailBenefit)
+                entity.HasOne(cb => cb.ConsultantDetailBenefit)
                 .WithMany()
                 .HasForeignKey(cb => cb.ConsultantId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasOne(cb => cb.ConsultantDetailCreatedBy)
+                entity.HasOne(cb => cb.ConsultantDetailCreatedBy)
                 .WithMany()
                 .HasForeignKey(cb => cb.ConsultantIdCreatedBy)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasOne(cb => cb.ConsultantDetailUpdatedBy)
+                entity.HasOne(cb => cb.ConsultantDetailUpdatedBy)
                 .WithMany()
                 .HasForeignKey(cb => cb.ConsultantIdLastUpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasOne(cc => cc.ConsultantBenefitCategory)
+                entity.HasOne(cc => cc.ConsultantBenefitCategory)
                 .WithMany()
                 .HasForeignKey(cc => cc.BenefitCategoryId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .HasOne(cc => cc.TransactionStatus)
+                entity.HasOne(cc => cc.TransactionStatus)
                 .WithMany()
                 .HasForeignKey(cc => cc.TransactionStatusId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantReimbursedBenefit>()
-                .Property(d => d.DateToBeReimbursed)
+                entity.Property(d => d.DateToBeReimbursed)
                 .HasColumnType("date")
                 .IsRequired();
+            });
 
             // CONSULTANT PAYMENTS DEBITS AND CREDITS
             modelBuilder.Entity<ConsultantPaymentDebitsCredits>(entity =>
@@ -1194,48 +1136,40 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
                 entity.HasIndex(e => e.Quantity);
                 entity.HasIndex(e => e.Amount);
-            });
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasKey(c => new { c.ConsultantPaymentDebitsCreditsId });
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.ConsultantDetail)
+
+                entity.HasKey(c => new { c.ConsultantPaymentDebitsCreditsId });
+                entity.HasOne(cp => cp.ConsultantDetail)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantId)
                 .IsRequired();
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.AccountingAccount)
+                entity.HasOne(cp => cp.AccountingAccount)
                 .WithMany()
                 .HasForeignKey(cp => cp.AccountingAccountId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.CostCenter)
+                entity.HasOne(cp => cp.CostCenter)
                 .WithMany()
                 .HasForeignKey(cp => cp.CostCenterId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.TransactionStatus)
+                entity.HasOne(cp => cp.TransactionStatus)
                 .WithMany()
                 .HasForeignKey(cp => cp.TransactionStatusId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.TransactionType)
+                entity.HasOne(cp => cp.TransactionType)
                 .WithMany()
                 .HasForeignKey(cp => cp.TransactionTypeId)
                 .IsRequired().OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.ConsultantDetailCreatedBy)
+                entity.HasOne(cp => cp.ConsultantDetailCreatedBy)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantIdCreatedBy)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .HasOne(cp => cp.ConsultantDetailUpdatedBy)
+                entity.HasOne(cp => cp.ConsultantDetailUpdatedBy)
                 .WithMany()
                 .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>()
-                .Property(d => d.ActionDateWithinFortnight)
+                entity.Property(d => d.ActionDateWithinFortnight)
                 .HasColumnType("date")
                 .IsRequired();
+            });
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1254,8 +1188,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<CalculatorAccountingAccountToIgnore> CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE { get; set; }
         public DbSet<Client> CLIENT { get; set; }
         public DbSet<Company> COMPANIES { get; set; }
-        public DbSet<ProviderCategory> PROVIDER_CATEGORY { get; set; }
-        public DbSet<Provider> PROVIDER { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
         public DbSet<CostCenterAccountingAccount> COSTS_CENTERS_ACCOUNTING_ACCOUNTS { get; set; }
         public DbSet<Country> COUNTRY { get; set; }
@@ -1291,8 +1223,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
         public DbSet<ProjectConsultantPeriodDisabledTracking> PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS { get; set; }
         public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
-        public DbSet<ProviderEvent> PROVIDER_EVENTS { get; set; }
-        public DbSet<ProviderEventDate> PROVIDER_EVENT_DATES { get; set; }
         public DbSet<ReportingMyTimeComments> REPORTING_MY_TIME_COMMENTS { get; set; }
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }
         public DbSet<ReportingMyTimeMovementBlob> REPORTING_MY_TIME_MOVEMENT_BLOBS { get; set; }

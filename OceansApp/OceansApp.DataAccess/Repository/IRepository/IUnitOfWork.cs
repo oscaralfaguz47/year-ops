@@ -19,8 +19,6 @@
         ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; }
         IClientRepository Client { get; }
         IPartnerRepository Partner { get; }
-        IProviderCategoryRepository ProviderCategory { get; }
-        IProviderRepository Provider { get; }
         ICountryRepository Country { get; }
         IConsultantBenefitRepository ConsultantBenefit { get; }
         IConsultantAndBenefitRepository ConsultantAndBenefit { get; }
@@ -45,8 +43,6 @@
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; }
         IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; }
-        IProviderEventRepository ProviderEvent { get; }
-        IProviderEventDateRepository ProviderEventDate { get; }
         IProjectUserSelectedRepository ProjectUserSelected { get; }
         IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; }
         IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; }

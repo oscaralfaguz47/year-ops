@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
-using System.Text.Json;
+using OceansApp.Models.ViewModels.Dashboard;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Controllers
 {
@@ -17,21 +18,30 @@ namespace OceansAppWeb.Controllers
         }
         public IActionResult Index()
         {
-            return RedirectToAction("Dashboard");
+            return RedirectToAction("Dashboard/Dashboard");
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            return View();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var applicationUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == userId);
+            if (applicationUser == null) return NotFound("The user was not found");
+
+            var consultantDetail = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == applicationUser.Id);
+
+            DateTime? startDate = consultantDetail == null ? null : consultantDetail.StartDate;
+
+            var widgets = await _unitOfWork.ApplicationUser.GetWidgetsForUserAsync(applicationUser, User);
+
+            var viewModel = new DashboardVM
+            {
+                Welcome = new(){ ConsultantName = "Carlitos", StartDate = startDate},
+                Widgets = widgets 
+            };
+            return View("Dashboard/Dashboard", viewModel);
         }
-        [Authorize(Policy = "AccessToConsultantsPage")]
-        [HttpGet]
-        public async Task<IActionResult> GetProvidersGroupByCategory()
-        {
-            var providerList = await _unitOfWork.Provider.GetProvidersGroupByCategoryAsync("S");
-            string jsonResult = JsonSerializer.Serialize(providerList);
-            return Content(jsonResult, "application/json");
-        }
+
         public IActionResult Error()
         {
             return View("Error");

@@ -163,12 +163,15 @@ namespace OceansAppWeb.Areas.General.Controllers
                 validateInputs.ValidateRequiredFieldStringValue("IdCountry", "Country", consultantData.IdCountry, ModelState);
                 validateInputs.ValidateRequiredFieldStringValue("CompanyId", "Company", consultantData.CompanyId, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("PaymentMethodId", "Payment Method", consultantData.PaymentMethodId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("WorkingModel", "Working Model", consultantData.WorkingModel, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("PaymentPeriod", "Payment Period", consultantData.PaymentPeriod, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", consultantData.PhoneNumber, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Phone2", "Phone 2", consultantData.Phone2, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Address", "Address", consultantData.Address, 400, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PersonalEmail", "Personal Email", consultantData.PersonalEmail, 249, ModelState);
                 validateInputs.ValidateEmail("PersonalEmail", "Personal Email", consultantData.PersonalEmail, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDate", "Start Date", consultantData.StartDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", consultantData.StartDate, ModelState);
 
                 if (ModelState.IsValid)
                 {

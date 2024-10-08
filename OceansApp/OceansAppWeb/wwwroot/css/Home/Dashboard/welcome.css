@@ -1,0 +1,19 @@
+﻿#welcomeCont
+{
+    margin-top: -5px;
+    font-weight: bold;
+}
+    #welcomeCont .consName{
+        font-size: 2.5rem;
+    }
+    #welcomeCont .consName span {
+        color: var(--clr-blueLight);
+    }
+#timeInCompany p{
+ font-size: 1.5rem;  
+ font-weight: 700;
+ color: rgb(0,0,0,0.6);
+}
+#timeInCompany span {
+    color: var(--clr-grayDark);
+}

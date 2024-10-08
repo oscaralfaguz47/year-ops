@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007200619_removeProvidersTables")]
+    partial class removeProvidersTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1001,9 +1004,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("date");
-
                     b.Property<string>("UserCreatedBy")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
@@ -1015,9 +1015,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<string>("UserLastUpdatedBy")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("WorkingModel")
-                        .HasColumnType("int");
 
                     b.HasKey("ConsultantId");
 
@@ -1041,15 +1038,11 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("Phone2");
 
-                    b.HasIndex("StartDate");
-
                     b.HasIndex("UserCreatedBy");
 
                     b.HasIndex("UserId");
 
                     b.HasIndex("UserLastUpdatedBy");
-
-                    b.HasIndex("WorkingModel");
 
                     b.HasIndex("UserId", "ConsultantId");
 
@@ -2591,8 +2584,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("CommentId");
-
-                    b.HasIndex("ActionDate");
 
                     b.HasIndex("ConsultantId");
 

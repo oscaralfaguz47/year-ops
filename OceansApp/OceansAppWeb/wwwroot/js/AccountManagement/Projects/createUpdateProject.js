@@ -106,7 +106,6 @@ async function displayUpdateCreateProjectModal(modalId, id) {
                 clientHasTrackingToolInputCUP.checked = data.projectData.clientHasTrackingTool;
 
                 const assignedConsultants = JSON.parse(data.projectData.assignedConsultants);
-                console.log(assignedConsultants);
                 assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.ConsultantName, item.ProjectConsultantAssignedId, item.IsActive,
                         item.UserCategory, item.BeforeOrAfterStatusActionDate, data.allowedManageAdminConsultants,
