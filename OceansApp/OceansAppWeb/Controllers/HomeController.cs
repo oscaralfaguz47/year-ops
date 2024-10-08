@@ -25,18 +25,15 @@ namespace OceansAppWeb.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var applicationUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == userId);
-            if (applicationUser == null) return NotFound("The user was not found");
+            var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
 
-            var consultantDetail = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == applicationUser.Id);
+            DateTime? startDate = userConsultant.UserCategoryName == "External User" ? null : userConsultant.StartDate;
 
-            DateTime? startDate = consultantDetail == null ? null : consultantDetail.StartDate;
-
-            var widgets = await _unitOfWork.ApplicationUser.GetWidgetsForUserAsync(applicationUser, User);
+            var widgets = await _unitOfWork.ApplicationUser.GetWidgetsForUserAsync(userConsultant, User);
 
             var viewModel = new DashboardVM
             {
-                Welcome = new(){ ConsultantName = "Carlitos", StartDate = startDate},
+                Welcome = new(){ ConsultantName = userConsultant.Name, StartDate = startDate},
                 Widgets = widgets 
             };
             return View("Dashboard/Dashboard", viewModel);

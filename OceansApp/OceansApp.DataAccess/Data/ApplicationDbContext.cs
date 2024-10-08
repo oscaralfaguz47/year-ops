@@ -248,6 +248,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ParticipatesInOnCalls);
                 entity.HasIndex(e => e.WorkingModel);
                 entity.HasIndex(e => e.StartDate);
+                entity.HasIndex(e => e.OldConsultantSystemStartDate);
 
                 entity.HasKey(rq => new { rq.ConsultantId });
                 entity.HasOne(cc => cc.ApplicationUser)
@@ -275,6 +276,8 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(d => d.StartDate)
                 .HasColumnType("date")
                 .IsRequired();
+                entity.Property(d => d.OldConsultantSystemStartDate)
+                .HasColumnType("date");
             });
 
             //  CONSULTANT HOLIDAY

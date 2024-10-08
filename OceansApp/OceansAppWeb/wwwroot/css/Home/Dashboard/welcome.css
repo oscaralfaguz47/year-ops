@@ -1,6 +1,6 @@
 ﻿#welcomeCont
 {
-    margin-top: -5px;
+    margin-top: -50px;
     font-weight: bold;
 }
     #welcomeCont .consName{
@@ -16,4 +16,10 @@
 }
 #timeInCompany span {
     color: var(--clr-grayDark);
+}
+
+@media (max-width: 768px) {
+    #welcomeCont {
+        margin-top: -25px;
+    }
 }

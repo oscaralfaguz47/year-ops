@@ -40,6 +40,7 @@ namespace OceansApp.Models.Models
         public DateTime StartDate { get; set; }
         [Required]
         public int WorkingModel { get; set; }
+        public DateTime? OldConsultantSystemStartDate { get; set; }
 
 
         [ValidateNever]

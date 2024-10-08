@@ -3,22 +3,22 @@
 @model DashboardVM
 <link rel="stylesheet" href="~/css/Home/Dashboard/dashboard.css?v=@DateTime.Now.Ticks" />
 
-<div class="container">
-    <partial name="Dashboard/_WelcomePartialView" model="new WelcomeVM
+<div id="dashboardContainer">
+    <div>
+        <partial name="Dashboard/_WelcomePartialView" model="new WelcomeVM
 {
     ConsultantName = Model.Welcome.ConsultantName,
-    StartDate = Model.Welcome.StartDate ?? DateTime.Now
+    StartDate = Model.Welcome.StartDate ?? null
 }" />
+    </div>
 
-    @foreach (var widget in Model.Widgets)
-    {
-        @await Html.PartialAsync($"Dashboard/Widgets/_{widget.WidgetName}PartialView")
-    }
+    <div class="widgets-container">
+        @foreach (var widget in Model.Widgets)
+        {
+            @await Html.PartialAsync($"Dashboard/Widgets/_{widget.WidgetName}PartialView")
+        }
+    </div>
 </div>
-
-
-
-
 
 
 

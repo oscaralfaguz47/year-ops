@@ -3,9 +3,9 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Account;
+using OceansApp.Models.ViewModels.ApplicationUser;
 using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData.Claims;
-using SlackAPI;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
@@ -38,7 +38,30 @@ namespace OceansApp.DataAccess.Repository
             return usersList;
         }
 
-        public async Task<List<WidgetVM>> GetWidgetsForUserAsync(ApplicationUser applicationUser, ClaimsPrincipal userClaims)
+        public async Task<UserAndConsultantVM> GetUserAndConsultantAsync(string userId)
+        {
+            var result = await (from u in _db.AspNetUsers
+                                join cd in _db.CONSULTANT_DETAILS on u.Id equals cd.UserId
+                                into cdGroup
+                                from cd in cdGroup.DefaultIfEmpty()
+                                join uc in _db.UserCategories on u.UserCategoryId equals uc.UserCategoryId
+                                where u.Id == userId
+                                select new UserAndConsultantVM
+                                {
+                                    UserId = u.Id,
+                                    Name = u.Name,
+                                    LastName = u.LastName,
+                                    ConsultantHolidayId = cd.ConsultantHolidayId,
+                                    StartDate = cd.StartDate,
+                                    WorkingModel = cd.WorkingModel,
+                                    UserCategoryName = uc.Name
+                                }).FirstOrDefaultAsync();
+
+            if (result == null) throw new InvalidOperationException("The user does not exist.");
+
+            return result;
+        }
+        public async Task<List<WidgetVM>> GetWidgetsForUserAsync(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims)
         {
             try
             {
@@ -47,9 +70,22 @@ namespace OceansApp.DataAccess.Repository
                 var userCategoriesList = await _db.UserCategories.ToListAsync();
 
                 //Access to Report time in tracking tool
-                if (userClaims.IsAuthorizedForReportTimeInTrackingTool()) {
-                    WidgetVM timeSheetsW = new() { WidgetName = "PendingTimeSheets" };
+                if (userClaims.IsAuthorizedForReportTimeInTrackingTool() && userAndConsultant.UserCategoryName != "External User")
+                {
+                    WidgetVM timeSheetsW = new() { WidgetName = "TimeSheets" };
                     listToReturn.Add(timeSheetsW);
+                }
+                //Access to Benefits
+                if (userAndConsultant.UserCategoryName != "External User" && userAndConsultant.WorkingModel == 1)
+                {
+                    WidgetVM perksW = new() { WidgetName = "Perks" };
+                    listToReturn.Add(perksW);
+                }
+                //General Consultant and Admin Team
+                if (userAndConsultant.UserCategoryName != "External User")
+                {
+                    WidgetVM generalConsultantAndAdminW = new() { WidgetName = "GeneralConsultantAndAdmin" };
+                    listToReturn.Add(generalConsultantAndAdminW);
                 }
 
                 return listToReturn;

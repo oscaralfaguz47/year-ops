@@ -1,6 +1,7 @@
 ﻿
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Account;
+using OceansApp.Models.ViewModels.ApplicationUser;
 using OceansApp.Models.ViewModels.Dashboard;
 using System.Linq.Expressions;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate);
         Task<List<GetUserIdVM>> GetUsersWhereRoleId(string roleId);
-        Task<List<WidgetVM>> GetWidgetsForUserAsync(ApplicationUser applicationUser, ClaimsPrincipal userClaims);
+        Task<UserAndConsultantVM> GetUserAndConsultantAsync(string userId);
+        Task<List<WidgetVM>> GetWidgetsForUserAsync(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims);
     }
 }
