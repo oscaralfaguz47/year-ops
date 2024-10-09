@@ -50,6 +50,18 @@ namespace OceansApp.DataAccess.Repository
             return info;
         }
 
+        public async Task<List<ProjectActiveAndAccessTrackingTool>> GetProjectsWhereActiveAndAccessToTrackingTool(int consultantId)
+        {
+            var connection = _db.Database.GetDbConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId, DbType.String);
+
+            var activeProjectsAccessTrackingTool = await connection.QuerySingleOrDefaultAsync<List<ProjectActiveAndAccessTrackingTool>>("SP_PROJECTS_CONSULTANT_ASSIGNED_GetProjectsWhereActiveAndAccessToTrackingTool",
+                parameters, commandType: CommandType.StoredProcedure);
+
+            return activeProjectsAccessTrackingTool;
+        }
+
         //PAYMENT SHEETS
         public async Task<List<GetProjectInfoWhereConsultantIsActiveInProjectVM>> GetProjectsInfoWhereConsultantIsActiveInPeriod(int consultantId, DateTime startDate,
             DateTime endDate)

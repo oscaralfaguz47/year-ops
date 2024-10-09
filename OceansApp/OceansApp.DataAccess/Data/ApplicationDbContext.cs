@@ -634,6 +634,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Indexes
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectId });
+                entity.HasIndex(e => new { e.ConsultantId, e.ProjectConsultantAssignedId });
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
@@ -657,6 +658,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Indexes
                 entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate, e.Id });
+                entity.HasIndex(e => new { e.IsActive, e.AccessToTrackingTool});
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.UserIdActionedBy);
                 entity.HasIndex(e => e.ActionDate);
@@ -684,6 +686,32 @@ namespace OceansApp.DataAccess.Data
                 entity.HasOne(p => p.Partner)
                .WithMany()
                .HasForeignKey(p => p.PartnerId);
+            });
+
+            //PROJECTS CONSULTANTS PENDING SUBMISSIONS
+            modelBuilder.Entity<ProjectConsultantPendingSubmission>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.StartDate);
+                entity.HasIndex(e => e.EndDate);
+
+                entity.HasKey(p => new { p.Id });
+                entity.HasOne(p => p.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(p => p.ConsultantId)
+                .IsRequired();
+                entity.HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(d => d.StartDate)
+                .HasColumnType("date")
+                .IsRequired();
+                entity.Property(d => d.EndDate)
+                .HasColumnType("date")
+                .IsRequired();
             });
 
             // PROJECTS USERS SELECTED
@@ -1225,6 +1253,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
         public DbSet<ProjectConsultantPeriodDisabledTracking> PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS { get; set; }
+        public DbSet<ProjectConsultantPendingSubmission> PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS { get; set; }
         public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
         public DbSet<ReportingMyTimeComments> REPORTING_MY_TIME_COMMENTS { get; set; }
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }

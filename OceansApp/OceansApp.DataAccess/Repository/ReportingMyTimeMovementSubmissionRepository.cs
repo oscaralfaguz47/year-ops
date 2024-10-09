@@ -135,5 +135,14 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<PendingSubmissionsVM>> GetPendingTimesheetsSubmissionsAsync(int consultantId)
+        {
+            List<PendingSubmissionsVM> listToReturn = new();
+
+
+
+            return listToReturn;
+        }
+
     }
 }

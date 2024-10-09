@@ -1,5 +1,4 @@
-﻿/* Contenedor principal con altura máxima */
-#dashboardContainer{
+﻿#dashboardContainer{
     padding: 55px;
 }
 .widgets-container {
@@ -7,11 +6,10 @@
     flex-wrap: wrap;
     gap: 16px;
     border-radius: 8px;
-    max-height: 600px; /* Altura máxima para pantallas grandes */
+    max-height: 600px; 
     margin-top: 25px;
 }
 
-/* Secciones */
 .section {
     flex: 1 1 280px;
     display: flex;
@@ -19,7 +17,6 @@
     gap: 12px;
 }
 
-/* Título de la sección */
 .section-title {
     font-size: 1.2rem;
     font-weight: bold;
@@ -28,7 +25,6 @@
     padding: 0 16px;
 }
 
-/* Cuadros con scroll interno */
 .card {
     background-color: #ffffff;
     border-radius: 10px;
@@ -36,8 +32,8 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    max-height: 250px; /* Ajuste para pantallas grandes */
-    overflow: hidden; /* Oculta el desbordamiento para el contenido */
+    max-height: 250px; 
+    overflow: hidden; 
     padding: 20px;
 }
     .card .card-title {
@@ -47,25 +43,22 @@
         border-bottom: 1px solid #ddd;
         padding-bottom: 5px;
     }
-    /* Título del Card fijo en la parte superior */
 
 
-/* Contenido desplazable dentro del Card */
 .card-content {
     padding: 10px;
     overflow-y: auto;
     flex-grow: 1;
 }
 
-/* Ajustes específicos para pantallas pequeñas */
 @media (max-width: 768px) {
     .widgets-container {
         flex-direction: column;
-        max-height: none; /* Elimina la altura máxima en móviles */
+        max-height: none; 
     }
 
     .card {
-        max-height: 200px; /* Establece un tamaño máximo en móviles */
+        max-height: 200px; 
     }
     #dashboardContainer {
         padding: 20px;

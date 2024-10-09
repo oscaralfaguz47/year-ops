@@ -39,6 +39,24 @@ namespace OceansAppWeb.Controllers
             return View("Dashboard/Dashboard", viewModel);
         }
 
+        [HttpGet("GetPendingTimesheets")]
+        public async Task<IActionResult> GetPendingTimesheets()
+        {
+            try
+            {
+                
+
+                return Ok(new
+                {
+                    pendingTimesheets = "Hola amigos"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue."});
+            }
+        }
+
         public IActionResult Error()
         {
             return View("Error");
