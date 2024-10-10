@@ -107,16 +107,22 @@ namespace OceansApp.DataAccess.Repository
         public async Task<List<ProjectsPendingSubmissionVM>> GetPendingProjectsPendingSubmissionByConsultantAsync(int consultantId,
             DateTime endDate)
         {
-            var result = await (from pcps in _db.PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS
-                                join p in _db.PROJECTS on pcps.ProjectId equals p.ProjectId
+            var result = await (from pcps in _db.PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS.AsNoTracking()
+                                join p in _db.PROJECTS.AsNoTracking() on pcps.ProjectId equals p.ProjectId
+                                join rmtms in _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AsNoTracking()
+                                    on new { pcps.ProjectId, pcps.ConsultantId, pcps.StartDate, pcps.EndDate }
+                                    equals new { rmtms.ProjectId, rmtms.ConsultantId, StartDate = rmtms.StartPeriodDate, EndDate = rmtms.EndPeriodDate }
+                                    into rmGroup
+                                from rmtms in rmGroup.DefaultIfEmpty()
+                                join pct in _db.PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS.AsNoTracking()
+                                    on new { pcps.ProjectId, pcps.ConsultantId, pcps.StartDate, pcps.EndDate }
+                                    equals new { pct.ProjectId, pct.ConsultantId, StartDate = pct.StartPeriodDate, EndDate = pct.EndPeriodDate }
+                                    into pctGroup
+                                from pct in pctGroup.DefaultIfEmpty()
                                 where pcps.EndDate <= endDate
                                       && pcps.ConsultantId == consultantId
-                                      && !(from rmtms in _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS
-                                           where rmtms.ConsultantId == pcps.ConsultantId
-                                                 && rmtms.ProjectId == pcps.ProjectId
-                                                 && rmtms.StartPeriodDate == pcps.StartDate
-                                                 && rmtms.EndPeriodDate == pcps.EndDate
-                                           select rmtms).Any()
+                                      && rmtms == null
+                                      && pct == null 
                                 select new ProjectsPendingSubmissionVM
                                 {
                                     ProjectId = pcps.ProjectId,
@@ -124,6 +130,8 @@ namespace OceansApp.DataAccess.Repository
                                     StartDate = pcps.StartDate,
                                     EndDate = pcps.EndDate
                                 }).ToListAsync();
+
+
             return result;
 
         }

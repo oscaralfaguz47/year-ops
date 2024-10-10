@@ -865,7 +865,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             {
                                 foreach (var projectConsultantData in groupedConsultants)
                                 {
-                                    var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName, 
+                                    var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
                                         projectConsultantData.Email, projectConsultantData.Projects, periodString);
                                     try
                                     {
@@ -874,11 +874,12 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                                     catch (Exception ex)
                                     {
                                         _telemetryClient.TrackException(ex);
-                                        throw;
+                                        continue;
                                     }
                                 }
                             }
                         });
+
                         successMessage = $"The reminder was sent to {groupedConsultants.Count} consultant{(groupedConsultants.Count > 1 ? "s" : "")} that {(groupedConsultants.Count > 1 ? "are" : "is")} pending submissions!";
                     }
                 }
