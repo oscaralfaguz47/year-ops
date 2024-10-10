@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using OceansApp.DataAccess.Data;
@@ -13,10 +14,12 @@ namespace OceansApp.DataAccess.Repository
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMemoryCache _cache;
         private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
+        private readonly TelemetryClient _telemetryClient;
         public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IMemoryCache cache, 
-            IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository)
+            IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository, TelemetryClient telemetryClient)
         {
             ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
+            _telemetryClient = telemetryClient;
             _db = db;
             _userManager = userManager;
             _roleManager = roleManager;
@@ -62,7 +65,7 @@ namespace OceansApp.DataAccess.Repository
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
             ProjectConsultantPeriodDisabledTracking = new ProjectConsultantPeriodDisabledTrackingRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
-            ProjectConsultantPendingSubmission = new ProjectConsultantPendingSubmissionRepository(_db);
+            ProjectConsultantPendingSubmission = new ProjectConsultantPendingSubmissionRepository(_db, _telemetryClient);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
             ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);

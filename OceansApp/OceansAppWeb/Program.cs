@@ -18,7 +18,7 @@ using OceansApp.DataAccess;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

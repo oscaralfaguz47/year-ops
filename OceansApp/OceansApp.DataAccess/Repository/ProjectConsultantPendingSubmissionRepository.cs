@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.ApplicationInsights;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
@@ -13,9 +14,11 @@ namespace OceansApp.DataAccess.Repository
     public class ProjectConsultantPendingSubmissionRepository : Repository<ProjectConsultantPendingSubmission>, IProjectConsultantPendingSubmissionRepository
     {
         private ApplicationDbContext _db;
-        public ProjectConsultantPendingSubmissionRepository(ApplicationDbContext db) : base(db)
+        private readonly TelemetryClient _telemetryClient;
+        public ProjectConsultantPendingSubmissionRepository(ApplicationDbContext db, TelemetryClient telemetryClient) : base(db)
         {
             _db = db;
+            _telemetryClient = telemetryClient;
         }
 
         public async Task<List<ConsultantAndProjectVM>> GetConsultantsAndProjectsWhereSubmissionIsPendingAsync(DateTime startDate,
@@ -100,6 +103,8 @@ namespace OceansApp.DataAccess.Repository
             }
             catch (Exception ex)
             {
+                _telemetryClient.TrackException(ex);
+                Console.WriteLine(ex.ToString());
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
