@@ -49,7 +49,7 @@ namespace OceansApp.DataAccess.Repository
         }
 
         public async Task<MethodResponse> CreateProjectsConsultantsPendingSubmissionsAsync(DateTime startDate,
-            DateTime endDate, int paymentPeriod)
+    DateTime endDate, int paymentPeriod)
         {
             try
             {
@@ -67,19 +67,25 @@ namespace OceansApp.DataAccess.Repository
                     pendingSubmissionsTable.Rows.Add(submission.ConsultantId, submission.ProjectId, startDate, endDate);
                 }
 
-                using (SqlConnection conn = new SqlConnection(_db.Database.GetDbConnection().ConnectionString))
-                {
-                    await conn.OpenAsync();
-                    using (SqlCommand cmd = new SqlCommand("SP_InsertConsultantPendingSubmissions", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        SqlParameter parameter = cmd.Parameters.AddWithValue("@PendingSubmissions", pendingSubmissionsTable);
-                        parameter.SqlDbType = SqlDbType.Structured;
+                // Usa la conexión existente en lugar de abrir una nueva
+                var connection = (SqlConnection)_db.Database.GetDbConnection();
 
-                        await cmd.ExecuteNonQueryAsync();
-                    }
+                // Abre la conexión solo si está cerrada
+                if (connection.State == ConnectionState.Closed)
+                {
+                    await connection.OpenAsync();
                 }
 
+                using (SqlCommand cmd = new SqlCommand("SP_InsertConsultantPendingSubmissions", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    SqlParameter parameter = cmd.Parameters.AddWithValue("@PendingSubmissions", pendingSubmissionsTable);
+                    parameter.SqlDbType = SqlDbType.Structured;
+
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                // Continúa con la lógica de verificación y actualización de `sentTime`
                 var sentTime = await _db.PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS_SENT_TIMES.FirstOrDefaultAsync(x => x.StartDate == startDate
                 && x.EndDate == endDate);
 
@@ -99,6 +105,7 @@ namespace OceansApp.DataAccess.Repository
                     sentTime.NumSentTimes++;
                     await _db.SaveChangesAsync();
                 }
+
                 return MethodResponse.CreateSuccessResponseAnyList("Created successfully", consultantsAndProjectsSubmissionPending);
             }
             catch (Exception ex)
@@ -107,7 +114,16 @@ namespace OceansApp.DataAccess.Repository
                 Console.WriteLine(ex.ToString());
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
+            finally
+            {
+                // Cierra la conexión si está abierta
+                if (_db.Database.GetDbConnection().State == ConnectionState.Open)
+                {
+                    await _db.Database.GetDbConnection().CloseAsync();
+                }
+            }
         }
+
 
         public async Task<List<ProjectsPendingSubmissionVM>> GetPendingProjectsPendingSubmissionByConsultantAsync(int consultantId,
             DateTime endDate)
