@@ -30,22 +30,13 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@EndDate", endDate, DbType.Date);
             parameters.Add("@PaymentPeriod", paymentPeriod, DbType.Int32);
 
-            try
-            {
-                await connection.OpenAsync();
+
                 var results = await connection.QueryAsync<ConsultantAndProjectVM>(
                     "SP_PAYMENT_SHEETS_GetConsultantsAndProjectsPendingSubmission",
                     parameters,
                     commandType: CommandType.StoredProcedure);
                 return results.ToList();
-            }
-            finally
-            {
-                if (connection.State == ConnectionState.Open)
-                {
-                    await connection.CloseAsync();
-                }
-            }
+
         }
 
         public async Task<MethodResponse> CreateProjectsConsultantsPendingSubmissionsAsync(DateTime startDate,

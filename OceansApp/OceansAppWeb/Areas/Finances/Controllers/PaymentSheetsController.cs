@@ -825,70 +825,69 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
             try
             {
-              
-                //var saveRegistersResponse = await _unitOfWork.ProjectConsultantPendingSubmission
-                //    .CreateProjectsConsultantsPendingSubmissionsAsync(
-                //    (DateTime)model.StartDate, (DateTime)model.EndDate, (int)model.PaymentPeriod
-                //    );
-                //string successMessage = "";
+                var saveRegistersResponse = await _unitOfWork.ProjectConsultantPendingSubmission
+                    .CreateProjectsConsultantsPendingSubmissionsAsync(
+                    (DateTime)model.StartDate, (DateTime)model.EndDate, (int)model.PaymentPeriod
+                    );
+                string successMessage = "";
 
-                //if (saveRegistersResponse.Success)
-                //{
-                //    List<ConsultantAndProjectVM> projectConsultantsList = (List<ConsultantAndProjectVM>)saveRegistersResponse.GenericList;
-                //    //Send emails
-                //    var groupedConsultants = projectConsultantsList
-                //        .GroupBy(c => new { c.ConsultantId, c.ConsultantName, c.Email }) 
-                //        .Select(group => new GetConsultantDataVM
-                //        {
-                //            ConsultantId = group.Key.ConsultantId,
-                //            ConsultantName = group.Key.ConsultantName,
-                //            Email = group.Key.Email,
-                //            Projects = group.Select(p => new GetProjectNamesVM
-                //            {
-                //                ProjectName = p.ProjectName
-                //            }).ToList()
-                //        }).ToList();
-                //    if (groupedConsultants.Count == 0)
-                //    {
-                //        successMessage = $"No consultants are with pending submissions.";
-                //    }
-                //    else
-                //    {
-                //        DateTime startDateTime = (DateTime)model.StartDate;
-                //        DateTime endDateTime = (DateTime)model.EndDate;
-                //        string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
-                //        string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+                if (saveRegistersResponse.Success)
+                {
+                    List<ConsultantAndProjectVM> projectConsultantsList = (List<ConsultantAndProjectVM>)saveRegistersResponse.GenericList;
+                    //Send emails
+                    var groupedConsultants = projectConsultantsList
+                        .GroupBy(c => new { c.ConsultantId, c.ConsultantName, c.Email }) 
+                        .Select(group => new GetConsultantDataVM
+                        {
+                            ConsultantId = group.Key.ConsultantId,
+                            ConsultantName = group.Key.ConsultantName,
+                            Email = group.Key.Email,
+                            Projects = group.Select(p => new GetProjectNamesVM
+                            {
+                                ProjectName = p.ProjectName
+                            }).ToList()
+                        }).ToList();
+                    if (groupedConsultants.Count == 0)
+                    {
+                        successMessage = $"No consultants are with pending submissions.";
+                    }
+                    else
+                    {
+                        DateTime startDateTime = (DateTime)model.StartDate;
+                        DateTime endDateTime = (DateTime)model.EndDate;
+                        string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+                        string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
 
-                //        string periodString = $"{startDateFormated} - {endDateFormated}";
-                //        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
-                //        {
-                //            using (var scope = scopeFactory.CreateScope())
-                //            {
-                //                foreach (var projectConsultantData in groupedConsultants)
-                //                {
-                //                    var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
-                //                        projectConsultantData.Email, projectConsultantData.Projects, periodString);
-                //                    try
-                //                    {
-                //                        var emailSent = await _sendEmailService.SendEmail(emailToSend);
-                //                    }
-                //                    catch (Exception ex)
-                //                    {
-                //                        _telemetryClient.TrackException(ex);
-                //                        continue;
-                //                    }
-                //                }
-                //            }
-                //        });
+                        string periodString = $"{startDateFormated} - {endDateFormated}";
+                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
+                        {
+                            using (var scope = scopeFactory.CreateScope())
+                            {
+                                foreach (var projectConsultantData in groupedConsultants)
+                                {
+                                    var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
+                                        projectConsultantData.Email, projectConsultantData.Projects, periodString);
+                                    try
+                                    {
+                                        var emailSent = await _sendEmailService.SendEmail(emailToSend);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _telemetryClient.TrackException(ex);
+                                        continue;
+                                    }
+                                }
+                            }
+                        });
 
-                //        successMessage = $"The reminder was sent to {groupedConsultants.Count} consultant{(groupedConsultants.Count > 1 ? "s" : "")} that {(groupedConsultants.Count > 1 ? "are" : "is")} pending submissions!";
-                //    }
-                //}
-                //else
-                //{
-                //    return BadRequest(new { error = saveRegistersResponse.Message, messageType = "Exception Error" });
-                //}
-                return Ok(new { success = true, message = "bien" });
+                        successMessage = $"The reminder was sent to {groupedConsultants.Count} consultant{(groupedConsultants.Count > 1 ? "s" : "")} that {(groupedConsultants.Count > 1 ? "are" : "is")} pending submissions!";
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { error = saveRegistersResponse.Message, messageType = "Exception Error" });
+                }
+                return Ok(new { success = true, message = successMessage });
             }
             catch (Exception ex)
             {
