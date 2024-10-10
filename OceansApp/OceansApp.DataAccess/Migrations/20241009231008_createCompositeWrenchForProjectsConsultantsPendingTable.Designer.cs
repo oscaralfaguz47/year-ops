@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241009231008_createCompositeWrenchForProjectsConsultantsPendingTable")]
+    partial class createCompositeWrenchForProjectsConsultantsPendingTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2533,8 +2536,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("ProjectId");
 
                     b.HasIndex("StartDate");
-
-                    b.HasIndex("ConsultantId", "EndDate");
 
                     b.HasIndex("ProjectId", "ConsultantId", "StartDate", "EndDate")
                         .IsUnique();

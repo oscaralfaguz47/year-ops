@@ -180,6 +180,201 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
             });
 
+            // CONSULTANTS BENEFITS
+            modelBuilder.Entity<ConsultantBenefit>(entity =>
+            {
+                // Índices en fechas
+                entity.HasIndex(e => e.Name);
+                entity.HasIndex(e => e.Amount);
+                entity.HasIndex(e => e.BenefitPeriod);
+                entity.HasIndex(e => e.StartDate);
+                entity.HasIndex(e => e.EndDate);
+
+                entity.HasKey(c => new { c.BenefitId });
+            });
+
+            // CONSULTANTS AND BENEFITS
+            modelBuilder.Entity<ConsultantAndBenefit>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.BenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.BalanceAmount);
+
+                entity.HasKey(c => new { c.Id });
+                entity.HasOne(cc => cc.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cc => cc.ConsultantId)
+                .IsRequired();
+                entity.HasOne(cc => cc.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.BenefitId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // CONSULTANTS AND BENEFITS HISTORY
+            modelBuilder.Entity<ConsultantAndBenefitHistory>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.ConsultantAndBenefitId);
+                entity.HasIndex(e => e.UserCreatedById);
+                entity.HasIndex(e => e.ReimbursedBenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.HistoryId);
+
+                entity.HasKey(c => new { c.HistoryId });
+                entity.HasOne(cc => cc.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(cc => cc.UserCreatedById)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cc => cc.ConsultantAndBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.ConsultantAndBenefitId)
+                .IsRequired();
+                entity.HasOne(cc => cc.ConsultantReimbursedBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.ReimbursedBenefitId);
+            });
+
+            // CONSULTANTS BENEFITS COMPANIES
+            modelBuilder.Entity<ConsultantBenefitCompany>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.BenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.CompanyId);
+
+                entity.HasKey(c => new { c.ConsultantaBenefitCompanyId });
+                entity.HasOne(cc => cc.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cc => cc.BenefitId)
+                .IsRequired();
+                entity.HasOne(cc => cc.CostCenter)
+                .WithMany()
+                .HasForeignKey(cc => cc.CostCenterId)
+                .IsRequired();
+                entity.HasOne(cc => cc.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(cc => cc.AccountingAccountId)
+                .IsRequired();
+            });
+
+            // CONSULTANTS BENEFITS CATEGORIES
+            modelBuilder.Entity<ConsultantBenefitCategory>(entity =>
+            {
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.BenefitId);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.Name);
+
+                entity.HasKey(c => new { c.BenefitCategoryId });
+                entity.HasOne(cb => cb.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cb => cb.BenefitId)
+                .IsRequired();
+            });
+
+            // CONSULTANTS REIMBURSED BENEFITS
+            modelBuilder.Entity<ConsultantReimbursedBenefit>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.BenefitId);
+                entity.HasIndex(e => e.AmountReimbursed);
+                entity.HasIndex(e => e.DateToBeReimbursed);
+                entity.HasIndex(e => e.ConsultantIdCreatedBy);
+                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
+                entity.HasIndex(e => e.BenefitCategoryId);
+                entity.HasIndex(e => e.TransactionStatusId);
+
+                entity.HasKey(c => new { c.ReimbursedBenefitId });
+                entity.HasOne(cb => cb.ConsultantBenefit)
+                .WithMany()
+                .HasForeignKey(cb => cb.BenefitId)
+                .IsRequired();
+                entity.HasOne(cb => cb.ConsultantDetailBenefit)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantId)
+                .IsRequired();
+                entity.HasOne(cb => cb.ConsultantDetailCreatedBy)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantIdCreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cb => cb.ConsultantDetailUpdatedBy)
+                .WithMany()
+                .HasForeignKey(cb => cb.ConsultantIdLastUpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cc => cc.ConsultantBenefitCategory)
+                .WithMany()
+                .HasForeignKey(cc => cc.BenefitCategoryId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cc => cc.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(cc => cc.TransactionStatusId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(d => d.DateToBeReimbursed)
+                .HasColumnType("date")
+                .IsRequired();
+            });
+
+            // CONSULTANT PAYMENTS DEBITS AND CREDITS
+            modelBuilder.Entity<ConsultantPaymentDebitsCredits>(entity =>
+            {
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.TransactionTypeId);
+                entity.HasIndex(e => e.ConsultantIdCreatedBy);
+                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
+                entity.HasIndex(e => e.Quantity);
+                entity.HasIndex(e => e.Amount);
+
+                entity.HasKey(c => new { c.ConsultantPaymentDebitsCreditsId });
+                entity.HasOne(cp => cp.ConsultantDetail)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantId)
+                .IsRequired();
+                entity.HasOne(cp => cp.AccountingAccount)
+                .WithMany()
+                .HasForeignKey(cp => cp.AccountingAccountId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cp => cp.CostCenter)
+                .WithMany()
+                .HasForeignKey(cp => cp.CostCenterId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cp => cp.TransactionStatus)
+                .WithMany()
+                .HasForeignKey(cp => cp.TransactionStatusId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cp => cp.TransactionType)
+                .WithMany()
+                .HasForeignKey(cp => cp.TransactionTypeId)
+                .IsRequired().OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cp => cp.ConsultantDetailCreatedBy)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantIdCreatedBy)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(cp => cp.ConsultantDetailUpdatedBy)
+                .WithMany()
+                .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
+                entity.Property(d => d.ActionDateWithinFortnight)
+                .HasColumnType("date")
+                .IsRequired();
+            });
+
             // BANK ACCOUNTS
             modelBuilder.Entity<BankAccount>(entity =>
             {
@@ -635,6 +830,7 @@ namespace OceansApp.DataAccess.Data
                 // Indexes
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectId });
                 entity.HasIndex(e => new { e.ConsultantId, e.ProjectConsultantAssignedId });
+                entity.HasIndex(e => new { e.ConsultantId, e.ProjectId, e.ProjectConsultantAssignedId });
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.ConsultantId);
@@ -658,6 +854,8 @@ namespace OceansApp.DataAccess.Data
             {
                 // Indexes
                 entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate, e.Id });
+                entity.HasIndex(p => new { p.ProjectConsultantAssignedId, p.IsActive, p.MonthlySalary, p.HourlySalary })
+                .HasFilter("[IsActive] = 1");
                 entity.HasIndex(e => new { e.IsActive, e.AccessToTrackingTool});
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.UserIdActionedBy);
@@ -691,6 +889,9 @@ namespace OceansApp.DataAccess.Data
             //PROJECTS CONSULTANTS PENDING SUBMISSIONS
             modelBuilder.Entity<ProjectConsultantPendingSubmission>(entity =>
             {
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.StartDate, e.EndDate })
+                .IsUnique();
+                entity.HasIndex(e => new { e.ConsultantId, e.EndDate });
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.StartDate);
@@ -706,6 +907,22 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(p => p.ProjectId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(d => d.StartDate)
+                .HasColumnType("date")
+                .IsRequired();
+                entity.Property(d => d.EndDate)
+                .HasColumnType("date")
+                .IsRequired();
+            });
+
+            //PROJECTS CONSULTANTS PENDING SUBMISSIONS SENT TIME
+            modelBuilder.Entity<ProjectConsultantPendingSubmissionSentTimes>(entity =>
+            {
+                entity.HasIndex(e => new { e.StartDate, e.EndDate });
+                entity.HasIndex(e => e.StartDate);
+                entity.HasIndex(e => e.EndDate);
+
+                entity.HasKey(p => new { p.Id });
                 entity.Property(d => d.StartDate)
                 .HasColumnType("date")
                 .IsRequired();
@@ -951,6 +1168,7 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("VARCHAR(255)");
             });
 
+            // REPORTING MY TIME MOVEMENT SUBMISSIONS
             modelBuilder.Entity<ReportingMyTimeMovementSubmission>(entity =>
             {
                 // Composite index
@@ -1007,200 +1225,6 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.Name);
             });
 
-            // CONSULTANTS BENEFITS
-            modelBuilder.Entity<ConsultantBenefit>(entity =>
-            {
-                // Índices en fechas
-                entity.HasIndex(e => e.Name);
-                entity.HasIndex(e => e.Amount);
-                entity.HasIndex(e => e.BenefitPeriod);
-                entity.HasIndex(e => e.StartDate);
-                entity.HasIndex(e => e.EndDate);
-
-                entity.HasKey(c => new { c.BenefitId });
-            });
-
-            // CONSULTANTS AND BENEFITS
-            modelBuilder.Entity<ConsultantAndBenefit>(entity =>
-            {
-                // Indexes on foreign keys
-                entity.HasIndex(e => e.ConsultantId);
-                entity.HasIndex(e => e.BenefitId);
-
-                // Indexes for columns
-                entity.HasIndex(e => e.BalanceAmount);
-
-                entity.HasKey(c => new { c.Id });
-                entity.HasOne(cc => cc.ConsultantDetail)
-                .WithMany()
-                .HasForeignKey(cc => cc.ConsultantId)
-                .IsRequired();
-                entity.HasOne(cc => cc.ConsultantBenefit)
-                .WithMany()
-                .HasForeignKey(cc => cc.BenefitId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-            });
-
-            // CONSULTANTS AND BENEFITS HISTORY
-            modelBuilder.Entity<ConsultantAndBenefitHistory>(entity =>
-            {
-                // Indexes on foreign keys
-                entity.HasIndex(e => e.ConsultantAndBenefitId);
-                entity.HasIndex(e => e.UserCreatedById);
-                entity.HasIndex(e => e.ReimbursedBenefitId);
-
-                // Indexes for columns
-                entity.HasIndex(e => e.HistoryId);
-
-                entity.HasKey(c => new { c.HistoryId });
-                entity.HasOne(cc => cc.ApplicationUser)
-                .WithMany()
-                .HasForeignKey(cc => cc.UserCreatedById)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cc => cc.ConsultantAndBenefit)
-                .WithMany()
-                .HasForeignKey(cc => cc.ConsultantAndBenefitId)
-                .IsRequired();
-                entity.HasOne(cc => cc.ConsultantReimbursedBenefit)
-                .WithMany()
-                .HasForeignKey(cc => cc.ReimbursedBenefitId);
-            });
-
-            // CONSULTANTS BENEFITS COMPANIES
-            modelBuilder.Entity<ConsultantBenefitCompany>(entity =>
-            {
-                // Indexes on foreign keys
-                entity.HasIndex(e => e.CostCenterId);
-                entity.HasIndex(e => e.AccountingAccountId);
-                entity.HasIndex(e => e.BenefitId);
-
-                // Indexes for columns
-                entity.HasIndex(e => e.CompanyId);
-
-                entity.HasKey(c => new { c.ConsultantaBenefitCompanyId });
-                entity.HasOne(cc => cc.ConsultantBenefit)
-                .WithMany()
-                .HasForeignKey(cc => cc.BenefitId)
-                .IsRequired();
-                entity.HasOne(cc => cc.CostCenter)
-                .WithMany()
-                .HasForeignKey(cc => cc.CostCenterId)
-                .IsRequired();
-                entity.HasOne(cc => cc.AccountingAccount)
-                .WithMany()
-                .HasForeignKey(cc => cc.AccountingAccountId)
-                .IsRequired();
-            });
-
-            // CONSULTANTS BENEFITS CATEGORIES
-            modelBuilder.Entity<ConsultantBenefitCategory>(entity =>
-            {
-                // Indexes on foreign keys
-                entity.HasIndex(e => e.BenefitId);
-
-                // Indexes for columns
-                entity.HasIndex(e => e.Name);
-
-                entity.HasKey(c => new { c.BenefitCategoryId });
-                entity.HasOne(cb => cb.ConsultantBenefit)
-                .WithMany()
-                .HasForeignKey(cb => cb.BenefitId)
-                .IsRequired();
-            });
-
-            // CONSULTANTS REIMBURSED BENEFITS
-            modelBuilder.Entity<ConsultantReimbursedBenefit>(entity =>
-            {
-                entity.HasIndex(e => e.ConsultantId);
-                entity.HasIndex(e => e.BenefitId);
-                entity.HasIndex(e => e.AmountReimbursed);
-                entity.HasIndex(e => e.DateToBeReimbursed);
-                entity.HasIndex(e => e.ConsultantIdCreatedBy);
-                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
-                entity.HasIndex(e => e.BenefitCategoryId);
-                entity.HasIndex(e => e.TransactionStatusId);
-
-                entity.HasKey(c => new { c.ReimbursedBenefitId });
-                entity.HasOne(cb => cb.ConsultantBenefit)
-                .WithMany()
-                .HasForeignKey(cb => cb.BenefitId)
-                .IsRequired();
-                entity.HasOne(cb => cb.ConsultantDetailBenefit)
-                .WithMany()
-                .HasForeignKey(cb => cb.ConsultantId)
-                .IsRequired();
-                entity.HasOne(cb => cb.ConsultantDetailCreatedBy)
-                .WithMany()
-                .HasForeignKey(cb => cb.ConsultantIdCreatedBy)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cb => cb.ConsultantDetailUpdatedBy)
-                .WithMany()
-                .HasForeignKey(cb => cb.ConsultantIdLastUpdatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cc => cc.ConsultantBenefitCategory)
-                .WithMany()
-                .HasForeignKey(cc => cc.BenefitCategoryId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cc => cc.TransactionStatus)
-                .WithMany()
-                .HasForeignKey(cc => cc.TransactionStatusId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-                entity.Property(d => d.DateToBeReimbursed)
-                .HasColumnType("date")
-                .IsRequired();
-            });
-
-            // CONSULTANT PAYMENTS DEBITS AND CREDITS
-            modelBuilder.Entity<ConsultantPaymentDebitsCredits>(entity =>
-            {
-                entity.HasIndex(e => e.ConsultantId);
-                entity.HasIndex(e => e.AccountingAccountId);
-                entity.HasIndex(e => e.CostCenterId);
-                entity.HasIndex(e => e.TransactionStatusId);
-                entity.HasIndex(e => e.TransactionTypeId);
-                entity.HasIndex(e => e.ConsultantIdCreatedBy);
-                entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
-                entity.HasIndex(e => e.Quantity);
-                entity.HasIndex(e => e.Amount);
-
-                entity.HasKey(c => new { c.ConsultantPaymentDebitsCreditsId });
-                entity.HasOne(cp => cp.ConsultantDetail)
-                .WithMany()
-                .HasForeignKey(cp => cp.ConsultantId)
-                .IsRequired();
-                entity.HasOne(cp => cp.AccountingAccount)
-                .WithMany()
-                .HasForeignKey(cp => cp.AccountingAccountId)
-                .IsRequired().OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cp => cp.CostCenter)
-                .WithMany()
-                .HasForeignKey(cp => cp.CostCenterId)
-                .IsRequired().OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cp => cp.TransactionStatus)
-                .WithMany()
-                .HasForeignKey(cp => cp.TransactionStatusId)
-                .IsRequired().OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cp => cp.TransactionType)
-                .WithMany()
-                .HasForeignKey(cp => cp.TransactionTypeId)
-                .IsRequired().OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cp => cp.ConsultantDetailCreatedBy)
-                .WithMany()
-                .HasForeignKey(cp => cp.ConsultantIdCreatedBy)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(cp => cp.ConsultantDetailUpdatedBy)
-                .WithMany()
-                .HasForeignKey(cp => cp.ConsultantIdLastUpdatedBy);
-                entity.Property(d => d.ActionDateWithinFortnight)
-                .HasColumnType("date")
-                .IsRequired();
-            });
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1254,6 +1278,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }
         public DbSet<ProjectConsultantPeriodDisabledTracking> PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS { get; set; }
         public DbSet<ProjectConsultantPendingSubmission> PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS { get; set; }
+        public DbSet<ProjectConsultantPendingSubmissionSentTimes> PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS_SENT_TIMES { get; set; }
         public DbSet<ProjectUserSelected> PROJECTS_USERS_SELECTED { get; set; }
         public DbSet<ReportingMyTimeComments> REPORTING_MY_TIME_COMMENTS { get; set; }
         public DbSet<ReportingMyTimeMovement> REPORTING_MY_TIME_MOVEMENTS { get; set; }

@@ -296,6 +296,72 @@ async function removeProjectInPeriod(projectName, projectId, consultantId) {
         return null;
     }
 }
+//Send Submission Reminders
+async function sendSubmissionReminders() {
+    const confirmation = await Swal.fire({
+        title: "Send Submission Reminders",
+        text: `Are you sure you want to remind every consultant that is pending submission?`,
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#9ba8b8',
+        confirmButtonColor: '#eeb30f',
+        confirmButtonText: 'Yes, Send Reminders!'
+    });
+
+    if (!confirmation.isConfirmed) {
+        return;
+    }
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        StartDate: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndDate: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        PaymentPeriod: Number(paymentPeriodSelect.value)
+    };
+    
+    try {
+        const response = await fetch('/Finances/PaymentSheets/SendSubmissionReminders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Something went wrong, more details: ' + err);
+        hideSpinner();
+        return null;
+    }
+}
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, buttons) {
     getListOfResults(false, true).then(() => {

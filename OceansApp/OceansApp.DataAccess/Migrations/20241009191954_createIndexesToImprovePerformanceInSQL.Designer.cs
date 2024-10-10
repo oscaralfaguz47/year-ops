@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241009191954_createIndexesToImprovePerformanceInSQL")]
+    partial class createIndexesToImprovePerformanceInSQL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2534,40 +2537,9 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("StartDate");
 
-                    b.HasIndex("ConsultantId", "EndDate");
-
-                    b.HasIndex("ProjectId", "ConsultantId", "StartDate", "EndDate")
-                        .IsUnique();
+                    b.HasIndex("ProjectId", "ConsultantId", "StartDate", "EndDate");
 
                     b.ToTable("PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantPendingSubmissionSentTimes", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("NumSentTimes")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EndDate");
-
-                    b.HasIndex("StartDate");
-
-                    b.HasIndex("StartDate", "EndDate");
-
-                    b.ToTable("PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS_SENT_TIMES");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ProjectConsultantPeriodDisabledTracking", b =>

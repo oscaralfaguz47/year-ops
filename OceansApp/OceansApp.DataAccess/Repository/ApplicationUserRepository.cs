@@ -49,12 +49,14 @@ namespace OceansApp.DataAccess.Repository
                                 select new UserAndConsultantVM
                                 {
                                     UserId = u.Id,
+                                    ConsultantId = cd.ConsultantId,
                                     Name = u.Name,
                                     LastName = u.LastName,
                                     ConsultantHolidayId = cd.ConsultantHolidayId,
                                     StartDate = cd.StartDate,
                                     WorkingModel = cd.WorkingModel,
-                                    UserCategoryName = uc.Name
+                                    UserCategoryName = uc.Name,
+                                    PaymentPeriod = (int)cd.PaymentPeriod
                                 }).FirstOrDefaultAsync();
 
             if (result == null) throw new InvalidOperationException("The user does not exist.");

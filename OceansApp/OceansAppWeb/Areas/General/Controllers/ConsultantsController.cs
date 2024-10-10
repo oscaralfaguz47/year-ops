@@ -11,7 +11,6 @@ using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
-using SlackAPI;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.General.Controllers

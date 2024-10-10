@@ -1,14 +1,18 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.AccountsPayable;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPayments;
-using OceansApp.Models.ViewModels.ConsultantPaymentsDebitsCredits;
 using OceansApp.Models.ViewModels.PaymentSheets;
+using OceansApp.Models.ViewModels.ProjecConsultantPendingSubmission;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
+using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
+using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
@@ -23,9 +27,18 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     public class PaymentSheetsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public PaymentSheetsController(IUnitOfWork unitOrWork)
+        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+        private readonly IConfiguration _config;
+        private readonly ISendEmailRepository _sendEmailService;
+        private readonly TelemetryClient _telemetryClient;
+        public PaymentSheetsController(IUnitOfWork unitOrWork, IBackgroundTaskQueue backgroundTaskQueue, IConfiguration config,
+            ISendEmailRepository sendEmailService, TelemetryClient telemetryClient)
         {
             _unitOfWork = unitOrWork;
+            _backgroundTaskQueue = backgroundTaskQueue;
+            _config = config;
+            _sendEmailService = sendEmailService;
+            _telemetryClient = telemetryClient;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
@@ -784,6 +797,122 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             {
                 return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
             }
+        }
+
+        [HttpPost("SendSubmissionReminders")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendSubmissionReminders([FromBody] SendPendingSubmissionReminderVM model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", model.StartDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", model.StartDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", model.EndDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("EndtDatePeriod", "End Date Period", model.EndDate, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("PaymentPeriod", "PaymentPeriod", model.PaymentPeriod, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                var saveRegistersResponse = await _unitOfWork.ProjectConsultantPendingSubmission
+                    .CreateProjectsConsultantsPendingSubmissionsAsync(
+                    (DateTime)model.StartDate, (DateTime)model.EndDate, (int)model.PaymentPeriod
+                    );
+                string successMessage = "";
+
+                if (saveRegistersResponse.Success)
+                {
+                    List<ConsultantAndProjectVM> projectConsultantsList = (List<ConsultantAndProjectVM>)saveRegistersResponse.GenericList;
+                    //Send emails
+                    var groupedConsultants = projectConsultantsList
+                        .GroupBy(c => new { c.ConsultantId, c.ConsultantName, c.Email }) 
+                        .Select(group => new GetConsultantDataVM
+                        {
+                            ConsultantId = group.Key.ConsultantId,
+                            ConsultantName = group.Key.ConsultantName,
+                            Email = group.Key.Email,
+                            Projects = group.Select(p => new GetProjectNamesVM
+                            {
+                                ProjectName = p.ProjectName
+                            }).ToList()
+                        }).ToList();
+                    if (groupedConsultants.Count == 0)
+                    {
+                        successMessage = $"No consultants are with pending submissions.";
+                    }
+                    else
+                    {
+                        DateTime startDateTime = (DateTime)model.StartDate;
+                        DateTime endDateTime = (DateTime)model.EndDate;
+                        string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+                        string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+
+                        string periodString = $"{startDateFormated} - {endDateFormated}";
+                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
+                        {
+                            using (var scope = scopeFactory.CreateScope())
+                            {
+                                foreach (var projectConsultantData in groupedConsultants)
+                                {
+                                    var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName, 
+                                        projectConsultantData.Email, projectConsultantData.Projects, periodString);
+                                    try
+                                    {
+                                        var emailSent = await _sendEmailService.SendEmail(emailToSend);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _telemetryClient.TrackException(ex);
+                                        throw;
+                                    }
+                                }
+                            }
+                        });
+                        successMessage = $"The reminder was sent to {groupedConsultants.Count} consultant{(groupedConsultants.Count > 1 ? "s" : "")} that {(groupedConsultants.Count > 1 ? "are" : "is")} pending submissions!";
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { error = saveRegistersResponse.Message, messageType = "Exception Error" });
+                }
+                return Ok(new { success = true, message = successMessage });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
+        private SendEmailVM PrepareEmailContent(string consultantName, string consultantEmail, List<GetProjectNamesVM> projects, string period)
+        {
+            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/TrackingTool/ReportingMyTime";
+            List<string> projectsStringList = new();
+            foreach (var project in projects)
+            {
+                projectsStringList.Add(project.ProjectName);
+            }
+            var emailTemplates = new EmailTemplates();
+            var emailBody = emailTemplates.SubmissionReminderBody(baseUrl, consultantName.Trim(), period, projectsStringList);
+            var templateEmail = emailTemplates.EmailTemplate("SUBMIT HOURS FOR PAYMENT", emailBody);
+
+            return new SendEmailVM
+            {
+                Subject = "YOU HAVE PENDING SUBMISSIONS FOR PAYMENT - RIPPLY BY OCEANS",
+                SharedEmailFrom = Environment.GetEnvironmentVariable(_config["InternalEmail_ENV"]),
+                EmailTo = consultantEmail.Trim(),
+                Body = templateEmail
+            };
         }
     }
 }

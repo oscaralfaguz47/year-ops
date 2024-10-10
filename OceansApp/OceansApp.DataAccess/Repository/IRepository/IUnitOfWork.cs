@@ -43,6 +43,7 @@
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; }
         IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; }
+        IProjectConsultantPendingSubmissionRepository ProjectConsultantPendingSubmission { get; }
         IProjectUserSelectedRepository ProjectUserSelected { get; }
         IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; }
         IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; }

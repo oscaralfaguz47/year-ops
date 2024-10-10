@@ -35,6 +35,27 @@ namespace OceansApp.Utility.SharedMethods
 
             return workingDays;
         }
+
+        public static DateTime GetEndOfPeriod(DateTime currentDate, int period)
+        {
+            if (period == 1) // Biweekly
+            {
+                if (currentDate.Day <= 15)
+                {
+                    return new DateTime(currentDate.Year, currentDate.Month, 15);
+                }
+                else
+                {
+                    return new DateTime(currentDate.Year, currentDate.Month, DateTime.DaysInMonth(currentDate.Year, currentDate.Month));
+                }
+            }
+            else if (period == 2) // Monthly
+            {
+                return new DateTime(currentDate.Year, currentDate.Month, DateTime.DaysInMonth(currentDate.Year, currentDate.Month));
+            }
+            throw new ArgumentException("The paymentPeriod value is invalid.");
+        }
+
     }
 
 }

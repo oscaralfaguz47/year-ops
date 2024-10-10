@@ -121,6 +121,7 @@ builder.Services.AddTransient<DatabaseService>(provider =>
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<RequireTwoFactorEnabledAttribute>();
+builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 

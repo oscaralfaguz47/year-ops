@@ -62,6 +62,7 @@ namespace OceansApp.DataAccess.Repository
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
             ProjectConsultantPeriodDisabledTracking = new ProjectConsultantPeriodDisabledTrackingRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
+            ProjectConsultantPendingSubmission = new ProjectConsultantPendingSubmissionRepository(_db);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
             ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);
@@ -118,6 +119,7 @@ namespace OceansApp.DataAccess.Repository
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
         public IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; set; }
         public IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; set; }
+        public IProjectConsultantPendingSubmissionRepository ProjectConsultantPendingSubmission { get; set; }
         public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
         public IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; set; }
         public IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; set; }

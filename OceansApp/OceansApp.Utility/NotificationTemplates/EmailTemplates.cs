@@ -175,5 +175,49 @@ namespace OceansApp.Utility.NotificationTemplates
                        We are delighted to extend a warm welcome to you!
                    </p>";
         }
+
+        public string SubmissionReminderBody(string url, string userName, string period, List<string> projectsList)
+        {
+            string projectsSection = @"<div style=""text-align: left;""><ul>";
+            foreach (var project in projectsList)
+            {
+                projectsSection += $"<li><strong>{project}</strong></li>";
+            }
+            projectsSection += "</ul><div>";
+            return @"<div style=""text-align: center;"">
+                        <p> Hello " + userName + @",</p>
+                        <p> Ready for your payment? </p>
+                        <p> Oceans needs you to send your worked hours report to make your payment for period: <strong>"+ period + @"</strong></p>
+                        <div style=""text-align: left;"">
+                            <p>See below the projects pending your hours submission:</p>
+                        </div>
+                        " + projectsSection + @"
+                   </div>
+                   <table cellspacing=""0"" cellpadding=""0""
+                       width=""100%"">
+                       <tr>
+                           <td align=""center"">
+                               <div
+                                   style=""margin-top: 20px; margin-bottom: 20px;"">
+                                   <table role=""presentation"" cellspacing=""0"" cellpadding=""0"" border=""0"" style=""border-collapse: separate;"">
+                             <tr>
+                        <td style=""border-radius: 25px; background-color: #5bbb71; padding: 10px 40px;"" align=""center"">
+                           <a href=""" + url + @""" style=""font-family: 'Montserrat', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; cursor: pointer; display: inline-block;"">
+                                Go to submit my hours
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                                      </div>
+                               <div
+                                   style=""background-color: #baf7f4; width: 100%; height: 1px;margin-top: 20px;"">
+                               </div>
+                           </td>
+                       </tr>
+                   </table>
+                   <p>
+                       Feel free to contact your Success Manager or the Financial Team if you have any questions.
+                   </p>";
+        }
     }
 }
