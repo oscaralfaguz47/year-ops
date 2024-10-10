@@ -47,7 +47,7 @@ AuthorizationConfig.ConfigurePolicies(builder.Services);
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
-builder.Services.AddScoped<ISendEmailRepository, SendEmailRepository>();
+builder.Services.AddTransient<ISendEmailRepository, SendEmailRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISendEmailRepository>)); //Lazy Loading
 builder.Services.AddScoped<ISlackRepository, SlackRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISlackRepository>)); //Lazy Loading

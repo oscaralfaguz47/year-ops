@@ -67,10 +67,8 @@ namespace OceansApp.DataAccess.Repository
                     pendingSubmissionsTable.Rows.Add(submission.ConsultantId, submission.ProjectId, startDate, endDate);
                 }
 
-                // Usa la conexión existente en lugar de abrir una nueva
                 var connection = (SqlConnection)_db.Database.GetDbConnection();
 
-                // Abre la conexión solo si está cerrada
                 if (connection.State == ConnectionState.Closed)
                 {
                     await connection.OpenAsync();
@@ -85,7 +83,6 @@ namespace OceansApp.DataAccess.Repository
                     await cmd.ExecuteNonQueryAsync();
                 }
 
-                // Continúa con la lógica de verificación y actualización de `sentTime`
                 var sentTime = await _db.PROJECTS_CONSULTANTS_PENDING_SUBMISSIONS_SENT_TIMES.FirstOrDefaultAsync(x => x.StartDate == startDate
                 && x.EndDate == endDate);
 
@@ -116,7 +113,6 @@ namespace OceansApp.DataAccess.Repository
             }
             finally
             {
-                // Cierra la conexión si está abierta
                 if (_db.Database.GetDbConnection().State == ConnectionState.Open)
                 {
                     await _db.Database.GetDbConnection().CloseAsync();

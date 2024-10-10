@@ -31,9 +31,14 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CancellationToken cancellationToken)
         {
             await _signal.WaitAsync(cancellationToken);
-            _workItems.TryDequeue(out var workItem);
-
-            return workItem;
+            if (_workItems.TryDequeue(out var workItem))
+            {
+                return workItem;
+            }
+            else
+            {
+                throw new InvalidOperationException("Failed to dequeue a work item.");
+            }
         }
     }
 }

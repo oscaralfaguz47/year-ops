@@ -836,7 +836,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     List<ConsultantAndProjectVM> projectConsultantsList = (List<ConsultantAndProjectVM>)saveRegistersResponse.GenericList;
                     //Send emails
                     var groupedConsultants = projectConsultantsList
-                        .GroupBy(c => new { c.ConsultantId, c.ConsultantName, c.Email }) 
+                        .GroupBy(c => new { c.ConsultantId, c.ConsultantName, c.Email })
                         .Select(group => new GetConsultantDataVM
                         {
                             ConsultantId = group.Key.ConsultantId,
@@ -859,27 +859,28 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
 
                         string periodString = $"{startDateFormated} - {endDateFormated}";
-                        //_backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
-                        //{
-                           // using (var scope = scopeFactory.CreateScope())
-                            //{
+                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
+                        {
+                            using (var scope = scopeFactory.CreateScope())
+                            {
                                 foreach (var projectConsultantData in groupedConsultants)
                                 {
                                     var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
                                         projectConsultantData.Email, projectConsultantData.Projects, periodString);
                                     try
                                     {
-                                        var emailSent = await _sendEmailService.SendEmail(emailToSend);
-                                    }
-                                    catch (Exception ex)
-                                    {
                                         _telemetryClient.TrackTrace($"Sending email to {projectConsultantData.Email}");
                                         var emailSent = await _sendEmailService.SendEmail(emailToSend);
                                         _telemetryClient.TrackTrace($"Email sent to {projectConsultantData.Email}");
                                     }
+                                    catch (Exception ex)
+                                    {
+                                        _telemetryClient.TrackException(ex);
+                                        continue;
+                                    }
                                 }
-                            //}
-                       // });
+                            }
+                        });
 
                         successMessage = $"The reminder was sent to {groupedConsultants.Count} consultant{(groupedConsultants.Count > 1 ? "s" : "")} that {(groupedConsultants.Count > 1 ? "are" : "is")} pending submissions!";
                     }
