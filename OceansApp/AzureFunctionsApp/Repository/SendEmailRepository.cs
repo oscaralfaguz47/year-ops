@@ -49,8 +49,8 @@ namespace AzureFunctionsApp.Repository
 
             using (var client = new MailKit.Net.Smtp.SmtpClient())
             {
-                var smtpHost = "smtp.office365.com"; // Puedes mover esto a Key Vault si necesitas cambiarlo.
-                var smtpPort = 587; // Igualmente, puedes moverlo a Key Vault para flexibilidad.
+                var smtpHost = "smtp.office365.com"; 
+                var smtpPort = 587;
 
                 await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
                 await client.AuthenticateAsync(_emailFrom, _emailFromPassword);
