@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'AzureFunctionsApp' # Asegúrate de que este sea el nombre exacto de tu directorio de función
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'OceansApp/AzureFunctionsApp' # Asegúrate de que este sea el nombre exacto de tu directorio de función
   DOTNET_VERSION: '8.0.x' # Versión de .NET que estás usando
 
 jobs:
