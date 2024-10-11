@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'AzureFunctionsApp' # Asegúrate de que este sea el nombre exacto de tu directorio de función
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'src/AzureFunctionsApp' # Asegúrate de que este sea el nombre exacto de tu directorio de función
   DOTNET_VERSION: '8.0.x' # Versión de .NET que estás usando
 
 jobs:
@@ -33,7 +33,9 @@ jobs:
 
       # Paso para listar archivos y confirmar la estructura de directorios
       - name: List Files for Debugging
-        run: ls -R
+        run: |
+        pwd
+        ls -R
 
       - name: 'Resolve Project Dependencies Using Dotnet'
         shell: pwsh
@@ -55,4 +57,3 @@ jobs:
         with:
           app-name: 'DemoOceFunctions'
           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          
