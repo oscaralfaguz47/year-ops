@@ -16,7 +16,7 @@ namespace AzureFunctionsApp.Repository
 
         public SendEmailRepository()
         {
-            var vaultUri = Environment.GetEnvironmentVariable("VaultUri");
+            var vaultUri = Environment.GetEnvironmentVariable("AzureKeyVaultUri");
             _secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
             InitializeSecrets().Wait();
         }
