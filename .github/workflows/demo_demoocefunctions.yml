@@ -10,14 +10,14 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'AzureFunctionsApp'
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   build-and-deploy:
     runs-on: windows-latest
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write
       contents: read
 
     steps:
@@ -31,12 +31,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Dotnet'
-        shell: pwsh
+      - name: 'Package Project'
         run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          dotnet build --configuration Release --output ./output
-          popd
+          mkdir -p ./output
+          cd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          dotnet publish --configuration Release --output ../output
+          cd ..
+          Compress-Archive -Path ./output/* -DestinationPath ./output/package.zip
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -47,8 +48,7 @@ jobs:
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
-        id: fa
         with:
           app-name: 'DemoOceFunctions'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output/package.zip'
           
