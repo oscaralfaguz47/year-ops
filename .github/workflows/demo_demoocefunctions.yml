@@ -34,8 +34,8 @@ jobs:
       # Paso para listar archivos y confirmar la estructura de directorios
       - name: List Files for Debugging
         run: |
-        pwd
-        ls -R
+          pwd
+          ls -R
 
       - name: 'Resolve Project Dependencies Using Dotnet'
         shell: pwsh
