@@ -14,6 +14,9 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using OceansApp.DataAccess;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Storage.Queues;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,17 +48,29 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 //Configure Authorization Policies
 AuthorizationConfig.ConfigurePolicies(builder.Services);
 
+// Scoped services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
-builder.Services.AddTransient<ISendEmailRepository, SendEmailRepository>();
-builder.Services.AddScoped(typeof(LazyServiceProvider<ISendEmailRepository>)); //Lazy Loading
 builder.Services.AddScoped<ISlackRepository, SlackRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<ISlackRepository>)); //Lazy Loading
 builder.Services.AddScoped<IAzureBlobRepository, AzureBlobRepository>();
 builder.Services.AddScoped(typeof(LazyServiceProvider<IAzureBlobRepository>)); //Lazy Loading
+builder.Services.AddScoped<IProjectConsultantAssignedHistoryRepository, ProjectConsultantAssignedHistoryRepository>();
+
+// Lazy loading configuration for scoped services
+builder.Services.AddScoped(typeof(LazyServiceProvider<>));
+
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<BackgroundTaskService>();
-builder.Services.AddScoped<IProjectConsultantAssignedHistoryRepository, ProjectConsultantAssignedHistoryRepository>();
+
+// Configuring QueueClient for Azure Queue Storage
+string queueConnectionString = builder.Configuration["AzureWebJobsStorage"];
+builder.Services.AddSingleton(_ => new QueueClient(queueConnectionString, "emailqueue"));
+builder.Services.AddSingleton(typeof(LazyServiceProvider<>), typeof(LazyServiceProvider<>));
+
+// Configuration for Azure Key Vault
+builder.Services.AddSingleton(new SecretClient(new Uri(builder.Configuration["AzureKeyVaultUri"]), new DefaultAzureCredential()));
+
 builder.Services.Configure<IdentityOptions>(opt =>
 {
     opt.Password.RequiredLength = 8;
@@ -122,6 +137,7 @@ builder.Services.AddTransient<DatabaseService>(provider =>
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<RequireTwoFactorEnabledAttribute>();
 builder.Services.AddApplicationInsightsTelemetry();
+
 
 var app = builder.Build();
 

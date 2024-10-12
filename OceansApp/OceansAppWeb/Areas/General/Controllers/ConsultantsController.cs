@@ -1,17 +1,22 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Storage.Queues;
+using AzureFunctionsApp.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
+using System.Text;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
@@ -29,16 +34,16 @@ namespace OceansAppWeb.Areas.General.Controllers
         private readonly IAuthorizationService _authorizationService;
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly IMemoryCache _cache;
+        private readonly LazyServiceProvider<QueueClient> _queueClient;
         public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager, 
-            IAuthorizationService authorizationService,
-            IBackgroundTaskQueue backgroundTaskQueue, IMemoryCache cache)
+            IAuthorizationService authorizationService, IMemoryCache cache, LazyServiceProvider<QueueClient> queueClient)
         {
             _unitOfWork = unitOrWork;
             _config = config;
             _userManager = userManager;
             _authorizationService = authorizationService;
-            _backgroundTaskQueue = backgroundTaskQueue;
             _cache = cache;
+            _queueClient = queueClient;
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -312,9 +317,13 @@ namespace OceansAppWeb.Areas.General.Controllers
                 {
                     return new MethodResponse { Success = false, Message = "Failed to create notification." };
                 }
+                else
+                {
+                    emailToSend.NotificationId = emailNotification.NotificationId;
+                }
 
                 // Queue background task to send email and update notification status
-                QueueEmailSendingTask(emailToSend, emailNotification.NotificationId);
+                await QueueEmailSendingTask(emailToSend);
 
                 return new MethodResponse { Success = true, Message = "Notification created and email sending queued." };
             }
@@ -376,48 +385,13 @@ namespace OceansAppWeb.Areas.General.Controllers
             return emailNotification;
         }
 
-        private void QueueEmailSendingTask(SendEmailVM emailToSend, int notificationId)
+        private async Task QueueEmailSendingTask(SendEmailVM emailToSend)
         {
-            _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
-            {
-                using (var scope = scopeFactory.CreateScope())
-                {
-                    var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                    var sendEmailService = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
+            var messageContent = JsonConvert.SerializeObject(emailToSend);
 
-                    await SendEmailAndUpdateStatus(unitOfWork, sendEmailService, emailToSend, notificationId, cancellationToken);
-                }
-            });
+            await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
         }
 
-        private static async Task SendEmailAndUpdateStatus(IUnitOfWork unitOfWork, ISendEmailRepository sendEmailService, SendEmailVM emailToSend, int notificationId, CancellationToken cancellationToken)
-        {
-            NotificationStatus notificationStatusForUpdate;
-
-            try
-            {
-                var emailSent = await sendEmailService.SendEmail(emailToSend);
-                notificationStatusForUpdate = await unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
-            }
-            catch (Exception)
-            {
-                notificationStatusForUpdate = await unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Envío fallido");
-            }
-
-            if (notificationStatusForUpdate == null)
-            {
-                throw new InvalidOperationException("Notification status 'Enviado' or 'Envío fallido' not found.");
-            }
-
-            var savedNotificationRecipients = await unitOfWork.NotificationRecipient.GetAllAsync(x => x.NotificationId == notificationId);
-
-            foreach (var recipient in savedNotificationRecipients)
-            {
-                recipient.NotificationStatusId = notificationStatusForUpdate.NotificationStatusId;
-            }
-
-            await unitOfWork.SaveAsync();
-        }
 
         [HttpPost("ResentInvite")]
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]

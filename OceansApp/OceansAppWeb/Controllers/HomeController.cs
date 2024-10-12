@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
-using NodaTime;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.SharedMethods;

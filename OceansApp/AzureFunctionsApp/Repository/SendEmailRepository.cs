@@ -1,5 +1,4 @@
-﻿using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+﻿using Azure.Security.KeyVault.Secrets;
 using AzureFunctionsApp.Models;
 using AzureFunctionsApp.Repository.IRepository;
 using MailKit.Security;
@@ -14,10 +13,9 @@ namespace AzureFunctionsApp.Repository
         private string _emailFrom;
         private string _emailFromPassword;
 
-        public SendEmailRepository()
+        public SendEmailRepository(SecretClient secretClient)
         {
-            var vaultUri = Environment.GetEnvironmentVariable("AzureKeyVaultUri");
-            _secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
+            _secretClient = secretClient;
             InitializeSecrets().Wait();
         }
 

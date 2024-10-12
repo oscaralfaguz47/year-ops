@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Storage.Queues;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
@@ -7,6 +9,7 @@ using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.DocumentsCC;
 using OceansApp.Models.ViewModels.Notifications;
 using OceansApp.Utility.LazyLoading;
+using OceansApp.Utility.SharedMethods;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
@@ -18,14 +21,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     public class DocumentsCCController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmail;
+        private readonly LazyServiceProvider<QueueClient> _queueClient;
         private readonly IConfiguration _config;
         private readonly LazyServiceProvider<ISlackRepository> _slackRepository;
-        public DocumentsCCController(IUnitOfWork unitOrWork, LazyServiceProvider<ISendEmailRepository> sendEmail, IConfiguration config,
+        public DocumentsCCController(IUnitOfWork unitOrWork, LazyServiceProvider<QueueClient> queueClient, IConfiguration config,
             LazyServiceProvider<ISlackRepository> slackRepository)
         {
             _unitOfWork = unitOrWork;
-            _sendEmail = sendEmail;
+            _queueClient = queueClient;
             _config = config;
             _slackRepository = slackRepository;
         }
@@ -162,6 +165,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 });
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> SendCXCStatus()
         {
@@ -568,7 +572,9 @@ emailsCCString;
 
                     try
                     {
-                        var emailSent = _sendEmail.Value.SendEmail(emailToSend);
+                        string message = JsonConvert.SerializeObject(emailToSend);
+                        await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+
                         var documentNotification = new DocumentsCCNotification()
                         {
                             DocumentCCId = documentId,
@@ -612,7 +618,7 @@ emailsCCString;
 
                 try
                 {
-                    await _slackRepository.Value.SendMessageToChannelAsync(slackChannelId, slackBody);
+                   await _slackRepository.Value.SendMessageToChannelAsync(slackChannelId, slackBody);
                 }
                 catch (Exception ex)
                 {

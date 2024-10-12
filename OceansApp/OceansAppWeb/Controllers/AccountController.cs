@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Storage.Queues;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels;
@@ -10,8 +11,8 @@ using OceansApp.Models.ViewModels.Account;
 using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
+using OceansApp.Utility.SharedMethods;
 using OceansAppWeb.Controllers;
-using SlackAPI;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
@@ -27,14 +28,13 @@ namespace OceansAppWeb.Account.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _config;
-        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmailRepository;
-        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+        private readonly LazyServiceProvider<QueueClient> _queueClient;
         private readonly IMemoryCache _cache;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
-            IHttpContextAccessor httpContextAccessor, IConfiguration config, LazyServiceProvider<ISendEmailRepository> sendEmailRepository,
-            IBackgroundTaskQueue backgroundTaskQueue, IMemoryCache cache)
+            IHttpContextAccessor httpContextAccessor, IConfiguration config,
+            IMemoryCache cache, LazyServiceProvider<QueueClient> queueClient)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -44,8 +44,7 @@ namespace OceansAppWeb.Account.Controllers
             _unitOfWork = unitOrWork;
             _httpContextAccessor = httpContextAccessor;
             _config = config;
-            _sendEmailRepository = sendEmailRepository;
-            _backgroundTaskQueue = backgroundTaskQueue;
+            _queueClient = queueClient;
             _cache = cache;
         }
         public IActionResult Index()
@@ -151,21 +150,17 @@ namespace OceansAppWeb.Account.Controllers
                             Body = templateEmail,
                             SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
                         };
-                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+
+                        try
                         {
-                            using (var scope = scopeFactory.CreateScope())
-                            {
-                                var sendEmail = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
-                                try
-                                {
-                                    string? result = await sendEmail.SendEmail(emailModel);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Log the error
-                                }
-                            }
-                        });
+                            string message = JsonConvert.SerializeObject(emailModel);
+                            await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+                        }
+                        catch (Exception ex)
+                        {
+                            //Log the error
+                        }
+
                         InvalidToken invalidTokenModelCreatePassword = new InvalidToken();
                         invalidTokenModelCreatePassword.Title = "Your invite has been expired!";
                         invalidTokenModelCreatePassword.Message = "We just sent you another invite. Please check your email";
@@ -472,23 +467,19 @@ namespace OceansAppWeb.Account.Controllers
                     Subject = "Change Password",
                     EmailTo = model.Email,
                     Body = templateEmail,
-                    SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
+                    SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]),
                 };
-                _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+
+                try
                 {
-                    using (var scope = scopeFactory.CreateScope())
-                    {
-                        var sendEmail = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
-                        try
-                        {
-                            string? result = await sendEmail.SendEmail(emailModel);
-                        }
-                        catch (Exception ex)
-                        {
-                            //Log the error
-                        }
-                    }
-                });
+                    string message = JsonConvert.SerializeObject(emailModel);
+                    await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+                }
+                catch (Exception ex)
+                {
+                    //Log the error
+                }
+
                 return RedirectToAction("ForgotPasswordConfirmation");
             }
 

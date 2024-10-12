@@ -1,6 +1,8 @@
-﻿using Microsoft.ApplicationInsights;
+﻿using Azure.Storage.Queues;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
@@ -12,7 +14,9 @@ using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Models.ViewModels.ProjecConsultantPendingSubmission;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
+using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
+using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
@@ -27,18 +31,16 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     public class PaymentSheetsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly IConfiguration _config;
-        private readonly ISendEmailRepository _sendEmailService;
         private readonly TelemetryClient _telemetryClient;
-        public PaymentSheetsController(IUnitOfWork unitOrWork, IBackgroundTaskQueue backgroundTaskQueue, IConfiguration config,
-            ISendEmailRepository sendEmailService, TelemetryClient telemetryClient)
+        private readonly LazyServiceProvider<QueueClient> _queueClient;
+        public PaymentSheetsController(IUnitOfWork unitOrWork, IConfiguration config,
+            TelemetryClient telemetryClient, LazyServiceProvider<QueueClient> queueClient)
         {
             _unitOfWork = unitOrWork;
-            _backgroundTaskQueue = backgroundTaskQueue;
             _config = config;
-            _sendEmailService = sendEmailService;
             _telemetryClient = telemetryClient;
+            _queueClient = queueClient;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
@@ -859,28 +861,25 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
 
                         string periodString = $"{startDateFormated} - {endDateFormated}";
-                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
+
+                        //Send emails
+                        foreach (var projectConsultantData in groupedConsultants)
                         {
-                            using (var scope = scopeFactory.CreateScope())
+                            var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
+                                projectConsultantData.Email, projectConsultantData.Projects, periodString);
+                            try
                             {
-                                foreach (var projectConsultantData in groupedConsultants)
-                                {
-                                    var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
-                                        projectConsultantData.Email, projectConsultantData.Projects, periodString);
-                                    try
-                                    {
-                                        _telemetryClient.TrackTrace($"Sending email to {projectConsultantData.Email}");
-                                        var emailSent = await _sendEmailService.SendEmail(emailToSend);
-                                        _telemetryClient.TrackTrace($"Email sent to {projectConsultantData.Email}");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        _telemetryClient.TrackException(ex);
-                                        continue;
-                                    }
-                                }
+                                _telemetryClient.TrackTrace($"Sending email to {projectConsultantData.Email}");
+                                string message = JsonConvert.SerializeObject(emailToSend);
+                                await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+                                _telemetryClient.TrackTrace($"Email sent to {projectConsultantData.Email}");
                             }
-                        });
+                            catch (Exception ex)
+                            {
+                                _telemetryClient.TrackException(ex);
+                                continue;
+                            }
+                        }
 
                         successMessage = $"The reminder was sent to {groupedConsultants.Count} consultant{(groupedConsultants.Count > 1 ? "s" : "")} that {(groupedConsultants.Count > 1 ? "are" : "is")} pending submissions!";
                     }

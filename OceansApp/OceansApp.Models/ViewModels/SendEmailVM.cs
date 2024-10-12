@@ -7,6 +7,7 @@ namespace OceansApp.Models.ViewModels
         public string Subject { get; set; }
         public string Body { get; set; }
         public string? SharedEmailFrom { get; set; }
-        public List<string>? EmailCcList { get; set; }
+        public List<string>? EmailCcList { get; set; } = new List<string>();
+        public int? NotificationId { get; set; }
     }
 }
