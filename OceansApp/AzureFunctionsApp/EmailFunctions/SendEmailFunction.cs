@@ -1,5 +1,6 @@
 ﻿using AzureFunctionsApp.Models;
 using AzureFunctionsApp.Repository.IRepository;
+using Microsoft.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -14,17 +15,20 @@ namespace AzureFunctionsApp.EmailFunctions
     {
         private readonly ISendEmailRepository _sendEmailRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TelemetryClient _telemetryClient;
 
-        public SendEmailFunction(ISendEmailRepository sendEmailRepository, IUnitOfWork unitOfWork)
+        public SendEmailFunction(ISendEmailRepository sendEmailRepository, IUnitOfWork unitOfWork, TelemetryClient telemetryClient)
         {
             _sendEmailRepository = sendEmailRepository;
             _unitOfWork = unitOfWork;
+            _telemetryClient = telemetryClient;
         }
 
         [Function("SendEmailFunction")]
         public async Task Run([QueueTrigger("emailqueue", Connection = "AzureWebJobsStorage")] string message,
     FunctionContext context)
         {
+            _telemetryClient.TrackTrace($"My function is working");
             var log = context.GetLogger("SendEmailFunction");
             try
             {
