@@ -871,12 +871,14 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             {
                                 _telemetryClient.TrackTrace($"Sending email to {projectConsultantData.Email}");
                                 string message = JsonConvert.SerializeObject(emailToSend);
-                                await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+                               var testing =  await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+ 
                                 _telemetryClient.TrackTrace($"Email sent to {projectConsultantData.Email}");
                             }
                             catch (Exception ex)
                             {
                                 _telemetryClient.TrackException(ex);
+                                _telemetryClient.TrackTrace("EMAIL NO SENT !!!!!!!!!!");
                                 continue;
                             }
                         }

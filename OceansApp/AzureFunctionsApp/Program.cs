@@ -13,6 +13,7 @@ using OceansApp.DataAccess.Repository;
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.ApplicationInsights;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults(worker =>
@@ -34,7 +35,7 @@ var host = new HostBuilder()
             options.UseSqlServer(connectionString));
 
         services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
         services.AddMemoryCache();
 
@@ -49,9 +50,16 @@ var host = new HostBuilder()
             services.AddSingleton(new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential()));
         }
 
-        services.AddSingleton<ISendEmailRepository, SendEmailRepository>();
+        services.AddSingleton<ISendEmailRepository>(provider =>
+        {
+            var secretClient = provider.GetRequiredService<SecretClient>();
+            var telemetryClient = provider.GetRequiredService<TelemetryClient>();
+            return new SendEmailRepository(secretClient, telemetryClient);
+        });
+
         services.AddSingleton(typeof(LazyServiceProvider<>), typeof(LazyServiceProvider<>));
     })
     .Build();
 
 host.Run();
+

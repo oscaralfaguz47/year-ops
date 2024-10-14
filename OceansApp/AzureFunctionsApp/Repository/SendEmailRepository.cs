@@ -2,6 +2,7 @@
 using AzureFunctionsApp.Models;
 using AzureFunctionsApp.Repository.IRepository;
 using MailKit.Security;
+using Microsoft.ApplicationInsights;
 using MimeKit;
 
 namespace AzureFunctionsApp.Repository
@@ -9,25 +10,40 @@ namespace AzureFunctionsApp.Repository
     public class SendEmailRepository : ISendEmailRepository
     {
         private readonly SecretClient _secretClient;
+        private readonly TelemetryClient _telemetryClient;
         private string _senderName;
         private string _emailFrom;
         private string _emailFromPassword;
+        private bool _isInitialized = false;
 
-        public SendEmailRepository(SecretClient secretClient)
+        public SendEmailRepository(SecretClient secretClient, TelemetryClient telemetryClient)
         {
             _secretClient = secretClient;
-            InitializeSecrets().Wait();
+            _telemetryClient = telemetryClient;
         }
 
-        private async Task InitializeSecrets()
+        private async Task InitializeAsync()
         {
-            _senderName = (await _secretClient.GetSecretAsync("internalEmailSenderName")).Value.Value;
-            _emailFrom = (await _secretClient.GetSecretAsync("internalEmail")).Value.Value;
-            _emailFromPassword = (await _secretClient.GetSecretAsync("internalEmailPass")).Value.Value;
+            if (_isInitialized) return;
+
+            try
+            {
+                _senderName = (await _secretClient.GetSecretAsync("internalEmailSenderName")).Value.Value;
+                _emailFrom = (await _secretClient.GetSecretAsync("internalEmail")).Value.Value;
+                _emailFromPassword = (await _secretClient.GetSecretAsync("internalEmailPass")).Value.Value;
+                _isInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackException(ex);
+                throw new InvalidOperationException("Error loading secrets from Key Vault", ex);
+            }
         }
 
         public async Task<string?> SendEmail(SendEmailVM emailModel)
         {
+            await InitializeAsync();
+
             var message = new MimeMessage();
             var fromAddress = emailModel.SharedEmailFrom ?? _emailFrom;
 
@@ -45,18 +61,38 @@ namespace AzureFunctionsApp.Repository
             message.Subject = emailModel.Subject;
             message.Body = new BodyBuilder { HtmlBody = emailModel.Body }.ToMessageBody();
 
-            using (var client = new MailKit.Net.Smtp.SmtpClient())
+            int retryCount = 3;
+            for (int i = 0; i < retryCount; i++)
             {
-                var smtpHost = "smtp.office365.com"; 
-                var smtpPort = 587;
+                try
+                {
+                    using (var client = new MailKit.Net.Smtp.SmtpClient())
+                    {
+                        var smtpHost = "smtp.office365.com";
+                        var smtpPort = 587;
 
-                await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(_emailFrom, _emailFromPassword);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
+                        await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+                        await client.AuthenticateAsync(_emailFrom, _emailFromPassword);
+                        await client.SendAsync(message);
+                        await client.DisconnectAsync(true);
+
+                        _telemetryClient.TrackTrace($"Email sent to {emailModel.EmailTo}");
+                        return null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _telemetryClient.TrackException(ex);
+                    if (i == retryCount - 1)
+                    {
+                        return $"Failed to send email after {retryCount} attempts: {ex.Message}";
+                    }
+                    await Task.Delay(2000); // Espera antes de reintentar
+                }
             }
 
             return null;
         }
     }
+
 }
