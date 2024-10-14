@@ -17,9 +17,33 @@
 #timeInCompany span {
     color: var(--clr-grayDark);
 }
-
-@media (max-width: 768px) {
-    #welcomeCont {
+.widget-spinner-cont{
+    height: -webkit-fill-available;
+    display:flex;
+    align-items:center;
+}
+.card-error {
+    height: -webkit-fill-available;
+    display: flex;
+    align-items: center;
+    color: red;
+    font-weight: bold;
+    justify-content:center;
+    text-align:center;
+}
+    .card-error button {
+        border: solid 1px;
+        margin-top: 5px;
+        border-radius: 8px;
+        padding: 0 6px;
+        font-weight: bold;
+        background-color: rgb(42, 167, 255, 0.2);
+    }
+    .card-error button:hover {
+        background-color: rgb(42, 167, 255, 0.5);
+    }
+    @media (max-width: 768px) {
+        #welcomeCont {
         margin-top: -25px;
     }
 }

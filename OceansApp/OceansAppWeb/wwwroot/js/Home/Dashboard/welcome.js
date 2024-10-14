@@ -18,3 +18,18 @@ if (days < 0) {
 }
 
 dateDifferenceDiv.innerHTML += `<p>You have been with us for <span>${years} years</span>, <span>${months} months</span>, and <span>${days} days</span>!</p>`;
+
+function loadingISpinner() {
+    return `<div class="widget-spinner-cont"><div class="spinner"></div>
+            <div>
+            </div></div>`;
+}
+function cardErrorInfo(text, onClick) {
+    return `<div class="card-error">
+   <div>
+    <div><img src="/icons/Shared/warning.svg"></div>
+    <span>${text}</span>
+    <div><button onclick="${onClick}">Retry</button></div>
+   </div>
+    </div>`;
+}

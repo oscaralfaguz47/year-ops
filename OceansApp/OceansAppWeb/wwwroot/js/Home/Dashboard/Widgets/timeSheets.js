@@ -1,10 +1,14 @@
 ﻿let timeSheetSubTitle = getElementById('timesheetSubTitle');
 let pendingTimesheetsCont = getElementById('pendingTimesheetsCont');
+const firstCardContent = pendingTimesheetsCont.closest('.card-content');
 async function getPendingTimesheets() {
+    firstCardContent.style.justifyContent = 'center';
+    pendingTimesheetsCont.innerHTML = loadingISpinner();
     const url = `/GetPendingTimesheets`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
+            pendingTimesheetsCont.innerHTML = cardErrorInfo('Error loading pending timesheets!', 'getPendingTimesheets()');
             const errorData = await response.json();
             throw new Error(`The request to the server failed! More details: ${errorData.detail}`);
         }
@@ -19,25 +23,34 @@ async function getPendingTimesheets() {
 document.addEventListener("DOMContentLoaded", async function () {
     try {
         let data = await getPendingTimesheets();
+        pendingTimesheetsCont.innerHTML = '';
         let dataItems = data.pendingTimesheets;
-        console.log(dataItems);
-        timeSheetSubTitle.innerHTML = `${dataItems.length > 0 ? "You have <span>" + dataItems.length + " pending timesheet" + (dataItems.length > 1 ? "s" : "") + "</span>." : "You don't have pending timesheets"}`;
-        var timesheetsUrl = window.location.origin + '/TrackingTool/ReportingMyTime';
-        dataItems.forEach(function (obj, index) {
-            let pendingTimesheetsRow = document.createElement('div');
-            let startDateItem = new Date(obj.startDate);
-            let endDateItem = new Date(obj.endDate);
-            let goBtn = document.createElement('button');
-            goBtn.textContent = 'Go';
-            goBtn.addEventListener('click', function () {
-                window.location.href = timesheetsUrl;
+        if (dataItems.length > 0) {
+            firstCardContent.style.justifyContent = 'left';
+            firstCardContent.style.display = 'block';
+            timeSheetSubTitle.innerHTML = `${dataItems.length > 0 ? "You have <span class='red-label'>" + dataItems.length + " pending timesheet" + (dataItems.length > 1 ? "s" : "") + "</span>." : "You don't have pending timesheets"}`;
+            var timesheetsUrl = window.location.origin + '/TrackingTool/ReportingMyTime';
+            dataItems.forEach(function (obj, index) {
+                let pendingTimesheetsRow = document.createElement('div');
+                pendingTimesheetsRow.className = 'pending-time-row';
+                let startDateItem = new Date(obj.startDate);
+                let endDateItem = new Date(obj.endDate);
+                let goBtn = document.createElement('button');
+                goBtn.textContent = 'Go';
+                goBtn.addEventListener('click', function () {
+                    window.location.href = timesheetsUrl;
+                });
+                let formattedDates = `<span class="date-project"><span class="period"> ${getMonthName(startDateItem.getMonth()).slice(0, 3)} ${startDateItem.getDate()} - ${getMonthName(endDateItem.getMonth()).slice(0, 3)} ${endDateItem.getDate()}</span>`;
+                pendingTimesheetsRow.innerHTML = `<img src="/icons/Shared/circle-exclamation.svg">
+            ${formattedDates} ${`<span class="project-name">${obj.projectName}</span></span>`}`;
+                pendingTimesheetsRow.appendChild(goBtn);
+                pendingTimesheetsCont.appendChild(pendingTimesheetsRow);
             });
-            let formattedDates = `<span> ${getMonthName(startDateItem.getMonth())} ${startDateItem.getDate()} - ${getMonthName(endDateItem.getMonth())} ${endDateItem.getDate()}</span>`;
-            pendingTimesheetsRow.innerHTML = `<img src="/icons/Shared/circle-exclamation.svg">
-            ${formattedDates} ${`<span>${obj.projectName}</span>`}`;
-            pendingTimesheetsRow.appendChild(goBtn);
-            pendingTimesheetsCont.appendChild(pendingTimesheetsRow);
-        });
+        } else {
+            pendingTimesheetsCont.innerHTML = `<img src="/icons/Shared/check.svg"
+            <span>You don't have pending timesheets</span>`;
+        }
+
 
     } catch (error) {
         console.error(`Failed to load pending timesheets: ${error.message}`);
