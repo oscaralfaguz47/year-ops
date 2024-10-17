@@ -15,7 +15,7 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<ConsultantAndBenefit> CreateConsultantAndBenefitIfNotExists(int consultantId, ConsultantBenefit benefit)
         {
-            ConsultantAndBenefit existingElement = await _db.CONSULTANTS_AND_BENEFITS.FirstOrDefaultAsync(x => x.ConsultantId == consultantId 
+            ConsultantAndBenefit existingElement = await _db.CONSULTANTS_AND_BENEFITS.FirstOrDefaultAsync(x => x.ConsultantId == consultantId
             && x.BenefitId == benefit.BenefitId);
 
             if (existingElement == null)
@@ -32,6 +32,20 @@ namespace OceansApp.DataAccess.Repository
             }
 
             return existingElement;
+        }
+
+        public async Task<decimal?> GetBenefitBalanceAmountByConsultantAsync(int consultantId, string benefitName)
+        {
+            decimal? balanceAmount = await _db.CONSULTANTS_AND_BENEFITS
+    .Where(cb => cb.ConsultantId == consultantId && cb.ConsultantBenefit.Name == "Balance Program")
+    .Select(cb => (decimal?)cb.BalanceAmount) // Cast to nullable to allow null-coalescing
+    .FirstOrDefaultAsync()
+    ?? _db.CONSULTANT_BENEFITS
+    .Where(b => b.Name == benefitName)
+    .Select(b => (decimal?)b.Amount)
+    .FirstOrDefault();
+
+            return balanceAmount;
         }
     }
 }

@@ -13,6 +13,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate);
         Task<List<GetUserIdVM>> GetUsersWhereRoleId(string roleId);
         Task<UserAndConsultantVM> GetUserAndConsultantAsync(string userId);
-        Task<List<WidgetVM>> GetWidgetsForUserAsync(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims);
+        List<WidgetVM> GetWidgetsForUser(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims,
+            (int Years, int Months, int Days)? activeTime);
+        Task<(int Years, int Months, int Days)> GetUserActiveTimeAsync(string userId);
     }
 }

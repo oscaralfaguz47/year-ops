@@ -54,7 +54,7 @@
     display:flex;
 }
     .card-content::-webkit-scrollbar {
-        width: 6px;
+        width: 4px;
     }
 
     .card-content::-webkit-scrollbar-track {

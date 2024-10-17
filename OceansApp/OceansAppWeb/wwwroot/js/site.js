@@ -8,9 +8,16 @@ window.onload = function () {
     }
 }
 
-function validateSessionExpiration(message) {
-    if (message.toString().includes('Unexpected token')) {
-        window.location.href = "/SessionEnded";
+function validateSessionExpiration(message, statusCode) {
+    console.log("MY STATUS CODE: " + statusCode);
+    if (statusCode === undefined || statusCode === 501) {
+        if (message.toString().includes('Unexpected token')) {
+            window.location.href = "/SessionEnded";
+        }
+    } else {
+        if (statusCode !== undefined) {
+            displayToasterError(message);
+        }
     }
 }
 function displaySpinner() {

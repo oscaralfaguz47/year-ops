@@ -1,4 +1,4 @@
-﻿#pendingTimesheetsCont .pending-time-row {
+﻿.time-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -6,7 +6,8 @@
     margin-bottom: 8px;
     padding: 0 2px;
 }
-.pending-time-row button{
+
+.time-row button{
     border:none;
     border-radius: 10px;
     padding: 1px 8px;
@@ -15,36 +16,99 @@
     font-weight: bold;
     margin: 0 5px;
 }
-    .pending-time-row button:hover {
+    .time-row button:hover {
         background-color: #02a69e;
     }
-    .pending-time-row .date-project {
+    .time-row .date-project {
         text-align: left;
         width: 100%;
         margin-left: 5px;
         white-space: nowrap;
         display: flex;
+        align-items: center;
         align-content:center;
         font-weight: bold;
     }
-    .pending-time-row .period{
-        font-size: 0.9rem;
+    .time-row .period {
+        font-size: 0.8rem;
+        width: 98px;
+        color: #535b66;
     }
-    .pending-time-row .project-name {
+    .time-row .project-name {
         white-space: nowrap;
         text-overflow: ellipsis;
         max-width: 200px;
         overflow: hidden;
         display: inline-block;
-        margin-left: 10px;
-        background-color: var(--clr-grayLight);
+        margin-left: 5px;
+        background-color: var(--clr-grayDark);
         padding: 0px 8px;
         border-radius: 10px;
         font-size: 0.9rem;
+        cursor: pointer;
+        color: #fff;
     }
 
 @media (max-width: 450px) {
-    .pending-time-row .project-name {
+    .time-row .project-name {
         max-width: 112px;
     }
+    .time-row .period {
+        width: 80px;
+    }
+}
+
+/*Last timeshetts submitted*/
+#lastTimesheetsSubmittedCont .time-row {
+    margin-bottom: 0;
+    padding: 8px 6px;
+}
+#lastTimesheetsSubmittedCont .back-dark {
+    background-color: var(--clr-grayLight);
+}
+#lastTimesheetsSubmittedCont .status-lb {
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: #fff;
+    width: 75px;
+    text-align:center;
+}
+
+#lastTimesheetsSubmittedCont .project-name {
+    background-color: var(--clr-grayDark);
+    color: #fff;
+    width: 25px;
+    height: 25px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius: 50%;
+    padding: 1px;
+}
+#lastTimesheetsSubmittedCont .date-project {
+    text-align: left;
+    width: auto;
+    margin-left: 5px;
+    white-space: nowrap;
+    display: flex;
+    align-content: center;
+    font-weight: bold;
+}
+#lastTimesheetsSubmittedCont .hours-lb{
+    text-align:left;
+    color: var(--clr-blueLight);
+    font-weight: bold;
+    width: 90px;
+    padding: 0 5px;
+}
+#lastTimesheetsSubmittedCont .waiting-st {
+    background-color: rgb(238, 179, 15, 0.5);
+}
+#lastTimesheetsSubmittedCont .rejected-st {
+    background-color: rgb(232, 180, 180);
+}
+#lastTimesheetsSubmittedCont .approved-st {
+    background-color: rgb(140, 227, 129, 0.8);
 }

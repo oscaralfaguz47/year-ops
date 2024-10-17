@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241016215205_createCompositeIndexesToImprovePerformance")]
+    partial class createCompositeIndexesToImprovePerformance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -437,43 +440,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("SystemSubAreaId");
 
                     b.ToTable("APPLICATION_SYSTEM_CLAIMS");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ApplicationUserActiveHistory", b =>
-                {
-                    b.Property<int>("HistoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HistoryId"));
-
-                    b.Property<DateTime>("ActionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserIdActionedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("HistoryId");
-
-                    b.HasIndex("ActionDate");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserIdActionedBy");
-
-                    b.HasIndex("UserId", "IsActive", "ActionDate");
-
-                    b.ToTable("UsersActiveHistory");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationUserCategory", b =>
@@ -1478,8 +1444,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("DateToBeReimbursed");
 
                     b.HasIndex("TransactionStatusId");
-
-                    b.HasIndex("ConsultantId", "TransactionStatusId", "BenefitId");
 
                     b.ToTable("CONSULTANT_REIMBURSED_BENEFITS");
                 });
@@ -3188,25 +3152,6 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("SystemSubArea");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ApplicationUserActiveHistory", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "UserActionedBy")
-                        .WithMany()
-                        .HasForeignKey("UserIdActionedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUser");
-
-                    b.Navigation("UserActionedBy");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.CalculatorAccountingAccountToIgnore", b =>

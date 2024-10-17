@@ -152,6 +152,16 @@ namespace OceansApp.DataAccess.Repository
                             return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the consultant position, please try again." };
                         }
                     }
+                    //Create Active History
+                    ApplicationUserActiveHistory activeHistoryToCreate = new()
+                    {
+                        ActionDate = (DateTime)consultantData.StartDate,
+                        IsActive  = true,
+                        UserId = createdUserId,
+                        UserIdActionedBy = userIdCreatedBy
+                    };
+                    await _db.UsersActiveHistory.AddAsync(activeHistoryToCreate);
+                    await _db.SaveChangesAsync();
                     return new MethodResponse
                     {
                         Success = true,
@@ -243,6 +253,31 @@ namespace OceansApp.DataAccess.Repository
                 existingUser.PhoneNumber = consultantData.PhoneNumber;
 
                 await _db.SaveChangesAsync();
+
+                var activeHistory = await _db.UsersActiveHistory
+                                             .Where(x => x.UserId == existingConsultant.UserId && x.IsActive == true)
+                                             .OrderBy(x => x.HistoryId)
+                                             .ThenBy(x => x.ActionDate)
+                                             .FirstOrDefaultAsync();
+                if (activeHistory == null)
+                {
+                    //Create Active History
+                    ApplicationUserActiveHistory activeHistoryToCreate = new()
+                    {
+                        ActionDate = (DateTime)consultantData.StartDate,
+                        IsActive = true,
+                        UserId = existingConsultant.UserId,
+                        UserIdActionedBy = userActionedBy
+                    };
+                    await _db.UsersActiveHistory.AddAsync(activeHistoryToCreate);
+                    await _db.SaveChangesAsync();
+                }
+                else
+                {
+                    activeHistory.ActionDate = (DateTime)consultantData.StartDate;
+                    await _db.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
                 return new MethodResponse { Success = true, Message = $"The Consultant {consultantData.Name} {consultantData.LastName} was updated successfully." };
             }

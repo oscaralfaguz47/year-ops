@@ -132,6 +132,31 @@ namespace OceansApp.DataAccess.Data
                 .HasDefaultValue(true);
             });
 
+            // APPLICATION USERS ACTIVE HISTORY
+            modelBuilder.Entity<ApplicationUserActiveHistory>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.UserId, e.IsActive, e.ActionDate });
+
+                // Indexes on foreign keys
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.UserIdActionedBy);
+
+                // Indexes for columns
+                entity.HasIndex(e => e.ActionDate);
+
+                entity.HasKey(e => new { e.HistoryId });
+                entity.HasOne(e => e.ApplicationUser)
+               .WithMany()
+               .HasForeignKey(e => e.UserId)
+               .IsRequired();
+                entity.HasOne(e => e.UserActionedBy)
+               .WithMany()
+               .HasForeignKey(e => e.UserIdActionedBy)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict);
+            });
+
             // APPLICATION USER CATEGORIES
             modelBuilder.Entity<ApplicationUserCategory>(entity =>
             {
@@ -183,6 +208,9 @@ namespace OceansApp.DataAccess.Data
             // CONSULTANTS BENEFITS
             modelBuilder.Entity<ConsultantBenefit>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.BenefitId, e.Name });
+
                 // Índices en fechas
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.Amount);
@@ -196,6 +224,9 @@ namespace OceansApp.DataAccess.Data
             // CONSULTANTS AND BENEFITS
             modelBuilder.Entity<ConsultantAndBenefit>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantId, e.BenefitId });
+
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.BenefitId);
@@ -286,6 +317,8 @@ namespace OceansApp.DataAccess.Data
             // CONSULTANTS REIMBURSED BENEFITS
             modelBuilder.Entity<ConsultantReimbursedBenefit>(entity =>
             {
+                entity.HasIndex(e => new { e.ConsultantId, e.TransactionStatusId, e.BenefitId });
+
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.BenefitId);
                 entity.HasIndex(e => e.AmountReimbursed);
@@ -1232,6 +1265,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<LedgerMovement> LEDGER_MOVEMENT { get; set; }
         public DbSet<DataUpdateDate> DATA_UPDATE_DATES { get; set; }
         public DbSet<ApplicationUser> AspNetUsers { get; set; }
+        public DbSet<ApplicationUserActiveHistory> UsersActiveHistory { get; set; }
         public DbSet<ApplicationUserCategory> UserCategories { get; set; }
         public DbSet<ApplicationRoleClaim> ApplicationRoleClaims { get; set; }
         public DbSet<ApplicationUserClaim> ApplicationUserClaims { get; set; }

@@ -5,6 +5,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Account;
 using OceansApp.Models.ViewModels.ApplicationUser;
 using OceansApp.Models.ViewModels.Dashboard;
+using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.ConstantData.Claims;
 using System.Linq.Expressions;
 using System.Security.Claims;
@@ -63,30 +64,89 @@ namespace OceansApp.DataAccess.Repository
 
             return result;
         }
-        public async Task<List<WidgetVM>> GetWidgetsForUserAsync(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims)
+        public List<WidgetVM> GetWidgetsForUser(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims,
+            (int Years, int Months, int Days)? activeTime)
         {
             try
             {
                 List<WidgetVM> listToReturn = new();
 
-                var userCategoriesList = await _db.UserCategories.ToListAsync();
-
                 //Access to Report time in tracking tool
                 if (userClaims.IsAuthorizedForReportTimeInTrackingTool() && userAndConsultant.UserCategoryName != "External User")
                 {
-                    WidgetVM timeSheetsW = new() { WidgetName = "TimeSheets" };
+                    WidgetVM timeSheetsW = new() { WidgetName = WidgetsCD.TimeSheets };
                     listToReturn.Add(timeSheetsW);
                 }
                 //Access to Benefits
-                if (userAndConsultant.UserCategoryName != "External User" && userAndConsultant.WorkingModel == 1)
+                if (userAndConsultant.UserCategoryName != "External User" && activeTime != null)
                 {
-                    WidgetVM perksW = new() { WidgetName = "Perks" };
-                    listToReturn.Add(perksW);
+                    // Full time
+                    if (userAndConsultant.WorkingModel == 1)
+                    {
+                        var sections = new List<string>();
+
+                        // Dictionary of conditions and their respective sections
+                        var perksByCondition = new Dictionary<Func<(int Years, int Months, int Days), bool>, List<string>>
+    {
+        { activeTime => activeTime.Months >= 1 || activeTime.Years >= 1 || activeTime.Days >= 0, new List<string> { BenefitsCD.Bonusly, BenefitsCD.Oceans_Challenge, BenefitsCD.VTO } },
+        { activeTime => activeTime.Months >= 4 || activeTime.Years >= 1, new List<string> { BenefitsCD.Balance_Program } }
+    };
+
+                        // Evaluate each condition and accumulate the corresponding sections
+                        foreach (var condition in perksByCondition)
+                        {
+                            if (condition.Key(((int Years, int Months, int Days))activeTime))
+                            {
+                                sections.AddRange(condition.Value);
+                            }
+                        }
+
+                        // Add a single widget with all the corresponding sections sorted numerically
+                        if (sections.Any())
+                        {
+                            listToReturn.Add(new WidgetVM { WidgetName = WidgetsCD.Perks, Sections = sections.Distinct().OrderBy(s => int.Parse(s.Substring(0, 1))).ToList() });
+                        }
+                    }
+
+                    // Part time
+                    if (userAndConsultant.WorkingModel == 2)
+                    {
+                        var sections = new List<string>();
+
+                        // Dictionary of conditions and their respective sections
+                        var perksByCondition = new Dictionary<Func<(int Years, int Months, int Days), bool>, List<string>>
+    {
+        { activeTime => activeTime.Months >= 1 || activeTime.Years >= 1 || activeTime.Days >= 0, new List<string> { BenefitsCD.Bonusly, BenefitsCD.Oceans_Challenge, BenefitsCD.VTO } }
+    };
+
+                        // Evaluate each condition and accumulate the corresponding sections
+                        foreach (var condition in perksByCondition)
+                        {
+                            if (condition.Key(((int Years, int Months, int Days))activeTime))
+                            {
+                                sections.AddRange(condition.Value);
+                            }
+                        }
+
+                        // Add a single widget with all the corresponding sections sorted numerically
+                        if (sections.Any())
+                        {
+                            listToReturn.Add(new WidgetVM { WidgetName = WidgetsCD.Perks, Sections = sections.Distinct().OrderBy(s => int.Parse(s.Substring(0, 1))).ToList() });
+                        }
+                    }
+
+                    // Hourly
+                    if (userAndConsultant.WorkingModel == 3)
+                    {
+                        listToReturn.Add(new WidgetVM { WidgetName = WidgetsCD.Perks, Sections = new List<string> { BenefitsCD.Bonusly } });
+                    }
+
+
                 }
                 //General Consultant and Admin Team
                 if (userAndConsultant.UserCategoryName != "External User")
                 {
-                    WidgetVM generalConsultantAndAdminW = new() { WidgetName = "GeneralConsultantAndAdmin" };
+                    WidgetVM generalConsultantAndAdminW = new() { WidgetName = WidgetsCD.GeneralConsultantAndAdmin };
                     listToReturn.Add(generalConsultantAndAdminW);
                 }
 
@@ -97,6 +157,97 @@ namespace OceansApp.DataAccess.Repository
                 throw ex;
             }
         }
+
+        public async Task<(int Years, int Months, int Days)> GetUserActiveTimeAsync(string userId)
+        {
+            var query = from history in _db.UsersActiveHistory
+                        join subQuery in
+                            (from h in _db.UsersActiveHistory
+                             where h.UserId == userId
+                             group h by h.ActionDate.Date into g
+                             select g.OrderByDescending(x => x.HistoryId).FirstOrDefault().HistoryId)
+                        on history.HistoryId equals subQuery
+                        orderby history.ActionDate
+                        select history;
+
+            var activeHistoryMovements = await query.ToListAsync();
+            var calculatedTime = CalculateExactActiveTime(activeHistoryMovements);
+
+            return calculatedTime;
+        }
+        private (int Years, int Months, int Days) CalculateExactActiveTime(List<ApplicationUserActiveHistory> activeHistoryMovements)
+        {
+            int totalYears = 0;
+            int totalMonths = 0;
+            int totalDays = 0;
+
+            DateTime? activationDate = null;
+
+            foreach (var record in activeHistoryMovements)
+            {
+                if (record.IsActive)
+                {
+                    if (activationDate == null)
+                    {
+                        activationDate = record.ActionDate;
+                    }
+                }
+                else
+                {
+                    if (activationDate != null)
+                    {
+                        AddExactActivePeriod(activationDate.Value, record.ActionDate, ref totalYears, ref totalMonths, ref totalDays);
+                        activationDate = null;
+                    }
+                }
+            }
+
+            if (activationDate != null)
+            {
+                AddExactActivePeriod(activationDate.Value, DateTime.Now, ref totalYears, ref totalMonths, ref totalDays);
+            }
+
+            return (totalYears, totalMonths, totalDays);
+        }
+
+        private void AddExactActivePeriod(DateTime start, DateTime end, ref int totalYears, ref int totalMonths, ref int totalDays)
+        {
+            int years = 0, months = 0, days = 0;
+
+            while (start.AddYears(1) <= end)
+            {
+                years++;
+                start = start.AddYears(1);
+            }
+
+            while (start.AddMonths(1) <= end)
+            {
+                months++;
+                start = start.AddMonths(1);
+            }
+
+            days = (end - start).Days;
+
+            totalYears += years;
+            totalMonths += months;
+            totalDays += days;
+
+            if (totalDays >= DateTime.DaysInMonth(end.Year, (start.Month % 12) + 1))
+            {
+                totalMonths += totalDays / DateTime.DaysInMonth(end.Year, (start.Month % 12) + 1);
+                totalDays %= DateTime.DaysInMonth(end.Year, (start.Month % 12) + 1);
+            }
+
+            if (totalMonths >= 12)
+            {
+                totalYears += totalMonths / 12;
+                totalMonths %= 12;
+            }
+        }
+
+
+
+
 
     }
 }

@@ -5,6 +5,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
+using OceansApp.Models.ViewModels.Dashboard;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository
@@ -442,5 +443,23 @@ namespace OceansApp.DataAccess.Repository
             return results.ToList();
         }
 
+
+        public async Task<List<BenefitLastRequestsVM>> GetLastBenefitRequests(int consultantId, string benefitName)
+        {
+            var result = await _db.CONSULTANT_REIMBURSED_BENEFITS
+                         .Where(crb => crb.ConsultantId == consultantId
+                                    && crb.TransactionStatus.Name != "Rejected"
+                                    && crb.ConsultantBenefit.Name == benefitName)
+                         .OrderByDescending(crb => crb.CreationDate)
+                         .Take(2)
+                         .Select(crb => new BenefitLastRequestsVM
+                         {
+                             Amount = crb.AmountReimbursed,
+                             Date = crb.CreationDate,
+                             Status = crb.TransactionStatus.Name
+                         })
+                         .ToListAsync();
+            return result;
+        }
     }
 }

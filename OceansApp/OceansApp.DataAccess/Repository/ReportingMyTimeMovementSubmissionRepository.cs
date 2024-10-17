@@ -3,6 +3,7 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ProjecConsultantPendingSubmission;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 
 
@@ -135,13 +136,31 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<List<PendingSubmissionsVM>> GetPendingTimesheetsSubmissionsAsync(int consultantId)
+        public async Task<List<LastTimesheetSubmittedVM>> GetLastTimesheetSubmittedAsync(int consultantId)
         {
-            List<PendingSubmissionsVM> listToReturn = new();
+            var result = (from su in _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS
+                         join p in _db.PROJECTS on su.ProjectId equals p.ProjectId
+                         join ts in _db.TRANSACTION_STATUSES on su.TransactionStatusId equals ts.TransactionStatusId
+                         where su.ConsultantId == consultantId
+                         orderby su.SubmissionDate descending
+                         select new LastTimesheetSubmittedVM
+                         {
+                             StartDate = su.StartPeriodDate,
+                             EndDate = su.EndPeriodDate,
+                             ProjectName = p.Name,
+                             Status = ts.Name,
+                             TotalHours = _db.REPORTING_MY_TIME_MOVEMENTS
+                                            .Where(rmtm => rmtm.ProjectId == su.ProjectId
+                                                        && rmtm.ConsultantId == su.ConsultantId
+                                                        && rmtm.ActionDate >= su.StartPeriodDate
+                                                        && rmtm.ActionDate <= su.EndPeriodDate)
+                                            .Sum(rmtm => (decimal?)rmtm.Quantity) ?? 0
+                         })
+             .Take(5)
+             .ToList();
 
+            return result;
 
-
-            return listToReturn;
         }
 
     }

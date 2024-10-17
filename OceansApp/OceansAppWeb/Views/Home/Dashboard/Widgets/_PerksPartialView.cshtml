@@ -1,18 +1,23 @@
-﻿<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/perks.css?v=@DateTime.Now.Ticks" />
+﻿@model List<string>
+
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/perks.css?v=@DateTime.Now.Ticks" />
 
 <div class="section">
     <h2 class="section-title">PERKS</h2>
-    <div class="card">
-        <div class="card-title">
-            <label>Your remaining Balance Program is...</label>
-        </div>
-        IN PROGRESS...
 
-    </div>
-    <div class="card">
-        <div class="card-title">
-            <label>Bonusly amount reimbursed this year</label>
+    @foreach (var sectionName in Model)
+    {
+        <div class="card">
+            <div class="card-title">
+                <label id="@sectionName.Substring(1)-title"></label>
+            </div>
+            <div class="card-content">
+                <div id="@sectionName.Substring(1)-cont">
+                    @sectionName
+                </div>
+            </div>
         </div>
-        IN PROGRESS...
-    </div>
+    }
 </div>
+
+<script src="~/js/Home/Dashboard/Widgets/perks.js?v=@DateTime.Now.Ticks"></script>

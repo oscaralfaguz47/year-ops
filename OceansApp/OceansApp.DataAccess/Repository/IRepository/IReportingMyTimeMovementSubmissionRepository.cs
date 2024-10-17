@@ -8,5 +8,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
     public interface IReportingMyTimeMovementSubmissionRepository : IRepository<ReportingMyTimeMovementSubmission> 
     {
         Task<MethodResponse> CreateSubmission(string userIdCreatedBy, CreateSubmissionVM submissionData);
+        Task<List<LastTimesheetSubmittedVM>> GetLastTimesheetSubmittedAsync(int consultantId);
     }
 }

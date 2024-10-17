@@ -1,6 +1,7 @@
 ﻿using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
+using OceansApp.Models.ViewModels.Dashboard;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -18,5 +19,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
             decimal amountToBeReimbursed, int? reimbursedBenefitIdToIgnore, IDbTransaction transaction = null);
         Task<List<GetApprovedBenefitsWhereConsultant>> GetApprovedBenefitsWhereConsultantInThePeriod(int consultantId,
           DateTime startDate, DateTime endDate);
+        Task<List<BenefitLastRequestsVM>> GetLastBenefitRequests(int consultantId, string benefitName);
     }
 }

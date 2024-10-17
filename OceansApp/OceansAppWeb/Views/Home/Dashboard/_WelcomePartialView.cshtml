@@ -7,9 +7,10 @@
     <div class="consName">
         <label>Welcome, <span> @Model.ConsultantName</span></label>
     </div>
-    @if (@Model.StartDate != null)
+    @if (@Model.ActiveTime != null)
     {
-        <div id="timeInCompany" data-start-date="@Model.StartDate?.ToString("yyyy-MM-dd") ?? " "">
+        <div id="timeInCompany">
+            <p>You have been with us for <span>@Model.ActiveTime.Years years</span>, <span>@Model.ActiveTime.Months months</span>, and <span>@Model.ActiveTime.Days days</span>!</p>
         </div>
     }
 </div>

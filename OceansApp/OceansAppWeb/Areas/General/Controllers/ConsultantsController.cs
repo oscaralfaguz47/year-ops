@@ -508,6 +508,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             try
             {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var message = "";
                 var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId);
                 if (consultant == null)
@@ -515,21 +516,36 @@ namespace OceansAppWeb.Areas.General.Controllers
                     return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
                 }
                 var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == consultant.UserId);
+                //Create Active History
+                ApplicationUserActiveHistory activeHistoryToCreate = new()
+                {
+                    ActionDate = DateTime.UtcNow,
+                    UserId = consultant.UserId,
+                    UserIdActionedBy = userId
+                };
+
+                using var transaction = await _unitOfWork.BeginTranAsync();
+
                 if (userToUpdate.IsActive == true)
                 {
                     userToUpdate.IsActive = false;
                     userToUpdate.LockoutEnd = DateTime.Now.AddYears(1000);
                     var cacheKey = $"UserSessionChangesExpiration_{consultant.UserId}";
                     _cache.Remove(cacheKey);
+                    activeHistoryToCreate.IsActive = false;
                     message = "The user was successfully deactivated!";
                 }
                 else
                 {
                     userToUpdate.IsActive = true;
                     userToUpdate.LockoutEnd = DateTime.Now.AddDays(-1);
+                    activeHistoryToCreate.IsActive = true;
                     message = "The user was successfully activated!";
                 }
+                await _unitOfWork.ApplicationUserActiveHistory.AddAsync(activeHistoryToCreate);
                 await _unitOfWork.SaveAsync();
+
+                await transaction.CommitAsync();
                 return Json(new { success = true, message = message });
             }
             catch (Exception e)

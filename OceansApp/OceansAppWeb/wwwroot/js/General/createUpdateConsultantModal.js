@@ -42,7 +42,9 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                         displayToasterError(errorData.error);
                         hideModal(modalId);
                         getListOfResults(false, false);
-                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                        const error = new Error('The request to the server failed!. More details: ' + errorData.detail);
+                        error.status = response.status; 
+                        throw error;
                     });
                 }
             })
@@ -74,7 +76,7 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 showModal(modalId);
             })
             .catch(error => {
-                validateSessionExpiration(error.message);
+                validateSessionExpiration(error.message, error.status);
             })
             .finally(() => {
                 hideSpinner();
