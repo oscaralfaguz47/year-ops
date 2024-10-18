@@ -33,4 +33,20 @@
     <ProjectReference Include="..\OceansApp.Utility\OceansApp.Utility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\icons\Shared\Statuses\rejected.svg">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>rejected.cs</LastGenOutput>
+    </Content>
+    <Content Update="wwwroot\icons\Shared\Statuses\rejected.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>rejected.svg</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
 </Project>

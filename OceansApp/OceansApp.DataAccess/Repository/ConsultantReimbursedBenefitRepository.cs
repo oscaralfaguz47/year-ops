@@ -448,7 +448,6 @@ namespace OceansApp.DataAccess.Repository
         {
             var result = await _db.CONSULTANT_REIMBURSED_BENEFITS
                          .Where(crb => crb.ConsultantId == consultantId
-                                    && crb.TransactionStatus.Name != "Rejected"
                                     && crb.ConsultantBenefit.Name == benefitName)
                          .OrderByDescending(crb => crb.CreationDate)
                          .Take(2)

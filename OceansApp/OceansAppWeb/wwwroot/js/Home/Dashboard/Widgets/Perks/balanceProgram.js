@@ -6,6 +6,9 @@ function getBalanceProgramInfo() {
     return (async () => {
         balanceProgramTitle.textContent = 'Your remaining Balance Program is...';
         firstCardBPContent.style.justifyContent = 'center';
+        firstCardBPContent.style.overflowY = 'hidden';
+        const firstCardBP = balanceProgramCont.closest('.card');
+        firstCardBP.style.maxHeight = '220px';
         balanceProgramCont.innerHTML = loadingISpinner();
         const url = `/GetBalanceProgramInfo`;
         try {
@@ -32,29 +35,30 @@ document.addEventListener("DOMContentLoaded", function () {
     // BalanceProgram
     getBalanceProgramInfo()
         .then(data => {
-            balanceProgramCont.innerHTML = '';
             let balanceAmount = data.balanceProgramInfo.balanceAmount;
+            balanceProgramCont.innerHTML = balanceAmount !== null ? `
+            <div class="balance-header">
+            <span>${balanceAmount}<span class="usd-lb">USD</span></span><a target="blanck" href="https://app.fillout.com/t/9QGFtqwy6yus" class="claim-btn">Request</a>
+            <div>` : ``;
             let dataItems = data.balanceProgramInfo.lastRequests;
             if (dataItems.length > 0) {
+                const lastRequestTitle = document.createElement('label');
+                lastRequestTitle.textContent = `Last requests`;
+                balanceProgramCont.appendChild(lastRequestTitle);
                 firstCardBPContent.style.justifyContent = 'left';
                 firstCardBPContent.style.display = 'block';
+                const rowsContainer = document.createElement('div');
+                rowsContainer.className = 'rows-container';
                 dataItems.forEach(function (obj, index) {
-                    let pendingTimesheetsRow = document.createElement('div');
-                    pendingTimesheetsRow.className = 'time-row';
-                    let startDateItem = new Date(obj.startDate);
-                    let endDateItem = new Date(obj.endDate);
-                    let goBtn = document.createElement('button');
-                    goBtn.textContent = 'Go';
-                    goBtn.title = 'Go to Timesheet';
-                    goBtn.addEventListener('click', function () {
-                        window.location.href = timesheetsUrl;
-                    });
-                    let formattedDates = `<span class="date-project"><span class="period"> ${getMonthName(startDateItem.getMonth()).slice(0, 3)} ${startDateItem.getDate()} - ${getMonthName(endDateItem.getMonth()).slice(0, 3)} ${endDateItem.getDate()}</span>`;
-                    pendingTimesheetsRow.innerHTML = `<img src="/icons/Shared/circle-exclamation.svg">
-                ${formattedDates} ${`<span class="project-name" title="${obj.projectName}">${obj.projectName}</span></span>`}`;
-                    pendingTimesheetsRow.appendChild(goBtn);
-                    balanceProgramCont.appendChild(pendingTimesheetsRow);
+                    const requestRow = document.createElement('div');
+                    requestRow.className = 'request-row';
+                    let requestDate = new Date(obj.date);
+
+                    requestRow.innerHTML = `<span class="date-lb">${getMonthName(requestDate.getMonth()).slice(0, 3)} ${requestDate.getDate()}, ${requestDate.getFullYear()}</span>
+                    <span class="bp-status">${getStatusLabel(obj.status === 'Waiting to be approved' ? 'Pending approved' : obj.status)}</span><span class="amount-lb">$${obj.amount}</span>`;
+                    rowsContainer.appendChild(requestRow);
                 });
+                balanceProgramCont.appendChild(rowsContainer);
             } else {
                 firstCardBPContent.innerHTML = `<div><div style="text-align:center"><img src="/icons/Shared/check.svg"></div>
                 <span>You don't have pending timesheets</span></div>`;

@@ -1,24 +1,22 @@
 ﻿function getStatusLabel(transactionStatusName) {
     var statusLabel = ``;
     if (transactionStatusName === 'Rejected') {
-        statusLabel = `<span class="cel-status rejected-label"><img class="status-img" src="/img/globalIcons/rejected.webp">${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status rejected-label"><img class="status-img" src="/icons/Shared/Statuses/rejected.svg">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Approved') {
-        statusLabel = `<span class="cel-status approved-label"><img class="status-img" src="/img/globalIcons/approved.webp">${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status approved-label"><img class="status-img" src="/icons/Shared/Statuses/approved.svg">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Sent to be paid') {
-        statusLabel = `<span class="cel-status sending-to-paid-label"><img class="status-img" src="/img/globalIcons/sending-to-paid.webp">${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status sending-to-paid-label"><img class="status-img" src="/icons/Shared/Statuses/envelope-sent-to-paid.svg">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Paid') {
-        statusLabel = `<span class="cel-status paid-label"><img class="status-img" src="/img/globalIcons/paid.webp">${transactionStatusName}</span>`;
-    } else if (transactionStatusName === 'Waiting to be approved') {
-        statusLabel = `<span class="cel-status waiting-label"><img class="status-img" src="/img/globalIcons/waiting.webp">${transactionStatusName}</span>`;
-    } else if (transactionStatusName === 'Accounted - Accounts Payable') {
-        statusLabel = `<span class="cel-status accounted-label"><img class="status-img" src="/img/globalIcons/accounted.webp">${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status paid-label"><img class="status-img" src="/icons/Shared/Statuses/paid.svg">${transactionStatusName}</span>`;
+    } else if (transactionStatusName === 'Waiting to be approved' || transactionStatusName === 'Pending approved') {
+        statusLabel = `<span class="cel-status waiting-label"><img class="status-img" src="/icons/Shared/Statuses/waiting.svg">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Accounted') {
-        statusLabel = `<span class="cel-status done-label"><img class="status-img" src="/img/globalIcons/done.webp">${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status done-label"><img class="status-img" src="/icons/Shared/Statuses/green-check.svg">${transactionStatusName}</span>`;
     } if (transactionStatusName === 'Pending' || transactionStatusName === 'Pending Accounting') {
-        statusLabel = `<span class="cel-status pending-label"><img class="status-img" src="/img/globalIcons/pending.webp">${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status pending-label"><img class="status-img" src="/icons/Shared/Statuses/pending.svg">${transactionStatusName}</span>`;
     }
     if (transactionStatusName === 'Updated - Pending Review') {
-        statusLabel = `<span class="cel-status pending-review-label"><img src="/icons/Shared/pending-review.svg"> ${transactionStatusName}</span>`;
+        statusLabel = `<span class="cel-status pending-review-label"><img src="/icons/Shared/Statuses/pending-review.svg"> ${transactionStatusName}</span>`;
     }
     return statusLabel === `` ? transactionStatusName : statusLabel;
 }
@@ -50,6 +48,6 @@ function getStatusWhiteIcon(statusName) {
             return '<i class="fa-regular fa-credit-card"></i>';
             break;
         default:
-            return '<img class="status-img" src="/img/globalIcons/send.webp">';
+            return '<img class="status-img" src="/icons/Shared/Statuses/send.svg">';
     }
 }

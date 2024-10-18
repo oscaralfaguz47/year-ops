@@ -1,1 +1,20 @@
-﻿
+﻿.claim-btn {
+    border: none;
+    border-radius: 20px;
+    background-color: var(--clr-blueLight);
+    color: #fff;
+    font-weight: 900;
+    padding: 6px 14px;
+    font-size: 1rem;
+    margin-left: auto;
+    text-decoration: none;
+    cursor:pointer;
+}
+    .claim-btn:hover {
+        background-color: #02a69e;
+        color: #fff;
+    }
+.rows-container{
+    height: 90px;
+    overflow-y: auto;
+}

@@ -7,17 +7,7 @@
 
     @foreach (var sectionName in Model)
     {
-        <div class="card">
-            <div class="card-title">
-                <label id="@sectionName.Substring(1)-title"></label>
-            </div>
-            <div class="card-content">
-                <div id="@sectionName.Substring(1)-cont">
-                    @sectionName
-                </div>
-            </div>
-        </div>
+        @await Html.PartialAsync($"Dashboard/Widgets/Perks/_{sectionName.Substring(1)}PartialView", sectionName)
     }
-</div>
 
-<script src="~/js/Home/Dashboard/Widgets/perks.js?v=@DateTime.Now.Ticks"></script>
+</div>
