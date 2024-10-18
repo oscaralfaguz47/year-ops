@@ -1,5 +1,8 @@
 ﻿@model string
 
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/Perks/oceansChallenge.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css?v=@DateTime.Now.Ticks" />
+
 <div class="card">
     <div class="card-title">
         <label id="@Model.Substring(1)-title"></label>
@@ -9,3 +12,7 @@
         </div>
     </div>
 </div>
+
+<script src="~/js/Home/Dashboard/Widgets/Perks/oceansChallenge.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>

@@ -156,7 +156,7 @@ namespace OceansApp.DataAccess.Repository
                                                         && rmtm.ActionDate <= su.EndPeriodDate)
                                             .Sum(rmtm => (decimal?)rmtm.Quantity) ?? 0
                          })
-             .Take(5)
+             .Take(10)
              .ToList();
 
             return result;

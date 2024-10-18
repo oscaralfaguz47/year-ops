@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let requestDate = new Date(obj.creationDate);
 
                     requestRow.innerHTML = `<span class="date-lb">${getMonthName(requestDate.getMonth()).slice(0, 3)} ${requestDate.getDate()}, ${requestDate.getFullYear()}</span>
-                   <img title="${obj.name}" src="${obj.imageUrl}"><span class="status-lb">${obj.status === 'new' ? 'Pending' : 'Approved'}</span><span class="amount-lb">${obj.displayPrice}</span>`;
+                   <img title="${obj.name}" src="${obj.imageUrl}"><span class="status-lb">${obj.status === 'new' ? 'Pending' : obj.status === 'approved' ? 'Approved' : 'Declined'}</span><span class="amount-lb">${obj.displayPrice}</span>`;
                     rowsContainer.appendChild(requestRow);
                 });
                 bonuslyCont.appendChild(rowsContainer);

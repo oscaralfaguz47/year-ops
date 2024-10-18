@@ -37,7 +37,7 @@ namespace OceansApp.DataAccess.Repository
         public async Task<decimal?> GetBenefitBalanceAmountByConsultantAsync(int consultantId, string benefitName)
         {
             decimal? balanceAmount = await _db.CONSULTANTS_AND_BENEFITS
-    .Where(cb => cb.ConsultantId == consultantId && cb.ConsultantBenefit.Name == "Balance Program")
+    .Where(cb => cb.ConsultantId == consultantId && cb.ConsultantBenefit.Name == benefitName)
     .Select(cb => (decimal?)cb.BalanceAmount) // Cast to nullable to allow null-coalescing
     .FirstOrDefaultAsync()
     ?? _db.CONSULTANT_BENEFITS

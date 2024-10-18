@@ -1,15 +1,15 @@
-﻿#BalanceProgram-cont label {
+﻿#OceansChallenge-cont label {
     font-weight: bold;
     width: 100%;
     margin-bottom: 2px;
     font-size: 1.1rem;
     border-bottom: solid 2px rgb(1, 192, 183, 0.2);
 }
-#BalanceProgram-title {
+#OceansChallenge-title {
     display: flex;
     align-items: end;
 }
 
-    #BalanceProgram-title img {
+    #OceansChallenge-title img {
         margin-right: 5px;
     }

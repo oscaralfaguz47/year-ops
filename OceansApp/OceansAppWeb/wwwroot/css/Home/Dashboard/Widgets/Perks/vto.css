@@ -1,0 +1,10 @@
+﻿#VTO-title{
+    display: flex;
+    align-items:end;
+}
+#VTO-title img{
+    margin-right: 5px;
+}
+#VTO-cont p{
+    margin: 0;
+}

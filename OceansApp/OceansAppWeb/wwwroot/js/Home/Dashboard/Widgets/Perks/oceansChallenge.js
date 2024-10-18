@@ -1,19 +1,19 @@
-﻿//Balance Program
-const balanceProgramTitle = getElementById('BalanceProgram-title');
-const balanceProgramCont = getElementById('BalanceProgram-cont');
-const firstCardBPContent = balanceProgramCont.closest('.card-content');
-function getBalanceProgramInfo() {
+﻿//Oceans Challenge
+const oceansChallengeTitle = getElementById('OceansChallenge-title');
+const oceansChallengeCont = getElementById('OceansChallenge-cont');
+const firstCardOCContent = oceansChallengeCont.closest('.card-content');
+function getOceansChallengeInfo() {
     return (async () => {
-        balanceProgramTitle.innerHTML = '<img src="/icons/Shared/hands-holding-circle.svg"> Your remaining Balance Program is...';
-        firstCardBPContent.style.justifyContent = 'center';
-        firstCardBPContent.style.overflowY = 'hidden';
-        const firstCardBP = balanceProgramCont.closest('.card');
-        balanceProgramCont.innerHTML = loadingISpinner();
-        const url = `/GetBalanceProgramInfo`;
+        oceansChallengeTitle.innerHTML = `<img src="/icons/Shared/books.svg"> Your remaining Oceans Challenge is...`;
+        firstCardOCContent.style.justifyContent = 'center';
+        firstCardOCContent.style.overflowY = 'hidden';
+        const firstCardBP = oceansChallengeCont.closest('.card');
+        oceansChallengeCont.innerHTML = loadingISpinner();
+        const url = `/GetOceansChallengeInfo`;
         try {
             const response = await fetch(url);
             if (!response.ok) {
-                balanceProgramCont.innerHTML = cardErrorInfo('Error loading Balance Program info!', 'getBalanceProgramInfo()');
+                oceansChallengeCont.innerHTML = cardErrorInfo('Error loading Balance Program info!', 'getOceansChallengeInfo()');
                 const errorData = await response.json();
                 throw {
                     status: response.status,
@@ -31,22 +31,22 @@ function getBalanceProgramInfo() {
 
 //Global
 document.addEventListener("DOMContentLoaded", function () {
-    // BalanceProgram
-    getBalanceProgramInfo()
+    // Oceans Challenge
+    getOceansChallengeInfo()
         .then(data => {
-            let balanceAmount = data.balanceProgramInfo.balanceAmount;
-            balanceProgramCont.innerHTML = balanceAmount !== null ? `
+            let balanceAmount = data.oceansChallengeInfo.balanceAmount;
+            oceansChallengeCont.innerHTML = balanceAmount !== null ? `
             <div class="balance-header">
             <span>${balanceAmount}<span class="usd-lb">USD</span></span><a target="blanck" href="https://app.fillout.com/t/9QGFtqwy6yus" class="claim-btn">Request</a>
             <div>` : ``;
-            let dataItems = data.balanceProgramInfo.lastRequests;
+            let dataItems = data.oceansChallengeInfo.lastRequests;
             const rowsContainer = document.createElement('div');
             rowsContainer.className = 'rows-container';
             const lastRequestTitle = document.createElement('label');
             lastRequestTitle.textContent = `Last requests`;
-            balanceProgramCont.appendChild(lastRequestTitle);
-            firstCardBPContent.style.justifyContent = 'left';
-            firstCardBPContent.style.display = 'block';
+            oceansChallengeCont.appendChild(lastRequestTitle);
+            firstCardOCContent.style.justifyContent = 'left';
+            firstCardOCContent.style.display = 'block';
             if (dataItems.length > 0) {
                 const rowsContainer = document.createElement('div');
                 rowsContainer.className = 'rows-container';
@@ -59,13 +59,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     <span class="bp-status">${getStatusLabel(obj.status === 'Waiting to be approved' ? 'Pending approved' : obj.status)}</span><span class="amount-lb">$${obj.amount}</span>`;
                     rowsContainer.appendChild(requestRow);
                 });
-                balanceProgramCont.appendChild(rowsContainer);
+                oceansChallengeCont.appendChild(rowsContainer);
             } else {
                 rowsContainer.innerHTML = `<p>You have not made any requests yet.</p>`;
-                balanceProgramCont.appendChild(rowsContainer);
+                oceansChallengeCont.appendChild(rowsContainer);
             }
         })
         .catch(error => {
-            console.error(`Failed to load balance program info: ${error.message}`);
+            console.error(`Failed to load oceans challenge info: ${error.message}`);
         });
 });

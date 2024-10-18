@@ -216,6 +216,58 @@ namespace OceansAppWeb.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue." });
             }
         }
+
+        [HttpGet("GetOceansChallengeInfo")]
+        public async Task<IActionResult> GetOceansChallengeInfo()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
+
+                var activeTime = await _unitOfWork.ApplicationUser.GetUserActiveTimeAsync(userId);
+
+                var widgets = _unitOfWork.ApplicationUser.GetWidgetsForUser(userConsultant, User, activeTime);
+
+                //Validate valid access
+                if (!widgets.Any(widget => widget.WidgetName == WidgetsCD.Perks &&
+                           widget.Sections != null &&
+                           widget.Sections.Contains(BenefitsCD.Oceans_Challenge)))
+                {
+                    var errorResponse = new
+                    {
+                        error = "Forbidden",
+                        message = "You are not allowed to access the GetOceansChallengeInfo method."
+                    };
+                    return new ObjectResult(errorResponse)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                }
+
+                var balanceAmount = await _unitOfWork.ConsultantAndBenefit
+                    .GetBenefitBalanceAmountByConsultantAsync(userConsultant.ConsultantId, "Oceans Challenge");
+
+                var lastRequests = await _unitOfWork.ConsultantReimbursedBenefit
+                    .GetLastBenefitRequests(userConsultant.ConsultantId, "Oceans Challenge");
+
+                BenefitBalanceInfoVM balanceProgramInfo = new()
+                {
+                    BalanceAmount = (decimal)balanceAmount,
+                    LastRequests = lastRequests
+                };
+
+                return Ok(new
+                {
+                    oceansChallengeInfo = balanceProgramInfo
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue." });
+            }
+        }
         public IActionResult Error()
         {
             return View("Error");
