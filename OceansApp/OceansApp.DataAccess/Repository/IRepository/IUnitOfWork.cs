@@ -5,6 +5,7 @@
         IAccountingAccountRepository AccountingAccounts{ get; }
         IAccountPayableRepository AccountPayable { get; }
         IAccountPayableMovementRepository AccountPayableMovement { get; }
+        IBonuslyRepository Bonusly { get; }
         ICostCenterRepository CenterOfCosts { get; }
         ILedgerMovementRepository LedgerMovements { get; }
         IDataUpdateDateRepository DataUpdateDates { get; }

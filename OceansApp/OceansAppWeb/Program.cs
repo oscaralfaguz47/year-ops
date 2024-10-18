@@ -127,6 +127,15 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://oceansapp.azurewebsites.net/"));
 });
 
+//Bonusly
+builder.Services.AddHttpClient<BonuslyRepository>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    
+});
+
 // Add DatabaseService
 builder.Services.AddTransient<DatabaseService>(provider =>
     new DatabaseService(connectionString));

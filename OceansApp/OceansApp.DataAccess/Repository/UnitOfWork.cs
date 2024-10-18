@@ -2,6 +2,7 @@
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 
@@ -15,8 +16,11 @@ namespace OceansApp.DataAccess.Repository
         private readonly IMemoryCache _cache;
         private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
         private readonly TelemetryClient _telemetryClient;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _config;
         public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IMemoryCache cache, 
-            IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository, TelemetryClient telemetryClient)
+            IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository, TelemetryClient telemetryClient,
+            HttpClient httpClient, IConfiguration config)
         {
             ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
             _telemetryClient = telemetryClient;
@@ -24,9 +28,12 @@ namespace OceansApp.DataAccess.Repository
             _userManager = userManager;
             _roleManager = roleManager;
             _cache = cache;
+            _httpClient = httpClient;
+            _config = config;
             AccountingAccounts = new AccountingAccountRepository(_db);
             AccountPayable = new AccountPayableRepository(_db);
             AccountPayableMovement = new AccountPayableMovementRepository(_db);
+            Bonusly = new BonuslyRepository(_httpClient, _config);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
             DataUpdateDates = new DataUpdateRepository(_db);
@@ -86,6 +93,7 @@ namespace OceansApp.DataAccess.Repository
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
         public IAccountPayableRepository AccountPayable { get; private set; }
         public IAccountPayableMovementRepository AccountPayableMovement { get; private set; }
+        public IBonuslyRepository Bonusly { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
         public ILedgerMovementRepository LedgerMovements { get; private set; }
         public IDataUpdateDateRepository DataUpdateDates { get; private set; }

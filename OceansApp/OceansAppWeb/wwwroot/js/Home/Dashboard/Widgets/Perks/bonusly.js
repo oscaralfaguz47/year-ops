@@ -1,20 +1,20 @@
-﻿//Balance Program
-const balanceProgramTitle = getElementById('BalanceProgram-title');
-const balanceProgramCont = getElementById('BalanceProgram-cont');
-const firstCardBPContent = balanceProgramCont.closest('.card-content');
-function getBalanceProgramInfo() {
+﻿//Bonusly
+const bonuslyTitle = getElementById('Bonusly-title');
+const bonuslyCont = getElementById('Bonusly-cont');
+const firstCardBoContent = bonuslyCont.closest('.card-content');
+function getBonuslyInfo() {
     return (async () => {
-        balanceProgramTitle.textContent = 'Your remaining Balance Program is...';
-        firstCardBPContent.style.justifyContent = 'center';
-        firstCardBPContent.style.overflowY = 'hidden';
-        const firstCardBP = balanceProgramCont.closest('.card');
+        bonuslyTitle.textContent = 'Your remaining Bonusly balance is...';
+        firstCardBoContent.style.justifyContent = 'center';
+        firstCardBoContent.style.overflowY = 'hidden';
+        const firstCardBP = bonuslyCont.closest('.card');
         firstCardBP.style.maxHeight = '220px';
-        balanceProgramCont.innerHTML = loadingISpinner();
-        const url = `/GetBalanceProgramInfo`;
+        bonuslyCont.innerHTML = loadingISpinner();
+        const url = `/GetBonuslyInfo`;
         try {
             const response = await fetch(url);
             if (!response.ok) {
-                balanceProgramCont.innerHTML = cardErrorInfo('Error loading Balance Program info!', 'getBalanceProgramInfo()');
+                bonuslyCont.innerHTML = cardErrorInfo('Error loading Bonusly info!', 'getBonuslyInfo()');
                 const errorData = await response.json();
                 throw {
                     status: response.status,
@@ -33,20 +33,20 @@ function getBalanceProgramInfo() {
 //Global
 document.addEventListener("DOMContentLoaded", function () {
     // BalanceProgram
-    getBalanceProgramInfo()
+    getBonuslyInfo()
         .then(data => {
             let balanceAmount = data.balanceProgramInfo.balanceAmount;
-            balanceProgramCont.innerHTML = balanceAmount !== null ? `
+            bonuslyCont.innerHTML = balanceAmount !== null ? `
             <div class="balance-header">
-            <span>${balanceAmount}<span class="usd-lb">USD</span></span><a target="blanck" href="https://app.fillout.com/t/9QGFtqwy6yus" class="claim-btn">Request</a>
+            <span>${balanceAmount}<span class="usd-lb">XPs</span></span><a target="blanck" href="https://app.bonus.ly/" class="claim-btn">Claim XP</a>
             <div>` : ``;
             let dataItems = data.balanceProgramInfo.lastRequests;
             if (dataItems.length > 0) {
                 const lastRequestTitle = document.createElement('label');
                 lastRequestTitle.textContent = `Last requests`;
-                balanceProgramCont.appendChild(lastRequestTitle);
-                firstCardBPContent.style.justifyContent = 'left';
-                firstCardBPContent.style.display = 'block';
+                bonuslyCont.appendChild(lastRequestTitle);
+                firstCardBoContent.style.justifyContent = 'left';
+                firstCardBoContent.style.display = 'block';
                 const rowsContainer = document.createElement('div');
                 rowsContainer.className = 'rows-container';
                 dataItems.forEach(function (obj, index) {
@@ -58,15 +58,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     <span class="bp-status">${getStatusLabel(obj.status === 'Waiting to be approved' ? 'Pending approved' : obj.status)}</span><span class="amount-lb">$${obj.amount}</span>`;
                     rowsContainer.appendChild(requestRow);
                 });
-                balanceProgramCont.appendChild(rowsContainer);
+                bonuslyCont.appendChild(rowsContainer);
             } else {
-                firstCardBPContent.innerHTML = `<div><div style="text-align:center"><img src="/icons/Shared/check.svg"></div>
+                firstCardBoContent.innerHTML = `<div><div style="text-align:center"><img src="/icons/Shared/check.svg"></div>
                 <span>You don't have pending timesheets</span></div>`;
-                firstCardBPContent.style.alignItems = 'center';
-                firstCardBPContent.style.display = 'flex';
+                firstCardBoContent.style.alignItems = 'center';
+                firstCardBoContent.style.display = 'flex';
             }
         })
         .catch(error => {
-            console.error(`Failed to load balance program info: ${error.message}`);
+            console.error(`Failed to load bonusly info: ${error.message}`);
         });
 });

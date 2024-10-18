@@ -150,6 +150,64 @@ namespace OceansAppWeb.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue." });
             }
         }
+
+        [HttpGet("GetBonuslyInfo")]
+        public async Task<IActionResult> GetBonuslyInfo()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
+
+                var activeTime = await _unitOfWork.ApplicationUser.GetUserActiveTimeAsync(userId);
+
+                var widgets = _unitOfWork.ApplicationUser.GetWidgetsForUser(userConsultant, User, activeTime);
+
+                //Validate valid access
+                if (!widgets.Any(widget => widget.WidgetName == WidgetsCD.Perks &&
+                           widget.Sections != null &&
+                           widget.Sections.Contains(BenefitsCD.Bonusly)))
+                {
+                    var errorResponse = new
+                    {
+                        error = "Forbidden",
+                        message = "You are not allowed to access the GetBonuslyInfo method."
+                    };
+                    return new ObjectResult(errorResponse)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                }
+
+                string? bonuslyUserId = await _unitOfWork.Bonusly.GetUserByEmailAsync("oscar.alfaguz47@gmail.com");
+                if (bonuslyUserId == null)
+                {
+                    return Ok( new{ BonuslyUserExists = false});
+                }
+                decimal balanceAmount = await _unitOfWork.Bonusly
+                    .GetRedeemableBalanceByUserIdAsync(bonuslyUserId);
+
+                var lastRequests = await _unitOfWork.ConsultantReimbursedBenefit
+                    .GetLastBenefitRequests(userConsultant.ConsultantId, "Balance Program");
+
+                BenefitBalanceInfoVM bonuslyInfo = new()
+                {
+                    BalanceAmount = balanceAmount,
+                    LastRequests = lastRequests
+                };
+
+                return Ok(new
+                {
+                    balanceProgramInfo = bonuslyInfo,
+                    BonuslyUserExists = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue." });
+            }
+        }
         public IActionResult Error()
         {
             return View("Error");
