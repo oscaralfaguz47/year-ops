@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.ViewModels.Bonusly;
 using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.SharedMethods;
@@ -179,27 +180,34 @@ namespace OceansAppWeb.Controllers
                         StatusCode = StatusCodes.Status403Forbidden
                     };
                 }
-
-                string? bonuslyUserId = await _unitOfWork.Bonusly.GetUserByEmailAsync(userConsultant.Email);
-                if (bonuslyUserId == null)
+                decimal balanceAmount = 0;
+                List<RedemptionsVM> lastRequests = new();
+                try
                 {
-                    return Ok( new{ BonuslyUserExists = false});
+                    string? bonuslyUserId = await _unitOfWork.Bonusly.GetUserByEmailAsync(userConsultant.Email);
+                    if (bonuslyUserId == null)
+                    {
+                        return Ok(new { BonuslyUserExists = false });
+                    }
+                    balanceAmount = await _unitOfWork.Bonusly
+                        .GetRedeemableBalanceByUserIdAsync(bonuslyUserId);
+
+                    lastRequests = await _unitOfWork.Bonusly.GetRedemptionsByUserIdAsync(bonuslyUserId, 2);
                 }
-                decimal balanceAmount = await _unitOfWork.Bonusly
-                    .GetRedeemableBalanceByUserIdAsync(bonuslyUserId);
+                catch (Exception ex)
+                {
+                    return Ok(new { BonuslyIsDown = true });
+                }
 
-               // var lastRequests = await _unitOfWork.ConsultantReimbursedBenefit
-                  //  .GetLastBenefitRequests(userConsultant.ConsultantId, "Balance Program");
-
-                BenefitBalanceInfoVM bonuslyInfo = new()
+                BonuslyBalanceInfoVM bonuslyInfo = new()
                 {
                     BalanceAmount = balanceAmount,
-                    LastRequests = []
+                    LastRequests = lastRequests
                 };
 
                 return Ok(new
                 {
-                    balanceProgramInfo = bonuslyInfo,
+                    BonuslyInfo = bonuslyInfo,
                     BonuslyUserExists = true
                 });
             }

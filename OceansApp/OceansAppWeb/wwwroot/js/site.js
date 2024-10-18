@@ -9,7 +9,6 @@ window.onload = function () {
 }
 
 function validateSessionExpiration(message, statusCode) {
-    console.log("MY STATUS CODE: " + statusCode);
     if (statusCode === undefined || statusCode === 501) {
         if (message.toString().includes('Unexpected token')) {
             window.location.href = "/SessionEnded";
