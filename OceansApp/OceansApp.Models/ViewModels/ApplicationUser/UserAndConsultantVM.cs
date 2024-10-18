@@ -12,5 +12,6 @@ namespace OceansApp.Models.ViewModels.ApplicationUser
         public DateTime? StartDate { get; set; }
         public string UserCategoryName { get; set; }
         public int PaymentPeriod { get; set; }
+        public string Email { get; set; }
     }
 }

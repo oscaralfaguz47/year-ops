@@ -1,0 +1,24 @@
+﻿#Bonusly-title {
+    display: flex;
+    align-items:end;
+}
+
+#Bonusly-title img{
+    width: 40px;
+    margin-right: 5px;
+}
+    #Bonusly-title a {
+        margin: 0 4px;
+    }
+#Bonusly-cont .no-user-message {
+    color: var(--clr-grayDark);
+    font-weight: bold;
+    text-align:center;
+}
+#Bonusly-cont label {
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 2px;
+    font-size: 1.1rem;
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+}

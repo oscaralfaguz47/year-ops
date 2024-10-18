@@ -57,7 +57,8 @@ namespace OceansApp.DataAccess.Repository
                                     StartDate = cd.StartDate,
                                     WorkingModel = cd.WorkingModel,
                                     UserCategoryName = uc.Name,
-                                    PaymentPeriod = (int)cd.PaymentPeriod
+                                    PaymentPeriod = (int)cd.PaymentPeriod,
+                                    Email = u.Email
                                 }).FirstOrDefaultAsync();
 
             if (result == null) throw new InvalidOperationException("The user does not exist.");

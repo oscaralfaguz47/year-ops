@@ -41,12 +41,14 @@ document.addEventListener("DOMContentLoaded", function () {
             <span>${balanceAmount}<span class="usd-lb">USD</span></span><a target="blanck" href="https://app.fillout.com/t/9QGFtqwy6yus" class="claim-btn">Request</a>
             <div>` : ``;
             let dataItems = data.balanceProgramInfo.lastRequests;
+            const rowsContainer = document.createElement('div');
+            rowsContainer.className = 'rows-container';
+            const lastRequestTitle = document.createElement('label');
+            lastRequestTitle.textContent = `Last requests`;
+            balanceProgramCont.appendChild(lastRequestTitle);
+            firstCardBPContent.style.justifyContent = 'left';
+            firstCardBPContent.style.display = 'block';
             if (dataItems.length > 0) {
-                const lastRequestTitle = document.createElement('label');
-                lastRequestTitle.textContent = `Last requests`;
-                balanceProgramCont.appendChild(lastRequestTitle);
-                firstCardBPContent.style.justifyContent = 'left';
-                firstCardBPContent.style.display = 'block';
                 const rowsContainer = document.createElement('div');
                 rowsContainer.className = 'rows-container';
                 dataItems.forEach(function (obj, index) {
@@ -60,10 +62,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
                 balanceProgramCont.appendChild(rowsContainer);
             } else {
-                firstCardBPContent.innerHTML = `<div><div style="text-align:center"><img src="/icons/Shared/check.svg"></div>
-                <span>You don't have pending timesheets</span></div>`;
-                firstCardBPContent.style.alignItems = 'center';
-                firstCardBPContent.style.display = 'flex';
+                rowsContainer.innerHTML = `<p>You have not made any requests yet.</p>`;
+                balanceProgramCont.appendChild(rowsContainer);
             }
         })
         .catch(error => {

@@ -180,7 +180,7 @@ namespace OceansAppWeb.Controllers
                     };
                 }
 
-                string? bonuslyUserId = await _unitOfWork.Bonusly.GetUserByEmailAsync("oscar.alfaguz47@gmail.com");
+                string? bonuslyUserId = await _unitOfWork.Bonusly.GetUserByEmailAsync(userConsultant.Email);
                 if (bonuslyUserId == null)
                 {
                     return Ok( new{ BonuslyUserExists = false});
@@ -188,13 +188,13 @@ namespace OceansAppWeb.Controllers
                 decimal balanceAmount = await _unitOfWork.Bonusly
                     .GetRedeemableBalanceByUserIdAsync(bonuslyUserId);
 
-                var lastRequests = await _unitOfWork.ConsultantReimbursedBenefit
-                    .GetLastBenefitRequests(userConsultant.ConsultantId, "Balance Program");
+               // var lastRequests = await _unitOfWork.ConsultantReimbursedBenefit
+                  //  .GetLastBenefitRequests(userConsultant.ConsultantId, "Balance Program");
 
                 BenefitBalanceInfoVM bonuslyInfo = new()
                 {
                     BalanceAmount = balanceAmount,
-                    LastRequests = lastRequests
+                    LastRequests = []
                 };
 
                 return Ok(new

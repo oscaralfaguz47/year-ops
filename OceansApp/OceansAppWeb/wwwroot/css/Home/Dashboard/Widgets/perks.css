@@ -14,7 +14,60 @@
         background-color: #02a69e;
         color: #fff;
     }
-.rows-container{
-    height: 90px;
-    overflow-y: auto;
+
+.balance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5px;
+}
+    .balance-header span {
+        font-weight: bold;
+        font-size: 2rem;
+        color: var(--clr-blueLight);
+    }
+    .balance-header .usd-lb {
+        color: var(--clr-dark3);
+        margin-left: 8px;
+    }
+.rows-container p {
+    color: var(--clr-grayDark);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+.request-row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--clr-grayDark);
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 4px 0;
+}
+    .request-row .date-lb{
+        width: 100px;
+    }
+
+    .request-row .amount-lb {
+        width: 60px;
+        text-align: right;
+    }
+    .request-row .bp-status {
+        font-size: 0.8rem !important;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background-color: rgb(61, 195, 191, 0.2);
+        width: 142px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+@media (max-width: 450px) {
+    .request-row .date-lb {
+        font-size: 0.8rem;
+        width: 80px;
+    }
 }
