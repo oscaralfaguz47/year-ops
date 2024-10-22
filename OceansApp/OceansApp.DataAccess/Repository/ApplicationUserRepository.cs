@@ -26,20 +26,22 @@ namespace OceansApp.DataAccess.Repository
         public async Task<ProfileVM> GetUserProfileDataAsync(string userId)
         {
             var result = await (from u in _db.AspNetUsers
-                                join ib in _db.IMAGE_BLOBS on u.Id equals ib.EntityId
+                                join ib in _db.IMAGE_BLOBS on new { Id = u.Id, ContainerName = "user-profile-photos", EntityType = "UserProfile" }
+                                equals new { Id = ib.EntityId, ib.ContainerName, ib.EntityType }
                                 into ibGroup
                                 from ib in ibGroup.DefaultIfEmpty()
-                                where u.Id == userId && ib.ContainerName == "user-profile-photos" && ib.EntityType == "UserProfile"
+                                where u.Id == userId
                                 select new ProfileVM
                                 {
                                     Id = u.Id,
                                     Name = u.Name,
                                     LastName = u.LastName,
                                     Email = u.Email,
-                                    Ocupation = u.Occupation,
+                                    Occupation = u.Occupation,
                                     PhoneNumber = u.PhoneNumber,
                                     ProfileUrl = ib.BlobUrl
                                 }).FirstOrDefaultAsync();
+
             return result;
         }
         public async Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate)

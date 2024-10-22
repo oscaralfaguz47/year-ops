@@ -61,46 +61,72 @@ namespace OceansAppWeb.Account.Controllers
         [HttpGet]
         [Authorize]
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
-        public async Task<IActionResult> ProfileAsync()
+        public IActionResult ProfileAsync()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
+        public async Task<IActionResult> GetProfileInfo()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userFromDb = await _unitOfWork.ApplicationUser.GetUserProfileDataAsync(userId);
 
-            ViewData["Title"] = "My Account Settings";
-            return View(userFromDb);
+            return Ok(new
+            {
+                profileInfo = userFromDb
+            });
         }
 
         [HttpPost]
         [Authorize]
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(ProfileVM model)
+        public async Task<IActionResult> UpdateProfile([FromBody] ProfileVM model)
         {
-            if (ModelState.IsValid)
+            if (model == null)
             {
-                try
-                {
-                    var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
-
-                    var userWithImageProfile = await _unitOfWork.ApplicationUser.GetUserProfileDataAsync(model.Id);
-                    model.ProfileUrl = userWithImageProfile.ProfileUrl;
-
-                    userToUpdate.Name = model.Name;
-                    userToUpdate.LastName = model.LastName;
-                    userToUpdate.Occupation = model.Ocupation;
-                    userToUpdate.PhoneNumber = model.PhoneNumber;
-
-                    await _unitOfWork.SaveAsync();
-
-                    TempData["success"] = "Data was saved successfully!";
-                    return View("Profile", model);
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e.Message);
-                }
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
             }
-            return View("Profile", model);
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldAnyValue("Id", "UserId", model.Id, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("Name", "Name", model.Name, 450, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("LastName", "Last Name", model.Name, 450, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", model.PhoneNumber, 450, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("Occupation", "Occupation", model.Occupation, 100, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                 .Select(e => e.ErrorMessage)
+                                                 .ToList();
+                return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", errors = errors });
+            }
+            try
+            {
+                var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
+
+                userToUpdate.Name = model.Name;
+                userToUpdate.LastName = model.LastName;
+                userToUpdate.Occupation = model.Occupation;
+                userToUpdate.PhoneNumber = model.PhoneNumber;
+
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Changes saved!"
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { error = e.Message, messageType = "Exception Error" });
+            }
+
         }
 
         [Authorize]

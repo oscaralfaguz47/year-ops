@@ -1,4 +1,5 @@
-﻿const uploadButton = getElementById('upload-button');
+﻿//Profile Photo
+const uploadButton = getElementById('upload-button');
 const saveButton = getElementById('save-button');
 const fileInput = getElementById('profile-picture-input');
 const profileImage = getElementById('profile-picture-image');
@@ -103,3 +104,118 @@ saveButton.addEventListener('click', async function () {
     }
 });
 
+//Personal Info
+
+let idValue = null;
+const nameInputPI = getElementById('NamePI');
+const lastNameInputPI = getElementById('LastNamePI');
+const occupationInputPI = getElementById('OccupationPI');
+const phoneNumberInputPI = getElementById('PhoneNumberPI');
+const emailInputPI = getElementById('EmailPI');
+const saveBtnPI = getElementById('SaveBtnPI');
+
+saveBtnPI.addEventListener('click', async function () {
+    await updateProfileInfo();
+});
+
+
+async function getPersonalInfo() {
+    return (async () => {
+        const url = `/Account/GetProfileInfo`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                bonuslyCont.innerHTML = cardErrorInfo('Error loading Bonusly info!', 'getBonuslyInfo()');
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    message: `${errorData.message}`
+                };
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            validateSessionExpiration(error.message, error.status);
+            throw new Error(`Network error or unable to reach the server. More details: ${error.message}`);
+        }
+    })();
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
+    // Bonusly
+    displaySpinner();
+    await getPersonalInfo()
+        .then(data => {
+            const profileInfo = data.profileInfo;
+
+            idValue = profileInfo.id;
+            nameInputPI.value = profileInfo.name;
+            lastNameInputPI.value = profileInfo.lastName;
+            occupationInputPI.value = profileInfo.occupation;
+            emailInputPI.value = profileInfo.email;
+            phoneNumberInputPI.value = profileInfo.phoneNumber;
+            profileImage.src = !profileInfo.profileUrl ?
+                '/icons/Shared/profile-user.svg' :
+                profileInfo.profileUrl;
+        })
+        .catch(error => {
+            console.error(`Failed to load personal info: ${error.message}`);
+        }).finally(() => {
+            hideSpinner();
+        });;
+});
+
+async function updateProfileInfo() {
+    const validateName = validateRequiredInput(nameInputPI, 'The name is required');
+    const validateLastName = validateRequiredInput(lastNameInputPI, 'The last name is required');
+
+    if (!validateName || !validateLastName) {
+        return;
+    }
+
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        Id: idValue,
+        PhoneNumber: phoneNumberInputPI.value,
+        Name: nameInputPI.value,
+        LastName: lastNameInputPI.value,
+        Occupation: occupationInputPI.value
+    };
+    displaySpinner();
+    try {
+        const response = await fetch('/Account/UpdateProfile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        return null;
+    } finally {
+        hideSpinner();
+    }
+}
