@@ -1,9 +1,4 @@
-﻿#Bonusly-title {
-    display: flex;
-    align-items:end;
-}
-
-#Bonusly-title img{
+﻿#Bonusly-title img{
     width: 40px;
     margin-right: 5px;
 }

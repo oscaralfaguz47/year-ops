@@ -5,11 +5,3 @@
     font-size: 1.1rem;
     border-bottom: solid 2px rgb(1, 192, 183, 0.2);
 }
-#BalanceProgram-title {
-    display: flex;
-    align-items: end;
-}
-
-    #BalanceProgram-title img {
-        margin-right: 5px;
-    }

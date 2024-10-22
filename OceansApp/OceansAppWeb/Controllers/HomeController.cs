@@ -6,7 +6,6 @@ using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.SharedMethods;
 using System.Security.Claims;
-using static System.Collections.Specialized.BitVector32;
 
 namespace OceansAppWeb.Controllers
 {
@@ -261,6 +260,44 @@ namespace OceansAppWeb.Controllers
                 return Ok(new
                 {
                     oceansChallengeInfo = balanceProgramInfo
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue." });
+            }
+        }
+
+        [HttpGet("GetActiveProjectsInfo")]
+        public async Task<IActionResult> GetActiveProjectsInfo()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
+                var activeTime = await _unitOfWork.ApplicationUser.GetUserActiveTimeAsync(userId);
+                var widgets = _unitOfWork.ApplicationUser.GetWidgetsForUser(userConsultant, User, activeTime);
+
+                //Validate valid access
+                if (!widgets.Any(widget => widget.WidgetName == WidgetsCD.GeneralConsultantAndAdmin ))
+                {
+                    var errorResponse = new
+                    {
+                        error = "Forbidden",
+                        message = "You are not allowed to access the GetActiveProjectsInfo method."
+                    };
+                    return new ObjectResult(errorResponse)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                }
+
+                var activeProjectsInfo = await _unitOfWork.ProjectConsultantAssigned
+                    .GetProjectsAndSuccessManagersWhereConsultantIsActiveAsync(userConsultant.ConsultantId);
+
+                return Ok(new
+                {
+                    activeProjectsInfo = activeProjectsInfo
                 });
             }
             catch (Exception ex)

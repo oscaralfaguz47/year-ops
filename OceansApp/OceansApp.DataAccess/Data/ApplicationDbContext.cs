@@ -195,6 +195,29 @@ namespace OceansApp.DataAccess.Data
                 entity.HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
             });
 
+            // IMAGE BLOBS
+            modelBuilder.Entity<ImageBlob>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.EntityId, e.EntityType, e.CreationDate, e.BlobId });
+                entity.HasIndex(e => new { e.ContainerName, e.BlobName });
+
+                // Índices en fechas
+                entity.HasIndex(e => e.BlobName);
+                entity.HasIndex(e => e.CreationDate);
+
+                entity.Property(e => e.BlobUrl)
+                .HasColumnType("varchar(MAX)");
+                entity.Property(e => e.EntityType)
+                .HasColumnType("varchar(30)");
+                entity.Property(e => e.ContainerName)
+                .HasColumnType("varchar(255)");
+                entity.Property(e => e.BlobName)
+                .HasColumnType("nvarchar(255)");
+                entity.Property(e => e.EntityId)
+                .HasColumnType("nvarchar(450)");
+            });
+
             // CONSULTANT ROLES QUALITY LEVELS
             modelBuilder.Entity<ConsultantRolesQualityLevels>(entity =>
             {
@@ -1299,6 +1322,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantPositionAccountingConfiguration> CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
         public DbSet<GlobalConsecutive> GLOBAL_CONSECUTIVES { get; set; }
+        public DbSet<ImageBlob> IMAGE_BLOBS { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
         public DbSet<JournalAccountPayable> JOURNAL_ACCOUNTS_PAYABLE { get; set; }
         public DbSet<JournalAccountPayableEntry> JOURNAL_ACCOUNTS_PAYABLE_ENTRIES { get; set; }

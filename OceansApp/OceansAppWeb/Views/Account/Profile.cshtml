@@ -2,68 +2,71 @@
 @model ProfileVM
 
 <link rel="stylesheet" href="~/css/Account/global.css?v=@DateTime.Now.Ticks" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/Account/profile.css?v=@DateTime.Now.Ticks" />
 
 <div class="container">
-    <h2 class="title-h1-account"><i class="bi bi-person-gear"></i> <strong>My Account Settings</strong></h2>
+    <h2 class="title-h1-account"><i class="bi bi-person-gear"></i> <strong>My Profile</strong></h2>
     <hr />
     <div class="row">
         <div class="col-lg-6 text-center">
-            <h2><strong>Personal Information</strong></h2>
+            <h2 class="section-heading"><strong>Personal Information</strong></h2>
             <form id="registerForm" asp-area="" asp-controller="Account" asp-action="UpdateProfile" method="post">
                 <div class="row">
                     <div class="col-md-6">
-                        @Html.HiddenFor(m =>m.Id)
+                        @Html.HiddenFor(m => m.Id)
+                        @Html.HiddenFor(m => m.ProfileUrl)
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        <div class="form-floating">
+                        <div class="form-floating mb-4">
                             <input asp-for="Name" class="form-control" aria-required="true" />
                             <label asp-for="Name"></label>
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
-                        <br />
-                        <div class="form-floating">
+                        <div class="form-floating mb-4">
                             <input asp-for="LastName" class="form-control" aria-required="true" />
                             <label asp-for="LastName"></label>
                             <span asp-validation-for="LastName" class="text-danger"></span>
                         </div>
-                        <br />
-                        <div class="form-floating">
+                        <div class="form-floating mb-4">
                             <input asp-for="Ocupation" class="form-control" aria-required="true" />
                             <label asp-for="Ocupation"></label>
                             <span asp-validation-for="Ocupation" class="text-danger"></span>
                         </div>
-                        <br />
                     </div>
                     <div class="col-md-6">
-                        <div class="form-floating">
-                            @Html.HiddenFor(m =>m.Email)
+                        <div class="form-floating mb-4">
+                            @Html.HiddenFor(m => m.Email)
                             <input disabled asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
                             <label asp-for="Email"></label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
-                        <br />
-                        <div class="form-floating">
+                        <div class="form-floating mb-4">
                             <input asp-for="PhoneNumber" class="form-control" aria-required="true" />
                             <label asp-for="PhoneNumber"></label>
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
-                        <br />
                     </div>
-                    <div class="text-center">
-                        <a asp-area="" asp-controller="Home" asp-action="Dashboard" class="cancel-btn">
-                            Cancel
-                        </a> &nbsp;
+                    <div class="col-12 text-center">
+                        <a asp-area="" asp-controller="Home" asp-action="Dashboard" class="cancel-btn">Cancel</a> &nbsp;
                         <button id="registerSubmit" type="submit" class="btn-primary-submit">Save Changes</button>
                     </div>
                 </div>
             </form>
-            <br /><br />
         </div>
         <div class="col-lg-6 text-center">
-            <h2><strong>Security</strong></h2>
-            <p>TO-DO</p>
+            <h2 class="section-heading"><strong>Profile Photo</strong></h2>
+            <div class="profile-picture-container">
+                <form id="profile-picture-form" enctype="multipart/form-data">
+                    <div class="profile-picture-preview">
+                        <img id="profile-picture-image" src="@(Model.ProfileUrl == null ? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQP3lC0SfgqCcTGipFh64hddM6xgBYQj90wOA&s" : Model.ProfileUrl)" alt="Profile Picture Preview" />
+                    </div>
+                    <input type="file" id="profile-picture-input" accept="image/*" style="display: none;" />
+                    <button type="button" id="upload-button" class="btn-secondary">Upload New Picture</button>
+                    <button type="button" id="save-button" class="btn-primary-save" disabled>Save</button>
+                </form>
+            </div>
         </div>
-
     </div>
+
 </div>
 
 <br />
@@ -71,7 +74,6 @@
 <br />
 <br />
 
-
-@section Scripts {
 <partial name="_ValidationScriptsPartial" />
-}
+<script src="~/js/Account/profile.js?v=@DateTime.Now.Ticks"></script>
+

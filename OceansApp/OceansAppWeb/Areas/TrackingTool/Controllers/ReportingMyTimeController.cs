@@ -251,7 +251,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                 List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId);
 
-                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId);
+                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId.ToString(), 2800);
 
                 MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob(
                 uploadedBlobs, movementId);

@@ -18,5 +18,6 @@ namespace OceansApp.Models.ViewModels
         public String LastName { get; set; }
         [MaxLength(100)]
         public String? Ocupation { get; set; }
+        public string? ProfileUrl { get; set; }
     }
 }

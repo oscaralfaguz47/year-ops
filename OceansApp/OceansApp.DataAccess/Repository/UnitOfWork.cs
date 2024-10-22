@@ -64,6 +64,7 @@ namespace OceansApp.DataAccess.Repository
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
             Interview = new InterviewRepository(_db, this);
+            ImageBlob = new ImageBlobRepository(_db);
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
             JournalAccountPayableEntry = new JournalAccountPayableEntryRepository(_db);
             Partner = new PartnerRepository(_db);
@@ -124,6 +125,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantSeniorityRepository ConsultantSeniority { get; set; }
         public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
         public IInterviewRepository Interview { get; set; }
+        public IImageBlobRepository ImageBlob { get; set; }
         public IJournalAccountPayableRepository JournalAccountPayable { get; set; }
         public IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; set; }
         public IPaymentMethodRepository PaymentMethod { get; set; }

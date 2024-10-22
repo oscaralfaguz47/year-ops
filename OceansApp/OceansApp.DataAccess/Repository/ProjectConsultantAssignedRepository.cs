@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Models.ViewModels.Projects;
 using System.Data;
@@ -60,6 +61,18 @@ namespace OceansApp.DataAccess.Repository
                 parameters, commandType: CommandType.StoredProcedure);
 
             return activeProjectsAccessTrackingTool;
+        }
+
+        public async Task<List<ProjectAndSuccesManagerInfoVM>> GetProjectsAndSuccessManagersWhereConsultantIsActiveAsync(int consultantId)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ConsultantId", consultantId, DbType.Int32);
+
+            var results = await connection
+                .QueryAsync<ProjectAndSuccesManagerInfoVM>("SP_PROJECTS_CONSULTANTS_ASSIGNED_GetProjectsAndSuccessManagersWhereConsultantIsActive", parameters, commandType: CommandType.StoredProcedure);
+            return results.ToList();
         }
 
         //PAYMENT SHEETS

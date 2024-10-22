@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (dataItems.length > 0) {
                 firstCardContent.style.justifyContent = 'left';
                 firstCardContent.style.display = 'block';
-                timeSheetSubTitle.innerHTML = `${dataItems.length > 0 ? "You have <span class='red-label'>" + dataItems.length + " pending timesheet" + (dataItems.length > 1 ? "s" : "") + "</span>." : "You don't have pending timesheets"}`;
+                timeSheetSubTitle.innerHTML = `${dataItems.length > 0 ? "You have <span style='margin-left:3px' class='red-label'>" + dataItems.length + " pending timesheet" + (dataItems.length > 1 ? "s" : "") + "</span>." : "You don't have pending timesheets"}`;
                 var timesheetsUrl = window.location.origin + '/TrackingTool/ReportingMyTime';
                 dataItems.forEach(function (obj, index) {
                     let pendingTimesheetsRow = document.createElement('div');

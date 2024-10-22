@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Account;
 using OceansApp.Models.ViewModels.ApplicationUser;
 using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.ConstantData.Claims;
+using OceansApp.Utility.SharedMethods.Blobs;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
@@ -18,6 +21,26 @@ namespace OceansApp.DataAccess.Repository
         public ApplicationUserRepository(ApplicationDbContext db) : base(db)
         {
             _db = db;
+        }
+
+        public async Task<ProfileVM> GetUserProfileDataAsync(string userId)
+        {
+            var result = await (from u in _db.AspNetUsers
+                                join ib in _db.IMAGE_BLOBS on u.Id equals ib.EntityId
+                                into ibGroup
+                                from ib in ibGroup.DefaultIfEmpty()
+                                where u.Id == userId && ib.ContainerName == "user-profile-photos" && ib.EntityType == "UserProfile"
+                                select new ProfileVM
+                                {
+                                    Id = u.Id,
+                                    Name = u.Name,
+                                    LastName = u.LastName,
+                                    Email = u.Email,
+                                    Ocupation = u.Occupation,
+                                    PhoneNumber = u.PhoneNumber,
+                                    ProfileUrl = ib.BlobUrl
+                                }).FirstOrDefaultAsync();
+            return result;
         }
         public async Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate)
         {
@@ -158,7 +181,6 @@ namespace OceansApp.DataAccess.Repository
                 throw ex;
             }
         }
-
         public async Task<(int Years, int Months, int Days)> GetUserActiveTimeAsync(string userId)
         {
             var query = from history in _db.UsersActiveHistory
@@ -246,9 +268,16 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<ImageBlob> VerifyIfUploadedFileAsync(IFormFile file, string entityId, string containerName, string entityType)
+        {
+            CalculateContentHash calculateHash = new CalculateContentHash();
 
+            string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{file.FileName}";
 
+            var existingFile = await _db.IMAGE_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
+            && x.EntityId == entityId && x.ContainerName == containerName && x.EntityType == entityType);
 
-
+            return existingFile;
+        }
     }
 }

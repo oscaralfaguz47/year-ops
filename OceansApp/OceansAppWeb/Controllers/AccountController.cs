@@ -6,12 +6,16 @@ using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Account;
+using OceansApp.Models.ViewModels.Blobs;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
+using OceansApp.Utility.SharedMethods.InputValidations;
 using OceansAppWeb.Controllers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -30,11 +34,12 @@ namespace OceansAppWeb.Account.Controllers
         private readonly IConfiguration _config;
         private readonly LazyServiceProvider<QueueClient> _queueClient;
         private readonly IMemoryCache _cache;
+        private readonly LazyServiceProvider<IAzureBlobRepository> _azureBlobRepository;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
             IHttpContextAccessor httpContextAccessor, IConfiguration config,
-            IMemoryCache cache, LazyServiceProvider<QueueClient> queueClient)
+            IMemoryCache cache, LazyServiceProvider<QueueClient> queueClient, LazyServiceProvider<IAzureBlobRepository> azureBlobRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -46,6 +51,7 @@ namespace OceansAppWeb.Account.Controllers
             _config = config;
             _queueClient = queueClient;
             _cache = cache;
+            _azureBlobRepository = azureBlobRepository;
         }
         public IActionResult Index()
         {
@@ -57,20 +63,11 @@ namespace OceansAppWeb.Account.Controllers
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         public async Task<IActionResult> ProfileAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var userFromDb = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userFromDb = await _unitOfWork.ApplicationUser.GetUserProfileDataAsync(userId);
 
-            ProfileVM myInfo = new()
-            {
-                Id = userFromDb.Id,
-                Email = userFromDb.Email,
-                Name = userFromDb.Name,
-                LastName = userFromDb.LastName,
-                Ocupation = userFromDb.Occupation,
-                PhoneNumber = userFromDb.PhoneNumber
-            };
             ViewData["Title"] = "My Account Settings";
-            return View(myInfo);
+            return View(userFromDb);
         }
 
         [HttpPost]
@@ -84,6 +81,9 @@ namespace OceansAppWeb.Account.Controllers
                 try
                 {
                     var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
+
+                    var userWithImageProfile = await _unitOfWork.ApplicationUser.GetUserProfileDataAsync(model.Id);
+                    model.ProfileUrl = userWithImageProfile.ProfileUrl;
 
                     userToUpdate.Name = model.Name;
                     userToUpdate.LastName = model.LastName;
@@ -102,6 +102,122 @@ namespace OceansAppWeb.Account.Controllers
             }
             return View("Profile", model);
         }
+
+        [Authorize]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeProfilePhoto([FromForm] IFormFile file)
+        {
+            try
+            {
+                // Validate file input
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFile("Photo", "Photo", file, ModelState);
+                validateInputs.ValidateValidFile("Photo", file, ModelState);
+
+                // Check if the ModelState has any errors after validations
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(e => e.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                }
+
+                // Get the current user's ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string containerId = "user-profile-photos";
+                string entityType = "UserProfile";
+
+                // Check if the file already exists in ImageBlob
+                ImageBlob fileAlreadyExists = await _unitOfWork.ApplicationUser.VerifyIfUploadedFileAsync(file, userId, containerId, entityType);
+
+                if (fileAlreadyExists != null)
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "You changed your profile photo!"
+                    });
+                }
+
+                // Prepare the file list for upload
+                List<IFormFile> fileList = new();
+                fileList.Add(file);
+
+                // Try uploading the file to Azure Blob Storage
+                List<BlobUploadResult> uploadedBlob;
+                try
+                {
+                    uploadedBlob = await _azureBlobRepository.Value.UploadFilesAsync(containerId, fileList, userId.Substring(0, 8), 10950);
+
+                    // If the upload was successful, proceed to save the blob details in the database
+                    if (uploadedBlob[0].Success)
+                    {
+                        var oldImage = await _unitOfWork.ImageBlob
+    .GetFirstOrDefaultAsync(x => x.ContainerName == containerId && x.EntityId == userId && x.EntityType == entityType);
+
+                        ImageBlob imageToSave = new()
+                        {
+                            BlobName = uploadedBlob[0].FileName,
+                            ContainerName = uploadedBlob[0].ContainerId,
+                            BlobUrl = uploadedBlob[0].BlobUrl,
+                            CreationDate = DateTime.UtcNow,
+                            EntityId = userId,
+                            EntityType = "UserProfile"
+                        };
+                        var transaction = await _unitOfWork.BeginTranAsync();
+                        await _unitOfWork.ImageBlob.AddAsync(imageToSave);
+                        await _unitOfWork.SaveAsync();
+
+                        //Delete image from Azure
+                        if (oldImage != null)
+                        {
+                            MethodResponse deleteResponse = await _azureBlobRepository.Value.DeleteBlobAsync(containerId, oldImage.BlobName);
+
+                            if (!deleteResponse.Success)
+                            {
+                                await transaction.RollbackAsync();
+                            }
+                            else
+                            {
+                                _unitOfWork.ImageBlob.Remove(oldImage);
+                                await _unitOfWork.SaveAsync();
+                                await transaction.CommitAsync();
+                            }
+                        }
+                        else
+                        {
+                            await transaction.CommitAsync();
+                        }
+
+                        return Ok(new
+                        {
+                            success = true,
+                            message = "You changed your profile photo!"
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle any errors during the upload or database save process
+                    return BadRequest(new { error = $"The image couldn't be uploaded or saved: {ex.Message}", messageType = "Exception Error" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Catch any unexpected errors during the process
+                return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
+            }
+
+            // If we reach here, something went wrong
+            return BadRequest(new { error = "Something went wrong", messageType = "Unknown Error" });
+        }
+
 
         [HttpGet]
         [AllowAnonymous]

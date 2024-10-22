@@ -25,7 +25,7 @@ namespace OceansApp.DataAccess.Repository
             _accountKey = Environment.GetEnvironmentVariable(_config["AzureBlobStorage:AccountKey"]);
         }
 
-        public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerId, List<IFormFile> files, int elementId)
+        public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerId, List<IFormFile> files, string? elementId, int validDays)
         {
             var uploadResults = new List<BlobUploadResult>();
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerId);
@@ -34,7 +34,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 CalculateContentHash calculateHash = new CalculateContentHash();
                 string contentHash = await calculateHash.CalculateContentHashAsync(file);
-                string uniqueFilename = $"{contentHash}_{elementId}_{file.FileName}";
+                string uniqueFilename = $"{contentHash}{(elementId == null ? "": "_" + elementId)}_{file.FileName}";
                 var blobClient = containerClient.GetBlobClient(uniqueFilename);
 
                 var uploadResult = new BlobUploadResult
@@ -53,10 +53,11 @@ namespace OceansApp.DataAccess.Repository
                     using (var stream = file.OpenReadStream())
                     {
                         var blobHttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType };
-                        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders, Conditions = new BlobRequestConditions { IfNoneMatch = new ETag("*") } });
+                        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders, 
+                            Conditions = new BlobRequestConditions { IfNoneMatch = new ETag("*") } });
 
                         // Generate SAS for the blob
-                        string sasUrl = GenerateBlobSasUri(containerClient, uniqueFilename);
+                        string sasUrl = GenerateBlobSasUri(containerClient, uniqueFilename, validDays);
                         uploadResult.BlobUrl = sasUrl;
                         uploadResult.Success = true; // Confirm success after a successful upload
                     }
@@ -72,7 +73,7 @@ namespace OceansApp.DataAccess.Repository
             return uploadResults;
         }
 
-        public string GenerateBlobSasUri(BlobContainerClient containerClient, string blobName, string storedPolicyName = null)
+        public string GenerateBlobSasUri(BlobContainerClient containerClient, string blobName, int validDays, string storedPolicyName = null)
         {
             var blobClient = containerClient.GetBlobClient(blobName);
 
@@ -82,7 +83,7 @@ namespace OceansApp.DataAccess.Repository
                 BlobName = blobClient.Name,
                 Resource = "b",
                 StartsOn = DateTimeOffset.UtcNow,
-                ExpiresOn = DateTimeOffset.UtcNow.AddHours(10000) // Token valid for 10000 hour
+                ExpiresOn = DateTimeOffset.UtcNow.AddDays(validDays) // Token valid for days
             };
 
             if (storedPolicyName == null)
