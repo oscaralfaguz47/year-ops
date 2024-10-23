@@ -1,10 +1,52 @@
 ﻿.general-ca-section .card{
     max-height: fit-content;
 }
-#GeneralConsultantCont {
+#GeneralConsultantCont .no-project-lb {
     border-bottom: solid 2px rgb(1, 192, 183, 0.2);
-    border-end-end-radius: 10px;
-    border-end-start-radius: 10px;
-    padding: 20px;
-    width: 100%;
+    border-radius: 10px;
+    padding-bottom: 8px;
+    color: var(--clr-grayDark);
+    font-weight: bold;
+    text-align:center;
 }
+#GeneralConsultantCont .subtitles {
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-decoration: underline;
+    text-decoration-color: rgb(1, 192, 183);
+    font-size: 1.2rem;
+}
+    .row-el{
+        margin-bottom: 15px;
+    }
+        .row-el .project-name{
+            font-weight: bold;
+        }
+.person-cont {
+    display: flex;
+    align-items: center;
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+    border-radius: 10px;
+    padding: 8px;
+}
+.person-cont .media-cont {
+    display: grid;
+    width: fit-content;
+}
+            .person-cont .profile-img-cont {
+                padding: 5px;
+            }
+            .person-cont .profile-img-cont img{
+                width: 70px;
+                height: 70px;
+                border-radius: 50%;
+            }
+            .person-cont label {
+                font-weight: bold;
+                font-size: 1.1rem;
+                color: var(--clr-blueLight);
+            }
+    .person-cont .person-description p{
+        font-weight: normal;
+        text-align:left;
+    }

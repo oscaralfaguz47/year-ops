@@ -34,6 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="wwwroot\icons\Shared\envelope-blue-oceans.svg">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Update="wwwroot\icons\Shared\Statuses\rejected.svg">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>rejected.cs</LastGenOutput>

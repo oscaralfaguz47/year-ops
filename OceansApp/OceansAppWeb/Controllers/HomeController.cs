@@ -4,6 +4,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Bonusly;
 using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData;
+using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.SharedMethods;
 using System.Security.Claims;
 
@@ -15,9 +16,11 @@ namespace OceansAppWeb.Controllers
 
     {
         private readonly IUnitOfWork _unitOfWork;
-        public HomeController(IUnitOfWork unitOfWork)
+        private readonly LazyServiceProvider<ISlackRepository> _slackRepository;
+        public HomeController(IUnitOfWork unitOfWork, LazyServiceProvider<ISlackRepository> slackRepository)
         {
             _unitOfWork = unitOfWork;
+            _slackRepository = slackRepository;
         }
         public IActionResult Index()
         {
@@ -298,6 +301,43 @@ namespace OceansAppWeb.Controllers
                 return Ok(new
                 {
                     activeProjectsInfo = activeProjectsInfo
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue." });
+            }
+        }
+
+        [HttpGet("GetActiveAdminUsers")]
+        public async Task<IActionResult> GetActiveAdminUsers()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
+                var activeTime = await _unitOfWork.ApplicationUser.GetUserActiveTimeAsync(userId);
+                var widgets = _unitOfWork.ApplicationUser.GetWidgetsForUser(userConsultant, User, activeTime);
+
+                //Validate valid access
+                if (!widgets.Any(widget => widget.WidgetName == WidgetsCD.GeneralConsultantAndAdmin))
+                {
+                    var errorResponse = new
+                    {
+                        error = "Forbidden",
+                        message = "You are not allowed to access the GetActiveAdminUsers method."
+                    };
+                    return new ObjectResult(errorResponse)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                }
+
+                var activeAdminUsers = await _unitOfWork.ApplicationUser.GetActiveUsersWhereCostCenter("50-01-00,10-02-04");
+
+                return Ok(new
+                {
+                    activeAdminUsers = activeAdminUsers
                 });
             }
             catch (Exception ex)

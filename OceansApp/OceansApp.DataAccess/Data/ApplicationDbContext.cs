@@ -130,6 +130,24 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(e => e.TwoFactorRequired)
                 .IsRequired()
                 .HasDefaultValue(true);
+                entity.Property(e => e.Id)
+                .HasColumnType("nvarchar(450)");
+                entity.Property(e => e.Name)
+                .HasColumnType("nvarchar(100)");
+                entity.Property(e => e.LastName)
+                .HasColumnType("nvarchar(150)");
+                entity.Property(e => e.Occupation)
+                .HasColumnType("nvarchar(100)");
+                entity.Property(e => e.UserName)
+                .HasColumnType("nvarchar(249)");
+                entity.Property(e => e.Email)
+                .HasColumnType("nvarchar(249)");
+                entity.Property(e => e.NormalizedUserName)
+                .HasColumnType("nvarchar(249)");
+                entity.Property(e => e.PhoneNumber)
+                .HasColumnType("nvarchar(100)");
+                entity.Property(e => e.OpaqueToken)
+                .HasColumnType("nvarchar(64)");
             });
 
             // APPLICATION USERS ACTIVE HISTORY
@@ -202,7 +220,8 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => new { e.EntityId, e.EntityType, e.CreationDate, e.BlobId });
                 entity.HasIndex(e => new { e.ContainerName, e.BlobName });
 
-                // Índices en fechas
+                entity.HasIndex(e => e.EntityId);
+                entity.HasIndex(e => e.ContainerName);
                 entity.HasIndex(e => e.BlobName);
                 entity.HasIndex(e => e.CreationDate);
 
@@ -456,7 +475,14 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("varchar(8)");
             });
 
-            //COST CENTER ACCOUNTING ACCOUNT
+            // COST CENTER
+            modelBuilder.Entity<CostCenter>(entity =>
+            {
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.CostCenterCode);
+            });
+
+            // COST CENTER ACCOUNTING ACCOUNT
             modelBuilder.Entity<CostCenterAccountingAccount>(entity =>
             {
                 entity.HasIndex(e => e.CostCenterId);
@@ -475,7 +501,7 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
             });
 
-            //CONSULTANT DETAILS 
+            // CONSULTANT DETAILS 
             modelBuilder.Entity<ConsultantDetail>(entity =>
             {
                 // Composite index
@@ -531,7 +557,7 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("date");
             });
 
-            //  CONSULTANT HOLIDAY
+            // CONSULTANT HOLIDAY
             modelBuilder.Entity<ConsultantHoliday>(entity =>
             {
                 entity.HasIndex(e => e.ConsultantHolidayId);
@@ -835,7 +861,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.LocalCredit);
             });
 
-            //PARTNERS
+            // PARTNERS
             modelBuilder.Entity<Partner>(entity =>
             {
                 entity.HasKey(x => new { x.PartnerId });
@@ -845,7 +871,7 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
             });
 
-            //PROJECTS
+            // PROJECTS
             modelBuilder.Entity<Project>(entity =>
             {
                 // Composite index
@@ -942,7 +968,7 @@ namespace OceansApp.DataAccess.Data
                .HasForeignKey(p => p.PartnerId);
             });
 
-            //PROJECTS CONSULTANTS PENDING SUBMISSIONS
+            // PROJECTS CONSULTANTS PENDING SUBMISSIONS
             modelBuilder.Entity<ProjectConsultantPendingSubmission>(entity =>
             {
                 entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.StartDate, e.EndDate })
@@ -971,7 +997,7 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
             });
 
-            //PROJECTS CONSULTANTS PENDING SUBMISSIONS SENT TIME
+            // PROJECTS CONSULTANTS PENDING SUBMISSIONS SENT TIME
             modelBuilder.Entity<ProjectConsultantPendingSubmissionSentTimes>(entity =>
             {
                 entity.HasIndex(e => new { e.StartDate, e.EndDate });

@@ -1,28 +1,25 @@
 ﻿//Profile Photo
-const uploadButton = getElementById('upload-button');
-const saveButton = getElementById('save-button');
-const fileInput = getElementById('profile-picture-input');
-const profileImage = getElementById('profile-picture-image');
-const messageElement = document.createElement('p'); 
+const uploadButton = document.getElementById('upload-button');
+const fileInput = document.getElementById('profile-picture-input');
+const profileImage = document.getElementById('profile-picture-image');
+const messageElement = document.createElement('p');
+
 messageElement.style.color = 'red';
 messageElement.style.display = 'none';
-uploadButton.insertAdjacentElement('afterend', messageElement); // Insert it just below the button
+uploadButton.insertAdjacentElement('afterend', messageElement); // Insert the message below the button
 
 // Variables to store the previously selected image and the saved image
 let previousImageSrc = profileImage.src;
 let savedImageSrc = profileImage.src; // New variable for the saved image
 
-// Initially hide the "Save" button
-saveButton.style.display = 'none';
-
-// When clicking the "Upload New Picture" button
+// Remove the "Save" button and automatically upload the image when selected
 uploadButton.addEventListener('click', function () {
     fileInput.click();
-    messageElement.style.display = 'none'; 
+    messageElement.style.display = 'none'; // Hide message on file picker click
 });
 
-// When the input changes (an image is selected or the picker is canceled)
-fileInput.addEventListener('change', function (event) {
+// When the input changes (an image is selected)
+fileInput.addEventListener('change', async function (event) {
     const file = event.target.files[0];
 
     if (file) {
@@ -30,79 +27,69 @@ fileInput.addEventListener('change', function (event) {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                // Only show the "Save" button if the image is different from the saved one
+                // Update the profile image preview
                 if (profileImage.src !== e.target.result && savedImageSrc !== e.target.result) {
                     profileImage.src = e.target.result;
-                    previousImageSrc = profileImage.src;
-                    saveButton.style.display = 'inline-block'; 
-                    saveButton.disabled = false; 
-                    messageElement.style.display = 'none'; 
+                    previousImageSrc = profileImage.src; // Update previous image
+
+                    // Automatically upload the image
+                    uploadProfileImage(file);
                 }
             };
             reader.readAsDataURL(file);
         } else {
             // If the file is not an image, show a warning message
-            saveButton.style.display = 'none'; 
             messageElement.textContent = 'Please select an image file (jpg, png, gif, etc.)';
-            messageElement.style.display = 'block'; 
+            messageElement.style.display = 'block'; // Show the error message
         }
     } else {
         // If canceled, keep the previously selected image
         profileImage.src = previousImageSrc;
-
-        // Keep the "Save" button visible and functional if an image was previously selected
-        if (previousImageSrc !== savedImageSrc) {
-            saveButton.style.display = 'inline-block';
-            saveButton.disabled = false; // Keep the "Save" button enabled if an image was already selected
-        }
     }
 });
 
-saveButton.addEventListener('click', async function () {
-    const file = fileInput.files[0]; // Only get the file if a new one is selected
+// Function to handle the image upload
+async function uploadProfileImage(file) {
+    const formData = new FormData();
+    formData.append('file', file); // Append the selected file
 
-    if (file) {
-        const formData = new FormData();
-        formData.append('file', file); // Append the selected file
+    const token = $('[name="__RequestVerificationToken"]').val(); // Get the anti-forgery token
+    displaySpinner(); // Show spinner during upload
 
-        const token = $('[name="__RequestVerificationToken"]').val();
-        displaySpinner();
-        try {
-            const response = await fetch('/Account/ChangeProfilePhoto', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'RequestVerificationToken': token
-                },
-                body: formData
-            });
+    try {
+        const response = await fetch('/Account/ChangeProfilePhoto', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: formData
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw {
-                    status: response.status,
-                    message: `${errorData.message}`
-                };
-            }
-
-            const data = await response.json();
-            saveButton.style.display = 'none';
-            saveButton.disabled = true;
-            savedImageSrc = profileImage.src;
-            displayToasterSuccess(data.message);
-            return data;
-
-        } catch (error) {
-            validateSessionExpiration(error.message, error.status);
-            console.error('Network or fetch error:', error);
-            return null;
-        } finally {
-            hideSpinner();
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw {
+                status: response.status,
+                message: `${errorData.message}`
+            };
         }
-    } else {
-        displayToasterError("Please select an image file before saving.");
+
+        const data = await response.json();
+        savedImageSrc = profileImage.src; // Update the saved image URL
+        displayToasterSuccess(data.message); // Show success message
+        return data;
+
+    } catch (error) {
+        validateSessionExpiration(error.message, error.status); // Handle session expiration
+        console.error('Network or fetch error:', error);
+        displayToasterError(error.message); // Show error message
+        return null;
+
+    } finally {
+        hideSpinner(); // Hide the spinner when the request completes
     }
-});
+}
+
 
 //Personal Info
 

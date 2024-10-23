@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Dapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
@@ -10,6 +11,7 @@ using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.ConstantData.Claims;
 using OceansApp.Utility.SharedMethods.Blobs;
+using System.Data;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
@@ -63,7 +65,6 @@ namespace OceansApp.DataAccess.Repository
             }
             return usersList;
         }
-
         public async Task<UserAndConsultantVM> GetUserAndConsultantAsync(string userId)
         {
             var result = await (from u in _db.AspNetUsers
@@ -234,7 +235,6 @@ namespace OceansApp.DataAccess.Repository
 
             return (totalYears, totalMonths, totalDays);
         }
-
         private void AddExactActivePeriod(DateTime start, DateTime end, ref int totalYears, ref int totalMonths, ref int totalDays)
         {
             int years = 0, months = 0, days = 0;
@@ -269,7 +269,6 @@ namespace OceansApp.DataAccess.Repository
                 totalMonths %= 12;
             }
         }
-
         public async Task<ImageBlob> VerifyIfUploadedFileAsync(IFormFile file, string entityId, string containerName, string entityType)
         {
             CalculateContentHash calculateHash = new CalculateContentHash();
@@ -280,6 +279,18 @@ namespace OceansApp.DataAccess.Repository
             && x.EntityId == entityId && x.ContainerName == containerName && x.EntityType == entityType);
 
             return existingFile;
+        }
+
+        public async Task<List<ActiveUserWhereCostCenterVM>> GetActiveUsersWhereCostCenter(string costCenterCodes)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@CostCenterCodes", costCenterCodes, DbType.String);
+
+            var results = await connection.QueryAsync<ActiveUserWhereCostCenterVM>("SP_Users_GetActiveUsersWhereCostCenter", parameters, commandType: CommandType.StoredProcedure);
+
+            return (results.ToList());
         }
     }
 }

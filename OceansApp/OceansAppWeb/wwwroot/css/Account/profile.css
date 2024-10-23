@@ -1,8 +1,16 @@
 ﻿
+.my-account-container {
+    background-color: rgb(155, 168, 184, 0.5);
+    border-radius: 20px;
+    padding: 20px;
+}
 h2.section-heading {
     font-size: 1.8rem;
-    color: #2c3e50;
     margin-bottom: 30px;
+    color: #2c3e50;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3), 4px 4px 10px rgba(0, 0, 0, 0.1); /* Elegant shadow effect */
+    letter-spacing: 1px; /* Slight letter spacing for better readability */
+    font-weight: bold;
 }
 
 /* Form container */

@@ -93,9 +93,9 @@ namespace OceansAppWeb.Account.Controllers
             ValidateInputs validateInputs = new();
 
             validateInputs.ValidateRequiredFieldAnyValue("Id", "UserId", model.Id, ModelState);
-            validateInputs.ValidateNotRequiredAndStringLength("Name", "Name", model.Name, 450, ModelState);
-            validateInputs.ValidateNotRequiredAndStringLength("LastName", "Last Name", model.Name, 450, ModelState);
-            validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", model.PhoneNumber, 450, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("Name", "Name", model.Name, 100, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("LastName", "Last Name", model.LastName, 150, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", model.PhoneNumber, 100, ModelState);
             validateInputs.ValidateNotRequiredAndStringLength("Occupation", "Occupation", model.Occupation, 100, ModelState);
 
             if (!ModelState.IsValid)

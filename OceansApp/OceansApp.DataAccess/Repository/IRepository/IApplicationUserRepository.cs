@@ -20,5 +20,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
             (int Years, int Months, int Days)? activeTime);
         Task<(int Years, int Months, int Days)> GetUserActiveTimeAsync(string userId);
         Task<ImageBlob> VerifyIfUploadedFileAsync(IFormFile file, string entityId, string containerName, string entityType);
+        Task<List<ActiveUserWhereCostCenterVM>> GetActiveUsersWhereCostCenter(string costCenterCodes);
     }
 }

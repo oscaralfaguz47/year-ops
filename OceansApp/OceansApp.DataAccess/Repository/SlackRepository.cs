@@ -61,9 +61,10 @@ namespace OceansApp.DataAccess.Repository
 
             if (!userResponse.ok)
             {
-                throw new Exception("Error al encontrar el usuario en Slack: " + userResponse.error);
+                throw new Exception("Error finding user in Slack: " + userResponse.error);
             }
             return userResponse.user.id;
         }
+
     }
 }
