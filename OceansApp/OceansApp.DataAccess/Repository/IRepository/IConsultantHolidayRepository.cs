@@ -1,6 +1,7 @@
 ﻿
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ConsultantHolidays;
 using OceansApp.Models.ViewModels.Holidays;
 using System.Linq.Expressions;
 
@@ -16,5 +17,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> DeleteHolidaysList(int holidaysListId);
         Task<List<ConsultantHolidayDate>?> GetHolidaysDatesWhereConsultantInPeriodAsync(
      DateTime startDate, DateTime endDate, int? consultantHolidayId);
+        Task<List<GetHolidaysNameAndDateVM>> GetHolidaysByConsultantAsync(int consultantId);
     }
 }

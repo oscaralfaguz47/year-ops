@@ -1,12 +1,13 @@
-﻿#dashboardContainer{
+﻿#dashboardContainer {
     padding: 40px;
+    font-family: 'Montserrat', sans-serif;
 }
 .widgets-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
     border-radius: 8px;
-    margin-top: 25px;
+    margin-top: 20px;
     justify-content: center;
 }
 
@@ -27,7 +28,7 @@
 
 .card {
     background-color: #ffffff;
-    border-radius: 10px;
+    border-radius: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     flex-grow: 1;
     display: flex;
@@ -38,12 +39,13 @@
 }
     .card .card-title {
         font-weight: 900;
-        font-size: 1rem;
+        font-size: 1.15rem;
         font-weight: bold;
         border-bottom: 1px solid #ddd;
-        padding-bottom: 5px;
+        padding-bottom: 10px;
         display: flex;
         align-items: end;
+        text-align: left;
     }
     .card .card-title label {
         display: flex;
@@ -88,5 +90,8 @@
     }
     #dashboardContainer {
         padding: 15px;
+    }
+    .card .card-title {
+        font-size: 0.95rem;
     }
 }

@@ -345,6 +345,43 @@ namespace OceansAppWeb.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue." });
             }
         }
+
+        [HttpGet("GetConsultantHolidays")]
+        public async Task<IActionResult> GetConsultantHolidays()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
+                var activeTime = await _unitOfWork.ApplicationUser.GetUserActiveTimeAsync(userId);
+                var widgets = _unitOfWork.ApplicationUser.GetWidgetsForUser(userConsultant, User, activeTime);
+
+                //Validate valid access
+                if (!widgets.Any(widget => widget.WidgetName == WidgetsCD.GeneralConsultantAndAdmin))
+                {
+                    var errorResponse = new
+                    {
+                        error = "Forbidden",
+                        message = "You are not allowed to access the GetActiveAdminUsers method."
+                    };
+                    return new ObjectResult(errorResponse)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                }
+
+                var holidaysList = await _unitOfWork.ConsultantHoliday.GetHolidaysByConsultantAsync(userConsultant.ConsultantId);
+
+                return Ok(new
+                {
+                    holidaysList = holidaysList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue." });
+            }
+        }
         public IActionResult Error()
         {
             return View("Error");

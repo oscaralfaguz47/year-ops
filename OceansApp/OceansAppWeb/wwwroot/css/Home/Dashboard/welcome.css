@@ -21,6 +21,7 @@
     height: -webkit-fill-available;
     display:flex;
     align-items:center;
+    justify-content:center;
 }
 .card-error {
     height: -webkit-fill-available;
