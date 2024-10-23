@@ -7,7 +7,6 @@ function getBalanceProgramInfo() {
         balanceProgramTitle.innerHTML = '<img src="/icons/Shared/hands-holding-circle.svg"> Your remaining Balance Program is...';
         firstCardBPContent.style.justifyContent = 'center';
         firstCardBPContent.style.overflowY = 'hidden';
-        const firstCardBP = balanceProgramCont.closest('.card');
         balanceProgramCont.innerHTML = loadingISpinner();
         const url = `/GetBalanceProgramInfo`;
         try {

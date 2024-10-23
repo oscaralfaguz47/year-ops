@@ -46,6 +46,3 @@ function formatDateMonthDateSuffix(date) {
     return `${month} ${day}${getDaySuffix(day)}`;
 }
 
-// Ejemplo de uso:
-const date = new Date('2024-12-25');
-console.log(formatDate(date));  // Output: "Dec 25th"

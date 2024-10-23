@@ -42,11 +42,12 @@
     justify-content: space-between;
     color: var(--clr-grayDark);
     font-size: 1rem;
+    align-items:center;
     font-weight: bold;
     margin: 4px 0;
 }
     .request-row .date-lb{
-        width: 100px;
+        width: 105px;
     }
 
     .request-row .amount-lb {

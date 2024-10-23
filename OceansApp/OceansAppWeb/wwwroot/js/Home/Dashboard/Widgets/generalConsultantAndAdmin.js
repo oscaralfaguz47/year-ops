@@ -134,6 +134,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Active Admin Users
     getActiveAdminUsers()
         .then(data => {
+            firstCardAUContent.style.justifyContent = 'left';
+            firstCardAUContent.style.display = 'block';
             adminTeamSection.innerHTML = '';
             let dataItems = data.activeAdminUsers;
             if (dataItems.length > 0) {
