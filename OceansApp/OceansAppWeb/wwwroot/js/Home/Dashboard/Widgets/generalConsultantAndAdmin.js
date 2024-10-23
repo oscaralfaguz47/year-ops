@@ -139,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (dataItems.length > 0) {
                 let areaName = '';
                 dataItems.forEach(function (obj, index) {
-                    console.log(areaName +" - "+ obj.areaName);
                     if (areaName !== obj.areaName) {
                         const adminPersonTitle = document.createElement('label');
                         adminPersonTitle.className = 'subtitles';
