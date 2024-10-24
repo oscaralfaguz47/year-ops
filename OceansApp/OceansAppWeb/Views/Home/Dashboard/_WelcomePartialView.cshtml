@@ -5,14 +5,36 @@
 
 <div id="welcomeCont">
     <div class="consName">
-        <label>Welcome, <span> @Model.ConsultantName</span></label>
+        <label>Welcome, <span>@Model.ConsultantName</span></label>
     </div>
     @if (@Model.ActiveTime != null)
     {
         <div id="timeInCompany">
-            <p>You have been with us for <span>@Model.ActiveTime.Years years</span>, <span>@Model.ActiveTime.Months months</span>, and <span>@Model.ActiveTime.Days days</span>!</p>
+            <p>
+                You have been with us for
+                @if (@Model.ActiveTime.Years > 0)
+                {
+                    <span>@Model.ActiveTime.Years @(Model.ActiveTime.Years == 1 ? "year" : "years")</span>
+                    @if (@Model.ActiveTime.Months > 0 || @Model.ActiveTime.Days > 0)
+                    {
+                        <label style="margin-left:-5px">,</label>
+                    }
+                }
+                @if (@Model.ActiveTime.Months > 0)
+                {
+                    <span>@Model.ActiveTime.Months @(Model.ActiveTime.Months == 1 ? "month" : "months")</span>
+                }
+                @if ((@Model.ActiveTime.Years > 0 || @Model.ActiveTime.Months > 0) && @Model.ActiveTime.Days > 0)
+                {
+                    <label> and </label>
+                }
+                <span>@Model.ActiveTime.Days @(Model.ActiveTime.Days == 1 ? "day" : "days")</span>!
+            </p>
         </div>
     }
 </div>
+
+
+
 
 <script src="~/js/Home/Dashboard/welcome.js?v=@DateTime.Now.Ticks"></script>

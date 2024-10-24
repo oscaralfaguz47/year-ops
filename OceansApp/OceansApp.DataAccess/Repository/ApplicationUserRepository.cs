@@ -197,10 +197,17 @@ namespace OceansApp.DataAccess.Repository
                         select history;
 
             var activeHistoryMovements = await query.ToListAsync();
+
+            if (activeHistoryMovements == null || !activeHistoryMovements.Any())
+            {
+                return (0, 0, 0); // Si no hay movimientos, retornar 0.
+            }
+
             var calculatedTime = CalculateExactActiveTime(activeHistoryMovements);
 
             return calculatedTime;
         }
+
         private (int Years, int Months, int Days) CalculateExactActiveTime(List<ApplicationUserActiveHistory> activeHistoryMovements)
         {
             int totalYears = 0;
@@ -228,47 +235,61 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
 
+            // Si el usuario sigue activo, calcula el tiempo hasta el momento actual (UTC)
             if (activationDate != null)
             {
-                AddExactActivePeriod(activationDate.Value, DateTime.Now, ref totalYears, ref totalMonths, ref totalDays);
+                AddExactActivePeriod(activationDate.Value, DateTime.UtcNow, ref totalYears, ref totalMonths, ref totalDays);
             }
 
             return (totalYears, totalMonths, totalDays);
         }
+
         private void AddExactActivePeriod(DateTime start, DateTime end, ref int totalYears, ref int totalMonths, ref int totalDays)
         {
+            // Las fechas ya no tienen hora, trabajamos solo con "YYYY-MM-DD"
+            // Asegurarse de que solo las fechas se comparen
             int years = 0, months = 0, days = 0;
 
+            // Calcular años completos
             while (start.AddYears(1) <= end)
             {
                 years++;
                 start = start.AddYears(1);
             }
 
+            // Calcular meses completos
             while (start.AddMonths(1) <= end)
             {
                 months++;
                 start = start.AddMonths(1);
             }
 
+            // Calcular los días restantes entre las dos fechas
             days = (end - start).Days;
 
             totalYears += years;
             totalMonths += months;
             totalDays += days;
 
-            if (totalDays >= DateTime.DaysInMonth(end.Year, (start.Month % 12) + 1))
+            // Si los días exceden los días en el mes de la fecha final
+            int daysInMonth = DateTime.DaysInMonth(start.Year, start.Month);
+            if (totalDays >= daysInMonth)
             {
-                totalMonths += totalDays / DateTime.DaysInMonth(end.Year, (start.Month % 12) + 1);
-                totalDays %= DateTime.DaysInMonth(end.Year, (start.Month % 12) + 1);
+                totalMonths += totalDays / daysInMonth;
+                totalDays %= daysInMonth;
             }
 
+            // Si los meses acumulados exceden 12, convertir a años
             if (totalMonths >= 12)
             {
                 totalYears += totalMonths / 12;
                 totalMonths %= 12;
             }
         }
+
+
+
+
         public async Task<ImageBlob> VerifyIfUploadedFileAsync(IFormFile file, string entityId, string containerName, string entityType)
         {
             CalculateContentHash calculateHash = new CalculateContentHash();
