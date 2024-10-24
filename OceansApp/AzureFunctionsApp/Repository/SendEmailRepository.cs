@@ -40,6 +40,7 @@ namespace AzureFunctionsApp.Repository
             }
         }
 
+
         public async Task<string?> SendEmail(SendEmailVM emailModel)
         {
             await InitializeAsync();
@@ -64,9 +65,9 @@ namespace AzureFunctionsApp.Repository
             int retryCount = 3;
             for (int i = 0; i < retryCount; i++)
             {
-                try
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
                 {
-                    using (var client = new MailKit.Net.Smtp.SmtpClient())
+                    try
                     {
                         var smtpHost = "smtp.office365.com";
                         var smtpPort = 587;
@@ -74,21 +75,27 @@ namespace AzureFunctionsApp.Repository
                         await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
                         await client.AuthenticateAsync(_emailFrom, _emailFromPassword);
                         await client.SendAsync(message);
-                        await client.DisconnectAsync(true);
-
                         _telemetryClient.TrackTrace($"Email sent to {emailModel.EmailTo}");
-                        return null;
                     }
-                }
-                catch (Exception ex)
-                {
-                    _telemetryClient.TrackException(ex);
-                    if (i == retryCount - 1)
+                    catch (Exception ex)
                     {
-                        return $"Failed to send email after {retryCount} attempts: {ex.Message}";
+                        _telemetryClient.TrackException(ex);
+                        if (i == retryCount - 1)
+                        {
+                            return $"Failed to send email after {retryCount} attempts: {ex.Message}";
+                        }
+                        await Task.Delay(2000);
                     }
-                    await Task.Delay(2000); // Espera antes de reintentar
+                    finally
+                    {
+                        if (client.IsConnected)
+                        {
+                            await client.DisconnectAsync(true);
+                        }
+                        client.Dispose();
+                    }
                 }
+
             }
 
             return null;
