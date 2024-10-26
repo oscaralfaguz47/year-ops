@@ -37,45 +37,56 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
+// Get the current environment (Development, Production, etc.)
 var environment = builder.Environment.EnvironmentName;
 
 // App Configuration connection string for accessing secrets from Key Vault
-var appConfigConnectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("AppConfigConnectionString"));
+// Ensure the environment variable "AppConfigConnectionString" is correctly set.
+var appConfigConnectionString = Environment.GetEnvironmentVariable("AppConfigConnectionString");
 
-builder.Configuration.AddAzureAppConfiguration(options =>
+if (!string.IsNullOrEmpty(appConfigConnectionString))
 {
-    options.Connect(appConfigConnectionString)
-           .ConfigureKeyVault(kv =>
-           {
-               kv.SetCredential(new DefaultAzureCredential());
-           });
-
-    options.Select(KeyFilter.Any, LabelFilter.Null)
-    .ConfigureRefresh(refreshOptions =>
+    // Configure Azure App Configuration with connection to Key Vault
+    builder.Configuration.AddAzureAppConfiguration(options =>
     {
-        //reload all configuration in real time
-        refreshOptions.Register("AppSettings:RefreshTrigger", refreshAll: true)
-                      .SetCacheExpiration(TimeSpan.FromSeconds(30)); 
+        options.Connect(appConfigConnectionString)
+               .ConfigureKeyVault(kv =>
+               {
+                   kv.SetCredential(new DefaultAzureCredential()); // Use managed identity for authentication
+               });
+
+        // Select all keys and configure real-time refresh
+        options.Select(KeyFilter.Any, LabelFilter.Null)
+               .ConfigureRefresh(refreshOptions =>
+               {
+                   // Use a key "AppSettings:RefreshTrigger" to trigger real-time updates
+                   refreshOptions.Register("AppSettings:RefreshTrigger", refreshAll: true)
+                                 .SetCacheExpiration(TimeSpan.FromSeconds(30));
+               });
     });
-});
-
-
-// Retrieve the database connection string from Azure App Configuration or environment variable in Development
-string connectionString;
-if (environment == "Development") // Local
+}
+else
 {
-    // Try to get the DatabaseConnectionString from App Configuration (Key Vault via App Configuration)
-    connectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("DefaultConnection"));
+    Console.WriteLine("App Configuration connection string is missing or not set in environment variables.");
+}
 
-    // Fall back to local environment variable if not set in App Configuration
+// Retrieve the database connection string depending on the environment
+string connectionString;
+
+if (environment == "Development") // For local environment
+{
+    // Try to get the DatabaseConnectionString from environment variables in local
+    connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
+
+    // Fallback to a local connection string from appsettings if not set in environment variables
     if (string.IsNullOrEmpty(connectionString))
     {
-        connectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("DefaultConnection"));
+        connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     }
 }
 else
 {
-    // For Production/Demo, always use the connection string from App Configuration
+    // For Production/Demo, always use the connection string from Azure App Configuration
     connectionString = builder.Configuration["DbConnectionString"];
 }
 
@@ -86,6 +97,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Register DatabaseService if needed
 builder.Services.AddTransient<DatabaseService>(provider =>
     new DatabaseService(connectionString));
+
 
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
