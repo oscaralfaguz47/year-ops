@@ -55,7 +55,7 @@ builder.Configuration.AddAzureAppConfiguration(options =>
     {
         //reload all configuration in real time
         refreshOptions.Register("AppSettings:RefreshTrigger", refreshAll: true)
-                      .SetCacheExpiration(TimeSpan.FromSeconds(30));
+                      .SetCacheExpiration(TimeSpan.FromSeconds(30)); 
     });
 });
 
