@@ -16,7 +16,7 @@ namespace OceansApp.DataAccess.Repository
         {
             _httpClient = httpClient;
             _config = config;
-            _apiKey = Environment.GetEnvironmentVariable(_config["BonuslyApi:ApiKey"]);
+            _apiKey = _config["BonuslyApiKey"];
             
         }
 

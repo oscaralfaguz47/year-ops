@@ -11,7 +11,7 @@ namespace OceansApp.DataAccess.Repository
         public SlackRepository(IConfiguration config)
         {
             _config = config;
-            _token = Environment.GetEnvironmentVariable(_config["Slack:TokenAccountingApp"]);
+            _token = _config["SlackTokenAccountingAppENV"];
         }
         public async Task SendMessageToChannelAsync(string channelId, string message)
         {

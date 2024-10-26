@@ -4,7 +4,6 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Bonusly;
 using OceansApp.Models.ViewModels.Dashboard;
 using OceansApp.Utility.ConstantData;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.SharedMethods;
 using System.Security.Claims;
 
@@ -16,11 +15,9 @@ namespace OceansAppWeb.Controllers
 
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly LazyServiceProvider<ISlackRepository> _slackRepository;
-        public HomeController(IUnitOfWork unitOfWork, LazyServiceProvider<ISlackRepository> slackRepository)
+        public HomeController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _slackRepository = slackRepository;
         }
         public IActionResult Index()
         {

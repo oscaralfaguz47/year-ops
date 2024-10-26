@@ -14,7 +14,6 @@ using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Models.ViewModels.ProjecConsultantPendingSubmission;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
@@ -33,9 +32,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly TelemetryClient _telemetryClient;
-        private readonly LazyServiceProvider<QueueClient> _queueClient;
+        private readonly Lazy<QueueClient> _queueClient;
         public PaymentSheetsController(IUnitOfWork unitOrWork, IConfiguration config,
-            TelemetryClient telemetryClient, LazyServiceProvider<QueueClient> queueClient)
+            TelemetryClient telemetryClient, Lazy<QueueClient> queueClient)
         {
             _unitOfWork = unitOrWork;
             _config = config;
@@ -912,8 +911,8 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
             return new SendEmailVM
             {
-                Subject = "YOU HAVE PENDING SUBMISSIONS FOR PAYMENT - RIPPLY BY OCEANS",
-                SharedEmailFrom = Environment.GetEnvironmentVariable(_config["InternalEmail_ENV"]),
+                Subject = "YOU HAVE PENDING SUBMISSIONS FOR PAYMENT - RIPPLE BY OCEANS",
+                SharedEmailFrom = _config["InternalEmailENV"],
                 EmailTo = consultantEmail.Trim(),
                 Body = templateEmail
             };

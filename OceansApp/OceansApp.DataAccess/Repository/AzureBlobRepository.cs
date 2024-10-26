@@ -21,8 +21,8 @@ namespace OceansApp.DataAccess.Repository
         public AzureBlobRepository(IConfiguration config)
         {
             _config = config;
-            _blobServiceClient = new BlobServiceClient(Environment.GetEnvironmentVariable(_config["AzureBlobStorage:ConnectionString"]));
-            _accountKey = Environment.GetEnvironmentVariable(_config["AzureBlobStorage:AccountKey"]);
+            _blobServiceClient = new BlobServiceClient(_config["FilesStorageAccountENV"]);
+            _accountKey = _config["FileStorageAccountKeyENV"];
         }
 
         public async Task<List<BlobUploadResult>> UploadFilesAsync(string containerId, List<IFormFile> files, string? elementId, int validDays)

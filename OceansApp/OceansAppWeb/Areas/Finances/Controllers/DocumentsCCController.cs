@@ -21,11 +21,11 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     public class DocumentsCCController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly LazyServiceProvider<QueueClient> _queueClient;
+        private readonly Lazy<QueueClient> _queueClient;
         private readonly IConfiguration _config;
-        private readonly LazyServiceProvider<ISlackRepository> _slackRepository;
-        public DocumentsCCController(IUnitOfWork unitOrWork, LazyServiceProvider<QueueClient> queueClient, IConfiguration config,
-            LazyServiceProvider<ISlackRepository> slackRepository)
+        private readonly Lazy<ISlackRepository> _slackRepository;
+        public DocumentsCCController(IUnitOfWork unitOrWork, Lazy<QueueClient> queueClient, IConfiguration config,
+            Lazy<ISlackRepository> slackRepository)
         {
             _unitOfWork = unitOrWork;
             _queueClient = queueClient;
@@ -183,7 +183,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     slackSenderId = emailSlackSender;
                 }
-                string slackChannelId = _config["Slack:SuccessManagerChannel"];
+                string slackChannelId = _config["SuccessManagerChannel"];
                 var notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
                 if (notificationStatus == null)
                 {
@@ -303,7 +303,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var notificationType = await _unitOfWork.NotificationType.GetFirstOrDefaultAsync(x => x.Name == "Cuentas por cobrar");
                 var notificationMediaEmail = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Email");
                 var notificationMediaSlack = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Slack");
-                var slackChannelId = _config["Slack:SuccessManagerChannel"];
+                var slackChannelId = _config["SuccessManagerChannel"];
                 var returnSuccessMessage = "¡Bien, le acabas de enviar un recordatorio de pago a: " + client.Name + " por email y una notifiación a los Success Managers al canal de Slack!";
 
                 if (documentCC == null || client == null || notificationType == null || notificationMediaEmail == null
@@ -393,7 +393,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var notificationEmail = new Notification();
                 notificationEmail.NotificationTypeId = notificationType.NotificationTypeId;
                 notificationEmail.Subject = subjectEmail;
-                notificationEmail.Remitent = Environment.GetEnvironmentVariable(_config["internalEmail"]);
+                notificationEmail.Remitent = _config["InternalEmailENV"];
                 notificationEmail.SentDate = costaRicaTime;
                 notificationEmail.SentByUser = claim.Value;
 
@@ -566,7 +566,7 @@ emailsCCString;
                     var emailToSend = new SendEmailVM();
                     emailToSend.Subject = subjectEmail;
                     emailToSend.EmailTo = emailTo;
-                    emailToSend.SharedEmailFrom = Environment.GetEnvironmentVariable(_config["internalEmail"]);
+                    emailToSend.SharedEmailFrom = _config["InternalEmailENV"];
                     emailToSend.EmailCcList = emailsCCAfterRemoveDuplicates;
                     emailToSend.Body = emailBody;
 

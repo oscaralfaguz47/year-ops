@@ -16,7 +16,7 @@ var host = new HostBuilder()
 
         services.AddSingleton<ISendEmailRepository, SendEmailRepository>();
 
-        string keyVaultUri = Environment.GetEnvironmentVariable("AzureKeyVaultUri");
+        string keyVaultUri = Environment.GetEnvironmentVariable("AzureFunctionAppKeyVaultUri");
         if (!string.IsNullOrEmpty(keyVaultUri))
         {
             services.AddSingleton(new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential()));

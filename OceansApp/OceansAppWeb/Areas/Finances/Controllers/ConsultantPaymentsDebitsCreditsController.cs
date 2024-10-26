@@ -18,11 +18,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
     public class ConsultantPaymentsDebitsCreditsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _config;
-        public ConsultantPaymentsDebitsCreditsController(IUnitOfWork unitOrWork, IConfiguration config)
+        public ConsultantPaymentsDebitsCreditsController(IUnitOfWork unitOrWork)
         {
             _unitOfWork = unitOrWork;
-            _config = config;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]

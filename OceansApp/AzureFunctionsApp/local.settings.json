@@ -3,7 +3,7 @@
   "Values": {
     "AzureWebJobsStorage": "%AzureWebJobsStorage%",
     "DefaultConnection": "DefaultConnection",
-    "AzureKeyVaultUri": "AzureKeyVaultUri",
+    "AzureFunctionAppKeyVaultUri": "AzureFunctionAppKeyVaultUri",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
   }
 }

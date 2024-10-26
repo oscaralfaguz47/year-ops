@@ -9,14 +9,13 @@ using Microsoft.AspNetCore.Http.Features;
 using OceansApp.Utility.Configuration;
 using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility;
-using OceansApp.DataAccess.BackgroundServices;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using OceansApp.DataAccess;
 using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +25,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "OCEANS APP API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "RIPPLE API", Version = "v1" });
     c.CustomOperationIds(apiDesc =>
     {
         return apiDesc.TryGetMethodInfo(out MethodInfo methodInfo) ? methodInfo.Name : null;
@@ -37,11 +36,58 @@ builder.Services.AddSwaggerGen(c =>
 
 
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+
+var environment = builder.Environment.EnvironmentName;
+
+// App Configuration connection string for accessing secrets from Key Vault
+var appConfigConnectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("AppConfigConnectionString"));
+
+builder.Configuration.AddAzureAppConfiguration(options =>
+{
+    options.Connect(appConfigConnectionString)
+           .ConfigureKeyVault(kv =>
+           {
+               kv.SetCredential(new DefaultAzureCredential());
+           });
+
+    options.Select(KeyFilter.Any, LabelFilter.Null)
+    .ConfigureRefresh(refreshOptions =>
+    {
+        //reload all configuration in real time
+        refreshOptions.Register("AppSettings:RefreshTrigger", refreshAll: true)
+                      .SetCacheExpiration(TimeSpan.FromSeconds(30));
+    });
+});
+
+
+// Retrieve the database connection string from Azure App Configuration or environment variable in Development
 string connectionString;
+if (environment == "Development") // Local
+{
+    // Try to get the DatabaseConnectionString from App Configuration (Key Vault via App Configuration)
+    connectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("DefaultConnection"));
 
-connectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("DefaultConnection"));
+    // Fall back to local environment variable if not set in App Configuration
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = Environment.GetEnvironmentVariable(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+}
+else
+{
+    // For Production/Demo, always use the connection string from App Configuration
+    connectionString = builder.Configuration["DbConnectionString"];
+}
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+// Configure DbContext for all environments (Development, Production, and Demo)
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// Register DatabaseService if needed
+builder.Services.AddTransient<DatabaseService>(provider =>
+    new DatabaseService(connectionString));
+
+
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
@@ -52,24 +98,16 @@ AuthorizationConfig.ConfigurePolicies(builder.Services);
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<ISlackRepository, SlackRepository>();
-builder.Services.AddScoped(typeof(LazyServiceProvider<ISlackRepository>)); //Lazy Loading
 builder.Services.AddScoped<IAzureBlobRepository, AzureBlobRepository>();
-builder.Services.AddScoped(typeof(LazyServiceProvider<IAzureBlobRepository>)); //Lazy Loading
 builder.Services.AddScoped<IProjectConsultantAssignedHistoryRepository, ProjectConsultantAssignedHistoryRepository>();
 
 // Lazy loading configuration for scoped services
-builder.Services.AddScoped(typeof(LazyServiceProvider<>));
-
-builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-builder.Services.AddHostedService<BackgroundTaskService>();
+builder.Services.AddScoped(typeof(Lazy<>), typeof(LazyServiceProvider<>));
 
 // Configuring QueueClient for Azure Queue Storage
 string queueConnectionString = builder.Configuration["AzureWebJobsStorage"];
 builder.Services.AddSingleton(_ => new QueueClient(queueConnectionString, "emailqueue"));
-builder.Services.AddSingleton(typeof(LazyServiceProvider<>), typeof(LazyServiceProvider<>));
 
-// Configuration for Azure Key Vault
-builder.Services.AddSingleton(new SecretClient(new Uri(builder.Configuration["AzureKeyVaultUri"]), new DefaultAzureCredential()));
 
 builder.Services.Configure<IdentityOptions>(opt =>
 {
@@ -133,12 +171,9 @@ builder.Services.AddHttpClient<BonuslyRepository>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
-    
+
 });
 
-// Add DatabaseService
-builder.Services.AddTransient<DatabaseService>(provider =>
-    new DatabaseService(connectionString));
 
 // Background services
 //builder.Services.AddHostedService<EveryOneDayServices>();
@@ -159,7 +194,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OCEANS APP API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RIPPLE API v1"));
 
 app.UseHttpsRedirection();
 app.UseRouting();

@@ -1,5 +1,4 @@
 ﻿using Azure.Storage.Queues;
-using AzureFunctionsApp.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -32,11 +31,10 @@ namespace OceansAppWeb.Areas.General.Controllers
         private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly IMemoryCache _cache;
-        private readonly LazyServiceProvider<QueueClient> _queueClient;
+        private readonly Lazy<QueueClient> _queueClient;
         public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager, 
-            IAuthorizationService authorizationService, IMemoryCache cache, LazyServiceProvider<QueueClient> queueClient)
+            IAuthorizationService authorizationService, IMemoryCache cache, Lazy<QueueClient> queueClient)
         {
             _unitOfWork = unitOrWork;
             _config = config;
@@ -310,17 +308,6 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 // Prepare email content
                 var emailToSend = PrepareEmailContent(callbackUrl, consultantName.Trim(), consultantEmail.Trim());
-                var emailNotification = await CreateNotification(emailToSend, userActionedBy);
-
-                // Check if notification was successfully created
-                if (emailNotification == null || emailNotification.NotificationId <= 0)
-                {
-                    return new MethodResponse { Success = false, Message = "Failed to create notification." };
-                }
-                else
-                {
-                    emailToSend.NotificationId = emailNotification.NotificationId;
-                }
 
                 // Queue background task to send email and update notification status
                 await QueueEmailSendingTask(emailToSend);
@@ -342,47 +329,10 @@ namespace OceansAppWeb.Areas.General.Controllers
             return new SendEmailVM
             {
                 Subject = "Create your account - Oceans App",
-                SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]),
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 EmailTo = consultantEmail.Trim(),
                 Body = templateEmail
             };
-        }
-
-        private async Task<Notification> CreateNotification(SendEmailVM emailToSend, string userActionedBy)
-        {
-            var notificatinType = await _unitOfWork.NotificationType.GetFirstOrDefaultAsync(x => x.Name == "Create new Consultant");
-
-            if (notificatinType == null)
-            {
-                throw new InvalidOperationException("Notification type 'Create new Consultant' not found.");
-            }
-
-            var emailNotification = new Notification
-            {
-                NotificationTypeId = notificatinType.NotificationTypeId,
-                Body = emailToSend.Body,
-                Subject = emailToSend.Subject,
-                Remitent = emailToSend.SharedEmailFrom,
-                SentDate = DateTime.UtcNow,
-                SentByUser = userActionedBy
-            };
-            await _unitOfWork.Notification.AddAsync(emailNotification);
-            await _unitOfWork.SaveAsync();
-            var notificationMedia = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Email");
-            var recipientUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Email == emailToSend.EmailTo);
-            var notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviando");
-            var notificationRecipient = new NotificationRecipient()
-            {
-                RecipientMediaInfo = emailToSend.EmailTo,
-                NotificationId = emailNotification.NotificationId,
-                NotificationMediaId = notificationMedia.NotificationMediaId,
-                NotificationStatusId = notificationStatus.NotificationStatusId,
-                RecipientUserId = recipientUser?.Id
-            };
-            await _unitOfWork.NotificationRecipient.AddAsync(notificationRecipient);
-            await _unitOfWork.SaveAsync();
-
-            return emailNotification;
         }
 
         private async Task QueueEmailSendingTask(SendEmailVM emailToSend)

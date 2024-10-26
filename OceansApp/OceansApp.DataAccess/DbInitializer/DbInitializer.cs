@@ -95,16 +95,16 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 if (!await _roleManager.RoleExistsAsync(SD.Role_User_Master))
                 {
-                    var masterUserEmail = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]);
-                    var masterUserPass = Environment.GetEnvironmentVariable(_config["MasterUserPass_ENV"]);
+                    var masterUserEmail = _config["MasterUserEmailENV"];
+                    var masterUserPass = _config["MasterUserPassENV"];
 
                     // If Roles are not created, then we will create Master user as well
                     var user = new ApplicationUser
                     {
                         UserName = masterUserEmail,
                         Email = masterUserEmail,
-                        Name = _config["MasterUserName"],
-                        LastName = _config["MasterUserLastName"],
+                        Name = _config["MasterUserNameEnv"],
+                        LastName = _config["MasterUserLastNameEnv"],
                         IsActive = true,
                         DeactivationDate = null
                     };

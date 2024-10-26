@@ -12,7 +12,6 @@ using OceansApp.Models.ViewModels.Account;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
@@ -32,14 +31,14 @@ namespace OceansAppWeb.Account.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _config;
-        private readonly LazyServiceProvider<QueueClient> _queueClient;
+        private readonly Lazy<QueueClient> _queueClient;
         private readonly IMemoryCache _cache;
-        private readonly LazyServiceProvider<IAzureBlobRepository> _azureBlobRepository;
+        private readonly Lazy<IAzureBlobRepository> _azureBlobRepository;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
             IHttpContextAccessor httpContextAccessor, IConfiguration config,
-            IMemoryCache cache, LazyServiceProvider<QueueClient> queueClient, LazyServiceProvider<IAzureBlobRepository> azureBlobRepository)
+            IMemoryCache cache, Lazy<QueueClient> queueClient, Lazy<IAzureBlobRepository> azureBlobRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -290,7 +289,7 @@ namespace OceansAppWeb.Account.Controllers
                             Subject = "Create your account - Oceans App",
                             EmailTo = user.Email.Trim(),
                             Body = templateEmail,
-                            SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
+                            SharedEmailFrom = _config["SharedMailboxEmailRippleApp"]
                         };
 
                         try
@@ -449,7 +448,7 @@ namespace OceansAppWeb.Account.Controllers
             var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var token = await _userManager.GetAuthenticatorKeyAsync(user);
-            string appName = Environment.GetEnvironmentVariable(_config["TwoFactorAppName"]);
+            string appName = _config["TwoFactorAppNameENV"];
             string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode(appName),
                 _urlEncoder.Encode(user.Email), token);
             var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
@@ -609,7 +608,7 @@ namespace OceansAppWeb.Account.Controllers
                     Subject = "Change Password",
                     EmailTo = model.Email,
                     Body = templateEmail,
-                    SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]),
+                    SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 };
 
                 try

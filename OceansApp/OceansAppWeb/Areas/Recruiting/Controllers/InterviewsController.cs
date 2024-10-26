@@ -18,11 +18,9 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
     public class InterviewsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _config;
-        public InterviewsController(IUnitOfWork unitOrWork, IConfiguration config)
+        public InterviewsController(IUnitOfWork unitOrWork)
         {
             _unitOfWork = unitOrWork;
-            _config = config;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]

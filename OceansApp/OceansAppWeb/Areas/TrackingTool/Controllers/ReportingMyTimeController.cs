@@ -6,12 +6,18 @@ using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 using static OceansApp.Models.ViewModels.Components.MethodResponse;
 using OceansApp.Models.ViewModels.Components;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using Microsoft.CodeAnalysis;
 using OceansApp.Utility.SharedMethods;
 using Microsoft.EntityFrameworkCore;
+using Azure.Storage.Queues;
+using Newtonsoft.Json;
+using OceansApp.Utility.NotificationTemplates;
+using System.Text;
+using OceansApp.Models.ViewModels;
+using Microsoft.ApplicationInsights;
+
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -24,13 +30,18 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
     public class ReportingMyTimeController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly LazyServiceProvider<IAzureBlobRepository> _azureBlobRepository;
+        private readonly Lazy<IAzureBlobRepository> _azureBlobRepository;
         private string _containerId;
-        public ReportingMyTimeController(IUnitOfWork unitOrWork, LazyServiceProvider<IAzureBlobRepository> azureBlobRepository)
+        private readonly Lazy<QueueClient> _queueClient;
+        private readonly TelemetryClient _telemetryClient;
+        public ReportingMyTimeController(IUnitOfWork unitOrWork, Lazy<IAzureBlobRepository> azureBlobRepository,
+            Lazy<QueueClient> queueClient, TelemetryClient telemetryClient)
         {
             _unitOfWork = unitOrWork;
             _azureBlobRepository = azureBlobRepository;
             _containerId = "consultant-hour-reports";
+            _queueClient = queueClient;
+            _telemetryClient = telemetryClient;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
@@ -561,6 +572,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                     return BadRequest(new { error = result.Message, messageType = result.MessageType });
                 }
+                //Send notification
 
                 return Ok(new
                 {
@@ -602,5 +614,46 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { error = $"There was an error fetching the data.", success = false, detail = ex.Message });
             }
         }
+
+
+        //NO HTTP METHODS
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task<MethodResponse> SendNotificationSubmitReport(string consultantName, string consultantEmail)
+        {
+            try
+            {
+                var emailTemplates = new EmailTemplates();
+                var createPassBody = emailTemplates.CreatePasswordBody("Hola", consultantName.Trim());
+                var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
+
+                SendEmailVM emailToSend = new()
+                {
+                    Subject = "Create your account - Oceans App",
+                    SharedEmailFrom = Environment.GetEnvironmentVariable("sharedEmailOceansApp"),
+                    EmailTo = consultantEmail.Trim(),
+                    Body = templateEmail
+                };
+
+                var messageContent = JsonConvert.SerializeObject(emailToSend);
+                try
+                {
+                    await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
+                }
+                catch (Exception queueEx)
+                {
+                    _telemetryClient.TrackTrace($"Fail sending email to: {consultantEmail.Trim()}, the connection with the function app failed");
+                }
+
+                return new MethodResponse { Success = true, Message = "Notification sent." };
+            }
+            catch (Exception ex)
+            {
+                return new MethodResponse { Success = false, Message = $"An error occurred: {ex.Message}" };
+            }
+        }
+
+
+
+
     }
 }

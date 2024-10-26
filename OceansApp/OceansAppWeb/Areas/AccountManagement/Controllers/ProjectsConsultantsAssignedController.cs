@@ -15,11 +15,9 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
     public class ProjectsConsultantsAssignedController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAuthorizationService _authorizationService;
-        public ProjectsConsultantsAssignedController(IUnitOfWork unitOrWork, IAuthorizationService authorizationService)
+        public ProjectsConsultantsAssignedController(IUnitOfWork unitOrWork)
         {
             _unitOfWork = unitOrWork;
-            _authorizationService = authorizationService;
         }
 
         [Authorize(Policy = "BasicAccessToReportingMyTime")]
