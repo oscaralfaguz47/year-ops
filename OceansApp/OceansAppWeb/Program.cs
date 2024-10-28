@@ -72,7 +72,7 @@ else
 
 // Retrieve the database connection string depending on the environment
 string connectionString;
-
+environment = "test";
 if (environment == "Development") // For local environment
 {
     // Try to get the DatabaseConnectionString from environment variables in local
