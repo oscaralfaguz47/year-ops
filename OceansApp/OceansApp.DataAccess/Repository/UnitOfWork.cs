@@ -1,4 +1,5 @@
 ﻿
+using Azure.Storage.Queues;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,9 +19,10 @@ namespace OceansApp.DataAccess.Repository
         private readonly TelemetryClient _telemetryClient;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private readonly Lazy<QueueClient> _queueClient;
         public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IMemoryCache cache, 
             IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository, TelemetryClient telemetryClient,
-            HttpClient httpClient, IConfiguration config)
+            HttpClient httpClient, IConfiguration config, Lazy<QueueClient> queueClient)
         {
             ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
             _telemetryClient = telemetryClient;
@@ -30,6 +32,7 @@ namespace OceansApp.DataAccess.Repository
             _cache = cache;
             _httpClient = httpClient;
             _config = config;
+            _queueClient = queueClient;
             AccountingAccounts = new AccountingAccountRepository(_db);
             AccountPayable = new AccountPayableRepository(_db);
             AccountPayableMovement = new AccountPayableMovementRepository(_db);
@@ -50,7 +53,7 @@ namespace OceansApp.DataAccess.Repository
             Client = new ClientRepository(_db);
             Country = new CountryRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
-            ConsultantPayment = new ConsultantPaymentRepository(_db, this);
+            ConsultantPayment = new ConsultantPaymentRepository(_db, this, _config, _queueClient);
             ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db, this);
             ConsultantPosition = new ConsultantPositionRepository(_db);
             ConsultantBenefit = new ConsultantBenefitRepository(_db);

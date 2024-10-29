@@ -286,7 +286,7 @@ namespace OceansAppWeb.Account.Controllers
                         var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
                         SendEmailVM emailModel = new()
                         {
-                            Subject = "Create your account - Oceans App",
+                            Subject = "Create your account - Ripple by Oceans",
                             EmailTo = user.Email.Trim(),
                             Body = templateEmail,
                             SharedEmailFrom = _config["SharedMailboxEmailRippleApp"]

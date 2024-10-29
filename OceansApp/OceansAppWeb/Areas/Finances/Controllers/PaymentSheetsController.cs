@@ -168,17 +168,21 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
             try
             {
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userActionedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
                 if (userActionedBy == null)
                 {
                     return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
                 }
 
-                MethodResponse response = await _unitOfWork.ConsultantPayment.ApproveAndRejectSubmission(userActionedBy, dataFromUser);
+                string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}";
+
+                MethodResponse response = await _unitOfWork.ConsultantPayment.ApproveAndRejectSubmission(userActionedBy, dataFromUser, baseUrl);
                 if (!response.Success)
                 {
                     return BadRequest(new { error = response.Message, messageType = response.MessageType });
                 }
+
                 return Ok(new { success = true, message = response.Message });
             }
             catch (Exception ex)
@@ -864,7 +868,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         //Send emails
                         foreach (var projectConsultantData in groupedConsultants)
                         {
-                            var emailToSend = PrepareEmailContent(projectConsultantData.ConsultantName,
+                            var emailToSend = PrepareEmailContentSubmissionReminder(projectConsultantData.ConsultantName,
                                 projectConsultantData.Email, projectConsultantData.Projects, periodString);
                             try
                             {
@@ -877,7 +881,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             catch (Exception ex)
                             {
                                 _telemetryClient.TrackException(ex);
-                                _telemetryClient.TrackTrace("EMAIL NO SENT !!!!!!!!!!");
+                                _telemetryClient.TrackTrace($"Failed sending Email to {projectConsultantData.Email}!");
                                 continue;
                             }
                         }
@@ -897,7 +901,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        private SendEmailVM PrepareEmailContent(string consultantName, string consultantEmail, List<GetProjectNamesVM> projects, string period)
+        //NO HTTP METHODS
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private SendEmailVM PrepareEmailContentSubmissionReminder(string consultantName, string consultantEmail, List<GetProjectNamesVM> projects, string period)
         {
             string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/TrackingTool/ReportingMyTime";
             List<string> projectsStringList = new();
@@ -917,5 +923,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 Body = templateEmail
             };
         }
+
+        
     }
 }

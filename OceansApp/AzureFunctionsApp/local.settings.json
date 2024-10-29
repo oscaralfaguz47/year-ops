@@ -2,8 +2,6 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "%AzureWebJobsStorage%",
-    "DefaultConnection": "DefaultConnection",
-    "AzureFunctionAppKeyVaultUri": "AzureFunctionAppKeyVaultUri",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
   }
 }

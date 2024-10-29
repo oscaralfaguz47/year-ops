@@ -34,14 +34,16 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         private string _containerId;
         private readonly Lazy<QueueClient> _queueClient;
         private readonly TelemetryClient _telemetryClient;
+        private readonly IConfiguration _config;
         public ReportingMyTimeController(IUnitOfWork unitOrWork, Lazy<IAzureBlobRepository> azureBlobRepository,
-            Lazy<QueueClient> queueClient, TelemetryClient telemetryClient)
+            Lazy<QueueClient> queueClient, TelemetryClient telemetryClient, IConfiguration config)
         {
             _unitOfWork = unitOrWork;
             _azureBlobRepository = azureBlobRepository;
             _containerId = "consultant-hour-reports";
             _queueClient = queueClient;
             _telemetryClient = telemetryClient;
+            _config = config;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
@@ -538,6 +540,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             validateInputs.ValidateDateValidFormat("StartPeriodDate", "Start Period Date", submissionData.StartPeriodDate, ModelState);
             validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", submissionData.EndPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("ProjectId", "ProjectId", submissionData.ProjectId, ModelState);
 
             if (!ModelState.IsValid)
             {
@@ -554,10 +557,11 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             {
                 MethodResponse result = null;
                 int movementId = 0;
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
 
                 //Create the element
-                result = await _unitOfWork.ReportingMyTimeMovementSubmission.CreateSubmission(userActionedBy, submissionData);
+                result = await _unitOfWork.ReportingMyTimeMovementSubmission.CreateSubmission(userId, submissionData);
 
                 if (!result.Success)
                 {
@@ -573,6 +577,8 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     return BadRequest(new { error = result.Message, messageType = result.MessageType });
                 }
                 //Send notification
+                await SendNotificationSubmitReport(userConsultant.Name.Trim() + " " + userConsultant.LastName.Trim(),
+            (DateTime)submissionData.StartPeriodDate, (DateTime)submissionData.EndPeriodDate, submissionData.ProjectId);
 
                 return Ok(new
                 {
@@ -618,42 +624,40 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
         //NO HTTP METHODS
         [ApiExplorerSettings(IgnoreApi = true)]
-        private async Task<MethodResponse> SendNotificationSubmitReport(string consultantName, string consultantEmail)
+        private async Task SendNotificationSubmitReport(string consultantName, DateTime startDate, DateTime endDate,
+            int projectId)
         {
+            var emailTemplates = new EmailTemplates();
+            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/Finances/PaymentSheets";
+            DateTime startDateTime = startDate;
+            DateTime endDateTime = endDate;
+            string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+            string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+            string periodString = $"{startDateFormated} - {endDateFormated}";
+
+            var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
+
+            var createNotificationBody = emailTemplates.SubmissionHoursNotificationBody(baseUrl, consultantName.Trim(), periodString, project.Name.Trim());
+            var templateEmail = emailTemplates.EmailTemplate("NEW SUBMISSION TO REVIEW", createNotificationBody);
+
+            SendEmailVM emailToSend = new()
+            {
+                Subject = "New Submission to Review - Ripple by Oceans",
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
+                EmailTo = _config["InternalEmailENV"],
+                Body = templateEmail
+            };
+
+            var messageContent = JsonConvert.SerializeObject(emailToSend);
             try
             {
-                var emailTemplates = new EmailTemplates();
-                var createPassBody = emailTemplates.CreatePasswordBody("Hola", consultantName.Trim());
-                var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
-
-                SendEmailVM emailToSend = new()
-                {
-                    Subject = "Create your account - Oceans App",
-                    SharedEmailFrom = Environment.GetEnvironmentVariable("sharedEmailOceansApp"),
-                    EmailTo = consultantEmail.Trim(),
-                    Body = templateEmail
-                };
-
-                var messageContent = JsonConvert.SerializeObject(emailToSend);
-                try
-                {
-                    await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
-                }
-                catch (Exception queueEx)
-                {
-                    _telemetryClient.TrackTrace($"Fail sending email to: {consultantEmail.Trim()}, the connection with the function app failed");
-                }
-
-                return new MethodResponse { Success = true, Message = "Notification sent." };
+                await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
             }
-            catch (Exception ex)
+            catch (Exception queueEx)
             {
-                return new MethodResponse { Success = false, Message = $"An error occurred: {ex.Message}" };
+                _telemetryClient.TrackTrace($"Fail sending email to: {_config["InternalEmailENV"]}, the connection with the function app failed");
             }
         }
-
-
-
 
     }
 }

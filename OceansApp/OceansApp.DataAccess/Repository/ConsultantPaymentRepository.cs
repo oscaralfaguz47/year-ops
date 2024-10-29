@@ -17,6 +17,11 @@ using OceansApp.Models.ViewModels.ProjectConsultantAssignedHistory;
 using OceansApp.Models.ViewModels.AccountsPayable;
 using Microsoft.Data.SqlClient;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Models.ViewModels;
+using OceansApp.Utility.NotificationTemplates;
+using Microsoft.Extensions.Configuration;
+using Azure.Storage.Queues;
+using Newtonsoft.Json;
 
 
 
@@ -27,11 +32,16 @@ namespace OceansApp.DataAccess.Repository
         private ApplicationDbContext _db;
         private readonly IConsultantDetailRepository _consultantDetailRepository;
         private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
-        public ConsultantPaymentRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
+        private readonly IConfiguration _config;
+        private readonly Lazy<QueueClient> _queueClient;
+        public ConsultantPaymentRepository(ApplicationDbContext db, IUnitOfWork unitOfWork, IConfiguration config,
+            Lazy<QueueClient> queueClient) : base(db)
         {
             _db = db;
             _consultantDetailRepository = unitOfWork.ConsultantDetail;
             _projectConsultantAssignedHistoryRepository = unitOfWork.ProjectConsultantAssignedHistory;
+            _config = config;
+            _queueClient = queueClient;
         }
         public async Task<MethodResponse> GetMovementsToPay(ConsultantUserVM consultant, DateTime startDate,
             DateTime endDate)
@@ -865,7 +875,7 @@ namespace OceansApp.DataAccess.Repository
 
                 // Retrieve the account payable
                 var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId &&
-                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod) 
+                    x.StartDatePeriod == DateTime.Parse(paymentData.StartDatePeriod) && x.EndDatePeriod == DateTime.Parse(paymentData.EndDatePeriod)
                     && x.Voided == false);
                 if (existingAccountPayable == null) return MethodResponse.CreateFailureExceptionResponse("Account payable does not exist.");
 
@@ -1132,16 +1142,30 @@ namespace OceansApp.DataAccess.Repository
             return totalAmountToPay;
         }
 
-        public async Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser)
+        public async Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser,
+            string baseUrl)
         {
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    var submission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.FirstOrDefaultAsync(x => x.SubmissionId == dataFromUser.SubmissionId);
+                    var submission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS
+                        .Include(x => x.Project).FirstOrDefaultAsync(x => x.SubmissionId == dataFromUser.SubmissionId);
                     if (submission == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Submission does not exist.");
+                    }
+
+                    var consultant = await _consultantDetailRepository.GetConsultantWithUserAsync(submission.ConsultantId);
+                    if (consultant == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Consultant does not exist.");
+                    }
+
+                    var userActionedByObject = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == userIdCreatedBy);
+                    if (userActionedByObject == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("User actioned by does not exist.");
                     }
 
                     var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == submission.ProjectId &&
@@ -1182,6 +1206,29 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
+                    //Send notification 
+
+
+                    try
+                    {
+                        DateTime startDateTime = submission.StartPeriodDate;
+                        DateTime endDateTime = submission.EndPeriodDate;
+                        string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+                        string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+                        string periodString = $"{startDateFormated} - {endDateFormated}";
+
+                        var emailToSend = PrepareEmailContentApproveRejectSubmission(consultant.Name, consultant.Email, periodString,
+            submission.Project.Name, dataFromUser.TransactionStatus, userActionedByObject.Name + " " + userActionedByObject.LastName, dataFromUser.Body, baseUrl + "/TrackingTool/ReportingMyTime");
+                        string message = JsonConvert.SerializeObject(emailToSend);
+
+                        await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+
                     return MethodResponse.CreateSuccessResponse("You have " + dataFromUser.TransactionStatus + " the submission!");
                 }
                 catch (Exception ex)
@@ -1190,6 +1237,27 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
+        }
+
+        private SendEmailVM PrepareEmailContentApproveRejectSubmission(string consultantName, string consultantEmail, string period,
+            string projectName, string status, string userActionedBy, string? rejectedComment, string baseUrl)
+        {
+            string buttonUrl = $"{baseUrl}/TrackingTool/ReportingMyTime";
+
+            var emailTemplates = new EmailTemplates();
+            var emailBody = emailTemplates.ApprovedRejectedSubmissionBody(buttonUrl, consultantName.Trim(), period, projectName, status,
+                userActionedBy, rejectedComment);
+            string bodyTitle = status == "Approved" ? "TIMESHEET APPROVED" : "TIMESHEET REJECTED";
+            string emailTitle = status == "Approved" ? "YOUR TIMESHEET WAS APPROVED" : "YOUR TIMESHEET WAS REJECTED";
+            var templateEmail = emailTemplates.EmailTemplate(bodyTitle, emailBody);
+
+            return new SendEmailVM
+            {
+                Subject = $"{emailTitle} - RIPPLE BY OCEANS",
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
+                EmailTo = consultantEmail.Trim(),
+                Body = templateEmail
+            };
         }
 
         private async Task UpdateAccountsPayableStatusWhenChangesAsync(DateTime startDate, DateTime endDate, int consultantId)
@@ -1599,7 +1667,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                 }
                 if (difference.MovementTypeId != null)
                 {
-                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId 
+                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId
                     == difference.MovementTypeId);
                     detail = $"({movementType.Name}) not paid in period {startDate.ToString("MM/dd/yyyy")} - {endDate.ToString("MM/dd/yyyy")}";
                 }
@@ -1613,7 +1681,7 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                     CostCenterId = accountingConfig == null ? null : accountingConfig.CostCenterId,
                     CostCenterName = accountingConfig == null ? null : $"({costCenter.CostCenterCode}) {costCenter.Description}",
                     AccountingAccountId = accountingConfig == null ? null : accountingConfig.AccountingAccountId,
-                    AccountingAccountName = accountingConfig == null ? null :  $"({accountingAccount.AccountingAccountCode}) {accountingAccount.Description}",
+                    AccountingAccountName = accountingConfig == null ? null : $"({accountingAccount.AccountingAccountCode}) {accountingAccount.Description}",
                     TransactionTypeName = difference.Type,
                     Quantity = Math.Abs(difference.Quantity),
                     Amount = Math.Abs((difference.TotalAmount / difference.Quantity)),
