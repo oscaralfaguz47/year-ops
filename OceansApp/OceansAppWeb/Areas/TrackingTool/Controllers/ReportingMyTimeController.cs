@@ -17,6 +17,7 @@ using OceansApp.Utility.NotificationTemplates;
 using System.Text;
 using OceansApp.Models.ViewModels;
 using Microsoft.ApplicationInsights;
+using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
@@ -47,9 +48,23 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User not valid." });
+                }
+                GetConsultantSelectedProjectInfoVM projectInfoData = await _unitOfWork.ProjectConsultantAssigned.GetConsultantSelectedProjectInfo(userActionedBy);
+                return View(projectInfoData);
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackTrace(ex.Message);
+                return View("Error");
+            }
         }
 
         // CLIENT HAS TRACKING TOOL - METHODS

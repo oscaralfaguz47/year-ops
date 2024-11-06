@@ -1218,7 +1218,7 @@ namespace OceansApp.DataAccess.Repository
                         string periodString = $"{startDateFormated} - {endDateFormated}";
 
                         var emailToSend = PrepareEmailContentApproveRejectSubmission(consultant.Name, consultant.Email, periodString,
-            submission.Project.Name, dataFromUser.TransactionStatus, userActionedByObject.Name + " " + userActionedByObject.LastName, dataFromUser.Body, baseUrl + "/TrackingTool/ReportingMyTime");
+            submission.Project.Name, dataFromUser.TransactionStatus, userActionedByObject.Name + " " + userActionedByObject.LastName, dataFromUser.Body, baseUrl);
                         string message = JsonConvert.SerializeObject(emailToSend);
 
                         await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));

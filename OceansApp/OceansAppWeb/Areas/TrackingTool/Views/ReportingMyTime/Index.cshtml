@@ -1,118 +1,144 @@
-﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@using OceansApp.Models.ViewModels.ProjectConsultantAssigned
+@model GetConsultantSelectedProjectInfoVM
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <link rel="stylesheet" href="~/css/TrackingTool/reportingMyTime.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Shared/navigateBetweenPeriods.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css?v=@DateTime.Now.Ticks" />
 
 <div id="rmt-background">
-    <div id="header">
+    <!-- Header Section with Project Name and Dropdown -->
+    <div id="header" style="display: @(Model.NumAssignedProjects >= 1 || Model.ClientHasTrackingTool ? "flex" : "none")">
         <div id="proj-drop-cont">
-            <input type="hidden" id="projectId" />
             <input type="hidden" id="dateToInput" />
             <input type="hidden" id="dateFromInput" />
-            <div id="project-name"></div>
+            <input type="hidden" id="projectId" value="@Model.ProjectId" />
+            <div id="project-name"> @Model.ProjectName</div>
             <div id="projectsDropdown" class="dropdown">
                 <div class="dropdown-header">
-                    <span class="dropdown-selected"><div class="circle"></div></span>
+                    <span class="dropdown-selected">
+                        <div class="circle">@Model.ProjectName.FirstOrDefault()</div>
+                    </span>
                 </div>
                 <ul class="dropdown-list"></ul>
             </div>
         </div>
     </div>
 
-    <div class="loading-box" id="loading-box-global">
-        <div>
-            <div class="spinner"></div>
-            <div>
-                <p><strong>Loading project info, wait...</strong></p>
-            </div>
+    <!-- Loading, Error, No Projects Messages -->
+    <div class="loading-box" id="loading-box-global" style="display:none;">
+        <p><strong>Loading project info, wait...</strong></p>
+    </div>
+
+    <div class="error-Message-box" id="error-message-rep-time" style="display:none;">
+        <p><strong>Something went wrong!</strong></p>
+        <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
+    </div>
+
+    <div id="no-projects-box" style="display:@(Model.ProjectId == null ? "block" : "none")">
+        <div class="background-cont">
+            <p><strong>Looks like you do not have assigned projects yet.</strong></p>
+            <p><strong>Please contact the administrator to assign you a project.</strong></p>
         </div>
     </div>
 
-    <div class="error-Message-box" id="error-message-rep-time">
-        <div>
-            <div><i class="bi bi-exclamation-triangle-fill"></i></div>
-            <div>
-                <p><strong>Something went wrong!</strong></p>
-            </div>
-            <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
-        </div>
-    </div>
-
-    <div id="no-projects-box">
-    </div>
-
-
-    <div id="content-box">
-        <div>
-            <!-- Date Navegation buttons -->
-            <div class="row justify-content-center">
-                <div class="row">
-                    <div class="col-md-9">
-                        <div class="track-col">
-                            <div class="mb-2" style="display: flex; justify-content: center;">
-                                <div>
-                                    <div class="text-center strong-label"><strong>Select Period</strong></div>
-                                    <div class="navegation-box">
-                                        <button id="previousBtn" class="btn-arrow" onclick="handleButtonClick('left')"><</button>
-                                        <label><label id="previous-date"></label> - <label id="next-date"></label></label>
-                                        <button id="nextBtn" class="btn-arrow" onclick="handleButtonClick('right')">></button>
-                                        <i class="fa-solid fa-calendar-days"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="tracking-tool-time-entry" style="display:none">
-                                <partial name="_TrackingToolTimeEntryPartialView" />
-                            </div>
-                            <div id="tracking-tool-report-entry" style="display:none">
-                                <partial name="_TrackingToolReportEntryPartialView" />
-                            </div>
-                            <div id="inactive-no-tracking-in-project-sec">
-                            </div>
-                            @* Loading message *@
-                            <div class="loading-box loading-box-intern" id="loading-box-intern">
-                                <div>
-                                    <div class="spinner"></div>
-                                </div>
-                            </div>
-                            @* Error message *@
-                            <div class="error-Message-box error-message-box-intern" id="error-message-intern">
-                                <div>
-                                    <div><i class="bi bi-exclamation-triangle-fill"></i></div>
-                                    <div>
-                                        <p><strong>Something went wrong!</strong></p>
-                                    </div>
-                                    <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
-                                </div>
+    <!-- Main Content -->
+    <div id="content-box" style="display:@(Model.ProjectId != null ? "block" : "none")">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="track-col">
+                    <!-- Navigation Buttons for Date Period -->
+                    <div class="mb-2" style="display: flex; justify-content: center;">
+                        <div>
+                            <div class="text-center strong-label"><strong>Select Period</strong></div>
+                            <div class="navegation-box">
+                                <button id="previousBtn" class="btn-arrow" onclick="handleButtonClick('left')">&lt;</button>
+                                <label>
+                                    <span id="previous-date"></span> - <span id="next-date"></span>
+                                </label>
+                                <button id="nextBtn" class="btn-arrow" onclick="handleButtonClick('right')">&gt;</button>
+                                <i class="fa-solid fa-calendar-days"></i>
                             </div>
                         </div>
                     </div>
-
-                    <div class="col-md-3 right-side-reporting">
-                        <div class="track-col">
-                            <div id="total-hours-label">
-                            </div>
-                            <div id="payment-period-container">
-                            </div>
-                        </div>
-                        <div class="track-col">
-                            <div id="questions">
-                            </div>
-                        </div>
+                    <div class="loading-box loading-box-intern" id="loading-box-intern">
                         <div>
-                            <div id="submission-info" class="submit-report">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                    <div class="error-Message-box error-message-box-intern" id="error-message-intern">
+                        <div>
+                            <div><i class="bi bi-exclamation-triangle-fill"></i></div>
+                            <div>
+                                <p><strong>Something went wrong!</strong></p>
                             </div>
-                            <div id="submission-errors">
-                            </div>
+                            <a asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index" class="cancel-btn">Try Again</a>
+                        </div>
+                    </div>
+                    <div id="inactive-no-tracking-in-project-sec" style="display:none">
+                    </div>
+                    <!-- Project Tracking Info -->
+                    <input id="ClientHasTT" type="hidden" value="@Model.ClientHasTrackingTool" />
+                    <div id="tracking-tool-time-entry" style="display:none">
+                        @if (!Model.ClientHasTrackingTool)
+                        {
+                            <partial name="_TrackingToolTimeEntryPartialView" />
+                        }
+                    </div>
+                    <div id="tracking-tool-report-entry" style="display:none">
+                        @if (Model.ClientHasTrackingTool)
+                        {
+                            <partial name="_TrackingToolReportEntryPartialView" />
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column for Payment Period and Success Manager Info -->
+            <div class="col-md-3">
+                <div class="track-col">
+                    <div id="total-hours-label">
+                    </div>
+                    <div id="payment-period-container">
+                        <div>
+                            <input id="PaymentPeriodInput" type="hidden" value="@Model.PaymentPeriod" />
+                            <span class="strong-label">Your payment period is</span>
+                            <span class="gray-bold-span">
+                                @(Model.PaymentPeriod == 1 ? "Biweekly" : "Monthly")
+                            </span>
                         </div>
                     </div>
                 </div>
+                <div class="track-col">
+                    <!-- Success Manager Info -->
+                    <div id="questions">
+                        <span class="strong-label" style="display:block">Questions?</span>
+                        <span>Please reach out to your Success Manager</span>
+                        <strong style="color:var(--clr-blueLight); display:block;">
+                            @Model.SuccessManagerName
+                        </strong>
+                        <a class="envelope-link" href="mailto:@Model.SuccessManagerEmail">
+                            <div class="envelope-container">
+                                <img src="/img/globalIcons/envelope.webp" alt="Email Icon">
+                            </div>
+                        </a>
+                    </div>
+                </div>
 
+                <!-- Submit Button Section (if needed) -->
+                <div>
+                    <div id="submission-info" class="submit-report">
+                    </div>
+                </div>
+                <div id="submission-errors">
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Include external JS files only if needed -->
 <script src="~/js/Shared/navigateBetweenPeriods.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>

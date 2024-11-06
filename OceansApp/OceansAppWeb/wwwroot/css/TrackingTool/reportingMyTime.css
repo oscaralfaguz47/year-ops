@@ -255,7 +255,8 @@
 .submit-report {
     text-align: center;
     font-weight: bold;
-    display: ruby-text;
+    display: flex;
+    justify-content:center;
     width: -webkit-fill-available;
     margin-top: 30px;
 }

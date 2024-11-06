@@ -140,7 +140,6 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
     const otherBtns = ['btn-cancel', 'close-modal-x-btn'];
     disableButtonsWaitingForPostMethod('btn-saving', otherBtns, 'spinner-border')
     let actionDateData = new Date(actionDateInput.value).toISOString();
-    console.log(actionDateInput.value);
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
@@ -153,7 +152,7 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
         TimeTo: timeToInput.value,
         MovementTypeId: timeClassificationSelect.value === 'Normal Hours' ? null : Number(timeClassificationSelect.value)
     };
-    console.log(data);
+
     try {
         const response = await fetch('/TrackingTool/ReportingMyTime/CreateUpdateTimeEntryTrackingTool', {
             method: 'POST',

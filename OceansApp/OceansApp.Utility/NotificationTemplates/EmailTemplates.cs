@@ -234,7 +234,7 @@ namespace OceansApp.Utility.NotificationTemplates
        <label><strong>Comment:</strong></label>
      <table role=""presentation"" width=""100%"" style=""background-color:#e8b4b4; text-align:left; border-collapse:collapse;"">
      <tr>
-      <td style=""padding:6px"">
+      <td>
        <p>" + rejectedComment + @"</p>
       </td>
      </tr>

@@ -1,4 +1,12 @@
-﻿// Element selectors
+﻿document.addEventListener('DOMContentLoaded', async function () {
+    paymentPeriod = getElementById('PaymentPeriodInput').value;
+    let currentDateNoChange = new Date();
+    calculatePeriod(currentDateNoChange, paymentPeriod); 
+});
+
+
+
+// Element selectors
 const quantityInput = getElementById('quantityInput');
 const notesInput = getElementById('notesInput');
 const movementIdNormalHoursInput = getElementById('movementIdNormalHoursInput');
@@ -22,10 +30,9 @@ let movementCreationPromise = null;
 
 const displayElement = (element, displayStyle) => element.style.display = displayStyle;
 
-const handleChangeData = () => {
-    displayElement(saveReportBtn, 'block');
-};
-
+function handleChangeData() {
+    saveReportBtn.style.display = 'block';
+}
 // Event listeners
 dropArea.addEventListener('dragover', event => {
     if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
@@ -76,12 +83,10 @@ async function handleFiles(event) {
     }
     updateInfoText();
 }
-
 function reUploadFile(fileElement) {
     fileElement.remove();
     updateFileDisplay(fileList[0], true, null, 'No actions');
 }
-
 function processFiles(newFiles) {
     newFiles.forEach(file => {
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file)) {
@@ -91,21 +96,17 @@ function processFiles(newFiles) {
     });
     updateInfoText();
 }
-
 function isValidFileType(file) {
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const validExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'];
     return validExtensions.includes(fileExtension);
 }
-
 function isValidFileSize(file) {
     return file.size <= maxFileSize;
 }
-
 function isDuplicate(file) {
     return fileList.some(f => f.name === file.name && f.size === file.size);
 }
-
 function updateInfoText() {
     const infoText = getElementById('info-text');
     infoText.style.display = uploadArea.textContent.trim() === '' && uploadArea.childNodes.length === 0 ? 'block' : 'none';
@@ -140,7 +141,6 @@ function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus)
         finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn, spinnerLabel, transactionStatus);
     }
 }
-
 async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel) {
     if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
         isCreatingMovement = true;
@@ -177,7 +177,6 @@ async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinn
         console.error("Error uploading the file:", error);
     });
 }
-
 function finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn, spinnerLabel, transactionStatus) {
     if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
         fileElement.appendChild(deleteBtn);
@@ -227,7 +226,6 @@ async function uploadFile(file, statusLabel, fileElement) {
         return null;
     }
 }
-
 function handleUploadError(errorData, fileElement, statusLabel) {
     switch (errorData.messageType) {
         case "Validation Error":
@@ -244,7 +242,6 @@ function handleUploadError(errorData, fileElement, statusLabel) {
             createReuploadBtn(fileElement, statusLabel);
     }
 }
-
 function createReuploadBtn(fileElement, statusLabel) {
     statusLabel.innerHTML = '';
     const errorSpan = document.createElement('span');
@@ -253,7 +250,6 @@ function createReuploadBtn(fileElement, statusLabel) {
     errorSpan.addEventListener('click', () => reUploadFile(fileElement));
     statusLabel.appendChild(errorSpan);
 }
-
 async function createFirstMovementIfDoesNotExist() {
     const token = $('[name="__RequestVerificationToken"]').val();
     const startActionDateData = new Date(dateFromInput.value).toISOString();
@@ -370,7 +366,6 @@ async function createUpdateTimeEntry() {
         return null;
     }
 }
-
 function handleCreateUpdateError(errorData) {
     switch (errorData.messageType) {
         case "Validation Error":
@@ -395,7 +390,6 @@ function initializeUploadProcess() {
         fileInput.value = '';
     }
 }
-
 function updateStatusReportSubmittedClientHasTrackingTool() {
     submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor(transactionStatus)}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon(transactionStatus)} 
                 ${transactionStatus === 'Waiting to be approved' ? 'Pending approval' : transactionStatus === 'Approved' ? 'Timesheet approved' : transactionStatus}</button>`;
@@ -437,7 +431,6 @@ async function getProjectMovementsClientHasTrackTool() {
         displayElement(loadingBoxIntern, 'none');
     }
 }
-
 function updateProjectMovements(data) {
     let normalHoursQuantity = 0;
     let onCallFlateRateQuantity = 0;
@@ -491,6 +484,8 @@ function updateProjectMovements(data) {
         holidaysContainer.innerHTML = `<label>You have ${holidaysCount} holiday${holidaysCount === 1 ? '' : 's'} to be reimbursed for this period</label> <div style="display:flex; justify-content:center">${holidaysHtmlList}</div>`;
         displayElement(holidaysContainer, 'block');
         initializeTooltips();
+    } else {
+        holidaysContainer.style.display = 'none';
     }
 
     quantityInput.value = normalHoursQuantity;
@@ -534,7 +529,6 @@ async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
         handleDeleteError({ error: 'Network error occurred. Please try again.' }, statusLabel, deleteBtn, spinnerLabel);
     }
 }
-
 function handleDeleteError(data, statusLabel, deleteBtn, spinnerLabel) {
     statusLabel.textContent = 'Delete failed';
     displayElement(deleteBtn, 'block');
@@ -555,3 +549,4 @@ function cleanFileName(fileName) {
     const regex = /^[a-f0-9]+_\d+_/i;
     return fileName.replace(regex, '');
 }
+
