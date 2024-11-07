@@ -11,6 +11,7 @@ const projectIdInput = getElementById('projectId');
 let selectedProjectName = '';
 const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-project-sec');
 const totalHoursLabelEl = getElementById('total-hours-label');
+const loadingBoxIntern = getElementById('loading-box-intern');
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
