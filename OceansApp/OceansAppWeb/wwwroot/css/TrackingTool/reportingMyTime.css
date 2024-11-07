@@ -114,24 +114,12 @@
         transform: rotate(360deg);
     }
 }
-.loading-box{
-    display:flex;
-    justify-content:center;
-
-}
 .loading-box-intern > div {
     height: 50vh !important;
 }
 .error-message-box-intern > div {
     height: 50vh !important;
 }
-    .loading-box > div {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 80vh; 
-    }
 .error-Message-box {
     display: none;
     justify-content: center;
@@ -182,7 +170,7 @@
     }
 
 #no-projects-box {
-    display: none;
+    display: flex;
     justify-content: center;
 }
     #no-projects-box i {
@@ -201,9 +189,11 @@
         background-color: var(--clr-blueDark);
         padding: 25px;
         color: #fff;
-        margin-top: -200px;
         text-align: center;
         box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.6);
+        width:max-content;
+        height:max-content;
+        margin-top: 50px;
     }
     #no-projects-box > div > div {
         display: flex;

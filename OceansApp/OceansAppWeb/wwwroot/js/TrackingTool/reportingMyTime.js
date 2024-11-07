@@ -4,7 +4,6 @@ const trackingToolReportEntrySection = getElementById('tracking-tool-report-entr
 const dateToInput = getElementById('dateToInput');
 const dateFromInput = getElementById('dateFromInput');
 const errorMessageIntern = getElementById('error-message-intern');
-const loadingBoxIntern = getElementById('loading-box-intern');
 const clientHasTrackingToolValue = getElementById('ClientHasTT').value;
 const submissionInfo = getElementById('submission-info');
 const submissionError = getElementById('submission-errors');
@@ -39,7 +38,6 @@ async function fillProjectsDropdown(dropdownList) {
 }
 
 const header = getElementById('header');
-const loadingBox = getElementById('loading-box-global');
 const errorMessageBox = getElementById('error-message-rep-time');
 const contentBox = getElementById('content-box');
 
@@ -75,7 +73,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             dropdownList.style.display = 'none';
         }
     });
-    loadingBox.style.display = 'none';
     contentBox.style.display = 'block';
 });
 async function selectProject(projectId) {
@@ -105,7 +102,6 @@ async function selectProject(projectId) {
         validateSessionExpiration(error.message);
         console.error('Network or fetch error:', error);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
-        loadingBox.style.display = 'none';
         return null;
     } finally {
         hideSpinner();
@@ -130,7 +126,6 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
             submissionInfo.style.display = 'flex';
             totalHoursLabelEl.style.display = 'block';
             header.style.display = 'flex';
-            loadingBox.style.display = 'none';
         } else {
             trackingToolTimeEntrySection.style.display = 'none';
             trackingToolReportEntrySection.style.display = 'none';
@@ -159,7 +154,6 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
             inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} Active in this project, but you ${inactiveNoTrackingMiddleMessage} not needed to report time for this period.
             <br>${inactiveNoTrackingEndMessae}</label></div>`;
         }
-        loadingBox.style.display = 'none';
         submissionError.innerHTML = '';
         submissionInfo.innerHTML = `<div class="spinner"></div>`;
 
