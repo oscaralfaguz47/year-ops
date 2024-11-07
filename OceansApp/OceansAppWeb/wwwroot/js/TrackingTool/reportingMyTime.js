@@ -109,7 +109,7 @@ async function selectProject(projectId) {
     }
 }
 function initializeNavigation() {
-    loadingBoxIntern.style.display = 'block';
+    loadingBoxIntern.style.display = 'flex';
     errorMessageIntern.style.display = 'none';
     inactiveNoTrackingToolSection.style.display = 'none';
     trackingToolReportEntrySection.style.display = 'none';

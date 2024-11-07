@@ -201,9 +201,19 @@
         justify-content: center;
         align-items: center;
     }
-    /* BODE CONTENT */
-#content-box{
-    display:none;
+.loading-box-intern{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.loading-box-intern div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* BODE CONTENT */
+#content-box {
+    display: none;
     padding-bottom: 30px;
 }
 #questions {
