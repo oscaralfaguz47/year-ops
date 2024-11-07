@@ -14,6 +14,7 @@ const monthlyConsultantSalaryElCUCP = getElementById('monthlyConsultantSalaryEl'
 const hourlyConsultantSalaryElCUCP = getElementById('hourlyConsultantSalaryEl');
 const isMonthlySalaryCalculatedPerHourElCUCP = getElementById("isMonthlySalaryCalculatedPerHour");
 const calculationMethodCheckboxCUCP = getElementById("calculationMethod");
+const participatesInOnCallsCheckboxCUCP = getElementById('participatesInOnCalls');
 
 function validateRatesInputs() {
     let clientRateMethod = document.querySelector('input[name="client-rate-model"]:checked');
@@ -226,6 +227,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 validateRatesInputs();
                 benefitsArePaidByPartnerCheckboxCUCP.checked = data.consultantAssignation.partnerPaysBenefits;
                 isMonthlySalaryCalculatedPerHourCheckbox.checked = data.consultantAssignation.isMonthlySalaryCalculatedPerHour;
+                participatesInOnCallsCheckboxCUCP.checked = data.consultantAssignation.participatesInOnCalls;
 
                 showModal(modalId);
             })
@@ -331,7 +333,8 @@ async function addConsultantToProject(modalId) {
             ProjectId: projectIdInputCUP.value,
             ConsultantId: consultantIdInputCUCP.value === '' ? null : Number(consultantIdInputCUCP.value),
             PartnerPaysBenefits: Boolean(benefitsArePaidByPartnerCheckboxCUCP.checked),
-            HolidaysMustBePaid: Boolean(holidaysMustBePaidCheckboxCUCP.checked)
+            HolidaysMustBePaid: Boolean(holidaysMustBePaidCheckboxCUCP.checked),
+            participatesInOnCalls: Boolean(participatesInOnCallsCheckboxCUCP.checked)
         };
 
         try {

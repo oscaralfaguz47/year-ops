@@ -128,7 +128,6 @@ namespace OceansApp.DataAccess.Repository
                     Location = consultantData.Location,
                     UserCreatedBy = userIdCreatedBy,
                     PaymentPeriod = consultantData.PaymentPeriod,
-                    ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls,
                     ConsultantHolidayId = consultantData.ConsultantHolidayId,
                     WorkingModel = (int)consultantData.WorkingModel,
                     StartDate = (DateTime)consultantData.StartDate
@@ -243,7 +242,6 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.LastUpdatedDate = DateTime.UtcNow;
                 existingConsultant.UserLastUpdatedBy = userActionedBy;
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
-                existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;
                 existingConsultant.ConsultantHolidayId = consultantData.ConsultantHolidayId;
                 existingConsultant.WorkingModel = (int)consultantData.WorkingModel;
                 existingConsultant.StartDate = (DateTime)consultantData.StartDate;
@@ -318,7 +316,6 @@ namespace OceansApp.DataAccess.Repository
                         UserCategoryName = consultant.UserCategoryName,
                         UserRole = consultant.UserRole,
                         PaymentPeriod = consultant.PaymentPeriod,
-                        ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,
                         WorkingModel = consultant.WorkingModel,

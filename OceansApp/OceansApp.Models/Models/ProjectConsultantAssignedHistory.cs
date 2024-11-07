@@ -36,6 +36,8 @@ namespace OceansApp.Models.Models
         [Required]
         public string UserIdActionedBy { get; set; }
 
+        [Required]
+        public bool ParticipatesInOnCalls { get; set; }
 
         [ValidateNever]
         public Partner? Partner { get; set; }

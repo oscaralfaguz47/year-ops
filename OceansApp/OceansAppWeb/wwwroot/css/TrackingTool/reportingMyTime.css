@@ -217,7 +217,6 @@
     padding-bottom: 30px;
 }
 #questions {
-    padding: 10px;
     border-radius: 10px;
     width: 100%;
 }
@@ -232,7 +231,31 @@
     border-radius: 50%;
     margin-top: 5px;
 }
-.envelope-container img{
+.sm-pe-container{
+    display: flex;
+    justify-content:space-between;
+    align-items:end;
+    margin-top: -10px;
+}
+.profile-image-wrapper {
+    width: 63px;
+    height: 63px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #ffffff; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
+    inset 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+    .profile-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; 
+    }
+.envelope-container img {
     width: 26px;
 }
 .gray-bold-span {

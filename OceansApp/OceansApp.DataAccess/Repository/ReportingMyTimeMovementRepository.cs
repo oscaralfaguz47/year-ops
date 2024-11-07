@@ -230,7 +230,7 @@ namespace OceansApp.DataAccess.Repository
                         CreationDate = DateTime.UtcNow,
                     };
                     if (reportMovementData.MovementType == "Normal Hours"
-                        || (reportMovementData.MovementType != "Normal Hours" && currentUser.ParticipatesInOnCalls))
+                        || (reportMovementData.MovementType != "Normal Hours")) //&& currentUser.ParticipatesInOnCalls
                     {
                         await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
                         await _db.SaveChangesAsync();

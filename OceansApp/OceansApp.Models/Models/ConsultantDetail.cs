@@ -33,8 +33,6 @@ namespace OceansApp.Models.Models
         public string? CompanyId { get; set; }
         public int? PaymentMethodId { get; set; }
         public int? PaymentPeriod { get; set; }
-        [Required]
-        public bool ParticipatesInOnCalls { get; set; } = false;
         public int? ConsultantHolidayId { get; set; }
         [Required]
         public DateTime StartDate { get; set; }

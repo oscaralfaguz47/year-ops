@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css?v=@DateTime.Now.Ticks" />
 
 <div id="rmt-background">
-    <!-- Header Section with Project Name and Dropdown -->
+    <!-- Project Dropdown -->
     <div id="header" style="display: @(Model.NumAssignedProjects >= 1 || Model.ClientHasTrackingTool ? "flex" : "none")">
         <div id="proj-drop-cont">
             <input type="hidden" id="dateToInput" />
@@ -95,7 +95,7 @@
                 </div>
             </div>
 
-            <!-- Right Column for Payment Period and Success Manager Info -->
+            <!-- Payment Period and Success Manager Info -->
             <div class="col-md-3">
                 <div class="track-col">
                     <div id="total-hours-label">
@@ -118,15 +118,20 @@
                         <strong style="color:var(--clr-blueLight); display:block;">
                             @Model.SuccessManagerName
                         </strong>
-                        <a class="envelope-link" href="mailto:@Model.SuccessManagerEmail">
-                            <div class="envelope-container">
-                                <img src="/img/globalIcons/envelope.webp" alt="Email Icon">
+                        <div class="sm-pe-container">
+                            <a class="envelope-link" href="mailto:@Model.SuccessManagerEmail">
+                                <div class="envelope-container">
+                                    <img src="/img/globalIcons/envelope.webp" alt="Email Icon">
+                                </div>
+                            </a>
+                            <div class="profile-image-wrapper">
+                                <img src="@(Model.BlobUrl != null ? Model.BlobUrl : "/icons/Shared/profile-user.svg")" alt="@Model.SuccessManagerName" title    ="@Model.SuccessManagerName" />
                             </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Submit Button Section (if needed) -->
+                <!-- Submit Button Section -->
                 <div>
                     <div id="submission-info" class="submit-report">
                     </div>
@@ -138,7 +143,6 @@
     </div>
 </div>
 
-<!-- Include external JS files only if needed -->
 <script src="~/js/Shared/navigateBetweenPeriods.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>

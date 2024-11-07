@@ -20,5 +20,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool? AccessToTrackingTool { get; set; }
         public bool? IsDefaultProject { get; set; }
         public string? UserCreatedBy { get; set; }
+        public bool? ParticipatesInOnCalls { get; set; }
     }
 }

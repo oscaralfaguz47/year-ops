@@ -293,6 +293,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateRequiredFieldBooleanType("HolidaysMustBePaid", "Holidays Must Be Paid", consultantAssignationData.HolidaysMustBePaid, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("AccessToTrackingTool", "Access To Tracking Tool", consultantAssignationData.AccessToTrackingTool, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsDefaultProject", "Is Default Project", consultantAssignationData.IsDefaultProject, ModelState);
+                validateInputs.ValidateRequiredFieldBooleanType("ParticipatesInOnCalls", "Participates In On-Calls", consultantAssignationData.ParticipatesInOnCalls, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsAssigningFirstTime", "IsAssigningFirstTime", consultantAssignationData.IsAssigningFirstTime, ModelState);
 
                 if (ModelState.IsValid)

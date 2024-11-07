@@ -4,8 +4,6 @@
     calculatePeriod(currentDateNoChange, paymentPeriod); 
 });
 
-
-
 // Element selectors
 const quantityInput = getElementById('quantityInput');
 const notesInput = getElementById('notesInput');
@@ -21,6 +19,7 @@ const uploadBtn = getElementById('upload-btn');
 const holidaysContainer = getElementById('holidaysContainer');
 const dropArea = document.querySelector('.file-upload-wrapper');
 const noTrackingToolSection = getElementById('no-tracking-tool-sec');
+const onCallSectionEl = getElementById('on-call-section');
 
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
 let transactionStatus = 'No actions';
@@ -406,9 +405,9 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
 }
 
 // Fetch project movements
-async function getProjectMovementsClientHasTrackTool() {
+async function getProjectMovementsClientHasTrackTool(participatesOnCall) {
     initializeUploadProcess();
-
+    participatesOnCall ? onCallSectionEl.style.display = 'block' : onCallSectionEl.style.display = 'none';
     const startDateValue = encodeURIComponent(dateFromInput.value);
     const endDateValue = encodeURIComponent(dateToInput.value);
     const url = `/TrackingTool/ReportingMyTime/GetProjectMovements?projectId=${encodeURIComponent(projectIdInput.value)}&startDate=${startDateValue}&endDate=${endDateValue}`;

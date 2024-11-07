@@ -36,14 +36,19 @@
     display: grid;
     width: fit-content;
 }
-            .person-cont .profile-img-cont {
-                padding: 5px;
-            }
-            .person-cont .profile-img-cont img{
-                width: 70px;
-                height: 70px;
-                border-radius: 50%;
-            }
+    .person-cont .profile-img-cont {
+        margin:5px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 3px solid #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+                .person-cont .profile-img-cont img {
+                    width: 70px;
+                    height: 70px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
             .person-cont label {
                 font-weight: bold;
                 font-size: 1.1rem;

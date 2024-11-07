@@ -104,6 +104,12 @@ async function displayUpdateCreateProjectModal(modalId, id) {
                 isBillableInputCUP.checked = data.projectData.isBillable;
                 clientHasTrackingToolInputCUP.value = data.projectData.clientHasTrackingTool;
                 clientHasTrackingToolInputCUP.checked = data.projectData.clientHasTrackingTool;
+                if (data.projectData.clientHasTrackingTool) {
+                    getElementById('onCallSection').style.display = 'block';
+                } else {
+                    getElementById('onCallSection').style.display = 'none';
+                    getElementById('participatesInOnCalls').checked = false;
+                }
 
                 const assignedConsultants = JSON.parse(data.projectData.assignedConsultants);
                 assignedConsultants.forEach(function (item, index, arr) {

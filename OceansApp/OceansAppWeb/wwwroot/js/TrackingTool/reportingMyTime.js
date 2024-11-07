@@ -9,7 +9,6 @@ const clientHasTrackingToolValue = getElementById('ClientHasTT').value;
 const submissionInfo = getElementById('submission-info');
 const submissionError = getElementById('submission-errors');
 const projectIdInput = getElementById('projectId');
-const onCallSectionEl = getElementById('on-call-section');
 let selectedProjectName = '';
 const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-project-sec');
 const totalHoursLabelEl = getElementById('total-hours-label');
@@ -167,7 +166,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         if (clientHasTrackingToolValue) {
             totalHoursLabelEl.style.display = 'none';
             if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
-                await getProjectMovementsClientHasTrackTool();
+                await getProjectMovementsClientHasTrackTool(statusInfo.participatesInOnCalls);
                 trackingToolReportEntrySection.style.display = 'block';
             }
             if (buttons) {

@@ -522,7 +522,6 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.PersonalEmail);
                 entity.HasIndex(e => e.CompanyId);
                 entity.HasIndex(e => e.PaymentPeriod);
-                entity.HasIndex(e => e.ParticipatesInOnCalls);
                 entity.HasIndex(e => e.WorkingModel);
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.OldConsultantSystemStartDate);
@@ -935,7 +934,6 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ProjectConsultantAssignedHistory>(entity =>
             {
                 // Indexes
-                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate, e.Id });
                 entity.HasIndex(p => new { p.ProjectConsultantAssignedId, p.IsActive, p.MonthlySalary, p.HourlySalary })
                 .HasFilter("[IsActive] = 1");
                 entity.HasIndex(e => new { e.IsActive, e.AccessToTrackingTool});
@@ -945,6 +943,10 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.PositionId);
                 entity.HasIndex(e => e.PartnerId);
                 entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.ParticipatesInOnCalls);
+
+                //Is there alreary de index: IX_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ProjectConsultantAssignedId_ActionDate_Id
+                //(ProjectConsultantAssignedId ASC, ActionDate DESC, Id DESC)
 
                 //Columns
                 entity.HasKey(p => new { p.Id });

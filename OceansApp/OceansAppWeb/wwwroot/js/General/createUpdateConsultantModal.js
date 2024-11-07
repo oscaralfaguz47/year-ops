@@ -68,7 +68,6 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
                 createUpdateForm.find('[name="workingModel"]').val(data.consultantData.workingModel);
-                otherConfigForm.find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
                 holidaySelectCreateUpdate.value = data.consultantData.consultantHolidayId;
                 let startDateDateFormat = new Date(data.consultantData.startDate);
                 createUpdateForm.find('[name="startDate"]').val(startDateDateFormat.toISOString().split('T')[0]);
@@ -114,7 +113,7 @@ async function createUpdateConsultant(modalId) {
     var personalEmailData = createUpdateForm.find('[name="personalEmail"]').val() || null;
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
-    var participatesOnCallData = otherConfigForm.find('[name="onCallParticiation"]').prop('checked');
+
     const startDateInput = createUpdateForm.find('[name="startDate"]').val();
 
     var token = $('[name="__RequestVerificationToken"]').val();
@@ -139,7 +138,6 @@ async function createUpdateConsultant(modalId) {
         CompanyId: companyIdData,
         PaymentMethodId: paymentMethodIdData,
         PaymentPeriod: paymentPeriodIdData,
-        ParticipatesInOnCalls: Boolean(participatesOnCallData),
         ConsultantHolidayId: holidaySelectCreateUpdate.value === '' || holidaySelectCreateUpdate.value === 'null' ? null : holidaySelectCreateUpdate.value,
         Address: addressData,
         PersonalEmail: personalEmailData,

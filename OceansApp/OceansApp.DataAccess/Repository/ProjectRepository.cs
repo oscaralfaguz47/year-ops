@@ -242,8 +242,6 @@ namespace OceansApp.DataAccess.Repository
                                     await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(historyToCreateChangingIsDefaultProject);
                                     await _db.SaveChangesAsync();
                                 }
-
-
                             }
                         }
                     }
@@ -265,7 +263,8 @@ namespace OceansApp.DataAccess.Repository
                     HolidaysMustBePaid = (bool)consultantAssignationData.HolidaysMustBePaid,
                     ActionDate = (DateTime)consultantAssignationData.ActionDate,
                     CreationDate = DateTime.UtcNow,
-                    UserIdActionedBy = consultantAssignationData.UserCreatedBy
+                    UserIdActionedBy = consultantAssignationData.UserCreatedBy,
+                    ParticipatesInOnCalls = (bool)consultantAssignationData.ParticipatesInOnCalls
                 };
 
                 if (existingConsultantAssignation == null && (bool)consultantAssignationData.IsAssigningFirstTime)
@@ -308,7 +307,8 @@ namespace OceansApp.DataAccess.Repository
                         consultantAssignedHistoryToCreate.MonthlyClientRate != recentHistoryBeforeActionDate.MonthlyClientRate ||
                         consultantAssignedHistoryToCreate.AccessToTrackingTool != recentHistoryBeforeActionDate.AccessToTrackingTool ||
                         consultantAssignedHistoryToCreate.HolidaysMustBePaid != recentHistoryBeforeActionDate.HolidaysMustBePaid ||
-                        consultantAssignedHistoryToCreate.IsDefaultProject != recentHistoryBeforeActionDate.IsDefaultProject
+                        consultantAssignedHistoryToCreate.IsDefaultProject != recentHistoryBeforeActionDate.IsDefaultProject ||
+                        consultantAssignedHistoryToCreate.ParticipatesInOnCalls != recentHistoryBeforeActionDate.ParticipatesInOnCalls
                         )
                     {
                         await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(consultantAssignedHistoryToCreate);

@@ -20,5 +20,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool IsDefaultProject { get; set; }
         public string UserActionedBy { get; set; }
         public DateTime CreationDate { get; set; }
+        public bool ParticipatesInOnCalls { get; set; }
     }
 }

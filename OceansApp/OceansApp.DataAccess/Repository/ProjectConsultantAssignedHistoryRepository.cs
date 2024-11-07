@@ -54,7 +54,8 @@ namespace OceansApp.DataAccess.Repository
                                            MonthlyClientRate = h.MonthlyClientRate,
                                            PartnerId = h.PartnerId,
                                            PartnerPaysBenefits = h.PartnerPaysBenefits,
-                                           UserIdActionedBy = h.UserIdActionedBy
+                                           UserIdActionedBy = h.UserIdActionedBy,
+                                           ParticipatesInOnCalls = h.ParticipatesInOnCalls
                                        }).FirstOrDefaultAsync(); 
             return currentHistory;
         }
