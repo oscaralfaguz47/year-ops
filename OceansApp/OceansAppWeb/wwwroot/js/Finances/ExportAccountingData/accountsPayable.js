@@ -168,13 +168,17 @@ async function exportAccountsPayableData(downloadButton, journalId, status) {
         dataFromApi.journalAccountPayableData.entriesList.forEach(function (obj, index) {
             let entryData =
             {
+                "Asiento": dataFromApi.journalAccountPayableData.entry,
+                "Consecutivo": index + 1,
                 "Nit": obj.nit,
                 "Centro De Costo": obj.costCenter,
                 "Cuenta Contable": obj.accountingAccount,
                 "Fuente": obj.source,
                 "Referencia": obj.reference,
-                "Débito Dólar": obj.debit,
-                "Crédito Dólar": obj.credit
+                "Débito Local": obj.debit === 0 ? '' : Number(obj.debit),
+                "Débito Dólar": obj.debit === 0 ? '' : Number(obj.debit),
+                    "Crédito Local": obj.credit === 0 ? '' : Number(obj.credit),
+                        "Crédito Dólar": obj.credit === 0 ? '' : Number(obj.credit)
             }
             entriesData.push(entryData);
         });
