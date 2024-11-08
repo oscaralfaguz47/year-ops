@@ -22,7 +22,8 @@ using OceansApp.Utility.NotificationTemplates;
 using Microsoft.Extensions.Configuration;
 using Azure.Storage.Queues;
 using Newtonsoft.Json;
-
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -372,13 +373,22 @@ namespace OceansApp.DataAccess.Repository
 
             // Start database transaction
             await using var transaction = await _db.Database.BeginTransactionAsync();
+            bool accountPayableCreatedSucced = false;
             try
             {
                 // Create account payable if it doesn't exist
                 if (existingAccountPayable == null)
                 {
-                    existingAccountPayable = await CreateAccountPayable(userIdCreatedBy,
+                    var (accountPayable, success) = await CreateAccountPayable(userIdCreatedBy,
                         paymentData, accountPayableAmount, journalEntriesToCreate, listOfMovementsForPayment);
+
+                    if (accountPayable == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("There was an error creating the Account Payable");
+                    }
+
+                    existingAccountPayable = accountPayable;
+                    accountPayableCreatedSucced = success;
                 }
 
                 // Validate if the payment amount exceeds the account payable balance
@@ -458,6 +468,12 @@ namespace OceansApp.DataAccess.Repository
 
                 // Commit the transaction
                 await transaction.CommitAsync();
+
+                //Send the payment details email
+                if (accountPayableCreatedSucced)
+                {
+
+                }
                 return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
             }
             catch (DbUpdateException ex)
@@ -672,11 +688,25 @@ namespace OceansApp.DataAccess.Repository
                 };
 
                 // Create the new account payable with the provided data and journal entries
-                existingAccountPayable = await CreateAccountPayable(userIdCreatedBy, completeModel, accountPayableAmount, journalEntriesToCreate,
+                var (accountPayable, success) = await CreateAccountPayable(userIdCreatedBy, completeModel, accountPayableAmount, journalEntriesToCreate,
                     listOfMovementsForPayment);
+
+                if (accountPayable == null)
+                {
+                    return MethodResponse.CreateFailureExceptionResponse("There was an error creating the Account Payable");
+                }
+
+                existingAccountPayable = accountPayable;
 
                 // Commit the transaction after successful creation
                 await transaction.CommitAsync();
+
+                //Send the payment details email
+                if (success)
+                {
+                    await GeneratePaymentDetailsAndSendEmail(listOfMovementsForPayment, "oscar.alfaro@oceanscode.com");
+                }
+
                 return MethodResponse.CreateSuccessResponse("Reported as account payable successfully!");
             }
             catch (Exception ex)
@@ -687,97 +717,245 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        private async Task<AccountPayable> CreateAccountPayable(string userIdCreatedBy,
-    CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate,
-    GetListOfMovementsForPaymentVM listOfBenefitsMovements)
+        private async Task GeneratePaymentDetailsAndSendEmail(GetListOfMovementsForPaymentVM listOfMovementsForPayment, string emailTo)
         {
-            // Get necessary transaction statuses
-            var transactionStatuses = await _db.TRANSACTION_STATUSES
-                .Where(x => x.Name == "Sent to be paid" || x.Name == "Pending Accounting" || x.Name == "Rejected")
-                .ToListAsync();
+            // Generate the PDF
+            byte[] pdfBytes = GeneratePdf(listOfMovementsForPayment);
 
-            // Create the account payable entity
-            var accountPayableToCreate = new AccountPayable
+            // Create the email model
+            var emailToSend = new SendEmailVM
             {
-                ConsultantId = (int)paymentData.ConsultantId,
-                StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
-                EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
-                AccountingDate = DateTime.Parse(paymentData.EndDatePeriod),
-                Amount = accountPayableAmount,
-                BalanceAmount = accountPayableAmount,
-                CreationDate = DateTime.UtcNow,
-                UserCreatedBy = userIdCreatedBy,
-                CompanyId = paymentData.CompanyId,
-                TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Sent to be paid").TransactionStatusId
+                EmailTo = emailTo,
+                Subject = "Your Payment Details",
+                Body = "Please find attached your payment details.",
+                Attachments = new List<AttachmentVM>
+        {
+            new AttachmentVM
+            {
+                FileName = "PaymentDetails.pdf",
+                FileContent = pdfBytes
+            }
+        }
             };
 
-            // Add the new account payable to the database
-            await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
-            await _db.SaveChangesAsync();
+            // Serialize the message and send it to the queue
+            string message = JsonConvert.SerializeObject(emailToSend);
+            await _queueClient.Value.SendMessageAsync(message);
+        }
 
-            foreach (var movement in listOfBenefitsMovements.ProjectMovements)
+
+        private byte[] GeneratePdf(GetListOfMovementsForPaymentVM data)
+        {
+            using (var memoryStream = new MemoryStream())
             {
-                AccountPayableMovement movementToCreate = new()
+                // Create the PDF document
+                var document = new iTextSharp.text.Document(PageSize.A4, 36, 36, 36, 36);
+                var writer = PdfWriter.GetInstance(document, memoryStream);
+                document.Open();
+
+                // Add title
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
+                document.Add(new Paragraph("Oscar Test Testing", titleFont));
+
+                // Add movement sections
+                if (data.ProjectMovements != null && data.ProjectMovements.Any())
                 {
-                    MovementId = movement.MovementId,
-                    ProjectId = movement.ProjectId,
-                    Description = movement.MovementTypeName,
-                    MovementTypeId = movement.MovementTypeId,
-                    Type = movement.PaymentType,
-                    Quantity = movement.Quantity,
-                    UnitPrice = movement.UnitPrice,
-                    AccountPayableId = accountPayableToCreate.AccountPayableId
-                };
-                await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
-                await _db.SaveChangesAsync();
+                    AddMovementSection(document, "PROJECTS", data.ProjectMovements, new BaseColor(211, 211, 211), new BaseColor(0, 255, 255));
+                }
+
+                if (data.BenefitsAndOtherMovements != null && data.BenefitsAndOtherMovements.Any())
+                {
+                    AddMovementSection(document, "CREDITS", data.BenefitsAndOtherMovements, new BaseColor(211, 211, 211), new BaseColor(0, 255, 0));
+                }
+
+                if (data.DebitsMovements != null && data.DebitsMovements.Any())
+                {
+                    AddMovementSection(document, "DEBITS", data.DebitsMovements, new BaseColor(211, 211, 211), new BaseColor(255, 192, 203));
+                }
+
+                // Summary of Totals
+                AddSummarySection(document, data);
+
+                document.Close();
+                writer.Close();
+
+                return memoryStream.ToArray();
             }
-            foreach (var movement in listOfBenefitsMovements.BenefitsAndOtherMovements)
+        }
+
+
+        private void AddMovementSection(iTextSharp.text.Document document, string sectionTitle, List<GetPaymentDetailsMovementsVM> movements, BaseColor headerColor, BaseColor rowColor)
+        {
+            // Add section title
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, new BaseColor(0, 0, 0));
+            var titleTable = new PdfPTable(1) { WidthPercentage = 100 };
+            var titleCell = new PdfPCell(new Phrase(sectionTitle, titleFont))
             {
-                AccountPayableMovement movementToCreate = new()
-                {
-                    MovementId = movement.MovementId,
-                    ProjectId = movement.ProjectId,
-                    Description = movement.MovementTypeName,
-                    MovementTypeId = movement.MovementTypeId,
-                    Type = movement.PaymentType,
-                    Quantity = movement.Quantity,
-                    UnitPrice = movement.UnitPrice,
-                    AccountPayableId = accountPayableToCreate.AccountPayableId
-                };
-                await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
-                await _db.SaveChangesAsync();
-            }
-            foreach (var movement in listOfBenefitsMovements.DebitsMovements)
+                BackgroundColor = headerColor,
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                Padding = 5
+            };
+            titleTable.AddCell(titleCell);
+            document.Add(titleTable);
+
+            // Details table
+            var table = new PdfPTable(4) { WidthPercentage = 100 };
+            table.SetWidths(new float[] { 3, 1, 1, 1 });
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+
+            // Headers
+            table.AddCell(new PdfPCell(new Phrase("Description", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
+            table.AddCell(new PdfPCell(new Phrase("Quantity", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
+            table.AddCell(new PdfPCell(new Phrase("Unit Price", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
+            table.AddCell(new PdfPCell(new Phrase("Subtotal", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
+
+            // Data rows
+            var rowFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+            foreach (var movement in movements)
             {
-                AccountPayableMovement movementToCreate = new()
-                {
-                    MovementId = movement.MovementId,
-                    ProjectId = movement.ProjectId,
-                    Description = movement.MovementTypeName,
-                    MovementTypeId = movement.MovementTypeId,
-                    Type = movement.PaymentType,
-                    Quantity = movement.Quantity,
-                    UnitPrice = movement.UnitPrice,
-                    AccountPayableId = accountPayableToCreate.AccountPayableId
-                };
-                await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
-                await _db.SaveChangesAsync();
+                table.AddCell(new PdfPCell(new Phrase(movement.MovementTypeName, rowFont)) { BackgroundColor = rowColor, Padding = 5 });
+                table.AddCell(new PdfPCell(new Phrase(movement.Quantity.ToString("N2"), rowFont)) { BackgroundColor = rowColor, Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                table.AddCell(new PdfPCell(new Phrase(movement.UnitPrice.ToString("C"), rowFont)) { BackgroundColor = rowColor, Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                table.AddCell(new PdfPCell(new Phrase(movement.TotalAmount.ToString("C"), rowFont)) { BackgroundColor = rowColor, Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
             }
 
-            // Retrieve or create a new journal for accounts payable
-            var existingJournal = await GetExistingOrCreateJournalAccountPayable(DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod), paymentData.CompanyId,
-            userIdCreatedBy);
+            // Section total
+            decimal totalAmount = movements.Sum(m => m.TotalAmount);
+            var totalCell = new PdfPCell(new Phrase($"Total {sectionTitle} Amount: {totalAmount:C}", rowFont))
+            {
+                Colspan = 4,
+                BackgroundColor = rowColor,
+                Padding = 5,
+                HorizontalAlignment = Element.ALIGN_RIGHT
+            };
+            table.AddCell(totalCell);
 
-            // Add journal entries to the database
-            await CreateJournalAccountPayableEntries(journalEntriesToCreate,
-            existingJournal.JournalId, accountPayableToCreate.AccountPayableId);
+            document.Add(table);
+        }
 
-            // Update movements statuses based on the period and consultant
-            await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
-                       (int)paymentData.ConsultantId, "Sent to be paid");
+        private void AddSummarySection(iTextSharp.text.Document document, GetListOfMovementsForPaymentVM data)
+        {
+            // Calculate totals
+            decimal creditsTotal = data.BenefitsAndOtherMovements?.Sum(m => m.TotalAmount) ?? 0;
+            decimal debitsTotal = data.DebitsMovements?.Sum(m => m.TotalAmount) ?? 0;
+            decimal totalToPay = creditsTotal - debitsTotal;
 
-            // Return the newly created account payable
-            return accountPayableToCreate;
+            // Create summary table
+            var summaryFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, new BaseColor(0, 0, 0));
+            var summaryTable = new PdfPTable(2) { WidthPercentage = 100 };
+            summaryTable.SetWidths(new float[] { 4, 1 });
+
+            // Summary
+            summaryTable.AddCell(new PdfPCell(new Phrase("CREDITS", summaryFont)) { BackgroundColor = new BaseColor(0, 255, 0), Padding = 5 });
+            summaryTable.AddCell(new PdfPCell(new Phrase(creditsTotal.ToString("C"), summaryFont)) { BackgroundColor = new BaseColor(0, 255, 0), Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+
+            summaryTable.AddCell(new PdfPCell(new Phrase("DEBITS", summaryFont)) { BackgroundColor = new BaseColor(255, 192, 203), Padding = 5 });
+            summaryTable.AddCell(new PdfPCell(new Phrase(debitsTotal.ToString("C"), summaryFont)) { BackgroundColor = new BaseColor(255, 192, 203), Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+
+            summaryTable.AddCell(new PdfPCell(new Phrase("TOTAL TO PAY", summaryFont)) { BackgroundColor = new BaseColor(255, 255, 0), Padding = 5 });
+            summaryTable.AddCell(new PdfPCell(new Phrase(totalToPay.ToString("C"), summaryFont)) { BackgroundColor = new BaseColor(255, 255, 0), Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+
+            document.Add(summaryTable);
+        }
+
+        private async Task<(AccountPayable? AccountPayable, bool Success)> CreateAccountPayable(string userIdCreatedBy,
+        CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate,
+        GetListOfMovementsForPaymentVM listOfBenefitsMovements)
+        {
+            try
+            {
+                // Get necessary transaction statuses
+                var transactionStatuses = await _db.TRANSACTION_STATUSES
+                    .Where(x => x.Name == "Sent to be paid" || x.Name == "Pending Accounting" || x.Name == "Rejected")
+                    .ToListAsync();
+
+                // Create the account payable entity
+                var accountPayableToCreate = new AccountPayable
+                {
+                    ConsultantId = (int)paymentData.ConsultantId,
+                    StartDatePeriod = DateTime.Parse(paymentData.StartDatePeriod),
+                    EndDatePeriod = DateTime.Parse(paymentData.EndDatePeriod),
+                    AccountingDate = DateTime.Parse(paymentData.EndDatePeriod),
+                    Amount = accountPayableAmount,
+                    BalanceAmount = accountPayableAmount,
+                    CreationDate = DateTime.UtcNow,
+                    UserCreatedBy = userIdCreatedBy,
+                    CompanyId = paymentData.CompanyId,
+                    TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Sent to be paid").TransactionStatusId
+                };
+
+                // Add the new account payable to the database
+                await _db.ACCOUNTS_PAYABLE.AddAsync(accountPayableToCreate);
+                await _db.SaveChangesAsync();
+
+                foreach (var movement in listOfBenefitsMovements.ProjectMovements)
+                {
+                    AccountPayableMovement movementToCreate = new()
+                    {
+                        MovementId = movement.MovementId,
+                        ProjectId = movement.ProjectId,
+                        Description = movement.MovementTypeName,
+                        MovementTypeId = movement.MovementTypeId,
+                        Type = movement.PaymentType,
+                        Quantity = movement.Quantity,
+                        UnitPrice = movement.UnitPrice,
+                        AccountPayableId = accountPayableToCreate.AccountPayableId
+                    };
+                    await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                    await _db.SaveChangesAsync();
+                }
+                foreach (var movement in listOfBenefitsMovements.BenefitsAndOtherMovements)
+                {
+                    AccountPayableMovement movementToCreate = new()
+                    {
+                        MovementId = movement.MovementId,
+                        ProjectId = movement.ProjectId,
+                        Description = movement.MovementTypeName,
+                        MovementTypeId = movement.MovementTypeId,
+                        Type = movement.PaymentType,
+                        Quantity = movement.Quantity,
+                        UnitPrice = movement.UnitPrice,
+                        AccountPayableId = accountPayableToCreate.AccountPayableId
+                    };
+                    await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                    await _db.SaveChangesAsync();
+                }
+                foreach (var movement in listOfBenefitsMovements.DebitsMovements)
+                {
+                    AccountPayableMovement movementToCreate = new()
+                    {
+                        MovementId = movement.MovementId,
+                        ProjectId = movement.ProjectId,
+                        Description = movement.MovementTypeName,
+                        MovementTypeId = movement.MovementTypeId,
+                        Type = movement.PaymentType,
+                        Quantity = movement.Quantity,
+                        UnitPrice = movement.UnitPrice,
+                        AccountPayableId = accountPayableToCreate.AccountPayableId
+                    };
+                    await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
+                    await _db.SaveChangesAsync();
+                }
+
+                // Retrieve or create a new journal for accounts payable
+                var existingJournal = await GetExistingOrCreateJournalAccountPayable(DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod), paymentData.CompanyId,
+                userIdCreatedBy);
+
+                // Add journal entries to the database
+                await CreateJournalAccountPayableEntries(journalEntriesToCreate,
+                existingJournal.JournalId, accountPayableToCreate.AccountPayableId);
+
+                // Update movements statuses based on the period and consultant
+                await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
+                           (int)paymentData.ConsultantId, "Sent to be paid");
+
+                // Return the newly created account payable
+                return (accountPayableToCreate, true);
+            }
+            catch
+            {
+                return (null, false);
+            }
         }
 
         private async Task CreateJournalAccountPayableEntries(List<JournalAccountPayableEntry> journalEntriesToCreate,

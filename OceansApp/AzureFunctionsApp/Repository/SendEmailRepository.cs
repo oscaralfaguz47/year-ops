@@ -60,7 +60,15 @@ namespace AzureFunctionsApp.Repository
             }
 
             message.Subject = emailModel.Subject;
-            message.Body = new BodyBuilder { HtmlBody = emailModel.Body }.ToMessageBody();
+
+            var bodyBuilder = new BodyBuilder { HtmlBody = emailModel.Body };
+
+            foreach (var attachment in emailModel.Attachments)
+            {
+                bodyBuilder.Attachments.Add(attachment.FileName, attachment.FileContent, ContentType.Parse("application/octet-stream"));
+            }
+
+            message.Body = bodyBuilder.ToMessageBody();
 
             int retryCount = 3;
             for (int i = 0; i < retryCount; i++)

@@ -46,27 +46,11 @@ body {
     display: contents;
 }
 
-nav {
-    position: fixed !important;
-    z-index: 100 !important;
-    width: 100% !important;
-    background-color: var(--clr-dark2);
-}
-
-.navbar {
-    --bs-navbar-padding-x: 0;
-    --bs-navbar-padding-y: 1rem;
-    --bs-navbar-color: var(--clr-grayLight);
-    --bs-navbar-hover-color: var(--clr-blueLight);
-    font-weight: bold;
-}
 
 .login-btn{
     background-color: var(--clr-yellow) !important;
 }
-.img-logo {
-    width: 160px
-}
+
 .create-btn {
     border-radius: 25px;
     padding: 0px 15px 0px 15px;
@@ -412,32 +396,7 @@ nav {
         list-style-type: none;
         padding: 0;
     }
-/* NAV BAR */
-.dropdown-menu {
-    background-color: var(--clr-grayDark);
-    color: #fff !important;
-    width: max-content;
-}
 
-    .dropdown-menu .nav-link {
-        color: #fff !important;
-    }
-
-        .dropdown-menu .nav-link:hover {
-            color: var(--clr-yellow) !important;
-        }
-
-.nav-link {
-    color: var(--clr-blueLight) !important;
-}
-
-    .nav-link:hover {
-        color: #fff !important;
-    }
-
-.navbar-toggler {
-    background-color: var(--clr-grayDark);
-}
 /*SHARED COMPONENTS*/
 
 /* Hide arrows for number type input for Chrome, Safari and Edge */

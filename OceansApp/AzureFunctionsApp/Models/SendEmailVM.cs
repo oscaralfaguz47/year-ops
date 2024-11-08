@@ -8,5 +8,6 @@ namespace AzureFunctionsApp.Models
         public string Subject { get; set; }
         public string? SharedEmailFrom { get; set; }
         public string Body { get; set; }
+         public List<AttachmentVM> Attachments { get; set; } = new List<AttachmentVM>();
     }
 }
