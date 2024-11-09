@@ -716,7 +716,6 @@ namespace OceansApp.DataAccess.Repository
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
-
         private async Task GeneratePaymentDetailsAndSendEmail(GetListOfMovementsForPaymentVM listOfMovementsForPayment, string emailTo)
         {
             // Generate the PDF
@@ -728,6 +727,7 @@ namespace OceansApp.DataAccess.Repository
                 EmailTo = emailTo,
                 Subject = "Your Payment Details",
                 Body = "Please find attached your payment details.",
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 Attachments = new List<AttachmentVM>
         {
             new AttachmentVM
@@ -740,10 +740,8 @@ namespace OceansApp.DataAccess.Repository
 
             // Serialize the message and send it to the queue
             string message = JsonConvert.SerializeObject(emailToSend);
-            await _queueClient.Value.SendMessageAsync(message);
+            await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
         }
-
-
         private byte[] GeneratePdf(GetListOfMovementsForPaymentVM data)
         {
             using (var memoryStream = new MemoryStream())
@@ -782,8 +780,6 @@ namespace OceansApp.DataAccess.Repository
                 return memoryStream.ToArray();
             }
         }
-
-
         private void AddMovementSection(iTextSharp.text.Document document, string sectionTitle, List<GetPaymentDetailsMovementsVM> movements, BaseColor headerColor, BaseColor rowColor)
         {
             // Add section title
@@ -832,7 +828,6 @@ namespace OceansApp.DataAccess.Repository
 
             document.Add(table);
         }
-
         private void AddSummarySection(iTextSharp.text.Document document, GetListOfMovementsForPaymentVM data)
         {
             // Calculate totals
@@ -1675,6 +1670,10 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
         existingOrCreatedJournal.JournalId, accountPayable.AccountPayableId);
 
                     await transaction.CommitAsync();
+
+                    //Send the payment details email
+                    await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, "oscar.alfaro@oceanscode.com");
+
                     return new MethodResponse { Success = true, Message = "The account payable was fixed" };
                 }
                 catch (Exception ex)
