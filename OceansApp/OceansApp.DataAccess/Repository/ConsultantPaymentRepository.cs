@@ -746,33 +746,34 @@ namespace OceansApp.DataAccess.Repository
         {
             using (var memoryStream = new MemoryStream())
             {
-                // Create the PDF document
                 var document = new iTextSharp.text.Document(PageSize.A4, 36, 36, 36, 36);
                 var writer = PdfWriter.GetInstance(document, memoryStream);
                 document.Open();
 
-                // Add title
-                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
-                document.Add(new Paragraph("Oscar Test Testing", titleFont));
+                // Add Header
+                AddHeader(document);
 
-                // Add movement sections
+                // Add Project Movements by Project
                 if (data.ProjectMovements != null && data.ProjectMovements.Any())
                 {
-                    AddMovementSection(document, "PROJECTS", data.ProjectMovements, new BaseColor(211, 211, 211), new BaseColor(0, 255, 255));
+                    AddProjectMovementsSection(document, data.ProjectMovements);
                 }
 
+                // Add Benefits and Other Movements (Credits)
                 if (data.BenefitsAndOtherMovements != null && data.BenefitsAndOtherMovements.Any())
                 {
-                    AddMovementSection(document, "CREDITS", data.BenefitsAndOtherMovements, new BaseColor(211, 211, 211), new BaseColor(0, 255, 0));
+                    AddMovementSection(document, "CREDITS / ADDITIONAL", data.BenefitsAndOtherMovements, new iTextSharp.text.BaseColor(5, 137, 147), new iTextSharp.text.BaseColor(255, 255, 255), "Total Credits / Additional:");
                 }
 
+                // Add Debits Movements
                 if (data.DebitsMovements != null && data.DebitsMovements.Any())
                 {
-                    AddMovementSection(document, "DEBITS", data.DebitsMovements, new BaseColor(211, 211, 211), new BaseColor(255, 192, 203));
+                    AddMovementSection(document, "DEBITS / DISCOUNTS", data.DebitsMovements, new iTextSharp.text.BaseColor(5, 137, 147), new iTextSharp.text.BaseColor(255, 255, 255), "Total Debits / Discounts:");
                 }
 
-                // Summary of Totals
-                AddSummarySection(document, data);
+                // Summary of Totals and Footer
+                decimal totalAmount = CalculateTotalAmount(data);
+                AddFooter(document, totalAmount);
 
                 document.Close();
                 writer.Close();
@@ -780,47 +781,291 @@ namespace OceansApp.DataAccess.Repository
                 return memoryStream.ToArray();
             }
         }
-        private void AddMovementSection(iTextSharp.text.Document document, string sectionTitle, List<GetPaymentDetailsMovementsVM> movements, BaseColor headerColor, BaseColor rowColor)
+        private decimal CalculateTotalAmount(GetListOfMovementsForPaymentVM data)
         {
-            // Add section title
-            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, new BaseColor(0, 0, 0));
-            var titleTable = new PdfPTable(1) { WidthPercentage = 100 };
-            var titleCell = new PdfPCell(new Phrase(sectionTitle, titleFont))
+            decimal projectsTotal = data.ProjectMovements?.GroupBy(pm => pm.ProjectName).Sum(g => g.Sum(m => m.TotalAmount)) ?? 0;
+            decimal creditsTotal = data.BenefitsAndOtherMovements?.Sum(m => m.TotalAmount) ?? 0;
+            decimal debitsTotal = data.DebitsMovements?.Sum(m => m.TotalAmount) ?? 0;
+            return projectsTotal + creditsTotal - debitsTotal;
+        }
+        private void AddHeader(Document document)
+        {
+            var headerTable = new PdfPTable(2) { WidthPercentage = 100 };
+            headerTable.SetWidths(new float[] { 3, 1 });
+
+            // Logo a la izquierda
+            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", "logo-white.png");
+            var logo = Image.GetInstance(logoPath);
+            logo.ScaleToFit(120, 60); // Tamaño ligeramente mayor
+            logo.Alignment = Element.ALIGN_LEFT;
+
+            var leftCell = new PdfPCell();
+            leftCell.AddElement(logo);
+            leftCell.Border = PdfPCell.NO_BORDER;
+            leftCell.BackgroundColor = new iTextSharp.text.BaseColor(22, 22, 22);
+
+            // Texto en la esquina superior derecha
+            var rightCell = new PdfPCell();
+            rightCell.AddElement(new Paragraph("OCEANS CODE EXPERTS", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255))));
+            rightCell.AddElement(new Paragraph("accounting@oceanscode.com", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(255, 255, 255))));
+            rightCell.Border = PdfPCell.NO_BORDER;
+            rightCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            rightCell.BackgroundColor = new iTextSharp.text.BaseColor(22, 22, 22);
+            headerTable.AddCell(leftCell);
+            headerTable.AddCell(rightCell);
+
+            document.Add(headerTable);
+
+            // DETALLE DE PAGO centrado
+            var detailTitleTable = new PdfPTable(1) { WidthPercentage = 100 };
+            var detailTitleCell = new PdfPCell(new Phrase("PAYMENT DETAILS", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, new iTextSharp.text.BaseColor(238, 179, 15))))
             {
-                BackgroundColor = headerColor,
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                Border = PdfPCell.NO_BORDER,
+                BackgroundColor = new iTextSharp.text.BaseColor(29, 29, 29),
+                PaddingTop = 2,
+                PaddingBottom = 7
+            };
+            detailTitleTable.AddCell(detailTitleCell);
+            document.Add(detailTitleTable);
+
+            // Información del consultor
+            var consultantTable = new PdfPTable(2) { WidthPercentage = 100 };
+            consultantTable.SetWidths(new float[] { 1, 1 });
+
+            var consultantInfoCell = new PdfPCell();
+
+            // Consultant Name
+            Chunk labelChunkConsultantName = new Chunk("NAME: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, new iTextSharp.text.BaseColor(5, 137, 147)));
+            Chunk valueChunkConsultantName = new Chunk("Gaston Eduardo Zukauskas", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, new iTextSharp.text.BaseColor(255, 255, 255)));
+
+            // Combine Consultant Name in Paragraph
+            Paragraph consultantName = new Paragraph();
+            consultantName.Add(labelChunkConsultantName);
+            consultantName.Add(valueChunkConsultantName);
+
+            // Consultant Email
+            Chunk labelChunkConsultantEmail = new Chunk("EMAIL: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(5, 137, 147)));
+            Chunk valueChunkConsultantEmail = new Chunk("gaston.zukauskas@oceanscode.com", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9, new iTextSharp.text.BaseColor(255, 255, 255)));
+
+            // Combine Consultant Name in Paragraph
+            Paragraph consultantEmail = new Paragraph();
+            consultantEmail.Add(labelChunkConsultantEmail);
+            consultantEmail.Add(valueChunkConsultantEmail);
+
+            // Agregar el Paragraph a la celda
+            consultantInfoCell.AddElement(consultantName);
+            consultantInfoCell.AddElement(consultantEmail);
+            consultantInfoCell.Border = PdfPCell.NO_BORDER;
+            consultantInfoCell.PaddingLeft = 10;
+            consultantInfoCell.BackgroundColor = new iTextSharp.text.BaseColor(29, 29, 29);
+
+            // Date and Currency aligned to the right
+            var invoiceDetailsCell = new PdfPCell();
+            var invoiceDetailsTable = new PdfPTable(1);
+            invoiceDetailsTable.DefaultCell.Border = PdfPCell.NO_BORDER;
+            invoiceDetailsTable.WidthPercentage = 100;
+
+            // Date cell with different colors for label and value
+            Chunk dateLabelChunk = new Chunk("Date: ", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(5, 137, 147)));
+            Chunk dateValueChunk = new Chunk("31/10/2024", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(255, 255, 255)));
+
+            Paragraph dateParagraph = new Paragraph();
+            dateParagraph.Add(dateLabelChunk);
+            dateParagraph.Add(dateValueChunk);
+
+            PdfPCell dateCell = new PdfPCell(dateParagraph)
+            {
+                Border = PdfPCell.NO_BORDER,
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                PaddingRight = 10
+            };
+            invoiceDetailsTable.AddCell(dateCell);
+
+            // Currency cell with different colors for label and value
+            Chunk currencyLabelChunk = new Chunk("Currency: ", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(5, 137, 147)));
+            Chunk currencyValueChunk = new Chunk("USD", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(255, 255, 255)));
+
+            Paragraph currencyParagraph = new Paragraph();
+            currencyParagraph.Add(currencyLabelChunk);
+            currencyParagraph.Add(currencyValueChunk);
+
+            PdfPCell currencyCell = new PdfPCell(currencyParagraph)
+            {
+                Border = PdfPCell.NO_BORDER,
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                PaddingRight = 10
+            };
+            invoiceDetailsTable.AddCell(currencyCell);
+
+            invoiceDetailsCell.AddElement(invoiceDetailsTable);
+            invoiceDetailsCell.Border = PdfPCell.NO_BORDER;
+            invoiceDetailsCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            invoiceDetailsCell.BackgroundColor = new iTextSharp.text.BaseColor(29, 29, 29);
+
+            consultantTable.AddCell(consultantInfoCell);
+            consultantTable.AddCell(invoiceDetailsCell);
+            document.Add(consultantTable);
+
+
+            // N° DETAIL with bottom padding
+            var detailNumberTable = new PdfPTable(1) { WidthPercentage = 100 };
+
+            // Separate label and value with different colors
+            Chunk detailLabelChunk = new Chunk("N° DETAIL: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(5, 137, 147)));
+            Chunk detailValueChunk = new Chunk("OC00000492", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255)));
+
+            Paragraph detailParagraph = new Paragraph();
+            detailParagraph.Add(detailLabelChunk);
+            detailParagraph.Add(detailValueChunk);
+
+            PdfPCell detailNumberCell = new PdfPCell(detailParagraph)
+            {
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                Border = PdfPCell.NO_BORDER,
+                BackgroundColor = new iTextSharp.text.BaseColor(29, 29, 29),
+                PaddingTop = 12,
+                PaddingRight = 10,
+                PaddingBottom = 10
+            };
+
+            detailNumberTable.AddCell(detailNumberCell);
+            document.Add(detailNumberTable);
+        }
+        private void AddProjectMovementsSection(iTextSharp.text.Document document, List<GetPaymentDetailsMovementsVM> projectMovements)
+        {
+            var projectsGrouped = projectMovements.GroupBy(pm => pm.ProjectName);
+
+            // Font for the project title with specified color
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, new iTextSharp.text.BaseColor(5, 137, 147));
+            // Font for the column headers with white text
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255));
+            var rowFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+            var totalFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10); // Bold font for Project Total Amount
+
+            foreach (var projectGroup in projectsGrouped)
+            {
+                // Project title with specific color
+                var titleTable = new PdfPTable(1) { WidthPercentage = 100 };
+                var titleCell = new PdfPCell(new Phrase(projectGroup.Key.ToUpper(), titleFont))
+                {
+                    BackgroundColor = new iTextSharp.text.BaseColor(255, 255, 255),
+                    HorizontalAlignment = Element.ALIGN_CENTER,
+                    Padding = 5
+                };
+                titleTable.AddCell(titleCell);
+                document.Add(titleTable);
+
+                // Table for project movements
+                var table = new PdfPTable(4) { WidthPercentage = 100 };
+                table.SetWidths(new float[] { 3, 1, 1, 1 });
+
+                // Column headers with specified background and text colors
+                table.AddCell(new PdfPCell(new Phrase("Description", headerFont))
+                {
+                    BackgroundColor = new iTextSharp.text.BaseColor(5, 137, 147),
+                    Padding = 3,
+                    HorizontalAlignment = Element.ALIGN_CENTER
+                });
+                table.AddCell(new PdfPCell(new Phrase("Quantity", headerFont))
+                {
+                    BackgroundColor = new iTextSharp.text.BaseColor(5, 137, 147),
+                    Padding = 3,
+                    HorizontalAlignment = Element.ALIGN_CENTER
+                });
+                table.AddCell(new PdfPCell(new Phrase("Unit Price", headerFont))
+                {
+                    BackgroundColor = new iTextSharp.text.BaseColor(5, 137, 147),
+                    Padding = 3,
+                    HorizontalAlignment = Element.ALIGN_CENTER
+                });
+                table.AddCell(new PdfPCell(new Phrase("Subtotal", headerFont))
+                {
+                    BackgroundColor = new iTextSharp.text.BaseColor(5, 137, 147),
+                    Padding = 3,
+                    HorizontalAlignment = Element.ALIGN_CENTER
+                });
+
+                // Consolidate movements with the same Description
+                var consolidatedMovements = projectGroup
+                    .GroupBy(m => new { m.MovementTypeName, m.UnitPrice })
+                    .Select(g => new
+                    {
+                        Description = g.Key.MovementTypeName,
+                        Quantity = g.Sum(m => m.Quantity),
+                        UnitPrice = g.Key.UnitPrice,
+                        Subtotal = g.Sum(m => m.TotalAmount)
+                    });
+
+                decimal projectTotal = 0;
+
+                foreach (var movement in consolidatedMovements)
+                {
+                    table.AddCell(new PdfPCell(new Phrase(movement.Description, rowFont)) { Padding = 5 });
+                    table.AddCell(new PdfPCell(new Phrase(movement.Quantity.ToString("N2"), rowFont)) { Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                    table.AddCell(new PdfPCell(new Phrase(movement.UnitPrice.ToString("C"), rowFont)) { Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                    table.AddCell(new PdfPCell(new Phrase(movement.Subtotal.ToString("C"), rowFont)) { Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                    projectTotal += movement.Subtotal;
+                }
+
+                // Project Total Amount with bold font
+                var totalCell = new PdfPCell(new Phrase($"Project Total Amount: {projectTotal:C}", totalFont))
+                {
+                    Colspan = 4,
+                    BackgroundColor = new iTextSharp.text.BaseColor(225, 247, 226),
+                    Padding = 5,
+                    HorizontalAlignment = Element.ALIGN_RIGHT
+                };
+                table.AddCell(totalCell);
+
+                document.Add(table);
+            }
+        }
+        private void AddMovementSection(iTextSharp.text.Document document, string sectionTitle, List<GetPaymentDetailsMovementsVM> movements, BaseColor headerColor, BaseColor rowColor, string totalLabel)
+        {
+            // Font settings for title and headers
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, new BaseColor(5, 137, 147));
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new BaseColor(255, 255, 255));
+            var rowFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+
+            // Section title
+            var sectionTable = new PdfPTable(1) { WidthPercentage = 100 };
+            sectionTable.AddCell(new PdfPCell(new Phrase(sectionTitle, titleFont))
+            {
+                BackgroundColor = new BaseColor(255, 255, 255),
                 HorizontalAlignment = Element.ALIGN_CENTER,
                 Padding = 5
-            };
-            titleTable.AddCell(titleCell);
-            document.Add(titleTable);
+            });
+            document.Add(sectionTable);
 
-            // Details table
+            // Table for movement details
             var table = new PdfPTable(4) { WidthPercentage = 100 };
             table.SetWidths(new float[] { 3, 1, 1, 1 });
-            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
 
-            // Headers
-            table.AddCell(new PdfPCell(new Phrase("Description", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Quantity", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Unit Price", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
-            table.AddCell(new PdfPCell(new Phrase("Subtotal", headerFont)) { BackgroundColor = headerColor, Padding = 5 });
+            // Column headers with specified background and text colors
+            table.AddCell(new PdfPCell(new Phrase("Description", headerFont)) { BackgroundColor = headerColor, Padding = 3, HorizontalAlignment = Element.ALIGN_CENTER });
+            table.AddCell(new PdfPCell(new Phrase("Quantity", headerFont)) { BackgroundColor = headerColor, Padding = 3, HorizontalAlignment = Element.ALIGN_CENTER });
+            table.AddCell(new PdfPCell(new Phrase("Unit Price", headerFont)) { BackgroundColor = headerColor, Padding = 3, HorizontalAlignment = Element.ALIGN_CENTER });
+            table.AddCell(new PdfPCell(new Phrase("Subtotal", headerFont)) { BackgroundColor = headerColor, Padding = 3, HorizontalAlignment = Element.ALIGN_CENTER });
 
-            // Data rows
-            var rowFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+            // Add each movement row
+            decimal sectionTotal = 0;
             foreach (var movement in movements)
             {
                 table.AddCell(new PdfPCell(new Phrase(movement.MovementTypeName, rowFont)) { BackgroundColor = rowColor, Padding = 5 });
                 table.AddCell(new PdfPCell(new Phrase(movement.Quantity.ToString("N2"), rowFont)) { BackgroundColor = rowColor, Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
                 table.AddCell(new PdfPCell(new Phrase(movement.UnitPrice.ToString("C"), rowFont)) { BackgroundColor = rowColor, Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
                 table.AddCell(new PdfPCell(new Phrase(movement.TotalAmount.ToString("C"), rowFont)) { BackgroundColor = rowColor, Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                sectionTotal += movement.TotalAmount;
             }
 
-            // Section total
-            decimal totalAmount = movements.Sum(m => m.TotalAmount);
-            var totalCell = new PdfPCell(new Phrase($"Total {sectionTitle} Amount: {totalAmount:C}", rowFont))
+            // Add total for the section with conditional background color
+            var totalFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+            var totalBackgroundColor = (totalLabel.Contains("Debits")) ? new BaseColor(245, 208, 208) : new BaseColor(225, 247, 226); 
+            var totalCell = new PdfPCell(new Phrase($"{totalLabel} {sectionTotal:C}", totalFont))
             {
                 Colspan = 4,
-                BackgroundColor = rowColor,
+                BackgroundColor = totalBackgroundColor,
                 Padding = 5,
                 HorizontalAlignment = Element.ALIGN_RIGHT
             };
@@ -828,30 +1073,31 @@ namespace OceansApp.DataAccess.Repository
 
             document.Add(table);
         }
-        private void AddSummarySection(iTextSharp.text.Document document, GetListOfMovementsForPaymentVM data)
+        private void AddFooter(iTextSharp.text.Document document, decimal totalAmount)
         {
-            // Calculate totals
-            decimal creditsTotal = data.BenefitsAndOtherMovements?.Sum(m => m.TotalAmount) ?? 0;
-            decimal debitsTotal = data.DebitsMovements?.Sum(m => m.TotalAmount) ?? 0;
-            decimal totalToPay = creditsTotal - debitsTotal;
+            var footerTable = new PdfPTable(1) { WidthPercentage = 100 };
+            var footerCell = new PdfPCell(new Phrase($"Total: {totalAmount:C}", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, new iTextSharp.text.BaseColor(255, 255, 255))))
+            {
+                BackgroundColor = new iTextSharp.text.BaseColor(0, 0, 0),
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                Padding = 8,
+                Border = PdfPCell.NO_BORDER
+            };
+            footerTable.AddCell(footerCell);
+            document.Add(footerTable);
 
-            // Create summary table
-            var summaryFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, new BaseColor(0, 0, 0));
-            var summaryTable = new PdfPTable(2) { WidthPercentage = 100 };
-            summaryTable.SetWidths(new float[] { 4, 1 });
-
-            // Summary
-            summaryTable.AddCell(new PdfPCell(new Phrase("CREDITS", summaryFont)) { BackgroundColor = new BaseColor(0, 255, 0), Padding = 5 });
-            summaryTable.AddCell(new PdfPCell(new Phrase(creditsTotal.ToString("C"), summaryFont)) { BackgroundColor = new BaseColor(0, 255, 0), Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
-
-            summaryTable.AddCell(new PdfPCell(new Phrase("DEBITS", summaryFont)) { BackgroundColor = new BaseColor(255, 192, 203), Padding = 5 });
-            summaryTable.AddCell(new PdfPCell(new Phrase(debitsTotal.ToString("C"), summaryFont)) { BackgroundColor = new BaseColor(255, 192, 203), Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
-
-            summaryTable.AddCell(new PdfPCell(new Phrase("TOTAL TO PAY", summaryFont)) { BackgroundColor = new BaseColor(255, 255, 0), Padding = 5 });
-            summaryTable.AddCell(new PdfPCell(new Phrase(totalToPay.ToString("C"), summaryFont)) { BackgroundColor = new BaseColor(255, 255, 0), Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
-
-            document.Add(summaryTable);
+            var noteTable = new PdfPTable(1) { WidthPercentage = 100 };
+            var noteCell = new PdfPCell(new Phrase("Document generated by Oceans from Ripple By Oceans", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(128, 128, 128))))
+            {
+                BackgroundColor = new iTextSharp.text.BaseColor(0, 0, 0),
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                Padding = 5,
+                Border = PdfPCell.NO_BORDER
+            };
+            noteTable.AddCell(noteCell);
+            document.Add(noteTable);
         }
+
 
         private async Task<(AccountPayable? AccountPayable, bool Success)> CreateAccountPayable(string userIdCreatedBy,
         CreateUpdateConsultantPaymentVM paymentData, decimal accountPayableAmount, List<JournalAccountPayableEntry> journalEntriesToCreate,
@@ -1482,28 +1728,23 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
             return true;
         }
 
-        public async Task<MethodResponse> FixDifferenceToMayPaymentAsync(int consultantId, DateTime startDate, DateTime endDate,
-            string userActionedBy)
+        public async Task<MethodResponse> FixDifferenceToMayPaymentAsync(int consultantId, DateTime startDate, DateTime endDate, string userActionedBy)
         {
             var consultant = await _consultantDetailRepository.GetConsultantWithUserAsync(consultantId);
 
             if (consultant == null) return MethodResponse.CreateFailureNotFoundResponse("The Consultant was not found");
 
             var existingAccountPayable = await _db.ACCOUNTS_PAYABLE.FirstOrDefaultAsync(x => x.ConsultantId == consultant.ConsultantId &&
-            x.StartDatePeriod == startDate && x.EndDatePeriod == endDate && x.Voided == false);
+                x.StartDatePeriod == startDate && x.EndDatePeriod == endDate && x.Voided == false);
 
-            if (existingAccountPayable == null) return MethodResponse.CreateFailureNotFoundResponse("The payment details doen't have an account payable.");
+            if (existingAccountPayable == null) return MethodResponse.CreateFailureNotFoundResponse("The payment details don't have an account payable.");
 
             bool? accountPayableAccuntedStatus = await AccountPayableIsAccountedAsync(existingAccountPayable.AccountPayableId);
-
             if (accountPayableAccuntedStatus == null) return MethodResponse.CreateFailureNotFoundResponse("The Accounted status was not found");
 
             var movementsListFromDb = await GetMovementsToPay(consultant, startDate, endDate);
-
             decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
-
-            var journalEntriesToCreate = await GetJournalEntriesReadyToCreate((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList,
-consultantId, consultant.CompanyId, endDate, totalAmountToPay);
+            var journalEntriesToCreate = await GetJournalEntriesReadyToCreate((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultantId, consultant.CompanyId, endDate, totalAmountToPay);
 
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -1511,16 +1752,12 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                 {
                     var accountPayable = existingAccountPayable;
                     var statusSentToBePaid = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Sent to be paid");
-
                     if (statusSentToBePaid == null) return MethodResponse.CreateFailureNotFoundResponse("The status 'Sent to be paid' was not found");
 
-                    if ((bool)accountPayableAccuntedStatus) //If account payable is already accounted
+                    if ((bool)accountPayableAccuntedStatus) // If account payable is already accounted
                     {
-                        //Void the existing account payable
+                        // Void the existing account payable and create a new one
                         existingAccountPayable.Voided = true;
-                        await _db.SaveChangesAsync();
-
-                        //Create new Account Payable
                         AccountPayable newAccountPayable = new()
                         {
                             ConsultantId = existingAccountPayable.ConsultantId,
@@ -1535,145 +1772,73 @@ consultantId, consultant.CompanyId, endDate, totalAmountToPay);
                             TransactionStatusId = existingAccountPayable.TransactionStatusId
                         };
                         await _db.ACCOUNTS_PAYABLE.AddAsync(newAccountPayable);
-                        await _db.SaveChangesAsync();
                         accountPayable = newAccountPayable;
-
-                        //Create new journal entries
-                        var existingOrNewJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId,
-            userActionedBy);
-
-                        var journalEntriesToCreateReverse = await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES
-                            .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId).ToListAsync();
-
-                        List<JournalAccountPayableEntry> journalEntriesToCreateReverseList = new();
-                        foreach (var entryToReverse in journalEntriesToCreateReverse)
-                        {
-                            JournalAccountPayableEntry newEntry = new()
-                            {
-                                CostCenterId = entryToReverse.CostCenterId,
-                                AccountingAccountId = entryToReverse.AccountingAccountId,
-                                Reference = entryToReverse.Reference,
-                                Debit = entryToReverse.Credit,
-                                Credit = entryToReverse.Debit,
-                                AccountPayableId = existingAccountPayable.AccountPayableId,
-                                JournalId = existingOrNewJournal.JournalId
-                            };
-                            journalEntriesToCreateReverseList.Add(newEntry);
-                        }
-
-                        await CreateJournalAccountPayableEntries(journalEntriesToCreateReverseList,
-            existingOrNewJournal.JournalId, existingAccountPayable.AccountPayableId);
-
-                        // Update AccountPayableId to payments if exists
-                        var payments = await _db.CONSULTANT_PAYMENTS
-                            .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId)
-                            .ToListAsync();
-                        foreach (var payment in payments)
-                        {
-                            payment.AccountPayableId = accountPayable.AccountPayableId;
-                            await _db.SaveChangesAsync();
-                        }
-                    }
-                    else //If account payable is no accounted
-                    {
-                        //Remove old accounts payable movements
-                        var existingAccountPayableMovements = await _db.ACCOUNTS_PAYABLE_MOVEMENTS
-                            .Where(x => x.AccountPayableId == accountPayable.AccountPayableId).ToListAsync();
-
-                        foreach (var existingMovement in existingAccountPayableMovements)
-                        {
-                            _db.ACCOUNTS_PAYABLE_MOVEMENTS.Remove(existingMovement);
-                        }
-                        await _db.SaveChangesAsync();
-
-                        //Remove old journal entries
-                        var existingJournalEntries = await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES
-                            .Where(x => x.AccountPayableId == accountPayable.AccountPayableId).ToListAsync();
-
-                        foreach (var entryToDelete in existingJournalEntries)
-                        {
-                            _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.Remove(entryToDelete);
-                        }
-                        await _db.SaveChangesAsync();
-                    }
-
-                    //Account payable must be updated
-                    if (totalAmountToPay > accountPayable.Amount)
-                    {
-                        accountPayable.BalanceAmount += (totalAmountToPay - accountPayable.Amount);
                     }
                     else
                     {
-                        accountPayable.BalanceAmount -= (accountPayable.Amount - totalAmountToPay);
+                        // Remove old accounts payable movements and journal entries
+                        var existingMovements = await _db.ACCOUNTS_PAYABLE_MOVEMENTS.Where(x => x.AccountPayableId == accountPayable.AccountPayableId).ToListAsync();
+                        _db.ACCOUNTS_PAYABLE_MOVEMENTS.RemoveRange(existingMovements);
+
+                        var existingJournalEntries = await _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.Where(x => x.AccountPayableId == accountPayable.AccountPayableId).ToListAsync();
+                        _db.JOURNAL_ACCOUNTS_PAYABLE_ENTRIES.RemoveRange(existingJournalEntries);
                     }
+
+                    // Update account payable balance amount
+                    accountPayable.BalanceAmount += (totalAmountToPay - accountPayable.Amount);
                     accountPayable.Amount = totalAmountToPay;
                     accountPayable.TransactionStatusId = statusSentToBePaid.TransactionStatusId;
                     accountPayable.LastUpdatedDate = DateTime.UtcNow;
                     accountPayable.UserLastUpdatedBy = userActionedBy;
-                    await _db.SaveChangesAsync();
 
-                    //Create new accounts payable movements
-
+                    // Create new account payable movements
                     GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList;
-                    foreach (var movement in movementsToPayList.ProjectMovements)
+                    List<AccountPayableMovement> newMovements = new();
+                    newMovements.AddRange(movementsToPayList.ProjectMovements.Select(m => new AccountPayableMovement
                     {
-                        AccountPayableMovement movementToCreate = new()
-                        {
-                            MovementId = movement.MovementId,
-                            ProjectId = movement.ProjectId,
-                            Description = movement.MovementTypeName,
-                            MovementTypeId = movement.MovementTypeId,
-                            Type = movement.PaymentType,
-                            Quantity = movement.Quantity,
-                            UnitPrice = movement.UnitPrice,
-                            AccountPayableId = accountPayable.AccountPayableId
-                        };
-                        await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
-                    }
-                    foreach (var movement in movementsToPayList.BenefitsAndOtherMovements)
+                        MovementId = m.MovementId,
+                        ProjectId = m.ProjectId,
+                        Description = m.MovementTypeName,
+                        MovementTypeId = m.MovementTypeId,
+                        Type = m.PaymentType,
+                        Quantity = m.Quantity,
+                        UnitPrice = m.UnitPrice,
+                        AccountPayableId = accountPayable.AccountPayableId
+                    }));
+                    newMovements.AddRange(movementsToPayList.BenefitsAndOtherMovements.Select(m => new AccountPayableMovement
                     {
-                        AccountPayableMovement movementToCreate = new()
-                        {
-                            MovementId = movement.MovementId,
-                            ProjectId = movement.ProjectId,
-                            Description = movement.MovementTypeName,
-                            MovementTypeId = movement.MovementTypeId,
-                            Type = movement.PaymentType,
-                            Quantity = movement.Quantity,
-                            UnitPrice = movement.UnitPrice,
-                            AccountPayableId = accountPayable.AccountPayableId
-                        };
-                        await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
-                    }
-                    foreach (var movement in movementsToPayList.DebitsMovements)
+                        MovementId = m.MovementId,
+                        ProjectId = m.ProjectId,
+                        Description = m.MovementTypeName,
+                        MovementTypeId = m.MovementTypeId,
+                        Type = m.PaymentType,
+                        Quantity = m.Quantity,
+                        UnitPrice = m.UnitPrice,
+                        AccountPayableId = accountPayable.AccountPayableId
+                    }));
+                    newMovements.AddRange(movementsToPayList.DebitsMovements.Select(m => new AccountPayableMovement
                     {
-                        AccountPayableMovement movementToCreate = new()
-                        {
-                            MovementId = movement.MovementId,
-                            ProjectId = movement.ProjectId,
-                            Description = movement.MovementTypeName,
-                            MovementTypeId = movement.MovementTypeId,
-                            Type = movement.PaymentType,
-                            Quantity = movement.Quantity,
-                            UnitPrice = movement.UnitPrice,
-                            AccountPayableId = accountPayable.AccountPayableId
-                        };
-                        await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddAsync(movementToCreate);
-                    }
-                    await _db.SaveChangesAsync();
+                        MovementId = m.MovementId,
+                        ProjectId = m.ProjectId,
+                        Description = m.MovementTypeName,
+                        MovementTypeId = m.MovementTypeId,
+                        Type = m.PaymentType,
+                        Quantity = m.Quantity,
+                        UnitPrice = m.UnitPrice,
+                        AccountPayableId = accountPayable.AccountPayableId
+                    }));
+                    await _db.ACCOUNTS_PAYABLE_MOVEMENTS.AddRangeAsync(newMovements);
 
-                    //Create new journal entries
-                    var existingOrCreatedJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId,
-        userActionedBy);
+                    // Create new journal entries
+                    var existingOrCreatedJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId, userActionedBy);
+                    await CreateJournalAccountPayableEntries(journalEntriesToCreate, existingOrCreatedJournal.JournalId, accountPayable.AccountPayableId);
 
-                    await CreateJournalAccountPayableEntries(journalEntriesToCreate,
-        existingOrCreatedJournal.JournalId, accountPayable.AccountPayableId);
+                    await _db.SaveChangesAsync(); // Save all changes at once
 
-                    await transaction.CommitAsync();
-
-                    //Send the payment details email
+                    // Send the payment details email outside the transaction
                     await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, "oscar.alfaro@oceanscode.com");
 
+                    await transaction.CommitAsync(); // Commit the transaction
                     return new MethodResponse { Success = true, Message = "The account payable was fixed" };
                 }
                 catch (Exception ex)
