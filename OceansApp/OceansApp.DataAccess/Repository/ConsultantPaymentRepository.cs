@@ -698,17 +698,17 @@ namespace OceansApp.DataAccess.Repository
 
                 existingAccountPayable = accountPayable;
 
-                // Commit the transaction after successful creation
-                await transaction.CommitAsync();
-
                 //Send the payment details email
                 ConsultantUserVM userToPay = await _consultantDetailRepository.GetConsultantWithUserAsync((int)dataFromModel.ConsultantId);
                 if (userToPay == null) return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found.");
                 if (success)
                 {
-                    await GeneratePaymentDetailsAndSendEmail(listOfMovementsForPayment, userToPay, existingAccountPayable.AccountPayableId, 
+                    await GeneratePaymentDetailsAndSendEmail(listOfMovementsForPayment, userToPay, existingAccountPayable.AccountPayableId,
                         DateTime.Parse(dataFromModel.StartDatePeriod), DateTime.Parse(dataFromModel.EndDatePeriod), existingAccountPayable.Amount);
                 }
+
+                // Commit the transaction after successful creation
+                await transaction.CommitAsync();
 
                 return MethodResponse.CreateSuccessResponse("Reported as account payable successfully!");
             }
