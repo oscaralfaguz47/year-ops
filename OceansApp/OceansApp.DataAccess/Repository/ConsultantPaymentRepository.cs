@@ -24,7 +24,6 @@ using Azure.Storage.Queues;
 using Newtonsoft.Json;
 using iTextSharp.text.pdf;
 using iTextSharp.text;
-using System.Reflection.Metadata;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -253,7 +252,7 @@ namespace OceansApp.DataAccess.Repository
                         ProjectId = defaultProject.ProjectId,
                         PaymentType = "Interviews",
                         MovementTypeId = interview.MovementTypeId,
-                        MovementTypeName = interview.MovementTypeName,
+                        MovementTypeName = $"Interview ({interview.MovementTypeName})",
                         Quantity = interview.TotalDurationHours,
                         UnitPrice = defaultHourlyCalculation
                     };
@@ -816,7 +815,6 @@ namespace OceansApp.DataAccess.Repository
             leftCell.Border = PdfPCell.NO_BORDER;
             leftCell.BackgroundColor = new iTextSharp.text.BaseColor(22, 22, 22);
 
-            // Texto en la esquina superior derecha
             var rightCell = new PdfPCell();
             rightCell.AddElement(new Paragraph("OCEANS CODE EXPERTS", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255))));
             rightCell.AddElement(new Paragraph("accounting@oceanscode.com", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(255, 255, 255))));
@@ -828,7 +826,6 @@ namespace OceansApp.DataAccess.Repository
 
             document.Add(headerTable);
 
-            // DETALLE DE PAGO centrado
             var detailTitleTable = new PdfPTable(1) { WidthPercentage = 100 };
             var detailTitleCell = new PdfPCell(new Phrase("PAYMENT DETAILS", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, new iTextSharp.text.BaseColor(238, 179, 15))))
             {
@@ -841,7 +838,7 @@ namespace OceansApp.DataAccess.Repository
             detailTitleTable.AddCell(detailTitleCell);
             document.Add(detailTitleTable);
 
-            // Información del consultor
+            // Consultant Information
             var consultantTable = new PdfPTable(2) { WidthPercentage = 100 };
             consultantTable.SetWidths(new float[] { 1, 1 });
 
@@ -865,7 +862,7 @@ namespace OceansApp.DataAccess.Repository
             consultantEmail.Add(labelChunkConsultantEmail);
             consultantEmail.Add(valueChunkConsultantEmail);
 
-            // Agregar el Paragraph a la celda
+            // Add the Paragraph to the cell
             consultantInfoCell.AddElement(consultantName);
             consultantInfoCell.AddElement(consultantEmail);
             consultantInfoCell.Border = PdfPCell.NO_BORDER;
@@ -953,7 +950,7 @@ namespace OceansApp.DataAccess.Repository
             // Font for the column headers with white text
             var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255));
             var rowFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
-            var totalFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10); // Bold font for Project Total Amount
+            var totalFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10); 
 
             foreach (var projectGroup in projectsGrouped)
             {
@@ -1328,6 +1325,8 @@ namespace OceansApp.DataAccess.Repository
                 else
                 {
                     existingAccountPayable.TransactionStatusId = transactionStatuses.First(x => x.Name == "Sent to be paid").TransactionStatusId;
+                    await UpdateMovementsStatuses(transactionStatuses, DateTime.Parse(paymentData.StartDatePeriod), DateTime.Parse(paymentData.EndDatePeriod),
+                       (int)paymentData.ConsultantId, "Sent to be paid");
                 }
 
                 // Check if the 'Pending Accounting' status exists
@@ -1845,7 +1844,15 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
                     var existingOrCreatedJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId, userActionedBy);
                     await CreateJournalAccountPayableEntries(journalEntriesToCreate, existingOrCreatedJournal.JournalId, accountPayable.AccountPayableId);
 
-                    await _db.SaveChangesAsync(); 
+                    await _db.SaveChangesAsync();
+
+                    // Get necessary transaction statuses
+                    var transactionStatuses = await _db.TRANSACTION_STATUSES
+                        .Where(x => x.Name == "Sent to be paid" || x.Name == "Pending Accounting" || x.Name == "Rejected")
+                        .ToListAsync();
+                    // Update movements statuses based on the period and consultant
+                    await UpdateMovementsStatuses(transactionStatuses, accountPayable.StartDatePeriod, accountPayable.EndDatePeriod,
+                               accountPayable.ConsultantId, "Sent to be paid");
 
                     // Send the payment details email outside the transaction
                     await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultant, 

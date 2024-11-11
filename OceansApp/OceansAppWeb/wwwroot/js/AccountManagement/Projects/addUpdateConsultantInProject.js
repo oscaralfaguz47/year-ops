@@ -235,6 +235,14 @@ async function displayAddUpdateConsultant(modalId, id) {
                 hideSpinner();
             });
     } else {
+        const projectTypeCheckedInputCUP = createUpdateProjectForm.querySelector('input[name="projectTypeRb"]:checked');
+        if (projectTypeCheckedInputCUP.value === 'I' || !clientHasTrackingToolInputCUP.checked) {
+            participatesInOnCallsCheckboxCUCP.checked = false;
+            getElementById('onCallSection').style.display = 'none';
+
+        } else {
+            getElementById('onCallSection').style.display = 'block';
+        }
         showModal(modalId);
     }
 }

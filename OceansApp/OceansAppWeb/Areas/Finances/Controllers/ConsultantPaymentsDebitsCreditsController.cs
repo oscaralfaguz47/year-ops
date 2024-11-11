@@ -114,7 +114,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", debitCreditData.ConsultantId, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("AccountingAccountId", "Accounting Account", debitCreditData.AccountingAccountId, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("CostCenterId", "Cost Center", debitCreditData.CostCenterId, ModelState);
-                validateInputs.ValidateRequiredFieldStringValue("Detail", "Detail", debitCreditData.Detail, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("Detail", "Detail", debitCreditData.Detail, 150, ModelState);
                 validateInputs.ValidateRequiredFieldNumberValue("Amount", "Unit Amount", debitCreditData.Amount, ModelState);
                 validateInputs.ValidateNoNegativeNumber("Amount", "Unit Amount", debitCreditData.Amount, ModelState);
                 validateInputs.ValidateNumberLessOrEqualThanZero("Amount", "Unit Amount", debitCreditData.Amount, ModelState);

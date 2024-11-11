@@ -61,7 +61,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-
         public async Task<GetProjectConsultantAssignedVM> GetAssignedConsultantToProjectById(int consultantProjectAssignedtId)
         {
             var connection = _db.Database.GetDbConnection();

@@ -114,6 +114,7 @@ namespace OceansAppWeb.Areas.Recruiting.Controllers
 
                 validateInputs.ValidateNonRequiredFieldIntType("InterviewId", "InterviewId", interviewData.InterviewId, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", interviewData.ConsultantId, ModelState);
+                validateInputs.ValidateRequiredAndStringLength("Detail", "Detail", interviewData.Detail, 150, ModelState);
                 validateInputs.ValidateRequiredFieldNumberValue("DurationMinutes", "Duration", interviewData.DurationMinutes, ModelState);
                 validateInputs.ValidateNoNegativeNumber("DurationMinutes", "Duration", interviewData.DurationMinutes, ModelState);
                 validateInputs.ValidateNumberLessOrEqualThanZero("DurationMinutes", "Duration", interviewData.DurationMinutes, ModelState);

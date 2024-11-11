@@ -459,6 +459,7 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             </div>
             </div>`;
             let paymentBalance = totalFinal.toFixed(2) - paymentsAmount.toFixed(2);
+            console.log();
             let adjustedAmount = paymentBalance.toFixed(2) - (differenceAmount < 0 ? Math.abs(differenceAmount) : differenceAmount);
             const fixBtn = `<button onclick="fixDifference(${existsPayment}, ${adjustedAmount.toFixed(2)})" class="fix-btn"><img style="width:25px" src="/icons/Shared/fix.svg"> ${!existsPayment ? 'Fix Difference' : adjustedAmount.toFixed(2) > 0 && differenceAmount < 0 ? 'Fix Difference with balance' : 'Fix Difference and Pay Today'
         }</button >`;

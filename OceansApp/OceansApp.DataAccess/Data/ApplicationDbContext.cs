@@ -20,6 +20,17 @@ namespace OceansApp.DataAccess.Data
                 .HasKey(u => u.Id);
             });
 
+            // ACCOUNTING ACCOUNTS
+            modelBuilder.Entity<AccountingAccount>(entity =>
+            {
+                // Composite index
+                entity.HasIndex(e => new { e.AccountingAccountId, e.Description });
+
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.AccountingAccountCode);
+            });
+
             // ACCOUNTS PAYABLE
             modelBuilder.Entity<AccountPayable>(entity =>
             {
@@ -106,6 +117,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Composite index
                 entity.HasIndex(e => new { e.Id, e.Name, e.LastName });
+                entity.HasIndex(e => new { e.Name, e.LastName });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.UserCategoryId);
@@ -406,6 +418,9 @@ namespace OceansApp.DataAccess.Data
             // CONSULTANT PAYMENTS DEBITS AND CREDITS
             modelBuilder.Entity<ConsultantPaymentDebitsCredits>(entity =>
             {
+                entity.HasIndex(e => new { e.ConsultantId, e.TransactionStatusId, e.TransactionTypeId, e.ActionDateWithinFortnight });
+                entity.HasIndex(e => new { e.CreationDate, e.LastUpdateDate });
+
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.AccountingAccountId);
                 entity.HasIndex(e => e.CostCenterId);
@@ -478,6 +493,8 @@ namespace OceansApp.DataAccess.Data
             // COST CENTER
             modelBuilder.Entity<CostCenter>(entity =>
             {
+                entity.HasIndex(e => new { e.CostCenterId, e.Description });
+
                 entity.HasIndex(e => e.CostCenterId);
                 entity.HasIndex(e => e.CostCenterCode);
             });
@@ -726,12 +743,17 @@ namespace OceansApp.DataAccess.Data
             // INTERVIEWS
             modelBuilder.Entity<Interview>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.ConsultantId, e.Date, e.TransactionStatusId });
+
+                entity.HasIndex(e => e.InterviewId);
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.ConsultantIdCreatedBy);
                 entity.HasIndex(e => e.ConsultantIdLastUpdatedBy);
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.DurationMinutes);
                 entity.HasIndex(e => e.Date);
+                entity.HasIndex(e => e.Detail);
 
                 entity.HasKey(c => new { c.InterviewId });
                 entity.HasOne(cp => cp.ConsultantDetail)
@@ -1307,6 +1329,13 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => new { e.TransactionStatusId, e.Name });
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.Name);
+            });
+
+            // TRANSACTION TYPES
+            modelBuilder.Entity<TransactionType>(entity =>
+            {
+                entity.HasIndex(e => new { e.TransactionTypeId, e.Name });
+                entity.HasIndex(e => e.TransactionTypeId);
             });
 
         }

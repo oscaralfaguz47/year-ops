@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241111195241_sixUpdateSP_INTERVIEWS_GetApprovedInterviewsWhereConsultantInThePeriod")]
+    partial class sixUpdateSP_INTERVIEWS_GetApprovedInterviewsWhereConsultantInThePeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -404,14 +407,6 @@ namespace OceansApp.DataAccess.Migrations
                         .HasColumnType("nvarchar(1)");
 
                     b.HasKey("AccountingAccountId");
-
-                    b.HasIndex("AccountingAccountCode");
-
-                    b.HasIndex("AccountingAccountId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("AccountingAccountId", "Description");
 
                     b.ToTable("ACCOUNTING_ACCOUNT");
                 });
@@ -1342,10 +1337,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasIndex("TransactionTypeId");
 
-                    b.HasIndex("CreationDate", "LastUpdateDate");
-
-                    b.HasIndex("ConsultantId", "TransactionStatusId", "TransactionTypeId", "ActionDateWithinFortnight");
-
                     b.ToTable("CONSULTANT_PAYMENTS_DEBITS_CREDITS");
                 });
 
@@ -1604,8 +1595,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("CostCenterCode");
 
                     b.HasIndex("CostCenterId");
-
-                    b.HasIndex("CostCenterId", "Description");
 
                     b.ToTable("COST_CENTER");
                 });
@@ -3081,10 +3070,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.HasKey("TransactionTypeId");
 
-                    b.HasIndex("TransactionTypeId");
-
-                    b.HasIndex("TransactionTypeId", "Name");
-
                     b.ToTable("TRANSACTION_TYPES");
                 });
 
@@ -3166,8 +3151,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("TwoFactorRequired");
 
                     b.HasIndex("UserCategoryId");
-
-                    b.HasIndex("Name", "LastName");
 
                     b.HasIndex("Id", "Name", "LastName");
 

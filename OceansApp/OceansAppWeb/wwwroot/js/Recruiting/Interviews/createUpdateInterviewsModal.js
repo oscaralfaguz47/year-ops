@@ -45,6 +45,7 @@ async function displayUpdateCreateInterviewModal(modalId, id) {
                 createUpdateForm.find('[name="consultantNameInput"]').val(data.interviewData.consultantName);
                 createUpdateForm.find('[name="consultantEmailInput"]').val(data.interviewData.consultantEmail);
                 createUpdateForm.find('[name="durationMinutes"]').val(data.interviewData.durationMinutes);
+                createUpdateForm.find('[name="detail"]').val(data.interviewData.detail);
                 updateHours();
                 let actionDateFormat = new Date(data.interviewData.date);
                 createUpdateForm.find('[name="date"]').val(actionDateFormat.toISOString().split('T')[0]);
@@ -77,7 +78,8 @@ async function createUpdateInterview(modalId) {
         InterviewId: interviewIdData,
         ConsultantId: consultantIdData,
         DurationMinutes: durationMinutesData,
-        Date: actionDateData
+        Date: actionDateData,
+        Detail: createUpdateForm.find('[name="detail"]').val()
     };
     fetch('/Recruiting/Interviews/CreateUpdateInterview', {
         method: 'POST',

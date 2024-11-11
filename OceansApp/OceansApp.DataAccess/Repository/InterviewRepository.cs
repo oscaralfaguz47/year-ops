@@ -72,7 +72,8 @@ namespace OceansApp.DataAccess.Repository
                         Date = (DateTime)interviewData.Date,
                         TransactionStatusId = transactionStatus.TransactionStatusId,
                         CreationDate = DateTime.UtcNow,
-                        ConsultantIdCreatedBy = currentUser.ConsultantId
+                        ConsultantIdCreatedBy = currentUser.ConsultantId,
+                        Detail = interviewData.Detail
                     };
                     var createdInterview = await _db.INTERVIEWS.AddAsync(interviewToCreate);
                     await _db.SaveChangesAsync();
@@ -118,6 +119,7 @@ namespace OceansApp.DataAccess.Repository
                     existingInterview.Date = (DateTime)interviewData.Date;
                     existingInterview.LastUpdateDate = DateTime.UtcNow;
                     existingInterview.ConsultantIdLastUpdatedBy = currentUser.ConsultantId;
+                    existingInterview.Detail = interviewData.Detail;
 
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
