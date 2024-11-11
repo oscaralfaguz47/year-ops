@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace OceansApp.Utility.NotificationTemplates
 {
     public class EmailTemplates
@@ -285,6 +287,18 @@ namespace OceansApp.Utility.NotificationTemplates
             }
 
             return body;
+        }
+
+        public string PaymentDetailsBody(string consultantName, string period, decimal totalAmountToPay)
+        {
+
+            return @"<div style=""text-align: center;"">
+                        <p> Hello " + consultantName + @",</p>
+                        <p>You are receiving your payment details for the period of: <strong>" + period + @"</strong>.</p>
+                        <p>You will be paid an amount of: <strong>$" + totalAmountToPay.ToString("N2") + @"</strong>, please see more details in the attached document.</p>
+                   </div>
+                   <p>Please do not hesitate to contact the Financial Team if you have any questions or feedback.</p>
+                   ";
         }
 
     }

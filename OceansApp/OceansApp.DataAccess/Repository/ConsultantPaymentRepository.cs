@@ -24,6 +24,7 @@ using Azure.Storage.Queues;
 using Newtonsoft.Json;
 using iTextSharp.text.pdf;
 using iTextSharp.text;
+using System.Reflection.Metadata;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -450,10 +451,8 @@ namespace OceansApp.DataAccess.Repository
                 }
 
                 // Create child book entry linked to the payment and parent
-                var consultantToPay = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == paymentData.ConsultantId);
-                if (consultantToPay == null) return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found.");
 
-                var userToPay = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == consultantToPay.UserId);
+                ConsultantUserVM userToPay = await _consultantDetailRepository.GetConsultantWithUserAsync((int)paymentData.ConsultantId);
                 if (userToPay == null) return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found.");
 
                 var bookEntryChildToCreate = new PaymentBookEntryChild
@@ -466,14 +465,15 @@ namespace OceansApp.DataAccess.Repository
                 await _db.PAYMENT_BOOK_ENTRIES_CHILD.AddAsync(bookEntryChildToCreate);
                 await _db.SaveChangesAsync();
 
-                // Commit the transaction
-                await transaction.CommitAsync();
-
                 //Send the payment details email
                 if (accountPayableCreatedSucced)
                 {
-
+                    await GeneratePaymentDetailsAndSendEmail(listOfMovementsForPayment, userToPay, existingAccountPayable.AccountPayableId, 
+                        existingAccountPayable.StartDatePeriod, existingAccountPayable.EndDatePeriod, existingAccountPayable.Amount);
                 }
+
+                // Commit the transaction
+                await transaction.CommitAsync();
                 return MethodResponse.CreateSuccessResponse("Payment reported successfully!");
             }
             catch (DbUpdateException ex)
@@ -702,9 +702,12 @@ namespace OceansApp.DataAccess.Repository
                 await transaction.CommitAsync();
 
                 //Send the payment details email
+                ConsultantUserVM userToPay = await _consultantDetailRepository.GetConsultantWithUserAsync((int)dataFromModel.ConsultantId);
+                if (userToPay == null) return MethodResponse.CreateFailureNotFoundResponse("The consultant was not found.");
                 if (success)
                 {
-                    await GeneratePaymentDetailsAndSendEmail(listOfMovementsForPayment, "oscar.alfaro@oceanscode.com");
+                    await GeneratePaymentDetailsAndSendEmail(listOfMovementsForPayment, userToPay, existingAccountPayable.AccountPayableId, 
+                        DateTime.Parse(dataFromModel.StartDatePeriod), DateTime.Parse(dataFromModel.EndDatePeriod), existingAccountPayable.Amount);
                 }
 
                 return MethodResponse.CreateSuccessResponse("Reported as account payable successfully!");
@@ -716,23 +719,33 @@ namespace OceansApp.DataAccess.Repository
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
-        private async Task GeneratePaymentDetailsAndSendEmail(GetListOfMovementsForPaymentVM listOfMovementsForPayment, string emailTo)
+        private async Task GeneratePaymentDetailsAndSendEmail(GetListOfMovementsForPaymentVM listOfMovementsForPayment, 
+            ConsultantUserVM userSendEmailTo, int accountPayableId, DateTime startDatePeriod, DateTime endDatePeriod, decimal totalAmountToPay)
         {
             // Generate the PDF
-            byte[] pdfBytes = GeneratePdf(listOfMovementsForPayment);
+            byte[] pdfBytes = GeneratePdf(listOfMovementsForPayment, userSendEmailTo, accountPayableId, endDatePeriod);
 
+            DateTime startDateTime = startDatePeriod;
+            DateTime endDateTime = endDatePeriod;
+            string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+            string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+            string periodString = $"{startDateFormated} - {endDateFormated}";
+
+            var emailTemplates = new EmailTemplates();
+            var emailBody = emailTemplates.PaymentDetailsBody(userSendEmailTo.Name.Trim(), periodString, totalAmountToPay);
+            var templateEmail = emailTemplates.EmailTemplate("PAYMENT DETAILS", emailBody);
             // Create the email model
             var emailToSend = new SendEmailVM
             {
-                EmailTo = emailTo,
-                Subject = "Your Payment Details",
-                Body = "Please find attached your payment details.",
+                EmailTo = userSendEmailTo.Email.Trim(),
+                Subject = "Payment Details - Ripple by Oceans",
+                Body = templateEmail,
                 SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 Attachments = new List<AttachmentVM>
         {
             new AttachmentVM
             {
-                FileName = "PaymentDetails.pdf",
+                FileName = $"Payment_Details_{userSendEmailTo.Name + " " + userSendEmailTo.LastName}_#{accountPayableId}.pdf",
                 FileContent = pdfBytes
             }
         }
@@ -742,7 +755,7 @@ namespace OceansApp.DataAccess.Repository
             string message = JsonConvert.SerializeObject(emailToSend);
             await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
         }
-        private byte[] GeneratePdf(GetListOfMovementsForPaymentVM data)
+        private byte[] GeneratePdf(GetListOfMovementsForPaymentVM data, ConsultantUserVM userSendEmailTo, int accountPayableId, DateTime EndDatePeriod)
         {
             using (var memoryStream = new MemoryStream())
             {
@@ -751,7 +764,7 @@ namespace OceansApp.DataAccess.Repository
                 document.Open();
 
                 // Add Header
-                AddHeader(document);
+                AddHeader(document, userSendEmailTo, accountPayableId, EndDatePeriod);
 
                 // Add Project Movements by Project
                 if (data.ProjectMovements != null && data.ProjectMovements.Any())
@@ -788,15 +801,14 @@ namespace OceansApp.DataAccess.Repository
             decimal debitsTotal = data.DebitsMovements?.Sum(m => m.TotalAmount) ?? 0;
             return projectsTotal + creditsTotal - debitsTotal;
         }
-        private void AddHeader(Document document)
+        private void AddHeader(iTextSharp.text.Document document, ConsultantUserVM userSendEmailTo, int accountPayableId, DateTime EndDatePeriod)
         {
             var headerTable = new PdfPTable(2) { WidthPercentage = 100 };
             headerTable.SetWidths(new float[] { 3, 1 });
 
-            // Logo a la izquierda
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", "logo-white.png");
             var logo = Image.GetInstance(logoPath);
-            logo.ScaleToFit(120, 60); // Tamaño ligeramente mayor
+            logo.ScaleToFit(120, 60); 
             logo.Alignment = Element.ALIGN_LEFT;
 
             var leftCell = new PdfPCell();
@@ -837,7 +849,7 @@ namespace OceansApp.DataAccess.Repository
 
             // Consultant Name
             Chunk labelChunkConsultantName = new Chunk("NAME: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, new iTextSharp.text.BaseColor(5, 137, 147)));
-            Chunk valueChunkConsultantName = new Chunk("Gaston Eduardo Zukauskas", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, new iTextSharp.text.BaseColor(255, 255, 255)));
+            Chunk valueChunkConsultantName = new Chunk(userSendEmailTo.Name.Trim() + " " + userSendEmailTo.LastName.Trim(), FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, new iTextSharp.text.BaseColor(255, 255, 255)));
 
             // Combine Consultant Name in Paragraph
             Paragraph consultantName = new Paragraph();
@@ -846,7 +858,7 @@ namespace OceansApp.DataAccess.Repository
 
             // Consultant Email
             Chunk labelChunkConsultantEmail = new Chunk("EMAIL: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(5, 137, 147)));
-            Chunk valueChunkConsultantEmail = new Chunk("gaston.zukauskas@oceanscode.com", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9, new iTextSharp.text.BaseColor(255, 255, 255)));
+            Chunk valueChunkConsultantEmail = new Chunk(userSendEmailTo.Email, FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9, new iTextSharp.text.BaseColor(255, 255, 255)));
 
             // Combine Consultant Name in Paragraph
             Paragraph consultantEmail = new Paragraph();
@@ -868,7 +880,7 @@ namespace OceansApp.DataAccess.Repository
 
             // Date cell with different colors for label and value
             Chunk dateLabelChunk = new Chunk("Date: ", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(5, 137, 147)));
-            Chunk dateValueChunk = new Chunk("31/10/2024", FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(255, 255, 255)));
+            Chunk dateValueChunk = new Chunk(EndDatePeriod.ToString("MM/dd/yyyy"), FontFactory.GetFont(FontFactory.HELVETICA, 8, new iTextSharp.text.BaseColor(255, 255, 255)));
 
             Paragraph dateParagraph = new Paragraph();
             dateParagraph.Add(dateLabelChunk);
@@ -913,7 +925,7 @@ namespace OceansApp.DataAccess.Repository
 
             // Separate label and value with different colors
             Chunk detailLabelChunk = new Chunk("N° DETAIL: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(5, 137, 147)));
-            Chunk detailValueChunk = new Chunk("OC00000492", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255)));
+            Chunk detailValueChunk = new Chunk($"PD{accountPayableId}", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10, new iTextSharp.text.BaseColor(255, 255, 255)));
 
             Paragraph detailParagraph = new Paragraph();
             detailParagraph.Add(detailLabelChunk);
@@ -1833,10 +1845,11 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
                     var existingOrCreatedJournal = await GetExistingOrCreateJournalAccountPayable(startDate, endDate, consultant.CompanyId, userActionedBy);
                     await CreateJournalAccountPayableEntries(journalEntriesToCreate, existingOrCreatedJournal.JournalId, accountPayable.AccountPayableId);
 
-                    await _db.SaveChangesAsync(); // Save all changes at once
+                    await _db.SaveChangesAsync(); 
 
                     // Send the payment details email outside the transaction
-                    await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, "oscar.alfaro@oceanscode.com");
+                    await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultant, 
+                        accountPayable.AccountPayableId, accountPayable.StartDatePeriod, accountPayable.EndDatePeriod, accountPayable.Amount);
 
                     await transaction.CommitAsync(); // Commit the transaction
                     return new MethodResponse { Success = true, Message = "The account payable was fixed" };
