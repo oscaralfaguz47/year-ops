@@ -15,8 +15,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Oceans App</title>
-    <link rel="icon" type="image/x-icon" href="~/img/favicon-oceans.webp" />
+    <title>Ripple By Oceans</title>
+    <link rel="icon" type="image/x-icon" href="~/img/ripple-favicon.svg" />
     <link rel="stylesheet" href="~/css/bootswatchTheme.css" />
 
     @*Custom styles*@
@@ -40,11 +40,11 @@
                         <div class="container-fluid">
 
                             <div class="icon-container">
-                                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Dashboard"><img class="img-logo" src="/icons/Shared/triple-A-logo.svg" /></a>
+                                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Dashboard"><img src="/img/ripple-logo.svg" /></a>
                            </div>
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
+                                <img src="/icons/Shared/menu-icon.svg" />
                             </button>
 
                             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -171,9 +171,8 @@
 
         </header>
     }
-    <div>
-        <br /><br /><br /><br />
-        <main role="main" class="">
+    <div id="main-container">
+        <main role="main">
             <partial name="_Notification" />
             <script src="~/js/site.js?v=@DateTime.Now.Ticks" asp-append-version="true"></script>
             <div>

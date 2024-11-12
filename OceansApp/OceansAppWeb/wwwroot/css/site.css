@@ -31,9 +31,16 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Nexa', sans-serif;
 }
-
+#main-container{
+    padding: 120px 80px 20px 80px;
+}
+@media (max-width: 768px) {
+    #main-container {
+        padding: 75px 0 !important;
+    }
+}
 .hide {
     display: none !important;
 }
@@ -283,8 +290,6 @@ body {
     transition: opacity 0.3s;
     z-index: 9999;
 }
-
-
 
 .tooltip-target:hover ~ .tooltip-content {
     opacity: 1;

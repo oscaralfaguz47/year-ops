@@ -1,4 +1,8 @@
-﻿.navigation-container
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
+.navigation-container
 {
     display:flex;
     align-items:center;

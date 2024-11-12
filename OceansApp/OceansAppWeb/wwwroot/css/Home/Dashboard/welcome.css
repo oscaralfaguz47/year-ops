@@ -1,10 +1,10 @@
 ﻿#welcomeCont
 {
-    margin-top: -50px;
     font-weight: bold;
 }
     #welcomeCont .consName{
         font-size: 2.5rem;
+        margin-top:-6px;
     }
     #welcomeCont .consName span {
         color: var(--clr-blueLight);

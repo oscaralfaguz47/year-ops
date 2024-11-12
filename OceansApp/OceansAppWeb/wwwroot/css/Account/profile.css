@@ -1,4 +1,7 @@
-﻿
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
 .my-account-container {
     background-color: rgb(155, 168, 184, 0.5);
     border-radius: 20px;

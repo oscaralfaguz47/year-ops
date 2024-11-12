@@ -1,4 +1,8 @@
-﻿/* MODAL */
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
+/* MODAL */
 .modal {
     display: none;
     position: fixed;

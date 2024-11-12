@@ -271,3 +271,14 @@ function initializeTooltips() {
         }
     }
 }
+
+//NAV BAR
+document.addEventListener('click', function (event) {
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    const isNavbarTogglerClicked = event.target.closest('.navbar-toggler');
+    const isNavbarCollapseClicked = event.target.closest('.navbar-collapse');
+
+    if (!isNavbarTogglerClicked && !isNavbarCollapseClicked && navbarCollapse.classList.contains('show')) {
+        new bootstrap.Collapse(navbarCollapse).hide();
+    }
+});

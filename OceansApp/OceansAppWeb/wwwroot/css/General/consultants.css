@@ -1,4 +1,8 @@
-﻿.location-cont
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
+.location-cont
 {
     display: flex;
     align-items: center;
