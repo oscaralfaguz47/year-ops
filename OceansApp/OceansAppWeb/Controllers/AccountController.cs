@@ -166,7 +166,8 @@ namespace OceansAppWeb.Account.Controllers
                     return Ok(new
                     {
                         success = true,
-                        message = "You changed your profile photo!"
+                        message = "You changed your profile photo!",
+                        BlobUrl = fileAlreadyExists.BlobUrl
                     });
                 }
 
@@ -219,11 +220,27 @@ namespace OceansAppWeb.Account.Controllers
                         {
                             await transaction.CommitAsync();
                         }
+                        var user = await _userManager.GetUserAsync(User);
+                        var currentUserClaims = await _userManager.GetClaimsAsync(user);
+
+                        var existingProfileImageClaim = currentUserClaims.FirstOrDefault(c => c.Type == "ProfileImageUrl");
+                        if (existingProfileImageClaim != null)
+                        {
+                            await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
+                        }
+
+                        if (!string.IsNullOrEmpty(uploadedBlob[0].BlobUrl))
+                        {
+                            await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", uploadedBlob[0].BlobUrl));
+                        }
+
+                        await _signInManager.RefreshSignInAsync(user);
 
                         return Ok(new
                         {
                             success = true,
-                            message = "You changed your profile photo!"
+                            message = "You changed your profile photo!",
+                            BlobUrl = uploadedBlob[0].BlobUrl
                         });
                     }
                 }
@@ -399,7 +416,24 @@ namespace OceansAppWeb.Account.Controllers
                                 {
                                     return RedirectToAction("EnableAuthenticator");
                                 }
+                                var existingProfileImageClaim = currentUserClaims.FirstOrDefault(c => c.Type == "ProfileImageUrl");
+                                if (existingProfileImageClaim != null)
+                                {
+                                    await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
+                                }
 
+                                // Obtener la URL actual de la imagen de perfil desde la base de datos
+                                var profileImage = await _unitOfWork.ImageBlob.GetFirstOrDefaultAsync(x => x.EntityId == user.Id &&
+                                    x.ContainerName == "user-profile-photos" && x.EntityType == "UserProfile");
+
+                                // Si la imagen existe y tiene una URL, agregar el nuevo claim actualizado
+                                if (profileImage != null && !string.IsNullOrEmpty(profileImage.BlobUrl))
+                                {
+                                    await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", profileImage.BlobUrl));
+                                }
+
+                                // Refrescar el inicio de sesión para que el claim actualizado esté disponible
+                                await _signInManager.RefreshSignInAsync(user);
                                 return LocalRedirect(returnUrl);
                             }
 

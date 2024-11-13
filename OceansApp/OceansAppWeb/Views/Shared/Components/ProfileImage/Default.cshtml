@@ -1,0 +1,10 @@
+﻿@model string
+
+@if (!string.IsNullOrEmpty(Model))
+{
+    <img src="@Model" alt="Profile Image" class="profile-image">
+}
+else
+{
+    <img class="profile-image" src="/icons/Shared/profile-user.svg">
+}

@@ -27,7 +27,6 @@ fileInput.addEventListener('change', async function (event) {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                // Update the profile image preview
                 if (profileImage.src !== e.target.result && savedImageSrc !== e.target.result) {
                     profileImage.src = e.target.result;
                     previousImageSrc = profileImage.src; // Update previous image
@@ -38,9 +37,8 @@ fileInput.addEventListener('change', async function (event) {
             };
             reader.readAsDataURL(file);
         } else {
-            // If the file is not an image, show a warning message
             messageElement.textContent = 'Please select an image file (jpg, png, gif, etc.)';
-            messageElement.style.display = 'block'; // Show the error message
+            messageElement.style.display = 'block';
         }
     } else {
         // If canceled, keep the previously selected image
@@ -48,13 +46,13 @@ fileInput.addEventListener('change', async function (event) {
     }
 });
 
-// Function to handle the image upload
+// Handle the image upload
 async function uploadProfileImage(file) {
     const formData = new FormData();
-    formData.append('file', file); // Append the selected file
+    formData.append('file', file); 
 
-    const token = $('[name="__RequestVerificationToken"]').val(); // Get the anti-forgery token
-    displaySpinner(); // Show spinner during upload
+    const token = $('[name="__RequestVerificationToken"]').val(); 
+    displaySpinner();
 
     try {
         const response = await fetch('/Account/ChangeProfilePhoto', {
@@ -75,18 +73,23 @@ async function uploadProfileImage(file) {
         }
 
         const data = await response.json();
-        savedImageSrc = profileImage.src; // Update the saved image URL
-        displayToasterSuccess(data.message); // Show success message
+        savedImageSrc = profileImage.src; 
+        const profileImages = document.querySelectorAll('.profile-image');
+
+        profileImages.forEach(image => {
+            image.src = data.blobUrl;
+        });
+        displayToasterSuccess(data.message); 
         return data;
 
     } catch (error) {
-        validateSessionExpiration(error.message, error.status); // Handle session expiration
+        validateSessionExpiration(error.message, error.status); 
         console.error('Network or fetch error:', error);
-        displayToasterError(error.message); // Show error message
+        displayToasterError(error.message); 
         return null;
 
     } finally {
-        hideSpinner(); // Hide the spinner when the request completes
+        hideSpinner();
     }
 }
 

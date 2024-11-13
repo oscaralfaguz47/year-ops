@@ -16,6 +16,14 @@
     background-color: var(--clr-dark3);
     height: 60px;
 }
+.profile-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--clr-blueLight);
+    background-color: #fff;
+}
 .icon-container {
     position: relative;
     background-color: rgb(56, 56, 56, 0.6);
@@ -70,6 +78,7 @@
     border-radius: 15px !important;
     color: var(--clr-blueLight) !important;
 }
+
 @media (max-width: 768px) {
     .navbar {
         height: auto;
@@ -77,10 +86,16 @@
     .nav-item {
        margin-top: 5px;
     }
+    .dropdown-menu {
+        position: absolute !important;
+    }
 }
 @media (max-width: 1230px) {
     .nav-item img{
         display: none;
+    }
+    .profile-image {
+        display: block !important;
     }
 }
 .nav-item .nav-link {
@@ -90,9 +105,27 @@
     align-items:center;
 }
 
-
-
 .navbar-toggler {
-    background-color: var(--clr-blueDark);
+    background-color: rgb(56, 56, 56, 0.6);
     margin-right: 8px;
+    height: 30px;
+    display:flex;
+    align-items:center;
+}
+.menu-login-cont-web {
+    display: block;
+}
+
+.menu-login-cont-mobile {
+    display: none;
+    align-items: center;
+}
+
+@media (max-width: 575px) {
+    .menu-login-cont-mobile {
+        display: flex;
+    }
+    .menu-login-cont-web {
+        display: none;
+    }
 }

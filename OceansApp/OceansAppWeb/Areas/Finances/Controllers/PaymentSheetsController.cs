@@ -918,7 +918,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             return new SendEmailVM
             {
                 Subject = "YOU HAVE PENDING SUBMISSIONS FOR PAYMENT - RIPPLE BY OCEANS",
-                SharedEmailFrom = _config["InternalEmailENV"],
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 EmailTo = consultantEmail.Trim(),
                 Body = templateEmail
             };
