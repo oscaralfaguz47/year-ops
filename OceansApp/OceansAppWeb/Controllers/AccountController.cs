@@ -404,9 +404,6 @@ namespace OceansAppWeb.Account.Controllers
                                 await _userManager.AddClaimAsync(user, claimTwoFactorEnabled);
                             }
 
-                            // Regenerate the authentication ticket
-                            //await _signInManager.RefreshSignInAsync(user);
-
                             GenerateUserSessionChangesExpirationCache(user.Id);
 
                             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -421,19 +418,16 @@ namespace OceansAppWeb.Account.Controllers
                                 {
                                     await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
                                 }
-
-                                // Obtener la URL actual de la imagen de perfil desde la base de datos
                                 var profileImage = await _unitOfWork.ImageBlob.GetFirstOrDefaultAsync(x => x.EntityId == user.Id &&
                                     x.ContainerName == "user-profile-photos" && x.EntityType == "UserProfile");
 
-                                // Si la imagen existe y tiene una URL, agregar el nuevo claim actualizado
                                 if (profileImage != null && !string.IsNullOrEmpty(profileImage.BlobUrl))
                                 {
                                     await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", profileImage.BlobUrl));
                                 }
 
-                                // Refrescar el inicio de sesión para que el claim actualizado esté disponible
                                 await _signInManager.RefreshSignInAsync(user);
+
                                 return LocalRedirect(returnUrl);
                             }
 

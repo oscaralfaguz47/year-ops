@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const successManagersTitle = document.createElement('label');
             successManagersTitle.className = 'subtitles';
-            successManagersTitle.textContent = `Success Manager${dataItems.length > 1 ? 's': ''}`;
+            successManagersTitle.textContent = `Success Manager${dataItems.length > 1 ? 's' : ''}`;
             successManagersCont.appendChild(successManagersTitle);
 
             if (dataItems.length > 0) {
@@ -104,17 +104,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     rowEl.className = 'row-el';
                     rowEl.innerHTML = `<label class="determ-name">${obj.projectName}</label>
                     <div class="person-cont">
-                      <div class="media-cont">
-                        <a href="mailto:${obj.successManagerEmail}"><img title="${obj.successManagerEmail}" src="/icons/Shared/envelope-blue-oceans.svg" /></a>
-                        <a href="slack://open"><img title="Contant by Slack" src="/icons/Shared/slack-blueLight-oceans.svg" /></a>
-                        <a href="tel:${obj.successManagerPhone === null ? '': obj.successManagerPhone.replace(/\s+/g, '')}"><img title="${obj.successManagerPhone}" src="/icons/Shared/phone-blueLight-oceans.svg" /></a>
-                      </div>
                       <div class="profile-img-cont">
                         <img src="${obj.profileUrl === null ? '/icons/Shared/profile-user.svg' : obj.profileUrl}" />
                       </div>
                       <div class="person-description">
                         <label>${obj.successManagerName}</label>
                         <p>Primary contact, client and project related queries, overtime, time off.</p>
+                        <div class="media-cont">
+                        <a href="mailto:${obj.successManagerEmail}"><img title="${obj.successManagerEmail}" src="/icons/Shared/envelope-blue-oceans.svg" /></a>
+                        <a href="slack://open"><img title="Contant by Slack" src="/icons/Shared/slack-blueLight-oceans.svg" /></a>
+                        <a href="tel:${obj.successManagerPhone === null ? '' : obj.successManagerPhone.replace(/\s+/g, '')}"><img title="${obj.successManagerPhone}" src="/icons/Shared/phone-blueLight-oceans.svg" /></a>
+                      </div>
                       </div>
                     </div>`;
                     rowsContainer.appendChild(rowEl);
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (areaName !== obj.areaName) {
                         const adminPersonTitle = document.createElement('label');
                         adminPersonTitle.className = 'subtitles';
-                        adminPersonTitle.textContent = `${obj.areaName === 'Area Finanzas' ? 'Finance Team': 'People & Culture Team'}`;
+                        adminPersonTitle.textContent = `${obj.areaName === 'Area Finanzas' ? 'Finance Team' : 'People & Culture Team'}`;
                         adminTeamSection.appendChild(adminPersonTitle);
                     }
                     areaName = obj.areaName;
@@ -155,17 +155,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         'Benefits, activities, voluntary time, company culture, accesses.'
                     rowEl.innerHTML = `<label class="determ-name">${obj.positionName}</label>
                     <div class="person-cont">
-                      <div class="media-cont">
-                        <a href="mailto:${obj.email}"><img title="${obj.email}" src="/icons/Shared/envelope-blue-oceans.svg" /></a>
-                        <a href="slack://open"><img title="Contant by Slack" src="/icons/Shared/slack-blueLight-oceans.svg" /></a>
-                        <a href="tel:${obj.phoneNumber === null ? '': obj.phoneNumber.replace(/\s+/g, '')}"><img title="${obj.phoneNumber}" src="/icons/Shared/phone-blueLight-oceans.svg" /></a>
-                      </div>
                       <div class="profile-img-cont">
                         <img src="${obj.profileUrl === null ? '/icons/Shared/profile-user.svg' : obj.profileUrl}" />
                       </div>
                       <div class="person-description">
                         <label>${obj.consultantName}</label>
                         <p>${personDescription}</p>
+                        <div class="media-cont">
+                        <a href="mailto:${obj.email}"><img title="${obj.email}" src="/icons/Shared/envelope-blue-oceans.svg" /></a>
+                        <a href="slack://open"><img title="Contant by Slack" src="/icons/Shared/slack-blueLight-oceans.svg" /></a>
+                        <a href="tel:${obj.phoneNumber === null ? '' : obj.phoneNumber.replace(/\s+/g, '')}"><img title="${obj.phoneNumber}" src="/icons/Shared/phone-blueLight-oceans.svg" /></a>
+                      </div>
                       </div>
                     </div>`;
                     adminTeamSection.appendChild(rowEl);
