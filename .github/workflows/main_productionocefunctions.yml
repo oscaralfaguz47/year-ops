@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
-	with:
+	    with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
