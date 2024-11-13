@@ -4,15 +4,14 @@ const trackingToolReportEntrySection = getElementById('tracking-tool-report-entr
 const dateToInput = getElementById('dateToInput');
 const dateFromInput = getElementById('dateFromInput');
 const errorMessageIntern = getElementById('error-message-intern');
-const loadingBoxIntern = getElementById('loading-box-intern');
-let clientHasTrackingToolValue = false;
+const clientHasTrackingToolValue = getElementById('ClientHasTT').value;
 const submissionInfo = getElementById('submission-info');
 const submissionError = getElementById('submission-errors');
 const projectIdInput = getElementById('projectId');
-const onCallSectionEl = getElementById('on-call-section');
 let selectedProjectName = '';
 const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-project-sec');
 const totalHoursLabelEl = getElementById('total-hours-label');
+const loadingBoxIntern = getElementById('loading-box-intern');
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -27,8 +26,6 @@ async function fillProjectsDropdown(dropdownList) {
             listItem.innerHTML = `<div class="circle circle-li">${project.name.charAt(0)}</div>${project.name}`;
             listItem.dataset.value = project.projectId;
             listItem.addEventListener('click', function () {
-                document.querySelector('.dropdown-selected').innerHTML = `<div class="circle">${project.name.charAt(0)}</div>`;
-                document.getElementById('project-name').innerHTML = `${project.name}`;
                 dropdownList.style.display = 'none';
                 selectProject(project.projectId);
             });
@@ -42,65 +39,15 @@ async function fillProjectsDropdown(dropdownList) {
 }
 
 const header = getElementById('header');
-const loadingBox = getElementById('loading-box-global');
 const errorMessageBox = getElementById('error-message-rep-time');
 const contentBox = getElementById('content-box');
-const noProjectsBox = getElementById('no-projects-box');
-const dropdownSelect = document.querySelector('.dropdown-selected');
-const projectNamelabelSelect = getElementById('project-name');
 
-async function getProjectInfo() {
-    loadingBox.style.display = 'flex';
-    errorMessageBox.style.display = 'none';
-    contentBox.style.display = 'none';
-    try {
-        const response = await getSelectedProjectInfo();
-        const projectInfo = response.projectInfoData;
-
-        if (projectInfo !== null) {
-            if (projectInfo.numAssignedProjects >= 1 || projectInfo.accessToTrackingTool) {
-                dropdownSelect.innerHTML = `<div class="circle">${projectInfo.projectName.charAt(0)}</div>`;
-                projectNamelabelSelect.innerHTML = `${projectInfo.projectName}`;
-                header.style.display = 'flex';
-            }
-            projectIdInput.value = projectInfo.projectId;
-            onCallSectionEl.style.display = projectInfo.participatesInOnCalls ? 'block' : 'none';
-            clientHasTrackingToolValue = projectInfo.clientHasTrackingTool;
-            trackingToolTimeEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'none' : 'block';
-            trackingToolReportEntrySection.style.display = projectInfo.clientHasTrackingTool ? 'block' : 'none';
-            paymentPeriod = projectInfo.paymentPeriod;
-            selectedProjectName = projectInfo.projectName;
-            getElementById('payment-period-container').innerHTML = `<div><span class="strong-label">Your payment period is</span> <span class="gray-bold-span">${paymentPeriod === 1 ? 'Biweekly' : 'Monthly'}</span></div>`;
-
-            getElementById('questions').innerHTML = `<span class="strong-label" style="display:block">Questions? </span> <span>Please reach out to your Success Manager
-            </span> <strong style="color:var(--clr-blueLight); display:block;">${projectInfo.successManagerName}</strong> <a class="envelope-link" href="mailto:${projectInfo.successManagerEmail}">
-            <div class="envelope-container"><img src="/img/globalIcons/envelope.webp"></div></a>`;
-
-            let currentDateNoChange = new Date();
-            calculatePeriod(currentDateNoChange, paymentPeriod);
-
-        } else {
-            loadingBox.style.display = 'none';
-            noProjectsBox.style.display = 'block';
-            noProjectsBox.innerHTML = `<div>
-            <div class="background-cont">
-                <div><i>Wow!</i></div>
-                <p><strong>Looks like you do not have assigned projects yet.</strong></p>
-                <p><strong>Please contact the administrator to assign you a project</strong></p>
-            </div>
-        </div>`;
-        }
-    } catch (error) {
-        validateSessionExpiration(error.message);
-        console.error("Error filling the projects dropdown:", error.message);
-        loadingBox.style.display = 'none';
-        errorMessageBox.style.display = 'flex';
-    }
-}
 document.addEventListener('DOMContentLoaded', async function () {
+    setTimesheetItemActive();
     let dataLoaded = false;
     const dropdownHeader = document.querySelector('.dropdown-header');
     const dropdownList = document.querySelector('.dropdown-list');
+    paymentPeriod = getElementById('PaymentPeriodInput').value;
 
     dropdownHeader.addEventListener('click', async function () {
         if (!dataLoaded) {
@@ -128,19 +75,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             dropdownList.style.display = 'none';
         }
     });
-
-    try {
-        await getProjectInfo();
-    } catch (error) {
-        console.error('Error fetching project info:', error);
-        displayToasterError('Error fetching project info.');
-    }
+    contentBox.style.display = 'block';
 });
 async function selectProject(projectId) {
-    currentDate = new Date();
-    loadingBox.style.display = 'flex';
-    contentBox.style.display = 'none';
     try {
+        displaySpinner();
         var token = $('[name="__RequestVerificationToken"]').val();
         var formData = new FormData();
         formData.append('projectId', projectId);
@@ -156,32 +95,26 @@ async function selectProject(projectId) {
         const data = await response.json();
 
         if (data.success) {
-            header.style.display = 'flex';
-            loadingBox.style.display = 'none';
+            window.location.href = "/TrackingTool/ReportingMyTime";
         } else {
             displayToasterError(data.error);
             console.error('There has been a problem with the fetch operation:', data.detail);
-            loadingBox.style.display = 'none';
         }
-
-        await getProjectInfo();
     } catch (error) {
         validateSessionExpiration(error.message);
         console.error('Network or fetch error:', error);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
-        loadingBox.style.display = 'none';
         return null;
+    } finally {
+        hideSpinner();
     }
 }
-
 function initializeNavigation() {
-    displayElement(saveReportBtn, 'none');
-    displayElement(holidaysContainer, 'none');
-    displayElement(loadingBoxIntern, 'block');
-    displayElement(errorMessageIntern, 'none');
-    displayElement(noTrackingToolSection, 'none');
-    displayElement(tackingToolSection, 'none');
-    displayElement(inactiveNoTrackingToolSection, 'none');
+    loadingBoxIntern.style.display = 'flex';
+    errorMessageIntern.style.display = 'none';
+    inactiveNoTrackingToolSection.style.display = 'none';
+    trackingToolReportEntrySection.style.display = 'none';
+    trackingToolTimeEntrySection.style.display = 'none';
 }
 //Navitate between dates
 async function navitateBetweenDates(startDate, endDate, buttons) {
@@ -189,15 +122,12 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
-        inactiveNoTrackingToolSection.style.display = 'none';
         contentBox.style.display = 'block';
 
         if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
-            submissionInfo.style.display = 'block';
+            submissionInfo.style.display = 'flex';
             totalHoursLabelEl.style.display = 'block';
-            noProjectsBox.style.display = 'none';
             header.style.display = 'flex';
-            loadingBox.style.display = 'none';
         } else {
             trackingToolTimeEntrySection.style.display = 'none';
             trackingToolReportEntrySection.style.display = 'none';
@@ -226,16 +156,14 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
             inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} Active in this project, but you ${inactiveNoTrackingMiddleMessage} not needed to report time for this period.
             <br>${inactiveNoTrackingEndMessae}</label></div>`;
         }
-        loadingBox.style.display = 'none';
         submissionError.innerHTML = '';
         submissionInfo.innerHTML = `<div class="spinner"></div>`;
-        displayElement(loadingBoxIntern, 'none');
 
         if (clientHasTrackingToolValue) {
             totalHoursLabelEl.style.display = 'none';
             if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+                await getProjectMovementsClientHasTrackTool(statusInfo.participatesInOnCalls);
                 trackingToolReportEntrySection.style.display = 'block';
-                await getProjectMovementsClientHasTrackTool();
             }
             if (buttons) {
                 buttons.forEach(btn => {
@@ -245,16 +173,24 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         } else {
             if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
                 totalHoursLabelEl.style.display = 'block';
-                trackingToolTimeEntrySection.style.display = 'block';
-                const movements = await getTrackingToolProjectMovements();
-                generateDateList(startDate, endDate, movements.movementsList);
+
+                if (typeof getTrackingToolProjectMovements === 'function') {
+                    const movements = await getTrackingToolProjectMovements();
+                    generateDateList(startDate, endDate, movements.movementsList);
+                    trackingToolTimeEntrySection.style.display = 'block';
+                } else {
+                    console.warn("getTrackingToolProjectMovements is not defined.");
+                }
             }
+
             if (buttons) {
                 buttons.forEach(btn => {
                     if (btn) btn.disabled = false;
                 });
             }
         }
+        loadingBoxIntern.style.display = 'none';
+
     } catch (error) {
         console.error('Error navigating between dates:', error);
     }
@@ -327,7 +263,6 @@ async function submitReportToBePaid() {
 
         const dataFromApi = await response.json();
         displayToasterSuccess(dataFromApi.message);
-
         if (clientHasTrackingToolValue) {
             await getProjectMovementsClientHasTrackTool();
         } else {

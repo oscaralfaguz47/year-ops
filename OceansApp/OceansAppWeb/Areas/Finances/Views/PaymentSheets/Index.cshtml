@@ -9,40 +9,42 @@
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
     <div class="principal-header-container">
         <div class="filters-container">
-                <div class="header-page">
-                    <h2>PAYMENT SHEETS</h2>
-                </div>
-                <partial name="_Pagination" />
+            <div class="header-page">
+                <h2>PAYMENT SHEETS</h2>
+            </div>
+            <partial name="_Pagination" />
         </div>
         <div class="table-header-actions">
-                <div class="input-container">
-                    <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
-                    <i class="bi bi-search placeholder-image"></i>
-                </div>
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
             <div class="action-btns-container">
                 <button id="openSidebarBtn" onclick="displayMoreFiltersPaymentSheet()"><img src="/icons/Shared/filter.svg"></button>
             </div>
         </div>
         <div class="additional-filters">
-                <div class="payment-period-sel">
-                    <select onchange="changePaymentPeriod()" id="paymentPeriod">
-                        <option selected value="1">Biweekly Consultants</option>
-                        <option value="2">Monthly Consultants</option>
-                    </select>
-                </div>
-                <div class="navigation-container">
-                    <div class="navegation-box">
-                        <input type="hidden" id="dateToInput" />
-                        <input type="hidden" id="dateFromInput" />
+            <div class="payment-period-sel">
+                <select onchange="changePaymentPeriod()" id="paymentPeriod">
+                    <option selected value="1">Biweekly Consultants</option>
+                    <option value="2">Monthly Consultants</option>
+                </select>
+            </div>
+            <div class="navigation-container">
+                <div class="navegation-box">
+                    <input type="hidden" id="dateToInput" />
+                    <input type="hidden" id="dateFromInput" />
                     <button class="btn-arrow" onclick="handleButtonClick('left')">< <span>Previous</span></button>
-                        <label id="previous-date"></label>-<label id="next-date"></label>
+                    <label id="previous-date"></label>-<label id="next-date"></label>
                     <button class="btn-arrow" onclick="handleButtonClick('right')"><span>Next</span> ></button>
-                    </div>
                 </div>
-                <button class="refresh-btn" onclick="getListOfResults(false, true)"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
+            </div>
+            <button class="refresh-btn" onclick="getListOfResults(false, true)"><img src="/icons/Shared/refresh.svg" /> Refresh Data</button>
+            <button class="refresh-btn" onclick="displayRemovedProjectsModal('modal-removed-projects')"><img src="/icons/Shared/trash-arrow-up.svg"> Removed Projects in this period</button>
+            <button class="refresh-btn" onclick="sendSubmissionReminders()"><img src="/icons/Shared/envelope.svg"> Send Reminders</button>
         </div>
     </div>
-    <div class="global-table-container">
+    <div class="global-table-container cl-payment-sheets-table">
 
         <table id="payment-sheets-table" style="display:none">
             <thead>
@@ -50,6 +52,11 @@
                     <th onclick="orderByTableList('ConsultantName', 'ConsultantNameTableHeader', 'sortArrowConsultantName')" data-sort="ANY" name="ConsultantNameTableHeader" class="sortable-col">
                         Consultant Name
                         <span class="sort-arrow" id="sortArrowConsultantName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('PaymentStatus', 'PaymentStatusTableHeader', 'sortArrowPaymentStatus')" data-sort="ANY" name="PaymentStatusTableHeader" class="sortable-col">
+                        Payment Status
+                        <span class="sort-arrow" id="sortArrowPaymentStatus">
                         </span>
                     </th>
                     <th onclick="orderByTableList('ProjectName', 'ProjectNameTableHeader', 'sortArrowProjectName')" data-sort="ANY" name="ProjectNameTableHeader" class="sortable-col">
@@ -65,10 +72,10 @@
                         <span class="sort-arrow" id="sortArrowSubmissionDate"></span>
                     </th>
                     <th onclick="orderByTableList('TransactionStatusName', 'TransactionStatusNameTableHeader', 'sortArrowTransactionStatusName')" data-sort="ANY" name="TransactionStatusNameTableHeader" class="sortable-col">
-                        Status
+                        Submission Status
                         <span class="sort-arrow" id="sortArrowTransactionStatusName"></span>
                     </th>
-                    <th>Status Actions</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,7 +87,15 @@
 <partial name="_SidebarRightPartial" />
 
 <div>
+    <partial name="_RemovedProjectsModalPartialView" />
+</div>
+
+<div>
     <partial name="_ReviewForApprovalModalPartialView" />
+</div>
+
+<div>
+    <partial name="_ReviewForPaymentModalPartialView" />
 </div>
 
 <script src="~/js/Finances/PaymentSheets/paymentSheets.js?v=@DateTime.Now.Ticks"></script>

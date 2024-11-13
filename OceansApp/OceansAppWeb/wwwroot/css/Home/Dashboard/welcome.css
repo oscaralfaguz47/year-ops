@@ -1,0 +1,54 @@
+﻿#welcomeCont
+{
+    font-weight: bold;
+}
+    #welcomeCont .consName{
+        font-size: 2.5rem;
+        margin-top:-6px;
+        margin-bottom: -4px;
+    }
+    #welcomeCont .consName span {
+        color: var(--clr-blueLight);
+    }
+#timeInCompany p{
+ font-size: 1.3rem;  
+ font-weight: 700;
+ color: rgb(0,0,0,0.6);
+}
+#timeInCompany span {
+    color: var(--clr-grayDark);
+}
+.widget-spinner-cont{
+    height: -webkit-fill-available;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.card-error {
+    height: -webkit-fill-available;
+    display: flex;
+    align-items: center;
+    color: red;
+    font-weight: bold;
+    justify-content:center;
+    text-align:center;
+}
+    .card-error button {
+        border: solid 1px;
+        margin-top: 5px;
+        border-radius: 8px;
+        padding: 0 6px;
+        font-weight: bold;
+        background-color: rgb(42, 167, 255, 0.2);
+    }
+    .card-error button:hover {
+        background-color: rgb(42, 167, 255, 0.5);
+    }
+    @media (max-width: 768px) {
+        #welcomeCont {
+        margin-top: -25px;
+    }
+            #welcomeCont .consName {
+                font-size: 2rem;
+            }
+}

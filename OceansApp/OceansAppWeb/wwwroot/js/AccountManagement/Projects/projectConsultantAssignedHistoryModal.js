@@ -25,6 +25,7 @@ const customHeaders = {
     "hourlyClientRate": "Hourly Client Rate",
     "monthlyClientRate": "Monthly Client Rate",
     "accessToTrackingTool": "Access To Tracking Tool",
+    "participatesInOnCalls": "Participates in On Calls",
     "holidaysMustBePaid": "Holidays Must Be Paid",
     "isActive": "Is Active",
     "isDefaultProject": "Is Default Project",

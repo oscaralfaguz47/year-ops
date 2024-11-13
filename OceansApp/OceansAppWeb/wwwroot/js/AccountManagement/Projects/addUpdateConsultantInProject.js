@@ -14,6 +14,7 @@ const monthlyConsultantSalaryElCUCP = getElementById('monthlyConsultantSalaryEl'
 const hourlyConsultantSalaryElCUCP = getElementById('hourlyConsultantSalaryEl');
 const isMonthlySalaryCalculatedPerHourElCUCP = getElementById("isMonthlySalaryCalculatedPerHour");
 const calculationMethodCheckboxCUCP = getElementById("calculationMethod");
+const participatesInOnCallsCheckboxCUCP = getElementById('participatesInOnCalls');
 
 function validateRatesInputs() {
     let clientRateMethod = document.querySelector('input[name="client-rate-model"]:checked');
@@ -62,12 +63,22 @@ function validateRatesInputs() {
         hourlySalaryInputCUCP.value = null;
         isMonthlySalaryCalculatedPerHourElCUCP.style.display = 'block';
         calculationMethodCheckboxCUCP.checked = true;
+        accessToTrackingToolCheckboxCUCP.disabled = false;
+        if (!accessToTrackingToolCheckboxCUCP.checked) {
+            calculationMethodCheckboxCUCP.checked = false;
+            calculationMethodCheckboxCUCP.disabled = true;
+        } else {
+            calculationMethodCheckboxCUCP.checked = true;
+            calculationMethodCheckboxCUCP.disabled = false;
+        }
     } else if (consultantRateMethod.value === 'H') {
         monthlyConsultantSalaryElCUCP.style.display = 'none';
         hourlyConsultantSalaryElCUCP.style.display = 'block';
         monthlySalaryInputCUCP.value = null;
         isMonthlySalaryCalculatedPerHourElCUCP.style.display = 'none';
-        calculationMethodCheckboxCUCP.checked = false;
+        calculationMethodCheckboxCUCP.checked = true;
+        accessToTrackingToolCheckboxCUCP.checked = true;
+        accessToTrackingToolCheckboxCUCP.disabled = true;
     }
 }
 function hideShowMustPayHolidaysCheckbox(isDefault) {
@@ -105,7 +116,7 @@ function disableActionDateDatePicker(date) {
     let dateFormatted = dateTimeFormat.toISOString().substr(0, 10);
     let todaysDate = new Date();
     let todaysDateFormated = todaysDate.toISOString().substr(0, 10);
-    console.log(dateFormatted + " " + todaysDateFormated);
+
     if (dateFormatted < todaysDateFormated) {
         actionDate.min = todaysDateFormated;
     } else {
@@ -216,6 +227,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 validateRatesInputs();
                 benefitsArePaidByPartnerCheckboxCUCP.checked = data.consultantAssignation.partnerPaysBenefits;
                 isMonthlySalaryCalculatedPerHourCheckbox.checked = data.consultantAssignation.isMonthlySalaryCalculatedPerHour;
+                participatesInOnCallsCheckboxCUCP.checked = data.consultantAssignation.participatesInOnCalls;
 
                 showModal(modalId);
             })
@@ -223,6 +235,14 @@ async function displayAddUpdateConsultant(modalId, id) {
                 hideSpinner();
             });
     } else {
+        const projectTypeCheckedInputCUP = createUpdateProjectForm.querySelector('input[name="projectTypeRb"]:checked');
+        if (projectTypeCheckedInputCUP.value === 'I' || !clientHasTrackingToolInputCUP.checked) {
+            participatesInOnCallsCheckboxCUCP.checked = false;
+            getElementById('onCallSection').style.display = 'none';
+
+        } else {
+            getElementById('onCallSection').style.display = 'block';
+        }
         showModal(modalId);
     }
 }
@@ -321,7 +341,8 @@ async function addConsultantToProject(modalId) {
             ProjectId: projectIdInputCUP.value,
             ConsultantId: consultantIdInputCUCP.value === '' ? null : Number(consultantIdInputCUCP.value),
             PartnerPaysBenefits: Boolean(benefitsArePaidByPartnerCheckboxCUCP.checked),
-            HolidaysMustBePaid: Boolean(holidaysMustBePaidCheckboxCUCP.checked)
+            HolidaysMustBePaid: Boolean(holidaysMustBePaidCheckboxCUCP.checked),
+            participatesInOnCalls: Boolean(participatesInOnCallsCheckboxCUCP.checked)
         };
 
         try {

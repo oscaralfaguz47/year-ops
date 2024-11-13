@@ -1,77 +1,59 @@
-﻿@using OceansApp.Models.ViewModels
-@model ProfileVM
-
-<link rel="stylesheet" href="~/css/Account/global.css?v=@DateTime.Now.Ticks" asp-append-version="true" />
+﻿<link rel="stylesheet" href="~/css/Account/profile.css?v=@DateTime.Now.Ticks" />
 
 <div class="container">
-    <h2 class="title-h1-account"><i class="bi bi-person-gear"></i> <strong>My Account Settings</strong></h2>
-    <hr />
-    <div class="row">
-        <div class="col-lg-6 text-center">
-            <h2><strong>Personal Information</strong></h2>
-            <form id="registerForm" asp-area="" asp-controller="Account" asp-action="UpdateProfile" method="post">
+    <div class="container my-account-container">
+        <div class="col-lg-12 text-center">
+            <div class="profile-picture-container">
+                <form id="profile-picture-form" enctype="multipart/form-data">
+                    <div class="profile-picture-preview">
+                        <img id="profile-picture-image" src="/icons/Shared/profile-user.svg" />
+                    </div>
+                    <input type="file" id="profile-picture-input" accept="image/*" style="display: none;" />
+                    <button type="button" id="upload-button" class="btn-secondary">Change Photo</button>
+                </form>
+            </div>
+
+        </div>
+       <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8 text-center">
+                <h2 class="section-heading"><strong>Personal Information</strong></h2>
                 <div class="row">
                     <div class="col-md-6">
-                        @Html.HiddenFor(m =>m.Id)
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        <div class="form-floating">
-                            <input asp-for="Name" class="form-control" aria-required="true" />
-                            <label asp-for="Name"></label>
-                            <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="form-floating mb-4">
+                            <input id="NamePI" class="form-control" maxlength="100" />
+                            <label>Name</label>
                         </div>
-                        <br />
-                        <div class="form-floating">
-                            <input asp-for="LastName" class="form-control" aria-required="true" />
-                            <label asp-for="LastName"></label>
-                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        <div class="form-floating mb-4">
+                            <input id="LastNamePI" class="form-control" maxlength="150" />
+                            <label>Last Name</label>
                         </div>
-                        <br />
-                        <div class="form-floating">
-                            <input asp-for="Ocupation" class="form-control" aria-required="true" />
-                            <label asp-for="Ocupation"></label>
-                            <span asp-validation-for="Ocupation" class="text-danger"></span>
+                        <div class="form-floating mb-4">
+                            <input id="OccupationPI" class="form-control" maxlength="100" />
+                            <label>Occupation</label>
                         </div>
-                        <br />
                     </div>
                     <div class="col-md-6">
-                        <div class="form-floating">
-                            @Html.HiddenFor(m =>m.Email)
-                            <input disabled asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
-                            <label asp-for="Email"></label>
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                        <div class="form-floating mb-4">
+                            <input id="EmailPI" disabled class="form-control" />
+                            <label>Email</label>
                         </div>
-                        <br />
-                        <div class="form-floating">
-                            <input asp-for="PhoneNumber" class="form-control" aria-required="true" />
-                            <label asp-for="PhoneNumber"></label>
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        <div class="form-floating mb-4">
+                            <input id="PhoneNumberPI" class="form-control" maxlength="100" />
+                            <label>Phone Number</label>
                         </div>
-                        <br />
                     </div>
-                    <div class="text-center">
-                        <a asp-area="" asp-controller="Home" asp-action="Dashboard" class="cancel-btn">
-                            Cancel
-                        </a> &nbsp;
-                        <button id="registerSubmit" type="submit" class="btn-primary-submit">Save Changes</button>
+                    <div class="col-12 text-center">
+                        <button id="SaveBtnPI" class="btn-secondary">Save Changes</button>
                     </div>
                 </div>
-            </form>
-            <br /><br />
-        </div>
-        <div class="col-lg-6 text-center">
-            <h2><strong>Security</strong></h2>
-            <p>TO-DO</p>
-        </div>
-
+            </div>
+            <div class="col-lg-2"></div>
+       </div>
     </div>
+
 </div>
 
-<br />
-<br />
-<br />
-<br />
+<script src="~/js/Account/profile.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/inputValidations.js?v=@DateTime.Now.Ticks"></script>
 
-
-@section Scripts {
-<partial name="_ValidationScriptsPartial" />
-}

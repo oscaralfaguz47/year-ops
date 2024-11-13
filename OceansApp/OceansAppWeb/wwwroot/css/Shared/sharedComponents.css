@@ -66,7 +66,6 @@
         border-bottom: solid 3px var(--clr-grayLight);
         padding-bottom: 6px;
         font-weight: 700;
-        font-family: 'Roboto', sans-serif;
     }
     .modal-scroll-container {
         text-align: left;
@@ -266,4 +265,25 @@
     color: red;
     font-size: 14px;
     display: none;
+}
+
+/* SPINNERS */
+.button-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.2);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border-left-color: transparent;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

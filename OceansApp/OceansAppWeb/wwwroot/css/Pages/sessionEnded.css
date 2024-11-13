@@ -1,0 +1,17 @@
+﻿.session-ended-container {
+    text-align: left !important;
+    margin: 30px 0px;
+    background-color: var(--clr-grayLight);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+    .session-ended-container p {
+        margin: 12px 0;
+    }
+
+        .session-ended-container p i {
+            font-size: 20px !important;
+            color: var(--clr-grayDark) !important;
+            margin-right: 5px;
+        }

@@ -99,6 +99,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToManageTheBasicsOfPaymentSheets", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType, FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToExportAccountingData", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Access_Export_Accounting_Data_ClaimType, FinancesClaimsCD.Access_Export_Accounting_Data_ClaimValue));
+            });
             //GENERAL
             services.AddSingleton<IAuthorizationHandler, AnyOfPoliciesGeneralRequirementHandler>();
             services.AddAuthorization(options =>
@@ -261,7 +266,17 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
                         && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
-                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue)));
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && claim.Value ==
+                        FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue)));
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToBankAccountsList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && claim.Value ==
+                        FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue)));
             });
 
             services.AddAuthorization(options =>

@@ -1,17 +1,21 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Storage.Queues;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Account;
+using OceansApp.Models.ViewModels.Blobs;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Utility;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
+using OceansApp.Utility.SharedMethods;
+using OceansApp.Utility.SharedMethods.InputValidations;
 using OceansAppWeb.Controllers;
-using SlackAPI;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
@@ -27,14 +31,14 @@ namespace OceansAppWeb.Account.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _config;
-        private readonly LazyServiceProvider<ISendEmailRepository> _sendEmailRepository;
-        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+        private readonly Lazy<QueueClient> _queueClient;
         private readonly IMemoryCache _cache;
+        private readonly Lazy<IAzureBlobRepository> _azureBlobRepository;
 
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager
             , UrlEncoder urlEncoder, ApplicationDbContext dbContext, RoleManager<IdentityRole> roleManager, IUnitOfWork unitOrWork,
-            IHttpContextAccessor httpContextAccessor, IConfiguration config, LazyServiceProvider<ISendEmailRepository> sendEmailRepository,
-            IBackgroundTaskQueue backgroundTaskQueue, IMemoryCache cache)
+            IHttpContextAccessor httpContextAccessor, IConfiguration config,
+            IMemoryCache cache, Lazy<QueueClient> queueClient, Lazy<IAzureBlobRepository> azureBlobRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -44,9 +48,9 @@ namespace OceansAppWeb.Account.Controllers
             _unitOfWork = unitOrWork;
             _httpContextAccessor = httpContextAccessor;
             _config = config;
-            _sendEmailRepository = sendEmailRepository;
-            _backgroundTaskQueue = backgroundTaskQueue;
+            _queueClient = queueClient;
             _cache = cache;
+            _azureBlobRepository = azureBlobRepository;
         }
         public IActionResult Index()
         {
@@ -56,53 +60,206 @@ namespace OceansAppWeb.Account.Controllers
         [HttpGet]
         [Authorize]
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
-        public async Task<IActionResult> ProfileAsync()
+        public IActionResult ProfileAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var userFromDb = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == user.Id);
+            return View();
+        }
 
-            ProfileVM myInfo = new()
+        [HttpGet]
+        [Authorize]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
+        public async Task<IActionResult> GetProfileInfo()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userFromDb = await _unitOfWork.ApplicationUser.GetUserProfileDataAsync(userId);
+
+            return Ok(new
             {
-                Id = userFromDb.Id,
-                Email = userFromDb.Email,
-                Name = userFromDb.Name,
-                LastName = userFromDb.LastName,
-                Ocupation = userFromDb.Occupation,
-                PhoneNumber = userFromDb.PhoneNumber
-            };
-            ViewData["Title"] = "My Account Settings";
-            return View(myInfo);
+                profileInfo = userFromDb
+            });
         }
 
         [HttpPost]
         [Authorize]
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(ProfileVM model)
+        public async Task<IActionResult> UpdateProfile([FromBody] ProfileVM model)
         {
-            if (ModelState.IsValid)
+            if (model == null)
             {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", detail = "Object is null." });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldAnyValue("Id", "UserId", model.Id, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("Name", "Name", model.Name, 100, ModelState);
+            validateInputs.ValidateRequiredAndStringLength("LastName", "Last Name", model.LastName, 150, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", model.PhoneNumber, 100, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("Occupation", "Occupation", model.Occupation, 100, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                 .Select(e => e.ErrorMessage)
+                                                 .ToList();
+                return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", errors = errors });
+            }
+            try
+            {
+                var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
+
+                userToUpdate.Name = model.Name;
+                userToUpdate.LastName = model.LastName;
+                userToUpdate.Occupation = model.Occupation;
+                userToUpdate.PhoneNumber = model.PhoneNumber;
+
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Changes saved!"
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { error = e.Message, messageType = "Exception Error" });
+            }
+
+        }
+
+        [Authorize]
+        [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeProfilePhoto([FromForm] IFormFile file)
+        {
+            try
+            {
+                // Validate file input
+                ValidateInputs validateInputs = new();
+
+                validateInputs.ValidateRequiredFile("Photo", "Photo", file, ModelState);
+                validateInputs.ValidateValidFile("Photo", file, ModelState);
+
+                // Check if the ModelState has any errors after validations
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(e => e.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                }
+
+                // Get the current user's ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string containerId = "user-profile-photos";
+                string entityType = "UserProfile";
+
+                // Check if the file already exists in ImageBlob
+                ImageBlob fileAlreadyExists = await _unitOfWork.ApplicationUser.VerifyIfUploadedFileAsync(file, userId, containerId, entityType);
+
+                if (fileAlreadyExists != null)
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "You changed your profile photo!",
+                        BlobUrl = fileAlreadyExists.BlobUrl
+                    });
+                }
+
+                // Prepare the file list for upload
+                List<IFormFile> fileList = new();
+                fileList.Add(file);
+
+                // Try uploading the file to Azure Blob Storage
+                List<BlobUploadResult> uploadedBlob;
                 try
                 {
-                    var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == model.Id);
+                    uploadedBlob = await _azureBlobRepository.Value.UploadFilesAsync(containerId, fileList, userId.Substring(0, 8), 10950);
 
-                    userToUpdate.Name = model.Name;
-                    userToUpdate.LastName = model.LastName;
-                    userToUpdate.Occupation = model.Ocupation;
-                    userToUpdate.PhoneNumber = model.PhoneNumber;
+                    // If the upload was successful, proceed to save the blob details in the database
+                    if (uploadedBlob[0].Success)
+                    {
+                        var oldImage = await _unitOfWork.ImageBlob
+    .GetFirstOrDefaultAsync(x => x.ContainerName == containerId && x.EntityId == userId && x.EntityType == entityType);
 
-                    await _unitOfWork.SaveAsync();
+                        ImageBlob imageToSave = new()
+                        {
+                            BlobName = uploadedBlob[0].FileName,
+                            ContainerName = uploadedBlob[0].ContainerId,
+                            BlobUrl = uploadedBlob[0].BlobUrl,
+                            CreationDate = DateTime.UtcNow,
+                            EntityId = userId,
+                            EntityType = "UserProfile"
+                        };
+                        var transaction = await _unitOfWork.BeginTranAsync();
+                        await _unitOfWork.ImageBlob.AddAsync(imageToSave);
+                        await _unitOfWork.SaveAsync();
 
-                    TempData["success"] = "Data was saved successfully!";
-                    return View("Profile", model);
+                        //Delete image from Azure
+                        if (oldImage != null)
+                        {
+                            MethodResponse deleteResponse = await _azureBlobRepository.Value.DeleteBlobAsync(containerId, oldImage.BlobName);
+
+                            if (!deleteResponse.Success)
+                            {
+                                await transaction.RollbackAsync();
+                            }
+                            else
+                            {
+                                _unitOfWork.ImageBlob.Remove(oldImage);
+                                await _unitOfWork.SaveAsync();
+                                await transaction.CommitAsync();
+                            }
+                        }
+                        else
+                        {
+                            await transaction.CommitAsync();
+                        }
+                        var user = await _userManager.GetUserAsync(User);
+                        var currentUserClaims = await _userManager.GetClaimsAsync(user);
+
+                        var existingProfileImageClaim = currentUserClaims.FirstOrDefault(c => c.Type == "ProfileImageUrl");
+                        if (existingProfileImageClaim != null)
+                        {
+                            await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
+                        }
+
+                        if (!string.IsNullOrEmpty(uploadedBlob[0].BlobUrl))
+                        {
+                            await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", uploadedBlob[0].BlobUrl));
+                        }
+
+                        await _signInManager.RefreshSignInAsync(user);
+
+                        return Ok(new
+                        {
+                            success = true,
+                            message = "You changed your profile photo!",
+                            BlobUrl = uploadedBlob[0].BlobUrl
+                        });
+                    }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    return BadRequest(e.Message);
+                    // Handle any errors during the upload or database save process
+                    return BadRequest(new { error = $"The image couldn't be uploaded or saved: {ex.Message}", messageType = "Exception Error" });
                 }
             }
-            return View("Profile", model);
+            catch (Exception ex)
+            {
+                // Catch any unexpected errors during the process
+                return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
+            }
+
+            // If we reach here, something went wrong
+            return BadRequest(new { error = "Something went wrong", messageType = "Unknown Error" });
         }
+
 
         [HttpGet]
         [AllowAnonymous]
@@ -146,26 +303,22 @@ namespace OceansAppWeb.Account.Controllers
                         var templateEmail = emailTemplates.EmailTemplate("CREATE YOUR PASSWORD", createPassBody);
                         SendEmailVM emailModel = new()
                         {
-                            Subject = "Create your account - Oceans App",
+                            Subject = "Create your account - Ripple by Oceans",
                             EmailTo = user.Email.Trim(),
                             Body = templateEmail,
-                            SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
+                            SharedEmailFrom = _config["SharedMailboxEmailRippleApp"]
                         };
-                        _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+
+                        try
                         {
-                            using (var scope = scopeFactory.CreateScope())
-                            {
-                                var sendEmail = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
-                                try
-                                {
-                                    string? result = await sendEmail.SendEmail(emailModel);
-                                }
-                                catch (Exception ex)
-                                {
-                                    //Log the error
-                                }
-                            }
-                        });
+                            string message = JsonConvert.SerializeObject(emailModel);
+                            await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+                        }
+                        catch (Exception ex)
+                        {
+                            //Log the error
+                        }
+
                         InvalidToken invalidTokenModelCreatePassword = new InvalidToken();
                         invalidTokenModelCreatePassword.Title = "Your invite has been expired!";
                         invalidTokenModelCreatePassword.Message = "We just sent you another invite. Please check your email";
@@ -251,9 +404,6 @@ namespace OceansAppWeb.Account.Controllers
                                 await _userManager.AddClaimAsync(user, claimTwoFactorEnabled);
                             }
 
-                            // Regenerate the authentication ticket
-                            //await _signInManager.RefreshSignInAsync(user);
-
                             GenerateUserSessionChangesExpirationCache(user.Id);
 
                             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -263,6 +413,20 @@ namespace OceansAppWeb.Account.Controllers
                                 {
                                     return RedirectToAction("EnableAuthenticator");
                                 }
+                                var existingProfileImageClaim = currentUserClaims.FirstOrDefault(c => c.Type == "ProfileImageUrl");
+                                if (existingProfileImageClaim != null)
+                                {
+                                    await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
+                                }
+                                var profileImage = await _unitOfWork.ImageBlob.GetFirstOrDefaultAsync(x => x.EntityId == user.Id &&
+                                    x.ContainerName == "user-profile-photos" && x.EntityType == "UserProfile");
+
+                                if (profileImage != null && !string.IsNullOrEmpty(profileImage.BlobUrl))
+                                {
+                                    await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", profileImage.BlobUrl));
+                                }
+
+                                await _signInManager.RefreshSignInAsync(user);
 
                                 return LocalRedirect(returnUrl);
                             }
@@ -312,7 +476,7 @@ namespace OceansAppWeb.Account.Controllers
             var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var token = await _userManager.GetAuthenticatorKeyAsync(user);
-            string appName = Environment.GetEnvironmentVariable(_config["TwoFactorAppName"]);
+            string appName = _config["TwoFactorAppNameENV"];
             string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode(appName),
                 _urlEncoder.Encode(user.Email), token);
             var model = new TwoFactorAuthenticationVM() { Token = token, QRCodeUrl = AuthenticatorUri };
@@ -472,23 +636,19 @@ namespace OceansAppWeb.Account.Controllers
                     Subject = "Change Password",
                     EmailTo = model.Email,
                     Body = templateEmail,
-                    SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"])
+                    SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 };
-                _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, token) =>
+
+                try
                 {
-                    using (var scope = scopeFactory.CreateScope())
-                    {
-                        var sendEmail = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
-                        try
-                        {
-                            string? result = await sendEmail.SendEmail(emailModel);
-                        }
-                        catch (Exception ex)
-                        {
-                            //Log the error
-                        }
-                    }
-                });
+                    string message = JsonConvert.SerializeObject(emailModel);
+                    await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+                }
+                catch (Exception ex)
+                {
+                    //Log the error
+                }
+
                 return RedirectToAction("ForgotPasswordConfirmation");
             }
 

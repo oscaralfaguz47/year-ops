@@ -48,6 +48,34 @@ namespace OceansApp.DataAccess.Repository
 
             return (consultants, totalCount);
         }
+        public async Task<ConsultantUserVM> GetConsultantWithUserAsync(int consultantId)
+        {
+            try
+            {
+                var result = await (from c in _db.CONSULTANT_DETAILS
+                                join u in _db.AspNetUsers on c.UserId equals u.Id
+                                join co in _db.COUNTRY on c.IdCountry equals co.IdCountry
+                                where c.ConsultantId == consultantId
+                                select new ConsultantUserVM
+                                {
+                                    ConsultantId = c.ConsultantId,
+                                    Name = u.Name,
+                                    LastName = u.LastName,
+                                    Email = u.Email,
+                                    PaymentMethodId = (int)c.PaymentMethodId,
+                                    CompanyId = c.CompanyId,
+                                    CountryName = co.Name,
+                                    PaymentPeriod = (int)c.PaymentPeriod,
+                                    ConsultantHolidayId = c.ConsultantHolidayId
+                                }).FirstOrDefaultAsync();
+
+            return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
         public async Task<List<GetUsersSelectVM>> GetUsersByCategoryAndPositionForSelect(string userCategory, string userPosition)
         {
             var connection = _db.Database.GetDbConnection();
@@ -100,8 +128,9 @@ namespace OceansApp.DataAccess.Repository
                     Location = consultantData.Location,
                     UserCreatedBy = userIdCreatedBy,
                     PaymentPeriod = consultantData.PaymentPeriod,
-                    ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls,
-                    ConsultantHolidayId = consultantData.ConsultantHolidayId
+                    ConsultantHolidayId = consultantData.ConsultantHolidayId,
+                    WorkingModel = (int)consultantData.WorkingModel,
+                    StartDate = (DateTime)consultantData.StartDate
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -122,6 +151,16 @@ namespace OceansApp.DataAccess.Repository
                             return new MethodResponse { MessageType = "Exception Error", Success = false, Message = "Something went wrong creating the consultant position, please try again." };
                         }
                     }
+                    //Create Active History
+                    ApplicationUserActiveHistory activeHistoryToCreate = new()
+                    {
+                        ActionDate = (DateTime)consultantData.StartDate,
+                        IsActive  = true,
+                        UserId = createdUserId,
+                        UserIdActionedBy = userIdCreatedBy
+                    };
+                    await _db.UsersActiveHistory.AddAsync(activeHistoryToCreate);
+                    await _db.SaveChangesAsync();
                     return new MethodResponse
                     {
                         Success = true,
@@ -203,14 +242,40 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.LastUpdatedDate = DateTime.UtcNow;
                 existingConsultant.UserLastUpdatedBy = userActionedBy;
                 existingConsultant.PaymentPeriod = consultantData.PaymentPeriod;
-                existingConsultant.ParticipatesInOnCalls = consultantData.ParticipatesInOnCalls;
                 existingConsultant.ConsultantHolidayId = consultantData.ConsultantHolidayId;
+                existingConsultant.WorkingModel = (int)consultantData.WorkingModel;
+                existingConsultant.StartDate = (DateTime)consultantData.StartDate;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
                 existingUser.PhoneNumber = consultantData.PhoneNumber;
 
                 await _db.SaveChangesAsync();
+
+                var activeHistory = await _db.UsersActiveHistory
+                                             .Where(x => x.UserId == existingConsultant.UserId && x.IsActive == true)
+                                             .OrderBy(x => x.HistoryId)
+                                             .ThenBy(x => x.ActionDate)
+                                             .FirstOrDefaultAsync();
+                if (activeHistory == null)
+                {
+                    //Create Active History
+                    ApplicationUserActiveHistory activeHistoryToCreate = new()
+                    {
+                        ActionDate = (DateTime)consultantData.StartDate,
+                        IsActive = true,
+                        UserId = existingConsultant.UserId,
+                        UserIdActionedBy = userActionedBy
+                    };
+                    await _db.UsersActiveHistory.AddAsync(activeHistoryToCreate);
+                    await _db.SaveChangesAsync();
+                }
+                else
+                {
+                    activeHistory.ActionDate = (DateTime)consultantData.StartDate;
+                    await _db.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
                 return new MethodResponse { Success = true, Message = $"The Consultant {consultantData.Name} {consultantData.LastName} was updated successfully." };
             }
@@ -251,9 +316,10 @@ namespace OceansApp.DataAccess.Repository
                         UserCategoryName = consultant.UserCategoryName,
                         UserRole = consultant.UserRole,
                         PaymentPeriod = consultant.PaymentPeriod,
-                        ParticipatesInOnCalls = consultant.ParticipatesInOnCalls,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,
+                        WorkingModel = consultant.WorkingModel,
+                        StartDate = consultant.StartDate,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }
@@ -265,10 +331,6 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public void Update(ConsultantDetail obj)
-        {
-            _db.CONSULTANT_DETAILS.Update(obj);
-        }
 
         //PAYMENT SHEETS
         public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
@@ -287,6 +349,7 @@ namespace OceansApp.DataAccess.Repository
                 parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
                 parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
                 parameters.Add("@TransactionStatusName", filtersAndPagination.Filters.TransactionStatusName, DbType.String);
+                parameters.Add("@AccountsPayableStatusName", filtersAndPagination.Filters.AccountsPayableStatusName, DbType.String);
                 parameters.Add("@ProjectId", filtersAndPagination.Filters.ProjectId, DbType.Int32);
                 parameters.Add("@PaymentPeriod", filtersAndPagination.Filters.PaymentPeriod, DbType.Int32);
                 parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
@@ -308,7 +371,6 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
-
         public async Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId)
         {
             var connection = _db.Database.GetDbConnection();
@@ -330,62 +392,5 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<MethodResponse> ApproveAndRejectSubmission(string userIdCreatedBy, ApproveRejectSubmissionVM dataFromUser)
-        {
-            await using (var transaction = await _db.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    var submission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.FirstOrDefaultAsync(x => x.SubmissionId == dataFromUser.SubmissionId);
-                    if (submission == null)
-                    {
-                        return MethodResponse.CreateFailureExceptionResponse("Submission does not exist.");
-                    }
-
-                    var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == submission.ProjectId &&
-                    x.ConsultantId == submission.ConsultantId && (x.ActionDate >= submission.StartPeriodDate &&
-                    x.ActionDate <= submission.EndPeriodDate)).ToListAsync();
-
-
-                    var transactionStatusFromDb = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == dataFromUser.TransactionStatus);
-                    if (transactionStatusFromDb == null)
-                    {
-                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status '" + dataFromUser.TransactionStatus + "' not found.");
-                    }
-
-                    foreach (var repMovement in movements)
-                    {
-                        repMovement.TransactionStatusId = transactionStatusFromDb.TransactionStatusId;
-                    }
-
-                    submission.TransactionStatusId = transactionStatusFromDb.TransactionStatusId;
-
-                    if (dataFromUser.TransactionStatus == "Rejected")
-                    {
-                        var commentToCreate = new ReportingMyTimeComments
-                        {
-                            ConsultantId = submission.ConsultantId,
-                            ProjectId = submission.ProjectId,
-                            Body = dataFromUser.Body,
-                            CreationDate = DateTime.UtcNow,
-                            ActionDate = submission.EndPeriodDate,
-                            UserId = userIdCreatedBy,
-                            SubmissionId = submission.SubmissionId
-                        };
-                        await _db.REPORTING_MY_TIME_COMMENTS.AddAsync(commentToCreate);
-                    }
-
-                    await _db.SaveChangesAsync();
-                    await transaction.CommitAsync();
-
-                    return MethodResponse.CreateSuccessResponse("You have " + dataFromUser.TransactionStatus + " the submission!");
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
-                }
-            }
-        }
     }
 }

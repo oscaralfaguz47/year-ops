@@ -1,0 +1,19 @@
+﻿@model string
+
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/Perks/vto.css?v=@DateTime.Now.Ticks" />
+
+<div class="card">
+    <div class="card-title">
+        <label id="@Model.Substring(1)-title"><img src="/icons/Shared/heart.svg"> Voluntary Time Off (VTO)</label>
+    </div>
+    <div class="card-content">
+        <div id="@Model.Substring(1)-cont">
+            <div>
+                <p>
+                    A fully payable day a year to do volunteering work of your choice, and opportunities to be an ambassador and 
+                    deliver financial support to your preferred cause. <strong>Contact the Admin team if you want to participate</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

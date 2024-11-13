@@ -23,6 +23,9 @@ namespace OceansApp.Models.Models
         public int? ConsultantIdLastUpdatedBy { get; set; }
         [Required]
         public int TransactionStatusId { get; set; }
+        [Required]
+        [MaxLength(150)]
+        public string Detail { get; set; }
 
         [ValidateNever]
         public ConsultantDetail ConsultantDetail { get; set; }

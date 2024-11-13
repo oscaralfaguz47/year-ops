@@ -47,8 +47,18 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
 
             movementsDetailsArray.forEach(function (obj, index) {
                 let li = document.createElement('li');
-                let actionDateReportedTime = new Date(obj.ActionDate);
-                const formattedActionDate = actionDateReportedTime.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'long' });
+                let actionDateReportedTime = obj.ActionDate.split('-'); 
+                let year = actionDateReportedTime[0];
+                let month = actionDateReportedTime[1] - 1; 
+                let day = actionDateReportedTime[2];
+
+                let formattedActionDate = new Date(year, month, day).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+
                 const hoursMinutes = calculateTimeDifference(obj.TimeFrom, obj.TimeTo);
                 li.innerHTML = `<label class="date-reported">${formattedActionDate}</label>
                 ${obj.MovementTypeName !== 'Holidays' ? `<label class="time-reported ${obj.MovementTypeName.includes('(Non-payable)') ? 'non-payable' : ''}">${formatTimeTo12Hour(obj.TimeFrom)}</label> - 
@@ -148,13 +158,28 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         return null;
     }
 }
-function displayApproveRejectConfirmation(action) {
+
+function displayApproveRejectConfirmation(action, from, submissionId) {
     showModal('modal-approve-reject-submission');
     document.getElementById('action-input').value = action;
     let buttonAction = action === 'Approved' ? 'Approve' : 'Reject';
     let confirmBtn = document.getElementById('confirm-approve-reject-btn');
-    confirmBtn.textContent = buttonAction;
-    confirmBtn.className = action === 'Approved' ? 'btn-approve' : 'btn-reject';
+    let newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    console.log(confirmBtn);
+    console.log("From: " + from);
+    newConfirmBtn.addEventListener('click', function () {
+        if (from === 'ReviewForApproval') {
+            console.log("Review For Approval");
+            approveRejectSubmission();
+        } else {
+            console.log("PAYMENT SHEETS");
+            submissionIdToReject = submissionId;
+            rejectApprovement();
+        }
+    });
+    newConfirmBtn.textContent = buttonAction;
+    newConfirmBtn.className = action === 'Approved' ? 'btn-approve' : 'btn-reject';
     let bodyContainer = document.getElementById('body-container');
     if (action === 'Approved') {
         bodyContainer.innerHTML = `<p>Are you sure you want to <strong>APPROVE</strong> this submission?</p>`;
@@ -182,9 +207,9 @@ async function approveRejectSubmission() {
     }
 
     displaySpinner();
-    var token = $('[name="__RequestVerificationToken"]').val();
+    let token = $('[name="__RequestVerificationToken"]').val();
 
-    var data = {
+    let data = {
         SubmissionId: Number(submissionInput.value),
         Body: commentInputValue,
         TransactionStatus: actionInput.value

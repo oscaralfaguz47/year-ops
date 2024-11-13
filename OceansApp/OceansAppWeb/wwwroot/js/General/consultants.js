@@ -4,6 +4,7 @@ let countrySelectFilters = null;
 let countriesArray = [];
 let holidaysArray = [];
 $(document).ready(function () {
+    setGeneralItemActive();
     getListOfResults(true, false);
 });
 
@@ -40,16 +41,16 @@ async function getListOfResults(firstTime, filters) {
                 var projectsSpan = "";
                 if (projectsJson !== null) {
                     projectsJson.forEach(function (pos) {
-                        projectsSpan += `<span class="project-span"><span>${pos.Name}</span>${pos.IsActive ? '<span class="green-label"> (Active)</span>' : '<span class="red-label"> (Inactive)</span>'}</span>`;
+                        projectsSpan += `<span class="project-span"><span>${pos.Name}</span>${pos.IsActive ? '<span class="check-label"> (Active)</span>' : '<span class="red-label"> (Inactive)</span>'}</span>`;
                     });
                 } else {
-                    projectsSpan = '<strong class="red-label">Not yet assigned to a project.</strong>';
+                    projectsSpan = '<strong class="no-project-yet">Not yet assigned to a project.</strong>';
                 }
                 var resetTwoFactorBtn = '';
                 if (obj.twoFactorEnabled) {
                     resetTwoFactorBtn = `<li onclick="resetTwoFactorAuth(${obj.consultantId}, '${obj.consultantName}')"><i class="bi bi-arrow-counterclockwise"></i> Reset Two-Factor</li>`;
                 }
-                var activateDeactivateTwoFactorBtn = `<li onclick="activateDeactivateTwoFactorAuth(${obj.consultantId}, '${obj.consultantName}', ${obj.twoFactorRequired})"><i class="fa-solid fa-lock${obj.twoFactorRequired ? '-open red-label':' green-label'}"></i> ${obj.twoFactorRequired ? 'Deactivate':'Activate'} Two-Factor</li>`;
+                var activateDeactivateTwoFactorBtn = `<li onclick="activateDeactivateTwoFactorAuth(${obj.consultantId}, '${obj.consultantName}', ${obj.twoFactorRequired})"><i class="fa-solid fa-lock${obj.twoFactorRequired ? '-open red-label' :' check-label'}"></i> ${obj.twoFactorRequired ? 'Deactivate':'Activate'} Two-Factor</li>`;
 
                 var resendInviteBtn = '';
                 if (!obj.emailConfirmed) {
@@ -60,7 +61,7 @@ async function getListOfResults(firstTime, filters) {
                         <i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
                           <div class="menu-options" id="menuOptions-${obj.consultantId}">
                            <ul>
-                             <li onclick="activateInactivateConsultantUser(${obj.consultantId}, '${obj.consultantName}', ${obj.isActive})" id="activate-deactivate-li-${obj.consultantId}">${obj.isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg green-label"></i>'}${obj.isActive ? ' Deactivate user' : ' Activate user'}</li>
+                             <li onclick="activateInactivateConsultantUser(${obj.consultantId}, '${obj.consultantName}', ${obj.isActive})" id="activate-deactivate-li-${obj.consultantId}">${obj.isActive ? '<i class="bi bi-x-lg red-label"></i>' : '<i class="bi bi-plus-lg check-label"></i>'}${obj.isActive ? ' Deactivate user' : ' Activate user'}</li>
                              <li onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant', ${obj.consultantId})""><i class="bi bi-pencil-square"></i> Edit Consultant</li>
                              ${resendInviteBtn}
                              ${resetTwoFactorBtn}
@@ -69,11 +70,11 @@ async function getListOfResults(firstTime, filters) {
                          </div>
                       ${obj.consultantName}
                   </td>
-                  <td class="shared-table-td">${obj.isActive ? '<span class="green-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
-                  <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
-                  <td class="shared-table-td">${obj.twoFactorRequired ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
-                  <td class="shared-table-td">${obj.emailConfirmed ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
-                  <td class="shared-table-td">${!obj.isLockedOut ? '<i class="bi bi-unlock-fill green-label"></i>' : '<i class="bi bi-lock-fill red-label"></i>'}</td>
+                  <td class="shared-table-td">${obj.isActive ? '<span class="check-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
+                  <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check check-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="shared-table-td">${obj.twoFactorRequired ? '<i class="bi bi-check check-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="shared-table-td">${obj.emailConfirmed ? '<i class="bi bi-check check-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="shared-table-td">${!obj.isLockedOut ? '<i class="bi bi-unlock-fill check-label"></i>' : '<i class="bi bi-lock-fill red-label"></i>'}</td>
                   <td>${obj.internalEmail}</td>
                   <td>${obj.personalEmail === null ? "" : obj.personalEmail}</td>
                   <td>${projectsSpan}</td>

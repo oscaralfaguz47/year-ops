@@ -8,6 +8,7 @@
         public bool ClientHasTrackingTool { get; set; }
         public string SuccessManagerName { get; set; }
         public string SuccessManagerEmail { get; set; }
+        public string? BlobUrl { get; set; }
         public bool ParticipatesInOnCalls { get; set; }
         public int NumAssignedProjects { get; set; }
     }

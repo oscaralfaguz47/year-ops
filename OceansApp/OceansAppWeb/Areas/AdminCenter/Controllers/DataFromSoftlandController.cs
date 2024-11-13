@@ -1,6 +1,5 @@
 ﻿using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
-using OceansApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -58,11 +57,10 @@ namespace OceansApp.Areas.Admin.Controllers
                             validateCorrectJsonStructureCostCenter(obj.DataToSave)
                             && validateCorrectJsonStructureLedgerMovement(obj.DataToSave)
                             && validateCorrectJsonStructureClients(obj.DataToSave)
-                            && validateCorrectJsonStructureProviderCategory(obj.DataToSave)
                             && validateCorrectJsonStructureCountry(obj.DataToSave)
-                            && validateCorrectJsonStructureProvider(obj.DataToSave)
                             && validateCorrectJsonStructureDocumentsCC(obj.DataToSave)
-                            && validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
+                            && validateCorrectJsonStructureCostCenterAccount(obj.DataToSave)
+                            && validateCorrectJsonStructureBankAccount(obj.DataToSave))
                         {
                             var updatedSections = "";
 
@@ -218,32 +216,6 @@ namespace OceansApp.Areas.Admin.Controllers
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
 
-                            //INSERT CATEGORY PROVIDERS
-                            if (jsonFromInput.providerCategories != null)
-                            {
-                                int affectedRecords = 0;
-                                foreach (var jsonMaster in jsonFromInput.providerCategories)
-                                {
-                                    ProviderCategory category = new()
-                                    {
-                                        ProviderCategoryCode = jsonMaster.CATEGORIA_PROVEED,
-                                        Description = jsonMaster.DESCRIPCION,
-                                        CreateDate = jsonMaster.CreateDate,
-                                        CompanyId = jsonMaster.CompanyId
-                                    };
-                                    if (await _unitOfWork.ProviderCategory.UpdateIfExistAddIfNot(category))
-                                    {
-                                        affectedRecords = affectedRecords + 1;
-                                    }
-                                    await _unitOfWork.SaveAsync();
-                                }
-                                if (affectedRecords > 0)
-                                {
-                                    updatedSections = updatedSections + "Provider Categories /";
-                                }
-                                updatedRecords = updatedRecords + affectedRecords;
-                            }
-
                             //INSERT COUNTRIES
                             if (jsonFromInput.countries != null)
                             {
@@ -265,117 +237,6 @@ namespace OceansApp.Areas.Admin.Controllers
                                 if (affectedRecords > 0)
                                 {
                                     updatedSections = updatedSections + "Countries /";
-                                }
-                                updatedRecords = updatedRecords + affectedRecords;
-                            }
-
-                            //INSERT PROVIDERS
-                            if (jsonFromInput.providers != null)
-                            {
-                                int affectedRecords = 0;
-                                foreach (var jsonMaster in jsonFromInput.providers)
-                                {
-                                    DateTime? lastUpdate = null;
-                                    if (jsonMaster.FCH_HORA_ULT_MOD != "")
-                                    {
-                                        lastUpdate = jsonMaster.FCH_HORA_ULT_MOD;
-                                    }
-                                    var categoryCode = "";
-                                    var companyId = "";
-                                    if (jsonMaster.CATEGORIA_PROVEED != null)
-                                    {
-                                        categoryCode = jsonMaster.CATEGORIA_PROVEED;
-                                        companyId = jsonMaster.CompanyId;
-                                    }
-                                    var categoryProvider = await _unitOfWork.ProviderCategory.GetFirstOrDefaultAsync(x => x.ProviderCategoryCode == categoryCode
-                                    && x.CompanyId == companyId);
-                                    int? clientId = null;
-                                    if (categoryProvider.Description.Length > 22)
-                                    {
-                                        var client = await _unitOfWork.Client.GetFirstOrDefaultAsync(x => x.Name.Contains((categoryProvider.Description).Substring(22))
-                                        || x.Alias.Contains((categoryProvider.Description).Substring(22)));
-                                        if (client == null)
-                                        {
-                                            clientId = null;
-                                        }
-                                        else
-                                        {
-                                            clientId = client.ClientId;
-                                        }
-                                    }
-                                    Provider provider = new()
-                                    {
-                                        ProviderCode = jsonMaster.PROVEEDOR,
-                                        Name = jsonMaster.NOMBRE,
-                                        Alias = jsonMaster.ALIAS,
-                                        Occupation = jsonMaster.CARGO,
-                                        Address = jsonMaster.DIRECCION,
-                                        Email = jsonMaster.E_MAIL,
-                                        AdmissionDate = jsonMaster.FECHA_INGRESO,
-                                        Phone1 = jsonMaster.TELEFONO1,
-                                        Phone2 = jsonMaster.TELEFONO2,
-                                        IdCountry = jsonMaster.PAIS,
-                                        Id = categoryProvider.Id,
-                                        Notes = jsonMaster.NOTAS,
-                                        IsActive = jsonMaster.ACTIVO,
-                                        DateLastUpdate = lastUpdate,
-                                        CreationDate = jsonMaster.CreateDate,
-                                        CompanyId = companyId,
-                                        ClientId = clientId
-                                    };
-                                    int? returnedProviderId = await _unitOfWork.Provider.UpdateIfExistAddIfNot(provider);
-                                    if (returnedProviderId != null)
-                                    {
-                                        affectedRecords = affectedRecords + 1;
-                                        await _unitOfWork.SaveAsync();
-                                        var pEventEntrada = await _unitOfWork.ProviderEvent.GetFirstOrDefaultAsync(x => x.Name == "Entrada");
-                                        var pEventContratoFirmado = await _unitOfWork.ProviderEvent.GetFirstOrDefaultAsync(x => x.Name == "Contrato Firmado por 1era vez");
-                                        var providerEventDateEntrada = await _unitOfWork.ProviderEventDate.GetFirstOrDefaultAsync(x => x.ProviderId == returnedProviderId
-                                        && x.ProviderEventId == pEventEntrada.ProviderEventId);
-                                        var providerEventDateContratoFirmado = await _unitOfWork.ProviderEventDate.GetFirstOrDefaultAsync(x => x.ProviderId == returnedProviderId
-                                        && x.ProviderEventId == pEventContratoFirmado.ProviderEventId);
-                                        if (providerEventDateEntrada != null && providerEventDateContratoFirmado != null)
-                                        {
-                                            if (!providerEventDateEntrada.EventDate.Equals(jsonMaster.FECHA_INGRESO))
-                                            {
-                                                providerEventDateEntrada.EventDate = jsonMaster.FECHA_INGRESO;
-                                                await _unitOfWork.SaveAsync();
-                                            }
-                                            if (!providerEventDateContratoFirmado.EventDate.Equals(jsonMaster.FECHA_INGRESO))
-                                            {
-                                                providerEventDateContratoFirmado.EventDate = jsonMaster.FECHA_INGRESO;
-                                                await _unitOfWork.SaveAsync();
-                                            }
-
-                                        }
-                                        else
-                                        {
-                                            var claimsIdentity = (ClaimsIdentity)User.Identity;
-                                            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                                            ProviderEventDate providerEventDate1 = new()
-                                            {
-                                                ProviderId = (int)returnedProviderId,
-                                                EventDate = jsonMaster.FECHA_INGRESO,
-                                                ProviderEventId = pEventEntrada.ProviderEventId,
-                                                CreatedBy = claim.Value
-                                            };
-                                            await _unitOfWork.ProviderEventDate.AddAsync(providerEventDate1);
-                                            await _unitOfWork.SaveAsync();
-                                            ProviderEventDate providerEventDate2 = new()
-                                            {
-                                                ProviderId = (int)returnedProviderId,
-                                                EventDate = jsonMaster.FECHA_INGRESO,
-                                                ProviderEventId = pEventContratoFirmado.ProviderEventId,
-                                                CreatedBy = claim.Value
-                                            };
-                                            await _unitOfWork.ProviderEventDate.AddAsync(providerEventDate2);
-                                            await _unitOfWork.SaveAsync();
-                                        }
-                                    }
-                                }
-                                if (affectedRecords > 0)
-                                {
-                                    updatedSections = updatedSections + "Providers /";
                                 }
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
@@ -470,6 +331,32 @@ namespace OceansApp.Areas.Admin.Controllers
                                 updatedRecords = updatedRecords + affectedRecords;
                             }
 
+                            //INSERT BANK ACCOUNTS
+                            if (jsonFromInput.bankAccounts != null)
+                            {
+                                int affectedRecords = 0;
+                                foreach (var jsonMaster in jsonFromInput.bankAccounts)
+                                {
+                                    BankAccount bankAccount = new()
+                                    {
+                                        BankAccountCode = jsonMaster.CUENTA_BANCO,
+                                        BankAccountName = jsonMaster.NOMBRE,
+                                        CompanyId = jsonMaster.CompanyId,
+                                        IsActive = jsonMaster.ACTIVA
+                                    };
+                                    if (await _unitOfWork.BankAccount.AddBankAccount(bankAccount))
+                                    {
+                                        affectedRecords = affectedRecords + 1;
+                                        await _unitOfWork.SaveAsync();
+                                    }
+                                }
+                                if (affectedRecords > 0)
+                                {
+                                    updatedSections = updatedSections + "Bank Accounts /";
+                                }
+                                updatedRecords = updatedRecords + affectedRecords;
+                            }
+
                             if (updatedSections != "")
                             {
                                 //INSERT DATE
@@ -504,17 +391,9 @@ namespace OceansApp.Areas.Admin.Controllers
                             {
                                 ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Clients");
                             }
-                            if (!validateCorrectJsonStructureProviderCategory(obj.DataToSave))
-                            {
-                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for the Suppliers category");
-                            }
                             if (!validateCorrectJsonStructureCountry(obj.DataToSave))
                             {
                                 ModelState.AddModelError("dataToSave", "The JSON structure is not correct for countries");
-                            }
-                            if (!validateCorrectJsonStructureProvider(obj.DataToSave))
-                            {
-                                ModelState.AddModelError("dataToSave", "JSON structure is not correct for providers");
                             }
                             if (!validateCorrectJsonStructureDocumentsCC(obj.DataToSave))
                             {
@@ -523,6 +402,10 @@ namespace OceansApp.Areas.Admin.Controllers
                             if (!validateCorrectJsonStructureCostCenterAccount(obj.DataToSave))
                             {
                                 ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Costs Centers Accounting Accounts");
+                            }
+                            if (!validateCorrectJsonStructureBankAccount(obj.DataToSave))
+                            {
+                                ModelState.AddModelError("dataToSave", "The JSON structure is not correct for Bank Accounts");
                             }
 
                             return View("Index");
@@ -600,7 +483,6 @@ namespace OceansApp.Areas.Admin.Controllers
                 return false;
             }
         }
-
         public bool validateCorrectJsonStructureCostCenter(String jsonString)
         {
             try
@@ -737,42 +619,6 @@ namespace OceansApp.Areas.Admin.Controllers
                 return false;
             }
         }
-        public bool validateCorrectJsonStructureProviderCategory(String jsonString)
-        {
-            try
-            {
-                dynamic json = JsonConvert.DeserializeObject(jsonString);
-
-                if (json.providerCategories != null)
-                {
-                    foreach (var result in json.providerCategories)
-                    {
-                        ProviderCategory category = new()
-                        {
-                            ProviderCategoryCode = result.CATEGORIA_PROVEED,
-                            Description = result.DESCRIPCION,
-                            CreateDate = result.CreateDate,
-                            CompanyId = result.CompanyId
-                        };
-                        if (category.ProviderCategoryCode == null || category.Description == null
-                            || category.CreateDate.ToString() == null || category.CompanyId == null)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                else
-                {
-                    return true;
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
         public bool validateCorrectJsonStructureCountry(String jsonString)
         {
             try
@@ -807,60 +653,6 @@ namespace OceansApp.Areas.Admin.Controllers
                 return false;
             }
         }
-
-        public bool validateCorrectJsonStructureProvider(String jsonString)
-        {
-            try
-            {
-                dynamic json = JsonConvert.DeserializeObject(jsonString);
-
-                if (json.providers != null)
-                {
-                    foreach (var result in json.providers)
-                    {
-                        DateTime? dateLastUpdate = null;
-                        if (result.FCH_HORA_ULT_MOD != "")
-                        {
-                            dateLastUpdate = result.FCH_HORA_ULT_MOD;
-                        }
-                        Provider provider = new()
-                        {
-                            ProviderCode = result.PROVEEDOR,
-                            Name = result.NOMBRE,
-                            Alias = result.ALIAS,
-                            Occupation = result.CARGO,
-                            Address = result.DIRECCION,
-                            Email = result.E_MAIL,
-                            AdmissionDate = result.FECHA_INGRESO,
-                            Phone1 = result.TELEFONO1,
-                            Phone2 = result.TELEFONO2,
-                            IdCountry = result.PAIS,
-                            Notes = result.NOTAS,
-                            IsActive = result.ACTIVO,
-                            DateLastUpdate = dateLastUpdate,
-                            CreationDate = result.CreateDate,
-                            CompanyId = result.CompanyId
-                        };
-                        if (provider.ProviderCode == null || provider.Name == null || provider.Occupation == null
-                            || provider.AdmissionDate.ToString() == null || provider.IdCountry == null
-                            || provider.IsActive == null || provider.CreationDate.ToString() == null || provider.CompanyId == null)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                else
-                {
-                    return true;
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
         public bool validateCorrectJsonStructureDocumentsCC(String jsonString)
         {
             try
@@ -925,6 +717,41 @@ namespace OceansApp.Areas.Admin.Controllers
                         };
                         if (costCenterAccount.Status == null
                             || costCenterAccount.CompanyId == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public bool validateCorrectJsonStructureBankAccount(String jsonString)
+        {
+            try
+            {
+                dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+                if (json.bankAccounts != null)
+                {
+                    foreach (var result in json.bankAccounts)
+                    {
+                        BankAccount bankAccount = new()
+                        {
+                            BankAccountCode = result.CUENTA_BANCO,
+                            BankAccountName = result.NOMBRE,
+                            CompanyId = result.CompanyId,
+                            IsActive = result.ACTIVA
+                        };
+                        if (bankAccount.BankAccountCode == null
+                            || bankAccount.CompanyId == null || bankAccount.BankAccountName == null || bankAccount.IsActive == null)
                         {
                             return false;
                         }

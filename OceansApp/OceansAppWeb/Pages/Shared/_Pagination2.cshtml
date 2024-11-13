@@ -1,0 +1,40 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+
+<div id="pagination_partial_id" class="pagination-container">
+    <div>
+        <input type="hidden" id="total-results-inputP2" value="0" />
+        <input type="hidden" id="is-last-page-inputP2" value="0" />
+        <input type="hidden" id="page-size-changedP2" value="false" />
+        <div class="block">
+            <label>Items per page</label>
+            <div class="">
+                <select id="items-per-pageP2" class="form-select" onchange="paginationButtonActionsP2('firstPage'); changePageSizeValueP2(); paginationSubmitP2(false, false);">
+                </select>
+            </div>
+        </div>
+        <div class="block">
+            <button name="PageIndexP2" value="1" class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttonsP2" onclick="paginationButtonActionsP2('firstPage'); paginationSubmitP2(false, false);">
+                &laquo;&laquo;
+            </button>
+
+            <button class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttonsP2" onclick="paginationButtonActionsP2('decrement'); paginationSubmitP2(false, false);">
+                &laquo;
+            </button>
+
+            <label id="label-pag-infoP2"></label>
+
+            <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttonsP2" onclick="paginationButtonActionsP2('increment'); paginationSubmitP2(false, false);">
+                &raquo;
+            </button>
+
+            <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttonsP2" onclick="paginationButtonActionsP2('lastPage'); paginationSubmitP2(false, false);">
+                &raquo;&raquo;
+            </button>
+            <label><strong id="label-total-resultsP2"></strong></label>
+        </div>
+    </div>
+</div>
+<input value="ANY" name="fieldToOrderP2" type="hidden" />
+<input value="ANY" name="directionOrderP2" type="hidden" />

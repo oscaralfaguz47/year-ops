@@ -42,5 +42,50 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+        [Authorize(Policy = "AccessToPaymentMethodsList")]
+        [HttpGet("GetAllPaymentMethodsList")]
+        public async Task<IActionResult> GetAllPaymentMethodsList()
+        {
+            try
+            {
+                List<GetDataForSelectVM> paymentMethodsList = new();
+                var paymentMethods = (await _unitOfWork.PaymentMethod.GetAllAsync());
+                foreach (var paymentMethod in paymentMethods)
+                {
+                    paymentMethodsList.Add(new GetDataForSelectVM { Value = paymentMethod.PaymentMethodId, Text = paymentMethod.Name });
+                }
+                return Ok(new
+                {
+                    PaymentMethods = paymentMethodsList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "AccessToPaymentMethodsList")]
+        [HttpGet("GetCompanyByPaymentMethod")]
+        public async Task<IActionResult> GetCompanyByPaymentMethod(int paymentMethodId)
+        {
+            try
+            {
+                var paymentMethod = await _unitOfWork.PaymentMethod.GetFirstOrDefaultAsync(x => x.PaymentMethodId == paymentMethodId);
+                if (paymentMethod == null)
+                {
+                    return NotFound(new { error = "The payment method was not found." });
+                }
+               
+                return Ok(new
+                {
+                    CompanyId = paymentMethod.CompanyId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

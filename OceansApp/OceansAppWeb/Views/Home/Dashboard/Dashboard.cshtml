@@ -1,0 +1,26 @@
+﻿@using OceansApp.Models.ViewModels.Dashboard
+
+@model DashboardVM
+<link rel="stylesheet" href="~/css/Home/Dashboard/dashboard.css?v=@DateTime.Now.Ticks" />
+
+<div id="dashboardContainer">
+    <div>
+        <partial name="Dashboard/_WelcomePartialView" model="new WelcomeVM
+{
+    ConsultantName = Model.Welcome.ConsultantName,
+    ActiveTime = Model.Welcome.ActiveTime
+}" />
+    </div>
+
+    <div class="widgets-container">
+        @foreach (var widget in Model.Widgets)
+        {
+            @await Html.PartialAsync($"Dashboard/Widgets/_{widget.WidgetName}PartialView", widget.Sections)
+        }
+    </div>
+</div>
+
+<script src="~/js/Home/Dashboard/dashboard.js?v=@DateTime.Now.Ticks"></script>
+
+
+

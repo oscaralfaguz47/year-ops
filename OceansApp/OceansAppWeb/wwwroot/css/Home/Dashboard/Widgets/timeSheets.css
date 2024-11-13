@@ -1,0 +1,119 @@
+﻿.time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+    margin-bottom: 8px;
+    padding: 0 2px;
+}
+
+.time-row button{
+    border:none;
+    border-radius: 10px;
+    padding: 1px 8px;
+    background-color: var(--clr-blueLight);
+    color: #fff;
+    font-weight: bold;
+    margin: 0 5px;
+}
+    .time-row button:hover {
+        background-color: #02a69e;
+    }
+    .time-row .date-project {
+        text-align: left;
+        width: 100%;
+        margin-left: 5px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        align-content:center;
+        font-weight: bold;
+    }
+    .time-row .period {
+        font-size: 0.8rem;
+        width: 100px;
+        color: #535b66;
+    }
+    .time-row .project-name {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 250px;
+        overflow: hidden;
+        display: inline-block;
+        margin-left: 5px;
+        background-color: var(--clr-grayDark);
+        padding: 0px 8px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        color: #fff;
+    }
+
+@media (max-width: 450px) {
+    .time-row .project-name {
+        max-width: 112px;
+    }
+    #lastTimesheetsSubmittedCont .status-lb {
+        width: 70px !important;
+        font-size: 0.72rem !important;
+    }
+    #lastTimesheetsSubmittedCont .hours-lb {
+        width: 75px !important;
+        font-size: 0.8rem;
+    }
+}
+
+/*Last timeshetts submitted*/
+#lastTimesheetsSubmittedCont .time-row {
+    margin-bottom: 0;
+    padding: 8px 6px;
+}
+#lastTimesheetsSubmittedCont .back-dark {
+    background-color: var(--clr-grayLight);
+}
+#lastTimesheetsSubmittedCont .status-lb {
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: #fff;
+    width: 86px;
+    text-align:center;
+}
+
+#lastTimesheetsSubmittedCont .project-name {
+    background-color: var(--clr-grayDark);
+    color: #fff;
+    width: 25px;
+    height: 25px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius: 50%;
+    padding: 1px;
+}
+#lastTimesheetsSubmittedCont .date-project {
+    text-align: left;
+    width: auto;
+    margin-left: 5px;
+    white-space: nowrap;
+    display: flex;
+    align-content: center;
+    font-weight: bold;
+}
+#lastTimesheetsSubmittedCont .hours-lb{
+    text-align:left;
+    color: var(--clr-blueLight);
+    font-weight: bold;
+    width: 90px;
+    padding: 0 5px;
+}
+#lastTimesheetsSubmittedCont .waiting-st {
+    background-color: rgb(238, 179, 15, 0.5);
+}
+#lastTimesheetsSubmittedCont .rejected-st {
+    background-color: rgb(232, 180, 180);
+}
+#lastTimesheetsSubmittedCont .approved-st {
+    background-color: rgb(140, 227, 129, 0.8);
+}

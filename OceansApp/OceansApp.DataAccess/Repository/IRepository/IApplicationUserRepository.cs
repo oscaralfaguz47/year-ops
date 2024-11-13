@@ -1,14 +1,25 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Account;
+using OceansApp.Models.ViewModels.ApplicationUser;
+using OceansApp.Models.ViewModels.Dashboard;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IApplicationUserRepository : IRepository<ApplicationUser> 
     {
+        Task<ProfileVM> GetUserProfileDataAsync(string userId);
         Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate);
-        void Update(ApplicationUser obj);
         Task<List<GetUserIdVM>> GetUsersWhereRoleId(string roleId);
+        Task<UserAndConsultantVM> GetUserAndConsultantAsync(string userId);
+        List<WidgetVM> GetWidgetsForUser(UserAndConsultantVM userAndConsultant, ClaimsPrincipal userClaims,
+            (int Years, int Months, int Days)? activeTime);
+        Task<(int Years, int Months, int Days)> GetUserActiveTimeAsync(string userId);
+        Task<ImageBlob> VerifyIfUploadedFileAsync(IFormFile file, string entityId, string containerName, string entityType);
+        Task<List<ActiveUserWhereCostCenterVM>> GetActiveUsersWhereCostCenter(string costCenterCodes);
     }
 }

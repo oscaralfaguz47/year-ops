@@ -1,0 +1,13 @@
+﻿@model List<string>
+
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/perks.css?v=@DateTime.Now.Ticks" />
+
+<div class="section">
+    <h2 class="section-title">PERKS</h2>
+
+    @foreach (var sectionName in Model)
+    {
+        @await Html.PartialAsync($"Dashboard/Widgets/Perks/_{sectionName.Substring(1)}PartialView", sectionName)
+    }
+
+</div>

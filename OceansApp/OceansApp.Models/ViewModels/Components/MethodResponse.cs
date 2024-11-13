@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace OceansApp.Models.ViewModels.Components
 {
     public class MethodResponse
@@ -10,6 +12,7 @@ namespace OceansApp.Models.ViewModels.Components
         public string? FieldName { get; set; }
         public List<CreatedElement>? CreatedElementsList { get; set; }
         public List<string> StringsList { get; set; }
+        public object? GenericList { get; set; }
         public MethodResponse()
         {
         }
@@ -20,7 +23,7 @@ namespace OceansApp.Models.ViewModels.Components
         }
 
         private MethodResponse(bool success, string message, string messageType, int? idCreatedElement = null, 
-            List<CreatedElement>? createdElementsList = null, List<string>? stringsList = null, string ? fieldName = null)
+            List<CreatedElement>? createdElementsList = null, List<string>? stringsList = null, string ? fieldName = null, object? genericList = null)
         {
             Success = success;
             Message = message;
@@ -29,6 +32,7 @@ namespace OceansApp.Models.ViewModels.Components
             CreatedElementsList = createdElementsList;
             StringsList = stringsList;
             FieldName = fieldName;
+            GenericList = genericList;
         }
         public static MethodResponse CreateSuccessResponse(string? message = null, int? idCreatedElement = null, List<CreatedElement>? createdElementsList = null)
         {
@@ -37,6 +41,10 @@ namespace OceansApp.Models.ViewModels.Components
         public static MethodResponse CreateSuccessResponseStringsList(string? message = null, List<string>? stringsList = null)
         {
             return new MethodResponse(true, message, null, null, null, stringsList);
+        }
+        public static MethodResponse CreateSuccessResponseAnyList<T>(string? message = null, List<T>? list = null)
+        {
+            return new MethodResponse(true, message, null, null, null, null, null, list);
         }
 
         public static MethodResponse CreateFailureExceptionResponse(string? message = null)

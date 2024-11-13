@@ -6,12 +6,19 @@ using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 using static OceansApp.Models.ViewModels.Components.MethodResponse;
 using OceansApp.Models.ViewModels.Components;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using Microsoft.CodeAnalysis;
 using OceansApp.Utility.SharedMethods;
 using Microsoft.EntityFrameworkCore;
+using Azure.Storage.Queues;
+using Newtonsoft.Json;
+using OceansApp.Utility.NotificationTemplates;
+using System.Text;
+using OceansApp.Models.ViewModels;
+using Microsoft.ApplicationInsights;
+using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
+
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
@@ -24,19 +31,40 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
     public class ReportingMyTimeController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly LazyServiceProvider<IAzureBlobRepository> _azureBlobRepository;
+        private readonly Lazy<IAzureBlobRepository> _azureBlobRepository;
         private string _containerId;
-        public ReportingMyTimeController(IUnitOfWork unitOrWork, LazyServiceProvider<IAzureBlobRepository> azureBlobRepository)
+        private readonly Lazy<QueueClient> _queueClient;
+        private readonly TelemetryClient _telemetryClient;
+        private readonly IConfiguration _config;
+        public ReportingMyTimeController(IUnitOfWork unitOrWork, Lazy<IAzureBlobRepository> azureBlobRepository,
+            Lazy<QueueClient> queueClient, TelemetryClient telemetryClient, IConfiguration config)
         {
             _unitOfWork = unitOrWork;
             _azureBlobRepository = azureBlobRepository;
             _containerId = "consultant-hour-reports";
+            _queueClient = queueClient;
+            _telemetryClient = telemetryClient;
+            _config = config;
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User not valid." });
+                }
+                GetConsultantSelectedProjectInfoVM projectInfoData = await _unitOfWork.ProjectConsultantAssigned.GetConsultantSelectedProjectInfo(userActionedBy);
+                return View(projectInfoData);
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackTrace(ex.Message);
+                return View("Error");
+            }
         }
 
         // CLIENT HAS TRACKING TOOL - METHODS
@@ -251,7 +279,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                 List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId);
 
-                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId);
+                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId.ToString(), 2800);
 
                 MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob(
                 uploadedBlobs, movementId);
@@ -527,6 +555,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
             validateInputs.ValidateDateValidFormat("StartPeriodDate", "Start Period Date", submissionData.StartPeriodDate, ModelState);
             validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", submissionData.EndPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("ProjectId", "ProjectId", submissionData.ProjectId, ModelState);
 
             if (!ModelState.IsValid)
             {
@@ -543,10 +572,11 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             {
                 MethodResponse result = null;
                 int movementId = 0;
-                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userConsultant = await _unitOfWork.ApplicationUser.GetUserAndConsultantAsync(userId);
 
                 //Create the element
-                result = await _unitOfWork.ReportingMyTimeMovementSubmission.CreateSubmission(userActionedBy, submissionData);
+                result = await _unitOfWork.ReportingMyTimeMovementSubmission.CreateSubmission(userId, submissionData);
 
                 if (!result.Success)
                 {
@@ -561,6 +591,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
                     return BadRequest(new { error = result.Message, messageType = result.MessageType });
                 }
+                //Send notification
+                await SendNotificationSubmitReport(userConsultant.Name.Trim() + " " + userConsultant.LastName.Trim(),
+            (DateTime)submissionData.StartPeriodDate, (DateTime)submissionData.EndPeriodDate, submissionData.ProjectId);
 
                 return Ok(new
                 {
@@ -602,5 +635,44 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { error = $"There was an error fetching the data.", success = false, detail = ex.Message });
             }
         }
+
+
+        //NO HTTP METHODS
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task SendNotificationSubmitReport(string consultantName, DateTime startDate, DateTime endDate,
+            int projectId)
+        {
+            var emailTemplates = new EmailTemplates();
+            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/Finances/PaymentSheets";
+            DateTime startDateTime = startDate;
+            DateTime endDateTime = endDate;
+            string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+            string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
+            string periodString = $"{startDateFormated} - {endDateFormated}";
+
+            var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
+
+            var createNotificationBody = emailTemplates.SubmissionHoursNotificationBody(baseUrl, consultantName.Trim(), periodString, project.Name.Trim());
+            var templateEmail = emailTemplates.EmailTemplate("NEW SUBMISSION TO REVIEW", createNotificationBody);
+
+            SendEmailVM emailToSend = new()
+            {
+                Subject = "New Submission to Review - Ripple by Oceans",
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
+                EmailTo = _config["InternalEmailENV"],
+                Body = templateEmail
+            };
+
+            var messageContent = JsonConvert.SerializeObject(emailToSend);
+            try
+            {
+                await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
+            }
+            catch (Exception queueEx)
+            {
+                _telemetryClient.TrackTrace($"Fail sending email to: {_config["InternalEmailENV"]}, the connection with the function app failed");
+            }
+        }
+
     }
 }

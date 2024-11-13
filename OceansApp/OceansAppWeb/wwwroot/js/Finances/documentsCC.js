@@ -1,4 +1,8 @@
-﻿function getInvoicesWithDaysExpired() {
+﻿document.addEventListener('DOMContentLoaded', () => {
+    setFinancesItemActive();
+});
+
+function getInvoicesWithDaysExpired() {
     displaySpinner();
     fetch('DocumentsCC/GetInvoicesWithDaysExpired')
         .then(response => {

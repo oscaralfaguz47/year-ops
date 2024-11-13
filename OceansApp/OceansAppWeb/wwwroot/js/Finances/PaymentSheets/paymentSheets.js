@@ -1,14 +1,13 @@
-﻿// Utility functions
-let getElementById = id => document.getElementById(id);
-
-let dateToInput = document.getElementById('dateToInput');
+﻿let dateToInput = document.getElementById('dateToInput');
 let dateFromInput = document.getElementById('dateFromInput');
 let paymentPeriodSelect = document.getElementById('paymentPeriod');
 let statusSelectFilters = null;
+let paymentStatusSelectFilters = null;
 let projectSelectFilters = null;
 let rightSidebarFiltersIsDiplayed = false;
 
 $(document).ready(function () {
+    setFinancesItemActive();
     let currentDateNoChange = new Date();
     paymentPeriod = 1;
     calculatePeriod(currentDateNoChange, paymentPeriod);
@@ -40,9 +39,9 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
-            var tbody = $(".global-table-container table tbody");
-            var tableRows = $(".global-table-container table");
-            var noResultsMessage = $(".no-results");
+            var tbody = $(".cl-payment-sheets-table table tbody");
+            var tableRows = $(".cl-payment-sheets-table table");
+            var noResultsMessage = $(".cl-payment-sheets-table .no-results");
             noResultsMessage.empty();
             tbody.empty();
 
@@ -54,7 +53,7 @@ async function getListOfResults(firstTime, filters) {
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionformattedDate = "Not submitted yet";
-                let makePaymentBtn = '';
+                let reviewForPaymentBtn = '';
                 let setAsAccountsPayableBtn = '';
                 let menuBtn = '';
 
@@ -73,51 +72,63 @@ async function getListOfResults(firstTime, filters) {
                 }
 
                 if (obj.transactionStatusName === 'Waiting to be approved') {
-                    actionsBtns = `<div class="action-btns-box"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
+                    actionsBtns = `<div class="action-btns-box status-actions"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
                 }
-
+                if (obj.transactionStatusName === 'Approved' && obj.submissionId !== null) {
+                    actionsBtns = `<div class="action-btns-box status-actions"><button onclick="displayApproveRejectConfirmation('Reject', 'PaymentSheets', ${obj.submissionId})" class="reject-approvement-btn"><img src="/icons/Shared/circle-x-mark.svg"> Reject Approvement</button></div>`;
+                }
+                if ((obj.transactionStatusName === 'Rejected' && obj.paymentStatus !== 'Paid') || obj.transactionStatusName === 'Pending' ||
+                    (obj.transactionStatusName === 'Approved' && obj.submissionId === null)) {
+                    actionsBtns = `<div class="action-btns-box status-actions"><button onclick="removeProjectInPeriod('${obj.projectName}', ${obj.projectId}, ${obj.consultantId})" class="remove-for-period-btn"><img src="/icons/Shared/trash.svg">Remove for this period</button></div>`;
+                }
                 if (obj.numApprovedSubmissions === obj.numProjectsIsActive) {
-                    makePaymentBtn = `<li>Make Payment</li>`;
+                    reviewForPaymentBtn = `<li onclick="displayReviewForPaymentModal('modal-review-for-payment', ${obj.consultantId})">Review for payment</li>`;
                     sendPaymentDetails = `<li>Send payment details</li>`;
                     menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${obj.consultantId}', 'menuIcon-${obj.consultantId}')" class="bi bi-three-dots-vertical" id="menuIcon-${obj.consultantId}"></i>
-                              <div class="menu-options" id="menuOptions-${obj.consultantId}">
-                               <ul>
-                                 ${makePaymentBtn + setAsAccountsPayableBtn}
-                               </ul>
-                              </div>`;
+                  <div class="menu-options" id="menuOptions-${obj.consultantId}">
+                   <ul>
+                     ${reviewForPaymentBtn + setAsAccountsPayableBtn}
+                   </ul>
+                  </div>`;
                 }
 
                 if (obj.consultantName !== previousName) {
                     if (previousName !== null) {
+                        rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
+                        // Aquí agregamos el rowspan a la nueva columna de paymentStatus
                         rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
                     }
                     startIndex = rows.length;
                     nameCount = 1;
                     groupName++;
                     rows.push(`<tr class="hover-group-${groupName}">
-                <td class="first-cell" rowspan="1">${menuBtn}${obj.consultantName}</td>
-                <td>${obj.projectName}</td>
-                <td>${lastSubmissionformattedDate}</td>
-                <td>${submissionformattedDate}</td>
-                <td>${getStatusLabel(obj.transactionStatusName)}</td>
-                <td>${actionsBtns}</td>
-            </tr>`);
+    <td class="first-cell" rowspan="1">${menuBtn}${obj.consultantName}</td>
+    <td class="first-cell" rowspan="1">${getStatusLabel(obj.paymentStatus)}</td> <!-- Aplicar misma clase -->
+    <td>${obj.projectName}</td>
+    <td>${lastSubmissionformattedDate}</td>
+    <td>${submissionformattedDate}</td>
+    <td>${getStatusLabel(obj.transactionStatusName)}</td>
+    <td>${actionsBtns}</td>
+</tr>`);
                 } else {
                     nameCount++;
                     rows.push(`<tr class="hover-group-${groupName}">
-                <td>${obj.projectName}</td>
-                <td>${lastSubmissionformattedDate}</td>
-                <td>${submissionformattedDate}</td>
-                <td>${getStatusLabel(obj.transactionStatusName)}</td>
-                <td>${actionsBtns}</td>
-            </tr>`);
+    <td>${obj.projectName}</td>
+    <td>${lastSubmissionformattedDate}</td>
+    <td>${submissionformattedDate}</td>
+    <td>${getStatusLabel(obj.transactionStatusName)}</td>
+    <td>${actionsBtns}</td>
+</tr>`);
                 }
                 previousName = obj.consultantName;
 
                 if (index === data.consultantsToPayList.length - 1) {
                     rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
+                    // Agregar rowspan final para paymentStatus
+                    rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
                 }
             });
+
 
             tbody.html('');
             rows.forEach(row => {
@@ -152,7 +163,206 @@ async function getListOfResults(firstTime, filters) {
         });
 }
 
+//Reject Approvement
+let submissionIdToReject = null;
+async function rejectApprovement() {
+    let commentInputValue = null;
+    let confirmModal = 'modal-approve-reject-submission';
+    let reviewModal = 'modal-review-for-approval';
 
+    let commentInput = document.getElementById('comment-input');
+    if (commentInput.value === '' || commentInput.value === null) {
+        document.getElementById('val-mess-message').style.display = 'block';
+        return;
+    }
+    commentInputValue = commentInput.value;
+
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        SubmissionId: Number(submissionIdToReject),
+        Body: commentInputValue,
+        TransactionStatus: 'Rejected'
+    };
+
+    try {
+        const response = await fetch('/Finances/PaymentSheets/RejectApproveSubmission', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        hideModal(confirmModal);
+        hideModal(reviewModal);
+        getListOfResults(false, true);
+        displayToasterSuccess(dataFromApi.message);
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Something went wrong, more details: ' + err);
+        hideSpinner();
+        return null;
+    }
+}
+
+//Remove Project in Period 
+async function removeProjectInPeriod(projectName, projectId, consultantId) {
+    const confirmation = await Swal.fire({
+        title: "Remove project in Period",
+        text: `You are going to remove the ${projectName} from the consultant for this period. Do you want to continue?`,
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#9ba8b8',
+        confirmButtonColor: '#eeb30f',
+        confirmButtonText: 'Yes, Remove it!'
+    });
+
+    if (!confirmation.isConfirmed) {
+        return;
+    }
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        ProjectId: projectId,
+        ConsultantId: consultantId,
+        StartPeriodDate: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndPeriodDate: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2')
+    };
+    try {
+        const response = await fetch('/Finances/PaymentSheets/RemoveProjectConsultantInPeriod', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        getListOfResults(false, true);
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Something went wrong, more details: ' + err);
+        hideSpinner();
+        return null;
+    }
+}
+//Send Submission Reminders
+async function sendSubmissionReminders() {
+    const confirmation = await Swal.fire({
+        title: "Send Submission Reminders",
+        text: `Are you sure you want to remind every consultant that is pending submission?`,
+        icon: 'warning',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        cancelButtonColor: '#9ba8b8',
+        confirmButtonColor: '#eeb30f',
+        confirmButtonText: 'Yes, Send Reminders!'
+    });
+
+    if (!confirmation.isConfirmed) {
+        return;
+    }
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    var data = {
+        StartDate: dateFromInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        EndDate: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+        PaymentPeriod: Number(paymentPeriodSelect.value)
+    };
+    
+    try {
+        const response = await fetch('/Finances/PaymentSheets/SendSubmissionReminders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+                    displayToasterWarningArray(allErrors);
+                    break;
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        displayToasterSuccess(dataFromApi.message);
+        hideSpinner();
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Something went wrong, more details: ' + err);
+        hideSpinner();
+        return null;
+    }
+}
 //Navitate between dates
 function navitateBetweenDates(startDate, endDate, buttons) {
     getListOfResults(false, true).then(() => {
@@ -176,7 +386,17 @@ async function displayMoreFiltersPaymentSheet() {
         <div class="scroll-container">
           <form id="filters-form">
             <div class="select-container">
-                <label>Status</label>
+                <label>Payment Status</label>
+                <select onchange="getListOfResults(false, true)" id="paymentStatusSelectFilters" class="form-select">
+                    <option value="">All statuses</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Sent to be paid">Sent to be paid</option>
+                    <option value="Updated - Pending Review">Updated - Pending Review</option>
+                </select>
+            </div>
+             <div class="select-container">
+                <label>Submission Status</label>
                 <select onchange="getListOfResults(false, true)" id="statusSelectFilters" class="form-select">
                     <option value="">All statuses</option>
                     <option value="Approved">Approved</option>
@@ -194,6 +414,7 @@ async function displayMoreFiltersPaymentSheet() {
         <div>`;
 
         statusSelectFilters = document.getElementById('statusSelectFilters');
+        paymentStatusSelectFilters = document.getElementById('paymentStatusSelectFilters');
         projectSelectFilters = document.getElementById('projectSelectFilters');
 
         try {
@@ -231,6 +452,7 @@ function recolectDataFromForm(filters, firstTime) {
             EndDate: endDateData,
             PaymentPeriod: Number(paymentPeriodSelect.value),
             TransactionStatusName: statusSelectFilters === null ? null : statusSelectFilters.value === '' ? null : statusSelectFilters.value,
+            AccountsPayableStatusName: paymentStatusSelectFilters === null ? null : paymentStatusSelectFilters.value === '' ? null : paymentStatusSelectFilters.value,
             ProjectId: projectSelectFilters === null ? null : projectSelectFilters.value === '' ? null : Number(projectSelectFilters.value)
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];

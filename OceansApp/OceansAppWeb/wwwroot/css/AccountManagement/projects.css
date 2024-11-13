@@ -1,4 +1,8 @@
 ﻿
+#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
 .assigned-consultants-div {
    display:flex;
    align-items:center;
@@ -13,7 +17,7 @@
     }
 .assigned-consultants-div .bi-person-fill {
     font-size: 18px;
-    background-color: #2aa7ff;
+    background-color: var(--clr-blueLight);
     margin-right: -7px;
     border-radius: 50%;
     border: solid 2px #fff;
@@ -22,13 +26,16 @@
 }
 .more-consultants-span {
     font-size: 14px;
-    background-color: rgba(42, 167, 255, 0.1);
-    color: #2aa7ff;
+    background-color: rgba(1, 192, 183, 0.1);
+    color: var(--clr-blueDark);
     border-radius: 50%;
-    border: solid 2px rgba(42, 167, 255, 0.1);
-    padding: 2px 4px;
+    border: solid 2px rgba(1, 192, 183, 0.4);
+    padding: 2px 6px;
     margin-left: 12px;
     align-items: center;
+    display:flex;
+    justify-content:left;
+    width: fit-content;
 }
 .tracking-tool-td {
     text-align: center !important;

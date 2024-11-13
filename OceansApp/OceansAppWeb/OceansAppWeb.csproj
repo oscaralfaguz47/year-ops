@@ -7,16 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.12.1" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.7.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.20.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Runtime" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.10" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0" />
     <PackageReference Include="NodaTime" Version="3.1.11" />
     <PackageReference Include="Polly" Version="8.4.0" />
@@ -24,8 +30,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AzureFunctionsApp\AzureFunctionsApp.csproj" />
     <ProjectReference Include="..\OceansApp.DataAccess\OceansApp.DataAccess.csproj" />
     <ProjectReference Include="..\OceansApp.Utility\OceansApp.Utility.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\icons\Shared\envelope-blue-oceans.svg">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="wwwroot\icons\Shared\Statuses\rejected.svg">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>rejected.cs</LastGenOutput>
+    </Content>
+    <Content Update="wwwroot\icons\Shared\Statuses\rejected.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>rejected.svg</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>

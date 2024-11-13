@@ -10,5 +10,9 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<GetConsultantSelectedProjectInfoVM> GetConsultantSelectedProjectInfo(string userId);
         Task<GetConsultantStatusInTheProjectVM> GetConsultantStatusInTheProject(string userId, DateTime startDate,
             DateTime endDate);
+        Task<List<GetProjectInfoWhereConsultantIsActiveInProjectVM>> GetProjectsInfoWhereConsultantIsActiveInPeriod(int consultantId, DateTime startDate,
+            DateTime endDate);
+        Task<List<ProjectActiveAndAccessTrackingTool>> GetProjectsWhereActiveAndAccessToTrackingTool(int consultantId);
+        Task<List<ProjectAndSuccesManagerInfoVM>> GetProjectsAndSuccessManagersWhereConsultantIsActiveAsync(int consultantId);
     }
 }

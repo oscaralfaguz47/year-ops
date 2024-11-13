@@ -1,4 +1,5 @@
 ﻿$(document).ready(function () {
+    setRecruitingItemActive();
     getListOfResults(true, false);
 });
 
@@ -56,7 +57,10 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.durationMinutes.toFixed(2)} minutes</td>
                   <td>${((1 / 60) * obj.durationMinutes).toFixed(2)} hours</td>
                   <td>${actionformattedDate}</td>
-                  <td>${getStatusLabel(obj.transactionStatusName) }</td>
+                  <td>${getStatusLabel(obj.transactionStatusName)}</td>
+                  <td>
+                      ${obj.detail}
+                  </td>
                   <td>${obj.createdBy}</td>
                   <td>${formatUtcToLocalMmDdYyyyTime(obj.creationDate)}</td>
                   <td>${obj.lastUpdatedBy === null ? "Not updated" : obj.lastUpdatedBy}</td>

@@ -1,4 +1,8 @@
-﻿.cel-status {
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
+.cel-status {
     display: flex;
     align-items: center;
 }

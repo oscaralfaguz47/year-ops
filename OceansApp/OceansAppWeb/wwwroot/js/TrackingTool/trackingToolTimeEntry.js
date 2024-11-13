@@ -1,5 +1,11 @@
-﻿
+﻿document.addEventListener('DOMContentLoaded', async function () {
+    paymentPeriod = getElementById('PaymentPeriodInput').value;
+    let currentDateNoChange = new Date();
+    calculatePeriod(currentDateNoChange, paymentPeriod);
+});
+
 const tackingToolSection = document.getElementById('tracking-tool-sec');
+
 //GET PROJECT MOVEMENTS
 async function getTrackingToolProjectMovements() {
     try {

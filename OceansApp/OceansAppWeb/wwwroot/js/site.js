@@ -1,4 +1,6 @@
-﻿window.onload = function () {
+﻿// Utility functions
+let getElementById = id => document.getElementById(id);
+window.onload = function () {
     var currentYear = new Date().getFullYear();
     var copyrightYearElement = document.querySelector("#copyright-year");
     if (copyrightYearElement) {
@@ -6,9 +8,15 @@
     }
 }
 
-function validateSessionExpiration(message) {
-    if (message.toString().includes('Unexpected token')) {
-        window.location.href = "/SessionEnded";
+function validateSessionExpiration(message, statusCode) {
+    if (statusCode === undefined || statusCode === 501) {
+        if (message.toString().includes('Unexpected token')) {
+            window.location.href = "/SessionEnded";
+        }
+    } else {
+        if (statusCode !== undefined) {
+            displayToasterError(message);
+        }
     }
 }
 function displaySpinner() {
@@ -263,3 +271,4 @@ function initializeTooltips() {
         }
     }
 }
+

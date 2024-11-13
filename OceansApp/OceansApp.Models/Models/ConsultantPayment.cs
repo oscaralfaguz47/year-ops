@@ -16,11 +16,14 @@ namespace OceansApp.Models.Models
         [Required]
         public DateTime EndDatePeriod { get; set; }
         [Required]
-        public int ReferenceNumber { get; set; }
+        [MaxLength(85)]
+        public string ReferenceNumber { get; set; }
         [Required]
         public int PaymentMethodId { get; set; }
         [Required]
         public decimal PaymentAmount { get; set; }
+        [Required]
+        public DateTime AccountingDate { get; set; }
         [Required]
         public DateTime CreationDate { get; set; }
         [Required]
@@ -33,6 +36,10 @@ namespace OceansApp.Models.Models
         public string CompanyId { get; set; }
         [Required]
         public int BankAccountId { get; set; }
+        [Required]
+        public int AccountPayableId { get; set; }
+        [Required]
+        public bool Voided { get; set; }
 
 
         [ValidateNever]
@@ -45,6 +52,8 @@ namespace OceansApp.Models.Models
         public ApplicationUser? ApplicationUserUpdatedBy { get; set; }
         [ValidateNever]
         public BankAccount BankAccount { get; set; }
+        [ValidateNever]
+        public AccountPayable AccountPayable { get; set; }
 
     }
 }

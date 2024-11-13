@@ -18,11 +18,9 @@ namespace OceansAppWeb.Areas.General.Controllers
     public class ConsultantReimbursedBenefitsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _config;
-        public ConsultantReimbursedBenefitsController(IUnitOfWork unitOrWork, IConfiguration config)
+        public ConsultantReimbursedBenefitsController(IUnitOfWork unitOrWork)
         {
             _unitOfWork = unitOrWork;
-            _config = config;
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]

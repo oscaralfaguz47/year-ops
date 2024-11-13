@@ -23,7 +23,9 @@ namespace OceansApp.Utility.Configuration.AuthorizationRequirement.Finances
             {
                 "AccessToAccountsReceivable",
                 "AccessToManageConsultantPaymentsDebitsAndCredits",
-                "AccessToManageTheBasicsOfPaymentSheets"
+                "AccessToManageTheBasicsOfPaymentSheets",
+                "AccessToExportAccountingData",
+                "AccessToFinancialCalculator"
             };
 
                 foreach (var policy in policies)

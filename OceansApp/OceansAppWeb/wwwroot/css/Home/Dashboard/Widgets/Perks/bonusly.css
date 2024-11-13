@@ -1,0 +1,48 @@
+﻿#Bonusly-title img{
+    width: 40px;
+    margin-right: 5px;
+}
+    #Bonusly-title a {
+        margin: 0 4px;
+    }
+#Bonusly-cont .no-user-message {
+    text-align: center;
+    border-bottom: solid 2px rgb(5, 137, 147, 0.3);
+    border-end-end-radius: 10px;
+    border-end-start-radius: 10px;
+    color: var(--clr-grayDark);
+    font-weight: bold;
+}
+#Bonusly-cont .no-user-message p {
+    margin-top: 5px;
+}
+#Bonusly-cont label {
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 2px;
+    font-size: 1.1rem;
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+}
+
+#Bonusly-cont .request-row .amount-lb {
+    width: 95px;
+}
+#Bonusly-cont .request-row img{
+    width: 30px;
+}
+#Bonusly-cont .status-lb{
+    width: 75px;
+    display:flex;
+    align-items:center;
+}
+.bonusly-down {
+    text-align: center;
+    border-bottom: solid 2px rgb(241, 29, 12, 0.3);
+    border-end-end-radius: 10px;
+    border-end-start-radius: 10px;
+    color: var(--clr-grayDark);
+    font-weight: bold;
+}
+.bonusly-down p{
+   margin-top: 5px;
+}

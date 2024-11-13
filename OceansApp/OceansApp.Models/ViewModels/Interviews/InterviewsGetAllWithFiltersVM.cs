@@ -5,6 +5,7 @@ namespace OceansApp.Models.ViewModels.Interviews
     {
         public int InterviewId { get; set; }
         public string ConsultantName { get; set; }
+        public string Detail { get; set; }
         public decimal DurationMinutes { get; set; }
         public DateTime Date { get; set; }
         public DateTime CreationDate { get; set; }

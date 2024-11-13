@@ -1,4 +1,9 @@
-﻿.inputs-header-cont {
+﻿
+#main-container {
+    padding-inline: 150px;
+    padding-top: 80px;
+}
+.inputs-header-cont {
     display: flex;
     margin-top: 20px;
 }

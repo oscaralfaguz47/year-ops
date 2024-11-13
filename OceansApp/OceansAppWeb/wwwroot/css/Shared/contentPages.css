@@ -7,7 +7,6 @@
 
 .filters-container {
     width: 100%;
-    margin-top: -20px;
     background-color: #fff;
     padding: 0 10px 0 10px;
     border-radius: 15px;
@@ -36,7 +35,6 @@
                 border-radius: 25px;
                 padding: 5px 15px 5px 15px;
                 border: none;
-                font-family: 'Montserrat Black';
                 background-color: var(--clr-blueDark);
                 color: #fff !important;
                 text-decoration: none;
@@ -123,7 +121,7 @@ table {
 }
 
 .global-table-container {
-    max-height: 62vh;
+    max-height: 65vh;
     overflow: auto;
     position: relative;
     background-color: #fff;
@@ -174,7 +172,7 @@ table {
 
 
 .global-table-container th, .global-table-container td {
-    padding: 2px 5px 2px 5px;
+    padding: 2px 8px 2px 8px;
     border: 1px solid #ccc;
     text-align: left;
     font-size: 13px;
@@ -217,9 +215,16 @@ table {
     top: 0;
     z-index: 3;
 }
+.first-colum-cont {
+    display: flex;
+    align-items:center;
+}
+.first-colum-cont img {
+   margin-right: 3px;
+   cursor:pointer;
+}
 
-
-.first-cel{
+.first-cel {
     font-weight: bold;
 }
 
@@ -230,11 +235,6 @@ table {
 #payment-sheets-table tr:not([class^="hover-group"]) td:not([rowspan]),
 tr[class^="hover-group"]:hover td {
     background-color: rgba(155, 168, 184, 0.2) !important;
-}
-
-
-.edit-table-icon {
-    color: blue;
 }
 
 .delete-table-icon {
@@ -253,10 +253,9 @@ tr[class^="hover-group"]:hover td {
     padding: 0px 8px;
     margin: 1.5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #596069;
 }
-    .refresh-btn i {
-        color: #2aa7ff;
-    }
+
 /* Table scroll */
 ::-webkit-scrollbar {
     width: 10px;

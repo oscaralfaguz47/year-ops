@@ -13,5 +13,6 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public DateTime? LastSubmissionDate { get; set; }
         public int NumApprovedSubmissions { get; set; }
         public int NumProjectsIsActive { get; set; }
+        public string PaymentStatus { get; set; }
     }
 }

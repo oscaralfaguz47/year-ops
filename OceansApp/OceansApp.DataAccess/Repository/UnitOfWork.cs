@@ -1,6 +1,9 @@
 ﻿
+using Azure.Storage.Queues;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 
@@ -10,50 +13,72 @@ namespace OceansApp.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMemoryCache _cache;
-        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, IMemoryCache cache)
+        private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
+        private readonly TelemetryClient _telemetryClient;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _config;
+        private readonly Lazy<QueueClient> _queueClient;
+        public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IMemoryCache cache, 
+            IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository, TelemetryClient telemetryClient,
+            HttpClient httpClient, IConfiguration config, Lazy<QueueClient> queueClient)
         {
+            ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
+            _telemetryClient = telemetryClient;
             _db = db;
             _userManager = userManager;
+            _roleManager = roleManager;
             _cache = cache;
+            _httpClient = httpClient;
+            _config = config;
+            _queueClient = queueClient;
             AccountingAccounts = new AccountingAccountRepository(_db);
+            AccountPayable = new AccountPayableRepository(_db);
+            AccountPayableMovement = new AccountPayableMovementRepository(_db);
+            Bonusly = new BonuslyRepository(_httpClient, _config);
             CenterOfCosts = new CostCenterRepository(_db);
             LedgerMovements = new LedgerMovementRepository(_db);
             DataUpdateDates = new DataUpdateRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
+            ApplicationUserActiveHistory = new ApplicationUserActiveHistoryRepository(_db);
             ApplicationUserCategory = new ApplicationUserCategoryRepository(_db);
-            ApplicationRoleClaim = new ApplicationRoleClaimRepository(_db);
+            ApplicationRoleClaim = new ApplicationRoleClaimRepository(_db, _userManager, _roleManager);
             ApplicationSystemClaim = new ApplicationSystemClaimRepository(_db);
+            BankAccount = new BankAccountRepository(_db);
             CalculatorGlobalConfiguration = new CalculatorGlobalConfigurationRepository(_db);
             CalculatorCostCenterIncreaseConfiguration = new CalculatorCostCenterIncreaseConfigurationRepository(_db);
             CalculatorSearchHistory = new CalculatorSearchHistoryRepository(_db);
             CalculatorAccountingAccountToIgnore = new CalculatorAccountingAccountToIgnoreRepository(_db);
             Client = new ClientRepository(_db);
-            ProviderCategory = new ProviderCategoryRepository(_db);
-            Provider = new ProviderRepository(_db);
             Country = new CountryRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
-            ConsultantPayment = new ConsultantPaymentRepository(_db);
-            ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db);
+            ConsultantPayment = new ConsultantPaymentRepository(_db, this, _config, _queueClient);
+            ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db, this);
             ConsultantPosition = new ConsultantPositionRepository(_db);
             ConsultantBenefit = new ConsultantBenefitRepository(_db);
+            ConsultantAndBenefit = new ConsultantAndBenefitRepository(_db);
             ConsultantBenefitCategory = new ConsultantBenefitCategoryRepository(_db);
-            ConsultantReimbursedBenefit = new ConsultantReimbursedBenefitRepository(_db);
+            ConsultantReimbursedBenefit = new ConsultantReimbursedBenefitRepository(_db, this);
             ConsultantHoliday = new ConsultantHolidayRepository(_db);
             ConsultantRole = new ConsultantRoleRepository(_db);
             ConsultantQualityLevel = new ConsultantQualityLevelRepository(_db);
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
-            Interview = new InterviewRepository(_db);
+            Interview = new InterviewRepository(_db, this);
+            ImageBlob = new ImageBlobRepository(_db);
+            JournalAccountPayable = new JournalAccountPayableRepository(_db);
+            JournalAccountPayableEntry = new JournalAccountPayableEntryRepository(_db);
             Partner = new PartnerRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
+            PaymentBookEntryParent = new PaymentBookEntryParentRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
+            ProjectConsultantPeriodDisabledTracking = new ProjectConsultantPeriodDisabledTrackingRepository(_db);
             ProjectConsultantAssignedHistory = new ProjectConsultantAssignedHistoryRepository(_db);
+            ProjectConsultantPendingSubmission = new ProjectConsultantPendingSubmissionRepository(_db, _telemetryClient);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
-            ProviderEvent = new ProviderEventRepository(_db);
-            ProviderEventDate = new ProviderEventDateRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db);
             ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);
             ReportingMyTimeMovementType = new ReportingMyTimeMovementTypeRepository(_db);
@@ -70,20 +95,23 @@ namespace OceansApp.DataAccess.Repository
         }
         public IApplicationSystemClaimRepository ApplicationSystemClaim { get; private set; }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
+        public IAccountPayableRepository AccountPayable { get; private set; }
+        public IAccountPayableMovementRepository AccountPayableMovement { get; private set; }
+        public IBonuslyRepository Bonusly { get; private set; }
         public ICostCenterRepository CenterOfCosts { get; private set; }
         public ILedgerMovementRepository LedgerMovements { get; private set; }
         public IDataUpdateDateRepository DataUpdateDates { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
+        public IApplicationUserActiveHistoryRepository ApplicationUserActiveHistory { get; private set; }
         public IApplicationUserCategoryRepository ApplicationUserCategory { get; private set; }
         public IApplicationRoleClaimRepository ApplicationRoleClaim { get; private set; }
+        public IBankAccountRepository BankAccount { get; private set; }
         public ICalculatorGlobalConfigurationRepository CalculatorGlobalConfiguration { get; set; }
         public ICalculatorCostCenterIncreaseConfigurationRepository CalculatorCostCenterIncreaseConfiguration { get; set; }
         public ICalculatorSearchHistoryRepository CalculatorSearchHistory { get; set; }
         public ICalculatorAccountingAccountToIgnoreRepository CalculatorAccountingAccountToIgnore { get; set; }
         public IClientRepository Client { get; set; }
         public IPartnerRepository Partner { get; set; }
-        public IProviderCategoryRepository ProviderCategory { get; set; }
-        public IProviderRepository Provider { get; set; }
         public ICountryRepository Country { get; set; }
         public IConsultantHolidayRepository ConsultantHoliday { get; set; }
         public IConsultantDetailRepository ConsultantDetail { get; set; }
@@ -91,6 +119,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantPaymentDebitsCreditsRepository ConsultantPaymentsDebitsCredits { get; set; }
         public IConsultantPositionRepository ConsultantPosition { get; set; }
         public IConsultantBenefitRepository ConsultantBenefit { get; set; }
+        public IConsultantAndBenefitRepository ConsultantAndBenefit { get; set; }
         public IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; set; }
         public IConsultantReimbursedBenefitRepository ConsultantReimbursedBenefit { get; set; }
         public IConsultantRoleRepository ConsultantRole { get; set; }
@@ -99,12 +128,16 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantSeniorityRepository ConsultantSeniority { get; set; }
         public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
         public IInterviewRepository Interview { get; set; }
+        public IImageBlobRepository ImageBlob { get; set; }
+        public IJournalAccountPayableRepository JournalAccountPayable { get; set; }
+        public IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; set; }
         public IPaymentMethodRepository PaymentMethod { get; set; }
+        public IPaymentBookEntryParentRepository PaymentBookEntryParent { get; set; }
         public IProjectRepository Project { get; set; }
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
+        public IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; set; }
         public IProjectConsultantAssignedHistoryRepository ProjectConsultantAssignedHistory { get; set; }
-        public IProviderEventRepository ProviderEvent { get; set; }
-        public IProviderEventDateRepository ProviderEventDate { get; set; }
+        public IProjectConsultantPendingSubmissionRepository ProjectConsultantPendingSubmission { get; set; }
         public IProjectUserSelectedRepository ProjectUserSelected { get; set; }
         public IReportingMyTimeMovementRepository ReportingMyTimeMovement { get; set; }
         public IReportingMyTimeMovementSubmissionRepository ReportingMyTimeMovementSubmission { get; set; }

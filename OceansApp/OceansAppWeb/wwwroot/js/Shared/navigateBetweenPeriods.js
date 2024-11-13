@@ -2,9 +2,9 @@
 let currentDate = new Date();
 
 
-// Function to calculate the new period based on direction and mode.
+// Calculate the new period based on direction and mode.
 function adjustDate(direction, mode) {
-    const dayAdjustment = mode === 1 ? 15 : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    const dayAdjustment = Number(mode) === 1 ? 15 : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
     if (direction === 'left') {
         currentDate = new Date(currentDate.setDate(currentDate.getDate() - dayAdjustment));
@@ -43,25 +43,28 @@ const handleButtonClick = async (direction) => {
 
 const calculatePeriod = async (date, mode, buttons) => {
     let startDate, endDate;
-    if (mode === 1) { // Biweekly
-        // Adjusts to the nearest fortnight before the current date
-        const dayOfMonth = date.getDate();
+    const dayOfMonth = date.getDate();
+
+    if (Number(mode) === 1) { //Beweekly
         if (dayOfMonth <= 15) {
             startDate = new Date(date.getFullYear(), date.getMonth(), 1);
             endDate = new Date(date.getFullYear(), date.getMonth(), 15);
-        } else {
+        }
+        else {
             startDate = new Date(date.getFullYear(), date.getMonth(), 16);
             endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
         }
-    } else if (mode === 2) { // Monthly
+    } else if (Number(mode) === 2) { //Monthly
         startDate = new Date(date.getFullYear(), date.getMonth(), 1);
         endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }
 
-    getElementById('previous-date').innerHTML = `<span> ${getMonthName(startDate.getMonth())} ${startDate.getDate()}</span>`;
-    getElementById('next-date').innerHTML = `<span>${getMonthName(endDate.getMonth())} ${endDate.getDate()}, (${startDate.getFullYear()})</span>`;
+    getElementById('previous-date').innerHTML = `<span class="month-date-lb"> ${getMonthName(startDate.getMonth()).slice(0, 3) } ${startDate.getDate()}</span>`;
+    getElementById('next-date').innerHTML = `<span class="month-date-lb">${getMonthName(endDate.getMonth()).slice(0, 3)} ${endDate.getDate()}</span><span>, (${startDate.getFullYear()})</span>`;
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
     await navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), buttons);
+
     return { startDate, endDate };
 };
+

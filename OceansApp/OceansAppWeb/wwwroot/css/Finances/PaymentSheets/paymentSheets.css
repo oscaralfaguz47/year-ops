@@ -1,4 +1,8 @@
-﻿.navigation-container
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
+.navigation-container
 {
     display:flex;
     align-items:center;
@@ -11,7 +15,7 @@
     display: flex;
     background-color: var(--clr-grayLight);
     border: solid 2px rgb(155, 168, 184, 0.5);
-    padding: 5px;
+    padding: 8px;
     justify-content: center;
     width: 100%;
 }
@@ -29,6 +33,12 @@
     padding: 2px 8px;
     font-weight: bold;
     color: #01bfb7;
+}
+.status-actions {
+    display: flex;
+}
+.action-btns-box {
+    margin: 0 !important;
 }
 .action-btns-box button {
     border: none;
@@ -51,7 +61,15 @@
 .review-btn {
     background-color: #eeb30f;
 }
-
+.reject-approvement-btn {
+    background-color: #970f15;
+}
+.remove-for-period-btn {
+    background-color: var(--clr-grayDark);
+}
+.remove-for-period-btn img {
+    margin-right: 3px;
+}
 /* MOBILE */
 @media only screen and (max-width: 630px) {
     .additional-filters {

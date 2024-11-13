@@ -9,6 +9,7 @@ namespace OceansApp.Models.ViewModels.Interviews
         public string? ConsultantEmail { get; set; }
         public decimal? DurationMinutes { get; set; }
         public DateTime? Date { get; set; }
+        public string? Detail { get; set; }
 
     }
 }

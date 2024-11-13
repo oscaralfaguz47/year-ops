@@ -1,0 +1,42 @@
+﻿<link rel="stylesheet" href="~/css/Finances/PaymentSheets/reviewForDefer.css?v=@DateTime.Now.Ticks" />
+
+<div id="modal-defer-next-period" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container"><button id="close-payment-modal-x-btn" onclick="hideModal('modal-defer-next-period')">x</button></div>
+                <h2 id="make-payment-modal-title">Review to Defer Movements</h2>
+
+                <div>
+                    <div id="movements-container">
+                    </div>
+
+                    <div class="action-date-cont">
+                        <div>
+                            <label>Action Date <span class="required-asterisk">*</span> </label> <div class="tooltip-container ">
+                                <i class="bi bi-question-circle tooltip-target"></i>
+                                <div class="tooltip-content">
+                                    <div class="tooltip-arrow"></div>
+                                    Date corresponding to the fortnight during which the debit or credit will be effect.
+                                </div>
+                            </div>
+                            <input type="date" class="form-control" id="ActionDateRD">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-defer-next-period')" class="cancel-btn">Cancel</button>
+                    <button class="btn-primary-submit" onclick="DeferDebitsCredits('modal-defer-next-period')">
+                        Defer to the next period
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Finances/PaymentSheets/reviewForDefer.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/CostsCenters/costsCentersHttpRequests.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/AccountingAccounts/accountingAccountsHttpRequests.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/FormElements/select.js?v=@DateTime.Now.Ticks"></script>

@@ -26,5 +26,8 @@ namespace OceansApp.Utility.ConstantData.Claims.Finances
 
         public const string Manage_Basic_Payment_Sheets_ClaimType = "BasicPaymentSheets";
         public const string Manage_Basic_Payment_Sheets_ClaimValue = "Have access to manage the basics of payment sheets";
+
+        public const string Access_Export_Accounting_Data_ClaimType = "AccessExportAccountingData";
+        public const string Access_Export_Accounting_Data_ClaimValue = "Have access to export the accounting data";
     }
 }

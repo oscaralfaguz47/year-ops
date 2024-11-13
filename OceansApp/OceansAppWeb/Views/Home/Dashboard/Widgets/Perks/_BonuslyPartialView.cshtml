@@ -1,0 +1,15 @@
+﻿@model string
+
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/Perks/bonusly.css?v=@DateTime.Now.Ticks" />
+
+<div class="card">
+    <div class="card-title">
+        <label id="@Model.Substring(1)-title"></label>
+    </div>
+    <div class="card-content">
+        <div id="@Model.Substring(1)-cont">
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Home/Dashboard/Widgets/Perks/bonusly.js?v=@DateTime.Now.Ticks"></script>

@@ -1,6 +1,7 @@
 ﻿using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantPaymentsDebitsCredits;
+using OceansApp.Models.ViewModels.PaymentSheets;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
@@ -13,5 +14,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
             CreateUpdateConsultantPaymentDebitCreditVM debitCreditData);
         Task<MethodResponse> RejectDebitCredit(string userActionedBy, int consultantPaymentDebitsCreditsId);
         Task<CreateUpdateConsultantPaymentDebitCreditVM> GetDebitCreditDataById(int consultantPaymentDebitsCreditsId);
+        Task<List<GetApprovedDebitsCreditsWhereConsultantVM>> GetApprovedDebitsCreditsWhereConsultantInThePeriod(int consultantId,
+          DateTime startDate, DateTime endDate);
+        Task<MethodResponse> CreateDebitCreditWithListAsync(string userActionedBy, DeferDebitCreditVM modelData);
     }
 }

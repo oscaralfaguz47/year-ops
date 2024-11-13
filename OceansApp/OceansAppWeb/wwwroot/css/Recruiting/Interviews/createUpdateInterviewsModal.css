@@ -1,4 +1,8 @@
-﻿.global-modal-content {
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
+.global-modal-content {
     width: 580px !important;
 }
 

@@ -1,18 +1,21 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Storage.Queues;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
-using SlackAPI;
 using System.Security.Claims;
+using System.Text;
 
 namespace OceansAppWeb.Areas.General.Controllers
 {
@@ -28,18 +31,17 @@ namespace OceansAppWeb.Areas.General.Controllers
         private readonly IConfiguration _config;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IBackgroundTaskQueue _backgroundTaskQueue;
         private readonly IMemoryCache _cache;
+        private readonly Lazy<QueueClient> _queueClient;
         public ConsultantsController(IUnitOfWork unitOrWork, IConfiguration config, UserManager<IdentityUser> userManager, 
-            IAuthorizationService authorizationService,
-            IBackgroundTaskQueue backgroundTaskQueue, IMemoryCache cache)
+            IAuthorizationService authorizationService, IMemoryCache cache, Lazy<QueueClient> queueClient)
         {
             _unitOfWork = unitOrWork;
             _config = config;
             _userManager = userManager;
             _authorizationService = authorizationService;
-            _backgroundTaskQueue = backgroundTaskQueue;
             _cache = cache;
+            _queueClient = queueClient;
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -163,12 +165,15 @@ namespace OceansAppWeb.Areas.General.Controllers
                 validateInputs.ValidateRequiredFieldStringValue("IdCountry", "Country", consultantData.IdCountry, ModelState);
                 validateInputs.ValidateRequiredFieldStringValue("CompanyId", "Company", consultantData.CompanyId, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("PaymentMethodId", "Payment Method", consultantData.PaymentMethodId, ModelState);
+                validateInputs.ValidateRequiredFieldIntType("WorkingModel", "Working Model", consultantData.WorkingModel, ModelState);
                 validateInputs.ValidateRequiredFieldIntType("PaymentPeriod", "Payment Period", consultantData.PaymentPeriod, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PhoneNumber", "Phone Number", consultantData.PhoneNumber, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Phone2", "Phone 2", consultantData.Phone2, 100, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("Address", "Address", consultantData.Address, 400, ModelState);
                 validateInputs.ValidateNotRequiredAndStringLength("PersonalEmail", "Personal Email", consultantData.PersonalEmail, 249, ModelState);
                 validateInputs.ValidateEmail("PersonalEmail", "Personal Email", consultantData.PersonalEmail, ModelState);
+                validateInputs.ValidateDateValidFormat("StartDate", "Start Date", consultantData.StartDate, ModelState);
+                validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", consultantData.StartDate, ModelState);
 
                 if (ModelState.IsValid)
                 {
@@ -303,16 +308,9 @@ namespace OceansAppWeb.Areas.General.Controllers
             {
                 // Prepare email content
                 var emailToSend = PrepareEmailContent(callbackUrl, consultantName.Trim(), consultantEmail.Trim());
-                var emailNotification = await CreateNotification(emailToSend, userActionedBy);
-
-                // Check if notification was successfully created
-                if (emailNotification == null || emailNotification.NotificationId <= 0)
-                {
-                    return new MethodResponse { Success = false, Message = "Failed to create notification." };
-                }
 
                 // Queue background task to send email and update notification status
-                QueueEmailSendingTask(emailToSend, emailNotification.NotificationId);
+                await QueueEmailSendingTask(emailToSend);
 
                 return new MethodResponse { Success = true, Message = "Notification created and email sending queued." };
             }
@@ -331,91 +329,19 @@ namespace OceansAppWeb.Areas.General.Controllers
             return new SendEmailVM
             {
                 Subject = "Create your account - Oceans App",
-                SharedEmailFrom = Environment.GetEnvironmentVariable(_config["sharedEmailOceansApp"]),
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
                 EmailTo = consultantEmail.Trim(),
                 Body = templateEmail
             };
         }
 
-        private async Task<Notification> CreateNotification(SendEmailVM emailToSend, string userActionedBy)
+        private async Task QueueEmailSendingTask(SendEmailVM emailToSend)
         {
-            var notificatinType = await _unitOfWork.NotificationType.GetFirstOrDefaultAsync(x => x.Name == "Create new Consultant");
+            var messageContent = JsonConvert.SerializeObject(emailToSend);
 
-            if (notificatinType == null)
-            {
-                throw new InvalidOperationException("Notification type 'Create new Consultant' not found.");
-            }
-
-            var emailNotification = new Notification
-            {
-                NotificationTypeId = notificatinType.NotificationTypeId,
-                Body = emailToSend.Body,
-                Subject = emailToSend.Subject,
-                Remitent = emailToSend.SharedEmailFrom,
-                SentDate = DateTime.UtcNow,
-                SentByUser = userActionedBy
-            };
-            await _unitOfWork.Notification.AddAsync(emailNotification);
-            await _unitOfWork.SaveAsync();
-            var notificationMedia = await _unitOfWork.NotificationMedia.GetFirstOrDefaultAsync(x => x.Name == "Email");
-            var recipientUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Email == emailToSend.EmailTo);
-            var notificationStatus = await _unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviando");
-            var notificationRecipient = new NotificationRecipient()
-            {
-                RecipientMediaInfo = emailToSend.EmailTo,
-                NotificationId = emailNotification.NotificationId,
-                NotificationMediaId = notificationMedia.NotificationMediaId,
-                NotificationStatusId = notificationStatus.NotificationStatusId,
-                RecipientUserId = recipientUser?.Id
-            };
-            await _unitOfWork.NotificationRecipient.AddAsync(notificationRecipient);
-            await _unitOfWork.SaveAsync();
-
-            return emailNotification;
+            await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
         }
 
-        private void QueueEmailSendingTask(SendEmailVM emailToSend, int notificationId)
-        {
-            _backgroundTaskQueue.QueueBackgroundWorkItem(async (scopeFactory, cancellationToken) =>
-            {
-                using (var scope = scopeFactory.CreateScope())
-                {
-                    var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                    var sendEmailService = scope.ServiceProvider.GetRequiredService<ISendEmailRepository>();
-
-                    await SendEmailAndUpdateStatus(unitOfWork, sendEmailService, emailToSend, notificationId, cancellationToken);
-                }
-            });
-        }
-
-        private static async Task SendEmailAndUpdateStatus(IUnitOfWork unitOfWork, ISendEmailRepository sendEmailService, SendEmailVM emailToSend, int notificationId, CancellationToken cancellationToken)
-        {
-            NotificationStatus notificationStatusForUpdate;
-
-            try
-            {
-                var emailSent = await sendEmailService.SendEmail(emailToSend);
-                notificationStatusForUpdate = await unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Enviado");
-            }
-            catch (Exception)
-            {
-                notificationStatusForUpdate = await unitOfWork.NotificationStatus.GetFirstOrDefaultAsync(x => x.Name == "Envío fallido");
-            }
-
-            if (notificationStatusForUpdate == null)
-            {
-                throw new InvalidOperationException("Notification status 'Enviado' or 'Envío fallido' not found.");
-            }
-
-            var savedNotificationRecipients = await unitOfWork.NotificationRecipient.GetAllAsync(x => x.NotificationId == notificationId);
-
-            foreach (var recipient in savedNotificationRecipients)
-            {
-                recipient.NotificationStatusId = notificationStatusForUpdate.NotificationStatusId;
-            }
-
-            await unitOfWork.SaveAsync();
-        }
 
         [HttpPost("ResentInvite")]
         [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
@@ -532,6 +458,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             try
             {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var message = "";
                 var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.ConsultantId == consultantId);
                 if (consultant == null)
@@ -539,21 +466,36 @@ namespace OceansAppWeb.Areas.General.Controllers
                     return BadRequest(new { MessageType = "Not Found", error = $"The Consultant was not found in the database. " });
                 }
                 var userToUpdate = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == consultant.UserId);
+                //Create Active History
+                ApplicationUserActiveHistory activeHistoryToCreate = new()
+                {
+                    ActionDate = DateTime.UtcNow,
+                    UserId = consultant.UserId,
+                    UserIdActionedBy = userId
+                };
+
+                using var transaction = await _unitOfWork.BeginTranAsync();
+
                 if (userToUpdate.IsActive == true)
                 {
                     userToUpdate.IsActive = false;
                     userToUpdate.LockoutEnd = DateTime.Now.AddYears(1000);
                     var cacheKey = $"UserSessionChangesExpiration_{consultant.UserId}";
                     _cache.Remove(cacheKey);
+                    activeHistoryToCreate.IsActive = false;
                     message = "The user was successfully deactivated!";
                 }
                 else
                 {
                     userToUpdate.IsActive = true;
                     userToUpdate.LockoutEnd = DateTime.Now.AddDays(-1);
+                    activeHistoryToCreate.IsActive = true;
                     message = "The user was successfully activated!";
                 }
+                await _unitOfWork.ApplicationUserActiveHistory.AddAsync(activeHistoryToCreate);
                 await _unitOfWork.SaveAsync();
+
+                await transaction.CommitAsync();
                 return Json(new { success = true, message = message });
             }
             catch (Exception e)

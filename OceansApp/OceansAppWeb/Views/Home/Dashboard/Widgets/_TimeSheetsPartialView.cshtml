@@ -1,0 +1,26 @@
+﻿<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/timeSheets.css?v=@DateTime.Now.Ticks" />
+
+<div class="section">
+    <h2 class="section-title">TIMESHEETS</h2>
+    <div class="card">
+        <div class="card-title">
+            <label id="timesheetSubTitle">Pending Timesheets...</label>
+        </div>
+        <div class="card-content">
+            <div id="pendingTimesheetsCont">
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">
+            <label>Last timesheets submitted</label>
+        </div>
+        <div class="card-content">
+            <div id="lastTimesheetsSubmittedCont">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Home/Dashboard/Widgets/timeSheets.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>

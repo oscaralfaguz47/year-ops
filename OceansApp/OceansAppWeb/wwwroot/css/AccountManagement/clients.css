@@ -1,4 +1,7 @@
-﻿
+﻿#main-container {
+    padding-inline: 8px;
+    padding-top: 80px;
+}
 /*Update Modal*/
 #modal-update-client .modal-scroll-container {
     margin-top: 5px;

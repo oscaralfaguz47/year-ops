@@ -1,0 +1,34 @@
+﻿<div id="modal-removed-projects" class="global-modal" style="display:none">
+    <div class="global-modal-content cl-removed-projects-table">
+        <div class="container">
+            <div>
+                <div class="close-btn-container"><button id="close-payment-modal-x-btn" onclick="hideModal('modal-removed-projects')">x</button></div>
+                <h2>Removed Projects in this period</h2>
+                <div>
+                    <div class="global-table-container">
+
+                        <table style="display:none">
+                            <thead>
+                                <tr>
+                                    <th>Consultant Name</th>
+                                    <th>Project Name</th>
+                                    <th>Removed Date</th>
+                                    <th>User Removed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <div class="no-results"></div>
+                    </div>
+                </div>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-removed-projects')" class="cancel-btn" id="btn-cancel-payment-modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Finances/PaymentSheets/removedProjects.js?v=@DateTime.Now.Ticks"></script>

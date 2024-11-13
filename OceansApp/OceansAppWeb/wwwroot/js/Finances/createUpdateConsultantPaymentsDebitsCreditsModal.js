@@ -189,6 +189,7 @@ async function createUpdateDebitCredit(modalId) {
         ActionDateWithinFortnight: actionDateData,
         TransactionTypeName: transactionTypeData
     };
+    console.log(data);
     fetch('/Finances/ConsultantPaymentsDebitsCredits/CreateUpdateDebitCredit', {
         method: 'POST',
         headers: {

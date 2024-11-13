@@ -10,6 +10,7 @@ using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
+using System.Linq;
 
 namespace OceansApp.DataAccess.DbInitializer
 {
@@ -94,16 +95,16 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 if (!await _roleManager.RoleExistsAsync(SD.Role_User_Master))
                 {
-                    var masterUserEmail = Environment.GetEnvironmentVariable(_config["MasterUserEmail"]);
-                    var masterUserPass = Environment.GetEnvironmentVariable(_config["MasterUserPass_ENV"]);
+                    var masterUserEmail = _config["MasterUserEmailENV"];
+                    var masterUserPass = _config["MasterUserPassENV"];
 
                     // If Roles are not created, then we will create Master user as well
                     var user = new ApplicationUser
                     {
                         UserName = masterUserEmail,
                         Email = masterUserEmail,
-                        Name = _config["MasterUserName"],
-                        LastName = _config["MasterUserLastName"],
+                        Name = _config["MasterUserNameEnv"],
+                        LastName = _config["MasterUserLastNameEnv"],
                         IsActive = true,
                         DeactivationDate = null
                     };
@@ -289,6 +290,30 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 await _db.SaveChangesAsync();
 
+                // ----------------- GLOBAL CONSECUTIVES --------------------------------
+
+                List<GlobalConsecutive> globalConsecutivesList = new List<GlobalConsecutive>
+                {
+                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "LLC" }
+                };
+
+                foreach (var consecutive in globalConsecutivesList)
+                {
+                    var existingConsecutive = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == consecutive.Name);
+                    if (existingConsecutive == null)
+                    {
+                        GlobalConsecutive conToCreate = new()
+                        {
+                            Name = consecutive.Name,
+                            ConsecutiveNumber = consecutive.ConsecutiveNumber,
+                            CompanyId = consecutive.CompanyId
+                        };
+                        await _db.GLOBAL_CONSECUTIVES.AddAsync(conToCreate);
+                    }
+                }
+                await _db.SaveChangesAsync();
+
                 // ----------------- NOTIFICATIONS MEDIA --------------------------------
 
                 List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>
@@ -415,6 +440,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     new SystemSubArea { SystemAreaId = 2, Name = "Cuentas Por Cobrar" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Consultant Payment Debits & Credits" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Payment Sheets" },
+                    new SystemSubArea { SystemAreaId = 2, Name = "Export Accounting Data" },
                     new SystemSubArea { SystemAreaId = 2, Name = "Calculadora Financiera" },
                     new SystemSubArea { SystemAreaId = 3, Name = "Consultants" },
                     new SystemSubArea { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" },
@@ -495,7 +521,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new PaymentMethod { Name = "Bac Credomatic (Panamá)", CompanyId = "OCE" },
                     new PaymentMethod { Name = "Mercury", CompanyId = "LLC" },
                     new PaymentMethod { Name = "Wise", CompanyId = "LLC" },
-                    new PaymentMethod { Name = "Airtm", CompanyId = "LLC" }
+                    new PaymentMethod { Name = "Bac Credomatic Costa Rica (Bac CR to Bac CR)", CompanyId = "OCE" },
+                    new PaymentMethod { Name = "USA local transfer", CompanyId = "LLC" }
                 };
 
                 foreach (var paymentMethod in paymentMethodsList)
@@ -508,6 +535,81 @@ namespace OceansApp.DataAccess.DbInitializer
                             CompanyId = paymentMethod.CompanyId
                         };
                         await _db.PAYMENT_METHODS.AddAsync(pm);
+                    }
+                }
+                await _db.SaveChangesAsync();
+
+                // ----------------- PAYMENT METHOD BANK ACCOUNTS --------------------------------
+
+                var paymentMethods = await _db.PAYMENT_METHODS.ToListAsync();
+                var bankAccounts = await _db.BANK_ACCOUNTS.ToListAsync();
+
+                List<PaymentMethodBankAccount> paymentMethodBankAccountList = new List<PaymentMethodBankAccount>
+                {
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic different from Panamá (Ameritransfer)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Other banks (International Transfer)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Payoneer").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113454904").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Banco General (Panamá)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic (Panamá)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "113439285").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Mercury").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "202218366303").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Wise").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "9600012642438917").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic Costa Rica (Bac CR to Bac CR)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "947729737").BankAccountId,
+                        IsDefault = true
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "Bac Credomatic Costa Rica (Bac CR to Bac CR)").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "951381904").BankAccountId,
+                        IsDefault = false
+                    },
+                    new PaymentMethodBankAccount {
+                        PaymentMethodId = paymentMethods.FirstOrDefault(x => x.Name == "USA local transfer").PaymentMethodId,
+                        BankAccountId = bankAccounts.FirstOrDefault(x => x.BankAccountCode == "610851399").BankAccountId,
+                        IsDefault = true
+                    }
+                };
+
+                foreach (var paymentMethodBankAccount in paymentMethodBankAccountList)
+                {
+                    if (await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.FirstOrDefaultAsync(x => x.PaymentMethodId == paymentMethodBankAccount.PaymentMethodId && 
+                    x.BankAccountId == paymentMethodBankAccount.BankAccountId) == null)
+                    {
+                        PaymentMethodBankAccount pmba = new()
+                        {
+                            PaymentMethodId = paymentMethodBankAccount.PaymentMethodId,
+                            BankAccountId = paymentMethodBankAccount.BankAccountId,
+                            IsDefault = paymentMethodBankAccount.IsDefault
+                        };
+                        await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.AddAsync(pmba);
                     }
                 }
                 await _db.SaveChangesAsync();
@@ -574,8 +676,9 @@ namespace OceansApp.DataAccess.DbInitializer
                     new TransactionStatus { Name = "Rejected" },
                     new TransactionStatus { Name = "Sent to be paid" },
                     new TransactionStatus { Name = "Paid" },
-                    new TransactionStatus { Name = "Accounted - Accounts Payable" },
-                    new TransactionStatus { Name = "Done" }
+                    new TransactionStatus { Name = "Pending Accounting" },
+                    new TransactionStatus { Name = "Accounted" },
+                    new TransactionStatus { Name = "Updated - Pending Review" }
                 };
 
                 foreach (var status in transactionStatusesList)
@@ -688,6 +791,15 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue,
                     Description = "Have access to manage the basics of Payment Sheets.",
                     SystemSubAreaId = paymentSheetsSubAreaId.SystemSubAreaId
+                });
+
+                var exportAccountingDataSubAreaId = await _db.SYSTEM_SUB_AREAS.FirstOrDefaultAsync(x => x.Name == "Export Accounting Data");
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = FinancesClaimsCD.Access_Export_Accounting_Data_ClaimType,
+                    ClaimValue = FinancesClaimsCD.Access_Export_Accounting_Data_ClaimValue,
+                    Description = "Have access to export the accounting data.",
+                    SystemSubAreaId = exportAccountingDataSubAreaId.SystemSubAreaId
                 });
 
                 // GENERAL - CONSULTANTS

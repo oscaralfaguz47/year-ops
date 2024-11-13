@@ -11,7 +11,7 @@ namespace OceansApp.DataAccess.Repository
         public SlackRepository(IConfiguration config)
         {
             _config = config;
-            _token = Environment.GetEnvironmentVariable(_config["Slack:TokenAccountingApp"]);
+            _token = _config["SlackTokenAccountingAppENV"];
         }
         public async Task SendMessageToChannelAsync(string channelId, string message)
         {
@@ -61,9 +61,10 @@ namespace OceansApp.DataAccess.Repository
 
             if (!userResponse.ok)
             {
-                throw new Exception("Error al encontrar el usuario en Slack: " + userResponse.error);
+                throw new Exception("Error finding user in Slack: " + userResponse.error);
             }
             return userResponse.user.id;
         }
+
     }
 }

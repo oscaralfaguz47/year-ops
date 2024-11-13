@@ -1,7 +1,4 @@
-﻿// Utility functions
-const getElementById = id => document.getElementById(id);
-
-//Create update project Variables
+﻿//Create update project Variables
 const createUpdateProjectForm = getElementById('form-create-update');
 const projectIdInputCUP = createUpdateProjectForm.querySelector('[name="projectId"]')
 const projectNameInputCUP = createUpdateProjectForm.querySelector('[name="projectName"]');
@@ -107,9 +104,14 @@ async function displayUpdateCreateProjectModal(modalId, id) {
                 isBillableInputCUP.checked = data.projectData.isBillable;
                 clientHasTrackingToolInputCUP.value = data.projectData.clientHasTrackingTool;
                 clientHasTrackingToolInputCUP.checked = data.projectData.clientHasTrackingTool;
+                if (data.projectData.clientHasTrackingTool) {
+                    getElementById('onCallSection').style.display = 'block';
+                } else {
+                    getElementById('onCallSection').style.display = 'none';
+                    getElementById('participatesInOnCalls').checked = false;
+                }
 
                 const assignedConsultants = JSON.parse(data.projectData.assignedConsultants);
-                console.log(assignedConsultants);
                 assignedConsultants.forEach(function (item, index, arr) {
                     addNewConsultantRow(item.ConsultantName, item.ProjectConsultantAssignedId, item.IsActive,
                         item.UserCategory, item.BeforeOrAfterStatusActionDate, data.allowedManageAdminConsultants,

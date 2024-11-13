@@ -147,6 +147,26 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-md-6">
+                            <label for="WorkingModelSelect">Working Model <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="WorkingModelSelect" name="workingModel">
+                                    <option value>-Select a Working Model-</option>
+                                    <option value="1">Full-time</option>
+                                    <option value="2">Part-time</option>
+                                    <option value="3">Hourly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="StartDate">Start Date  <span class="required-asterisk">*</span></label>
+                            <div>
+                                <input type="date" class="form-control" name="startDate">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <label for="Contact">Address</label>
                         <div class="input-container">
                             <input type="text" class="form-control" name="address">
@@ -193,12 +213,6 @@
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-other-config')">x</button></div>
                 <h2>Other Configurations</h2>
                 <form id="form-other-config">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <input type="checkbox" class="form-check-input" id="on-call-participation" name="onCallParticiation">
-                            <label for="on-call-participation"> The consultant participates in On Calls.</label>
-                        </div>
-                    </div>
                     <div class="row">
                         <strong><label>Select the holidays for this consultant.</label></strong>
                         <div class="col-md-6">

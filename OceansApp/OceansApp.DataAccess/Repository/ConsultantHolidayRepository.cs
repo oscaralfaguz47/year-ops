@@ -7,6 +7,7 @@ using System.Data;
 using OceansApp.Models.ViewModels.Holidays;
 using OceansApp.Models.ViewModels.Components;
 using System.Linq.Expressions;
+using OceansApp.Models.ViewModels.ConsultantHolidays;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -66,7 +67,6 @@ namespace OceansApp.DataAccess.Repository
                 };
             }
         }
-
 
         public async Task<MethodResponse> CreateHolidayListWithHolidayDates(CreateUpdateHolidayVM holidayData)
         {
@@ -224,10 +224,38 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public void Update(ConsultantHoliday obj)
+        public async Task<List<ConsultantHolidayDate>?> GetHolidaysDatesWhereConsultantInPeriodAsync(
+     DateTime startDate, DateTime endDate, int? consultantHolidayId)
         {
-            _db.CONSULTANT_HOLIDAYS.Update(obj);
+            if (consultantHolidayId != null)
+            {
+                return await _db.CONSULTANT_HOLIDAY_DATES
+              .Where(x => x.ConsultantHolidayId == consultantHolidayId
+                          && x.Date >= startDate
+                          && x.Date <= endDate)
+              .ToListAsync();
+            }
+            else
+            {
+                return null;
+            }
         }
+
+        public async Task<List<GetHolidaysNameAndDateVM>> GetHolidaysByConsultantAsync(int consultantId)
+        {
+            var result = await (from chd in _db.CONSULTANT_HOLIDAY_DATES
+                                join ch in _db.CONSULTANT_HOLIDAYS on chd.ConsultantHolidayId equals ch.ConsultantHolidayId
+                                join cd in _db.CONSULTANT_DETAILS on ch.ConsultantHolidayId equals cd.ConsultantHolidayId
+                                where cd.ConsultantId == consultantId
+                                select new GetHolidaysNameAndDateVM
+                                {
+                                    HolidayName = chd.Name,
+                                    Date = chd.Date
+                                }).ToListAsync();
+            return result;
+        }
+
+
 
     }
 }

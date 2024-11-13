@@ -5,5 +5,6 @@ namespace OceansApp.Models.ViewModels.ProjectConsultantAssigned
     {
         public bool AccessToTrackingTool { get; set; }
         public bool IsActive { get; set; }
+        public bool ParticipatesInOnCalls { get; set; }
     }
 }

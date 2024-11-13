@@ -5,11 +5,13 @@ using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using System.Security.Claims;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
+using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 
 namespace OceansApp.Utility.ConstantData.Claims
 {
     public static class ClaimsPrincipalExtensions
     {
+        //GENERAL
         public static bool IsAuthorizedForAdminCenter(this ClaimsPrincipal user)
         {
             return user.HasClaim(c => c.Type == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimType && c.Value == AdminCenterClaimsCD.Actualizar_Datos_Softland_ClaimValue)
@@ -33,7 +35,8 @@ namespace OceansApp.Utility.ConstantData.Claims
         {
             return user.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue) ||
                 user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue) ||
-                user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue);
+                user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue) ||
+                user.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_ClaimValue);
         }
         public static bool IsAuthorizedForRecruiting(this ClaimsPrincipal user)
         {
@@ -44,6 +47,13 @@ namespace OceansApp.Utility.ConstantData.Claims
         {
             return user.HasClaim(c => c.Type == ClientsClaimsCD.Clients_Page_ClaimType && c.Value == ClientsClaimsCD.Clients_Page_ClaimValue)
                 || user.HasClaim(c => c.Type == ProjectsClaimsCD.Projects_Page_ClaimType && c.Value == ProjectsClaimsCD.Projects_Page_ClaimValue);
+        }
+
+        //SPECIFIC
+        public static bool IsAuthorizedForReportTimeInTrackingTool(this ClaimsPrincipal user)
+        {
+            return user.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType 
+            && c.Value == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue);
         }
     }
 }

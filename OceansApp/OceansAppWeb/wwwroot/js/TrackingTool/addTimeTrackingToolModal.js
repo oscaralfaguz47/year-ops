@@ -59,7 +59,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     }
     fillMovementTypesSelect(timeClassificationSelect, timeClasifications);
     htmlReportedTimeElement = htmlElement;
-    const currentYear = new Date().getFullYear();
+    const currentYear = new Date(dateFromInput.value).getFullYear();
     const fullDateString = `${selectedDate} ${currentYear}`;
     const dateObject = new Date(fullDateString);
     addBtn = button;

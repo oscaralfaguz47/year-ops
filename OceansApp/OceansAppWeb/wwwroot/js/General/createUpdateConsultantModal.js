@@ -42,7 +42,9 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                         displayToasterError(errorData.error);
                         hideModal(modalId);
                         getListOfResults(false, false);
-                        throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                        const error = new Error('The request to the server failed!. More details: ' + errorData.detail);
+                        error.status = response.status; 
+                        throw error;
                     });
                 }
             })
@@ -65,13 +67,15 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 createUpdateForm.find('[name="address"]').val(data.consultantData.address);
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
                 createUpdateForm.find('[name="idPaymentPeriod"]').val(data.consultantData.paymentPeriod);
-                otherConfigForm.find('[name="onCallParticiation"]').prop('checked', data.consultantData.participatesInOnCalls);
+                createUpdateForm.find('[name="workingModel"]').val(data.consultantData.workingModel);
                 holidaySelectCreateUpdate.value = data.consultantData.consultantHolidayId;
+                let startDateDateFormat = new Date(data.consultantData.startDate);
+                createUpdateForm.find('[name="startDate"]').val(startDateDateFormat.toISOString().split('T')[0]);
 
                 showModal(modalId);
             })
             .catch(error => {
-                validateSessionExpiration(error.message);
+                validateSessionExpiration(error.message, error.status);
             })
             .finally(() => {
                 hideSpinner();
@@ -104,11 +108,13 @@ async function createUpdateConsultant(modalId) {
     var companyIdData = createUpdateForm.find('[name="CompanyId"]').val();
     var paymentMethodIdData = Number(createUpdateForm.find('[name="idPaymentMethod"]').val()) || null;
     var paymentPeriodIdData = Number(createUpdateForm.find('[name="idPaymentPeriod"]').val()) || null;
+    var workingModelData = Number(createUpdateForm.find('[name="workingModel"]').val()) || null;
     var addressData = createUpdateForm.find('[name="address"]').val() || null;
     var personalEmailData = createUpdateForm.find('[name="personalEmail"]').val() || null;
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
-    var participatesOnCallData = otherConfigForm.find('[name="onCallParticiation"]').prop('checked');
+
+    const startDateInput = createUpdateForm.find('[name="startDate"]').val();
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
@@ -132,15 +138,16 @@ async function createUpdateConsultant(modalId) {
         CompanyId: companyIdData,
         PaymentMethodId: paymentMethodIdData,
         PaymentPeriod: paymentPeriodIdData,
-        ParticipatesInOnCalls: Boolean(participatesOnCallData),
         ConsultantHolidayId: holidaySelectCreateUpdate.value === '' || holidaySelectCreateUpdate.value === 'null' ? null : holidaySelectCreateUpdate.value,
         Address: addressData,
         PersonalEmail: personalEmailData,
         Location: locationData,
         UserRole: userRoleData,
-        Positions: positionsData
+        Positions: positionsData,
+        WorkingModel: workingModelData,
+        StartDate: startDateInput ? startDateInput.toString() : null
     };
-
+    console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {
         method: 'POST',
         headers: {
