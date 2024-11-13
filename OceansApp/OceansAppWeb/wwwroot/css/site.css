@@ -432,7 +432,6 @@ html {
 
 /*SHARED COMPONENTS*/
 
-/* Hide arrows for number type input for Chrome, Safari and Edge */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
