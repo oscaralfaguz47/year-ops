@@ -4,6 +4,7 @@ let successManagerSelectFilters = null;
 let successManagerSelect = document.getElementById('successManager');
 let activeInactiveRadioElement = null;
 $(document).ready(function () {
+    setAccountManagementItemActive();
     getListOfResults(true, false);
 });
 
@@ -50,30 +51,30 @@ async function getListOfResults(firstTime, filters) {
                     isActive = true;
                 }
                 var row = `<tr class="hover-group">
-                  <td>
-                  <i onclick="displayUpdateModal('modal-update-client', ${obj.clientId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                  <td><div class="first-colum-cont"> <img title="Edit" onclick="displayUpdateModal('modal-update-client', ${obj.clientId})" src="/icons/Shared/pensil-edit.svg" />
                       ${obj.name}
+                      </div>
                   </td>
-                  <td style="text-align:center"><label class="switch">
+                  <td style="text-align:center;"><div style="display:flex"><label class="switch">
                     <input onchange="activateDeactivate(this, ${obj.clientId}, '${obj.name}', ${isActive})" value="${obj.isActive}" ${isActive ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
-                    </label>
+                    </label></div>
                   </td>
                   <td>${obj.contact === null ? "" : obj.contact}</td>
                   <td>${obj.contactOccupation === null ? "" : obj.contactOccupation}</td>
                   <td>${obj.emails === null ? "" : obj.emails}</td>
-                  <td style="text-align:center"><label class="switch">
+                  <td style="text-align:center"><div style="display:flex; justify-content:center"><label class="switch">
                     <input onchange="activateDeactivateNotifications(this, ${obj.clientId}, '${obj.name}', ${obj.allowSentLatePaymentNotifications})" value="${obj.allowSentLatePaymentNotifications}" ${obj.allowSentLatePaymentNotifications ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
-                    </label>
+                    </label></div>
                   </td>
                   <td>${formattedDate}</td>
-                  <td>${obj.paymentCondition}</td>
+                  <td style="text-align:center">${obj.paymentCondition}</td>
                   <td>${clientClass === null ? "" : clientClass}</td>
                   <td>${obj.address === null ? "" : obj.address}</td>
                   <td>${obj.companyId}</td>
                   <td>${obj.successManager === null ? "" : obj.successManager}</td>
-                  <td>${(obj.latePaymentFee * 100)}%</td>
+                  <td style="text-align:center">${(obj.latePaymentFee * 100)}%</td>
                   <td>${obj.additionalEmailsForNotifications === null ? "" : obj.additionalEmailsForNotifications}</td>
               </tr>`;
 

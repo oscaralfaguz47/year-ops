@@ -1,4 +1,5 @@
 ﻿$(document).ready(function () {
+    setGeneralItemActive();
     getHolidaysList(true, false);
 });
 
@@ -59,11 +60,12 @@ async function getHolidaysList(firstTime, filters) {
 
         data.holidaysList.forEach(function (holiday) {
             const row = `<tr class="hover-group">
-                <td>
+                <td><div class="first-colum-cont">
+                 <img title="Edit" onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.consultantHolidayId})" src="/icons/Shared/pensil-edit.svg" />
                     <i onclick="deleteHolidaysList(${holiday.consultantHolidayId}, '${holiday.name}')" class='bi bi-trash3 table-icon delete-table-icon' title="Delete"></i>
-                    <i onclick="displayCreateUpdateModal('modal-create-holiday', 'UPDATE HOLIDAYS LIST', ${holiday.consultantHolidayId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
                     <span class="span-holiday-Name" onclick="displayCreateUpdateModal('modal-create-holiday', 'VIEW HOLIDAYS LIST', ${holiday.consultantHolidayId})" title="Click to see the Holidays">${holiday.name}</span>
-                </td>
+                </div>
+                    </td>
                 <td>${holiday.numHolidays}</td>
                 <td>${formatUtcToLocalMmDdYyyyTime(holiday.creationDate)}</td>
                 <td>${holiday.createdByName}</td>

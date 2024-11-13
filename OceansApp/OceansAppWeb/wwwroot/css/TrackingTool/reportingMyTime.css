@@ -199,10 +199,19 @@
         justify-content: center;
         align-items: center;
     }
-.loading-box-intern{
-    display:flex;
-    justify-content:center;
-    align-items:center;
+.select-period-cont {
+    display: flex;
+    justify-content: left;
+}
+@media (max-width: 768px) {
+    .select-period-cont {
+        justify-content: center;
+    }
+}
+.loading-box-intern {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .loading-box-intern div {
     display: flex;
@@ -233,7 +242,7 @@
     display: flex;
     justify-content:space-between;
     align-items:end;
-    margin-top: -10px;
+    margin-top: 5px;
 }
 .profile-image-wrapper {
     width: 63px;
@@ -279,7 +288,7 @@
     display: flex;
     justify-content:center;
     width: -webkit-fill-available;
-    margin-top: 30px;
+    margin-top: 12px;
 }
     .submit-report button {
         border: none;

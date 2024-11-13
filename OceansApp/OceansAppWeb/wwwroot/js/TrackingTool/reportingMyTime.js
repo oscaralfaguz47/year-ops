@@ -43,6 +43,7 @@ const errorMessageBox = getElementById('error-message-rep-time');
 const contentBox = getElementById('content-box');
 
 document.addEventListener('DOMContentLoaded', async function () {
+    setTimesheetItemActive();
     let dataLoaded = false;
     const dropdownHeader = document.querySelector('.dropdown-header');
     const dropdownList = document.querySelector('.dropdown-list');

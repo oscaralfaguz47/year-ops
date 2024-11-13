@@ -1,4 +1,5 @@
 ﻿$(document).ready(function () {
+    setAdminCenterItemActive();
     getListOfResults(true, false);
 });
 

@@ -107,13 +107,11 @@ h4{
     #calculatorForm h2 {
         font-weight: bold;
         color: var(--clr-blueLight);
-        font-family: 'Montserrat Black';
         margin: 0;
     }
     #calculatorForm h6 {
         font-weight: bold;
         color: var(--clr-blueLight);
-        font-family: 'Montserrat Black';
         margin: 0 0 0 38px;
     }
 .calculator-title{

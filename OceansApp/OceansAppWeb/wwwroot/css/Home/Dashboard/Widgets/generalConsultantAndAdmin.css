@@ -74,12 +74,12 @@
         justify-content: space-between;
         border-bottom: solid 2px var(--clr-grayLight);
         padding: 4px 0 0 0;
-        font-family: 'Montserrat', sans-serif;
     }
         #HolidaysCont .holiday-row .h-name{
             color: var(--clr-grayDark);
             font-weight: bold;
+            font-style: italic;
         }
         #HolidaysCont .holiday-row .h-date {
-            font-weight: bold;
+            font-weight: normal;
         }

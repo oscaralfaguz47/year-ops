@@ -35,7 +35,8 @@ namespace OceansApp.Utility.ConstantData.Claims
         {
             return user.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue) ||
                 user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType && c.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue) ||
-                user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue);
+                user.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue) ||
+                user.HasClaim(c => c.Type == FinancesClaimsCD.Financial_Calculator_ClaimType && c.Value == FinancesClaimsCD.Financial_Calculator_ClaimValue);
         }
         public static bool IsAuthorizedForRecruiting(this ClaimsPrincipal user)
         {

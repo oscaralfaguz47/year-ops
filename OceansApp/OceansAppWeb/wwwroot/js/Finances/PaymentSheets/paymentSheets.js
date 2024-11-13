@@ -7,6 +7,7 @@ let projectSelectFilters = null;
 let rightSidebarFiltersIsDiplayed = false;
 
 $(document).ready(function () {
+    setFinancesItemActive();
     let currentDateNoChange = new Date();
     paymentPeriod = 1;
     calculatePeriod(currentDateNoChange, paymentPeriod);

@@ -3,6 +3,8 @@
 }
 .cel-status{
     font-weight: bold;
+    display: flex;
+    align-items:center;
 }
 .rejected-label {
     color: #970f15;
@@ -34,5 +36,5 @@
     color: #d70b00;
 }
 .pending-review-label {
-    color: #2aa7ff;
+    color: var(--clr-blueLight);
 }

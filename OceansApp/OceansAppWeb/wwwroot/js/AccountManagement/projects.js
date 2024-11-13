@@ -10,6 +10,7 @@ const clientSelectCreateUpdate = document.getElementById('ClientSelect');
 const clientHasTrackingToolInput = document.getElementById("ClientHasTrackingTool");
 
 $(document).ready(function () {
+    setAccountManagementItemActive();
     getListOfResults(true, false);
     selectSuccessManagerByClientId(clientSelectCreateUpdate);
 });
@@ -47,21 +48,21 @@ async function getListOfResults(firstTime, filters) {
                     ('0' + startDate.getDate()).slice(-2) + '/' +
                     startDate.getFullYear();
                 var row = `<tr class="hover-group">
-                  <td>
-                  <i onclick="displayUpdateCreateProjectModal('modal-update-create-project', ${obj.projectId})" class='bi bi-pencil-square table-icon edit-table-icon' title="Edit"></i>
+                  <td><div class="first-colum-cont"><img title="Edit" onclick="displayUpdateCreateProjectModal('modal-update-create-project', ${obj.projectId})" src="/icons/Shared/pensil-edit.svg" />
                       ${obj.name}
+                      <div>
                   </td>
                   <td>${obj.clientName}</td>
                   <td>${formattedDate}</td>
-                  <td style="text-align:center"><label class="switch">
+                  <td style="text-align:center"><div style="display:flex; justify-content:center"><label class="switch">
                     <input onchange="activateDeactivateProject(this, ${obj.projectId}, '${obj.name}', ${obj.isActive})" value="${obj.isActive}" ${obj.isActive ? 'checked' : ''} type="checkbox">
                     <span class="slider round"></span>
-                    </label>
+                    </label></div>
                   </td>
                   <td>${obj.successManagerName === null ? "" : obj.successManagerName}</td>
                   <td><div class="assigned-consultants-div" id="conAssigned${count}"></div></td>
-                  <td class="tracking-tool-td">${obj.clientHasTrackingTool ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
-                  <td class="tracking-tool-td">${obj.isBillable ? '<i class="bi bi-check green-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="tracking-tool-td">${obj.clientHasTrackingTool ? '<i class="bi bi-check check-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
+                  <td class="tracking-tool-td">${obj.isBillable ? '<i class="bi bi-check check-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
                   <td>${obj.description === null ? "" : obj.description}</td>
               </tr>`;
                 tbody.append(row);

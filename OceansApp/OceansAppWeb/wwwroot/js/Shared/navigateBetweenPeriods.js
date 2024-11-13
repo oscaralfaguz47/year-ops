@@ -59,8 +59,8 @@ const calculatePeriod = async (date, mode, buttons) => {
         endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }
 
-    getElementById('previous-date').innerHTML = `<span> ${getMonthName(startDate.getMonth())} ${startDate.getDate()}</span>`;
-    getElementById('next-date').innerHTML = `<span>${getMonthName(endDate.getMonth())} ${endDate.getDate()}, (${startDate.getFullYear()})</span>`;
+    getElementById('previous-date').innerHTML = `<span class="month-date-lb"> ${getMonthName(startDate.getMonth()).slice(0, 3) } ${startDate.getDate()}</span>`;
+    getElementById('next-date').innerHTML = `<span class="month-date-lb">${getMonthName(endDate.getMonth()).slice(0, 3)} ${endDate.getDate()}</span><span>, (${startDate.getFullYear()})</span>`;
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
     await navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), buttons);

@@ -5,6 +5,7 @@ let transactionStatusSelectFilters = null;
 let benefitSelectFilters = null;
 
 $(document).ready(function () {
+    setGeneralItemActive();
     getListOfResults(true, false);
 });
 
