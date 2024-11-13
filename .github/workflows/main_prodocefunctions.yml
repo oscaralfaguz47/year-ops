@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy dotnet core app to Azure Function App - ProdOceFunctions
+name: Build and deploy dotnet core app to Azure Function App - ProductionOceFunctions
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'OceansApp/AzureFunctionsApp' # set this to the path to your web app project, defaults to the repository root
   DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
 
 jobs:
@@ -18,13 +18,14 @@ jobs:
     runs-on: windows-latest
     permissions:
       id-token: write #This is required for requesting the JWT
+      contents: read
 
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
       - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -38,15 +39,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_78714C0A0EFB48A0935A05AB0C474B2B }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8AA1B98ECF554D61B36B09D29026DC23 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3906D17E80764F2A95330C543AC4177A }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F8DBD03CF24B4E079B2A331C178625E5 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_ABFD61734980403DB5235EAB5E8558C5 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A7948D44A29B4BCB8D377F2CF2BFB84A }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: 'ProdOceFunctions'
+          app-name: 'ProductionOceFunctions'
           slot-name: 'Production'
           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
           
