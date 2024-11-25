@@ -16,8 +16,13 @@ using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using OceansAppWeb.Controllers;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 namespace OceansAppWeb.Account.Controllers
 {
@@ -135,13 +140,10 @@ namespace OceansAppWeb.Account.Controllers
         {
             try
             {
-                // Validate file input
+                // Initial file validations
                 ValidateInputs validateInputs = new();
-
                 validateInputs.ValidateRequiredFile("Photo", "Photo", file, ModelState);
-                validateInputs.ValidateValidFile("Photo", file, ModelState);
 
-                // Check if the ModelState has any errors after validations
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState
@@ -153,112 +155,219 @@ namespace OceansAppWeb.Account.Controllers
                     return BadRequest(new { errors = errors, messageType = "Validation Error" });
                 }
 
-                // Get the current user's ID
+                // Validate file MIME type and size
+                var validMimeTypes = new[] { "image/jpeg", "image/png", "image/svg+xml", "image/gif" };
+                if (!validMimeTypes.Contains(file.ContentType))
+                {
+                    return BadRequest(new { error = "Unsupported file type.", messageType = "Validation Error" });
+                }
+
+                if (file.Length == 0)
+                {
+                    return BadRequest(new { error = "File is empty.", messageType = "Validation Error" });
+                }
+
+                // Get user data
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null || userId.Length < 8)
+                {
+                    return BadRequest(new { error = "Invalid user ID.", messageType = "Validation Error" });
+                }
+
                 string containerId = "user-profile-photos";
                 string entityType = "UserProfile";
 
-                // Check if the file already exists in ImageBlob
-                ImageBlob fileAlreadyExists = await _unitOfWork.ApplicationUser.VerifyIfUploadedFileAsync(file, userId, containerId, entityType);
+                // Generate a unique hash for the file content
+                using var sha256 = SHA256.Create();
+                using var fileStream = file.OpenReadStream();
+                var hashBytes = await sha256.ComputeHashAsync(fileStream);
+                string fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 
-                if (fileAlreadyExists != null)
+                // Check if the file already exists based on its hash
+                ImageBlob existingBlob = await _unitOfWork.ImageBlob
+                    .GetFirstOrDefaultAsync(x => x.EntityId == userId && x.EntityType == entityType && x.BlobName.Contains(fileHash));
+                if (existingBlob != null)
                 {
                     return Ok(new
                     {
                         success = true,
                         message = "You changed your profile photo!",
-                        BlobUrl = fileAlreadyExists.BlobUrl
+                        BlobUrl = existingBlob.BlobUrl
                     });
                 }
 
-                // Prepare the file list for upload
-                List<IFormFile> fileList = new();
-                fileList.Add(file);
+                // Normalize the file name
+                string normalizedFileName = NormalizeFileName(file.FileName);
+                string uniqueFilename = $"{userId.Substring(0, 8)}_{fileHash}_{normalizedFileName}";
 
-                // Try uploading the file to Azure Blob Storage
-                List<BlobUploadResult> uploadedBlob;
+                // Handle SVG or GIF files
+                if (file.ContentType == "image/svg+xml" || file.ContentType == "image/gif")
+                {
+                    var specialFileList = new List<IFormFile> { file };
+
+                    // Upload the file directly to Azure
+                    var uploadedBlob = await _azureBlobRepository.Value.UploadFilesAsync(containerId, specialFileList, uniqueFilename, 10950);
+                    if (uploadedBlob == null || !uploadedBlob.Any() || !uploadedBlob[0].Success)
+                    {
+                        return BadRequest(new { error = "Failed to upload SVG or GIF file.", messageType = "Upload Error" });
+                    }
+
+                    // Save blob details and update claims
+                    ImageBlob imageToSave = new()
+                    {
+                        BlobName = uploadedBlob[0].FileName,
+                        ContainerName = uploadedBlob[0].ContainerId,
+                        BlobUrl = uploadedBlob[0].BlobUrl,
+                        CreationDate = DateTime.UtcNow,
+                        EntityId = userId,
+                        EntityType = "UserProfile"
+                    };
+
+                    await SaveBlobDetailsAndUpdateClaims(imageToSave, userId, containerId, entityType);
+                    return Ok(new { success = true, message = "You changed your profile photo!", BlobUrl = uploadedBlob[0].BlobUrl });
+                }
+
+                // Process raster images (JPEG/PNG)
+                IFormFile processedFile;
+                var memoryStream = new MemoryStream(); // Keep the MemoryStream open
+
                 try
                 {
-                    uploadedBlob = await _azureBlobRepository.Value.UploadFilesAsync(containerId, fileList, userId.Substring(0, 8), 10950);
-
-                    // If the upload was successful, proceed to save the blob details in the database
-                    if (uploadedBlob[0].Success)
+                    using (var inputStream = file.OpenReadStream())
                     {
-                        var oldImage = await _unitOfWork.ImageBlob
-    .GetFirstOrDefaultAsync(x => x.ContainerName == containerId && x.EntityId == userId && x.EntityType == entityType);
-
-                        ImageBlob imageToSave = new()
+                        using (var image = await Image.LoadAsync(inputStream)) // Load the image into memory
                         {
-                            BlobName = uploadedBlob[0].FileName,
-                            ContainerName = uploadedBlob[0].ContainerId,
-                            BlobUrl = uploadedBlob[0].BlobUrl,
-                            CreationDate = DateTime.UtcNow,
-                            EntityId = userId,
-                            EntityType = "UserProfile"
-                        };
-                        var transaction = await _unitOfWork.BeginTranAsync();
-                        await _unitOfWork.ImageBlob.AddAsync(imageToSave);
-                        await _unitOfWork.SaveAsync();
-
-                        //Delete image from Azure
-                        if (oldImage != null)
-                        {
-                            MethodResponse deleteResponse = await _azureBlobRepository.Value.DeleteBlobAsync(containerId, oldImage.BlobName);
-
-                            if (!deleteResponse.Success)
+                            image.Mutate(x => x.Resize(new ResizeOptions
                             {
-                                await transaction.RollbackAsync();
-                            }
-                            else
-                            {
-                                _unitOfWork.ImageBlob.Remove(oldImage);
-                                await _unitOfWork.SaveAsync();
-                                await transaction.CommitAsync();
-                            }
-                        }
-                        else
-                        {
-                            await transaction.CommitAsync();
-                        }
-                        var user = await _userManager.GetUserAsync(User);
-                        var currentUserClaims = await _userManager.GetClaimsAsync(user);
+                                Mode = ResizeMode.Max,
+                                Size = new Size(1024, 1024) // Max dimensions
+                            }));
 
-                        var existingProfileImageClaim = currentUserClaims.FirstOrDefault(c => c.Type == "ProfileImageUrl");
-                        if (existingProfileImageClaim != null)
-                        {
-                            await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
+                            var encoder = new JpegEncoder { Quality = 75 };
+                            await image.SaveAsJpegAsync(memoryStream, encoder); // Save the compressed image
+                            memoryStream.Position = 0; // Reset the stream position
                         }
-
-                        if (!string.IsNullOrEmpty(uploadedBlob[0].BlobUrl))
-                        {
-                            await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", uploadedBlob[0].BlobUrl));
-                        }
-
-                        await _signInManager.RefreshSignInAsync(user);
-
-                        return Ok(new
-                        {
-                            success = true,
-                            message = "You changed your profile photo!",
-                            BlobUrl = uploadedBlob[0].BlobUrl
-                        });
                     }
+
+                    processedFile = new FormFile(memoryStream, 0, memoryStream.Length, file.Name, uniqueFilename)
+                    {
+                        Headers = file.Headers,
+                        ContentType = "image/jpeg"
+                    };
                 }
                 catch (Exception ex)
                 {
-                    // Handle any errors during the upload or database save process
-                    return BadRequest(new { error = $"The image couldn't be uploaded or saved: {ex.Message}", messageType = "Exception Error" });
+                    memoryStream.Dispose(); // Clean up the MemoryStream if an error occurs
+                    return BadRequest(new { error = $"Failed to process the raster image: {ex.Message}", messageType = "Processing Error" });
+                }
+
+                // Upload the compressed image
+                try
+                {
+                    var fileList = new List<IFormFile> { processedFile };
+                    var uploadedBlobRaster = await _azureBlobRepository.Value.UploadFilesAsync(containerId, fileList, userId.Substring(0, 8), 10950);
+                    if (uploadedBlobRaster == null || !uploadedBlobRaster.Any() || !uploadedBlobRaster[0].Success)
+                    {
+                        return BadRequest(new { error = "Failed to upload raster image.", messageType = "Upload Error" });
+                    }
+
+                    ImageBlob imageToSaveRaster = new()
+                    {
+                        BlobName = uploadedBlobRaster[0].FileName,
+                        ContainerName = uploadedBlobRaster[0].ContainerId,
+                        BlobUrl = uploadedBlobRaster[0].BlobUrl,
+                        CreationDate = DateTime.UtcNow,
+                        EntityId = userId,
+                        EntityType = "UserProfile"
+                    };
+
+                    await SaveBlobDetailsAndUpdateClaims(imageToSaveRaster, userId, containerId, entityType);
+                    return Ok(new { success = true, message = "You changed your profile photo!", BlobUrl = uploadedBlobRaster[0].BlobUrl });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { error = $"Failed to upload the image to Azure: {ex.Message}", messageType = "Upload Error" });
+                }
+                finally
+                {
+                    memoryStream.Dispose(); // Ensure MemoryStream is disposed after use
                 }
             }
             catch (Exception ex)
             {
-                // Catch any unexpected errors during the process
-                return BadRequest(new { error = $"An error occurred: {ex.Message}", messageType = "Exception Error" });
+                return BadRequest(new { error = $"An unexpected error occurred: {ex.Message}", messageType = "Unexpected Error" });
+            }
+        }
+
+
+
+
+
+
+
+        // Helper method to normalize file names
+        private string NormalizeFileName(string fileName)
+        {
+            var fileExtension = Path.GetExtension(fileName); // Get the file extension
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName); // Get the file name without extension
+
+            // Replace invalid characters with underscores
+            fileNameWithoutExtension = Regex.Replace(fileNameWithoutExtension, @"[^a-zA-Z0-9_\-]", "_");
+
+            // Limit the file name length to avoid overly long names
+            if (fileNameWithoutExtension.Length > 100)
+            {
+                fileNameWithoutExtension = fileNameWithoutExtension.Substring(0, 100);
             }
 
-            // If we reach here, something went wrong
-            return BadRequest(new { error = "Something went wrong", messageType = "Unknown Error" });
+            return $"{fileNameWithoutExtension}{fileExtension}";
         }
+
+        // Helper method to save blob details and update claims
+        private async Task SaveBlobDetailsAndUpdateClaims(ImageBlob imageToSave, string userId, string containerId, string entityType)
+        {
+            var oldImage = await _unitOfWork.ImageBlob
+                .GetFirstOrDefaultAsync(x => x.ContainerName == containerId && x.EntityId == userId && x.EntityType == entityType);
+
+            var transaction = await _unitOfWork.BeginTranAsync();
+            await _unitOfWork.ImageBlob.AddAsync(imageToSave);
+            await _unitOfWork.SaveAsync();
+
+            // Delete the old profile photo from Azure
+            if (oldImage != null)
+            {
+                MethodResponse deleteResponse = await _azureBlobRepository.Value.DeleteBlobAsync(containerId, oldImage.BlobName);
+                if (!deleteResponse.Success)
+                {
+                    await transaction.RollbackAsync();
+                    return;
+                }
+
+                _unitOfWork.ImageBlob.Remove(oldImage);
+                await _unitOfWork.SaveAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            var user = await _userManager.GetUserAsync(User);
+            var currentUserClaims = await _userManager.GetClaimsAsync(user);
+
+            var existingProfileImageClaim = currentUserClaims.FirstOrDefault(c => c.Type == "ProfileImageUrl");
+            if (existingProfileImageClaim != null)
+            {
+                await _userManager.RemoveClaimAsync(user, existingProfileImageClaim);
+            }
+
+            if (!string.IsNullOrEmpty(imageToSave.BlobUrl))
+            {
+                await _userManager.AddClaimAsync(user, new Claim("ProfileImageUrl", imageToSave.BlobUrl));
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+        }
+
+
+
 
 
         [HttpGet]

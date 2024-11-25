@@ -9,6 +9,7 @@ using Azure;
 using Azure.Storage.Sas;
 using Azure.Storage;
 using OceansApp.Models.ViewModels.Components;
+using System.Text.RegularExpressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -34,7 +35,8 @@ namespace OceansApp.DataAccess.Repository
             {
                 CalculateContentHash calculateHash = new CalculateContentHash();
                 string contentHash = await calculateHash.CalculateContentHashAsync(file);
-                string uniqueFilename = $"{contentHash}{(elementId == null ? "": "_" + elementId)}_{file.FileName}";
+                string normalizedFileName = NormalizeFileName(file.FileName);
+                string uniqueFilename = $"{contentHash}{(elementId == null ? "": "_" + elementId)}_{normalizedFileName}";
                 var blobClient = containerClient.GetBlobClient(uniqueFilename);
 
                 var uploadResult = new BlobUploadResult
@@ -72,6 +74,28 @@ namespace OceansApp.DataAccess.Repository
             }
             return uploadResults;
         }
+
+        private string NormalizeFileName(string fileName)
+        {
+            // Get the file extension (e.g., ".png")
+            var fileExtension = Path.GetExtension(fileName);
+
+            // Get the file name without extension
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+            // Replace invalid characters with underscores
+            fileNameWithoutExtension = Regex.Replace(fileNameWithoutExtension, @"[^a-zA-Z0-9_\-]", "_");
+
+            // Limit the file name length to avoid overly long names (e.g., 100 characters max)
+            if (fileNameWithoutExtension.Length > 100)
+            {
+                fileNameWithoutExtension = fileNameWithoutExtension.Substring(0, 100);
+            }
+
+            // Rebuild the file name with the sanitized name and original extension
+            return $"{fileNameWithoutExtension}{fileExtension}";
+        }
+
 
         public string GenerateBlobSasUri(BlobContainerClient containerClient, string blobName, int validDays, string storedPolicyName = null)
         {
