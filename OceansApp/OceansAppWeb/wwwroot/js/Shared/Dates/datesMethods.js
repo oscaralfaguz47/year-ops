@@ -46,3 +46,78 @@ function formatDateMonthDateSuffix(date) {
     return `${month} ${day}${getDaySuffix(day)}`;
 }
 
+function getNormalizedDates(dateFromInputEl, dateToInputEl) {
+    if (!dateFromInputEl.value || !dateToInputEl.value) {
+        throw new Error("Date values ​​cannot be empty.");
+    }
+
+    const startDateParts = dateFromInputEl.value.split('/');
+    const endDateParts = dateToInputEl.value.split('/');
+
+    const startDateData = new Date(
+        Date.UTC(
+            parseInt(startDateParts[2]),
+            parseInt(startDateParts[0]) - 1, 
+            parseInt(startDateParts[1]) 
+        )
+    );
+
+    const endDateData = new Date(
+        Date.UTC(
+            parseInt(endDateParts[2]), 
+            parseInt(endDateParts[0]) - 1, 
+            parseInt(endDateParts[1]) 
+        )
+    );
+
+    return { startDate: startDateData.toISOString(), endDate: endDateData.toISOString() };
+}
+
+function getNormalizedOneDate(dateInputEl) {
+    if (!dateInputEl.value) {
+        throw new Error("Date value ​​cannot be empty.");
+    }
+
+    const dateParts = dateInputEl.value.split('/');
+
+    const dateData = new Date(
+        Date.UTC(
+            parseInt(dateParts[2]),
+            parseInt(dateParts[0]) - 1,
+            parseInt(dateParts[1])
+        )
+    );
+
+    return { normalizedDate: dateData.toISOString() };
+}
+function convertDateStringToMMDDYYYY(dateString) {
+    const date = new Date(dateString);
+
+    if (isNaN(date)) {
+        throw new Error("Invalid date string format");
+    }
+
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
+    const day = date.getDate().toString().padStart(2, '0'); 
+    const year = date.getFullYear(); 
+
+    return `${month}/${day}/${year}`;
+}
+
+function convertNormalizedDate(dateInputEl) {
+    if (!dateInputEl.value) {
+        throw new Error("Date value ​​cannot be empty.");
+    }
+
+    const dateParts = dateInputEl.value.split('/');
+
+    const dateData = new Date(
+        Date.UTC(
+            parseInt(dateParts[2]),
+            parseInt(dateParts[0]) - 1,
+            parseInt(dateParts[1])
+        )
+    );
+
+    return { normalizedDate: dateData };
+}

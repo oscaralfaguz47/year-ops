@@ -61,7 +61,6 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     htmlReportedTimeElement = htmlElement;
     const currentYear = new Date(dateFromInput.value).getFullYear();
     const fullDateString = `${selectedDate} ${currentYear}`;
-    const dateObject = new Date(fullDateString);
     addBtn = button;
     hideValidationMessage(validationMessageTimeZero);
     hideValidationMessage(validationMessageNotes);
@@ -74,7 +73,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
         modalTitle.textContent = selectedDate;
         timeFromInput.value = '08:00';
         timeToInput.value = '16:00';
-        actionDateInput.value = dateObject;
+        actionDateInput.value = convertDateStringToMMDDYYYY(fullDateString);
         showModal(modalId);
     } else {
         displaySpinner();
@@ -111,7 +110,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
                 modalTitle.textContent = formattedDate;
                 timeFromInput.value = data.movementData.timeFrom;
                 timeToInput.value = data.movementData.timeTo;
-                actionDateInput.value = data.movementData.actionDate;
+                actionDateInput.value = convertDateStringToMMDDYYYY(data.movementData.actionDate);
                 timeClassificationSelect.value = data.movementData.movementTypeName === 'Normal Hours' ? 'Normal Hours' : data.movementData.movementTypeId;
                 additionalNotesInput.value = data.movementData.notes;
                 showModal(modalId);
@@ -139,14 +138,14 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
 
     const otherBtns = ['btn-cancel', 'close-modal-x-btn'];
     disableButtonsWaitingForPostMethod('btn-saving', otherBtns, 'spinner-border')
-    let actionDateData = new Date(actionDateInput.value).toISOString();
+    const actionDateData = getNormalizedOneDate(actionDateInput);
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
     var data = {
         MovementId: movementIdInput.value === '' ? null : Number(movementIdInput.value),
         ProjectId: Number(projectIdInput.value),
-        ActionDate: actionDateData,
+        ActionDate: actionDateData.normalizedDate,
         Notes: additionalNotesInput.value,
         TimeFrom: timeFromInput.value,
         TimeTo: timeToInput.value,

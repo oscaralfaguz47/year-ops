@@ -443,8 +443,9 @@ function paginationSubmit(firstTime, filters) {
 function recolectDataFromForm(filters, firstTime) {
     {
         var searchText = $('#search-input').val();
-        let startDateData = new Date(dateFromInput.value).toISOString();
-        let endDateData = new Date(dateToInput.value).toISOString();
+        const datesFromTo = getNormalizedDates(dateFromInput, dateToInput);
+        let startDateData = datesFromTo.startDate;
+        let endDateData = datesFromTo.endDate;
 
         var filtersData = {
             SearchText: searchText,

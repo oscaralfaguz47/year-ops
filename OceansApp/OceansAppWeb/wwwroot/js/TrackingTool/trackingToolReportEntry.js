@@ -251,8 +251,8 @@ function createReuploadBtn(fileElement, statusLabel) {
 }
 async function createFirstMovementIfDoesNotExist() {
     const token = $('[name="__RequestVerificationToken"]').val();
-    const startActionDateData = new Date(dateFromInput.value).toISOString();
-    const actionDateData = new Date(dateToInput.value).toISOString();
+    const startActionDateData = getNormalizedOneDate(dateFromInput).normalizedDate;;
+    const actionDateData = getNormalizedOneDate(dateToInput).normalizedDate;;
     const formData = new FormData();
     formData.append('uploadFilesData.ProjectId', projectIdInput.value);
     formData.append('uploadFilesData.MovementId', movementIdNormalHoursInput.value);
@@ -289,8 +289,8 @@ async function createUpdateTimeEntry() {
     saveBtn.innerHTML = savingLabel;
 
     const token = $('[name="__RequestVerificationToken"]').val();
-    const actionDateData = new Date(dateToInput.value).toISOString();
-    const startActionDateData = new Date(dateFromInput.value).toISOString();
+    const actionDateData = getNormalizedOneDate(dateToInput).normalizedDate;;
+    const startActionDateData = getNormalizedOneDate(dateFromInput).normalizedDate;
     const formData = new FormData();
     const appendIfValid = (key, value) => {
         if (value) {

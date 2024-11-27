@@ -215,16 +215,17 @@ async function submitReportToBePaid() {
     try {
         displaySpinner();
 
-        let startDateData = new Date(dateFromInput.value).toISOString();
-        let endDateData = new Date(dateToInput.value).toISOString();
-
-        var token = $('[name="__RequestVerificationToken"]').val();
+        const datesFromTo = getNormalizedDates(dateFromInput, dateToInput);
+        let startDateData = datesFromTo.startDate;
+        let endDateData = datesFromTo.endDate;
 
         var data = {
             ProjectId: Number(projectIdInput.value),
-            StartPeriodDate: startDateData,
+            StartPeriodDate: startDateData, 
             EndPeriodDate: endDateData
         };
+
+        var token = $('[name="__RequestVerificationToken"]').val();
 
         const response = await fetch('/TrackingTool/ReportingMyTime/SubmitReport', {
             method: 'POST',
@@ -267,9 +268,9 @@ async function submitReportToBePaid() {
             await getProjectMovementsClientHasTrackTool();
         } else {
             const movements = await getTrackingToolProjectMovements();
-            let dateFrom = new Date(dateFromInput.value);
-            let dateTo = new Date(dateToInput.value);
-            generateDateList(formatDateYyyyMmDd(dateFrom), formatDateYyyyMmDd(dateTo), movements.movementsList);
+            let dateFrom = startDateData;
+            let dateTo = endDateData;
+            generateDateList(formatDateYyyyMmDd(convertNormalizedDate(dateFromInput).normalizedDate), formatDateYyyyMmDd(convertNormalizedDate(dateToInput).normalizedDate), movements.movementsList);
         }
 
         submissionError.innerHTML = '';

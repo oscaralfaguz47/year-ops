@@ -179,7 +179,7 @@ async function createUpdatePayment(modalId) {
         CompanyId: companyIdMP,
         BankAccountId: Number(bankAccountSelectMP.value)
     };
-
+    console.log(data);
     try {
         const response = await fetch('/Finances/PaymentSheets/CreateUpdatePayment', {
             method: 'POST',

@@ -418,7 +418,7 @@ namespace OceansApp.DataAccess.Repository
 
                 // Update transaction status if the balance becomes zero
                 var transactionStatuses = await _db.TRANSACTION_STATUSES.Where(x => x.Name == "Paid" || x.Name == "Rejected" || x.Name == "Sent to be paid").ToListAsync();
-                if (existingAccountPayable.BalanceAmount <= 0.0030m)
+                if (existingAccountPayable.BalanceAmount <= 0.10m)
                 {
                     existingAccountPayable.TransactionStatusId = transactionStatuses.FirstOrDefault(x => x.Name == "Paid").TransactionStatusId;
 
