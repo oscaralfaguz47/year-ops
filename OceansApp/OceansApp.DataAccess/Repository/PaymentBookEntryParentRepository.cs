@@ -51,7 +51,7 @@ namespace OceansApp.DataAccess.Repository
                                     Notes = bec.Notes,
                                     PaymentAmount = p.PaymentAmount,
                                     DocumentSubType = p.CompanyId == "OCE" ? 110 : 20,
-                                    EntryType = p.CompanyId == "OCE" ? "OCE" : "LLC",
+                                    EntryType = "CB",
                                     TaxCode = "ND"
                                 }).ToListAsync();
             return result;

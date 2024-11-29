@@ -159,7 +159,7 @@ async function exportAccountsPayableData(downloadButton, journalId, status) {
                 "Asiento": dataFromApi.journalAccountPayableData.entry,
                 "Paquete": dataFromApi.journalAccountPayableData.accountingPackage,
                 "Tipo Asiento": dataFromApi.journalAccountPayableData.entryType,
-                "Fecha": formatDateMmDdYyyy(dataFromApi.journalAccountPayableData.accountingDate),
+                "Fecha": cleanValue(formatDateMmDdYyyy(dataFromApi.journalAccountPayableData.accountingDate)),
                 "Contabilidad": dataFromApi.journalAccountPayableData.accounting
             }
         ];
@@ -168,17 +168,17 @@ async function exportAccountsPayableData(downloadButton, journalId, status) {
         dataFromApi.journalAccountPayableData.entriesList.forEach(function (obj, index) {
             let entryData =
             {
-                "Asiento": dataFromApi.journalAccountPayableData.entry,
-                "Consecutivo": index + 1,
-                "Nit": obj.nit,
-                "Centro De Costo": obj.costCenter,
-                "Cuenta Contable": obj.accountingAccount,
-                "Fuente": obj.source,
-                "Referencia": obj.reference,
-                "Débito Local": obj.debit === 0 ? '' : Number(obj.debit),
-                "Débito Dólar": obj.debit === 0 ? '' : Number(obj.debit),
-                    "Crédito Local": obj.credit === 0 ? '' : Number(obj.credit),
-                        "Crédito Dólar": obj.credit === 0 ? '' : Number(obj.credit)
+                "Asiento": cleanValue(dataFromApi.journalAccountPayableData.entry),
+                "Consecutivo": cleanValue(index + 1),
+                "Nit": cleanValue(obj.nit),
+                "Centro De Costo": cleanValue(obj.costCenter),
+                "Cuenta Contable": cleanValue(obj.accountingAccount),
+                "Fuente": cleanValue(obj.source),
+                "Referencia": cleanValue(obj.reference),
+                "Débito Local": obj.debit === 0 ? undefined : obj.debit,
+                "Débito Dólar": obj.debit === 0 ? undefined : obj.debit,
+                "Crédito Local": obj.credit === 0 ? undefined : obj.credit,
+                "Crédito Dólar": obj.credit === 0 ? undefined : obj.credit
             }
             entriesData.push(entryData);
         });
@@ -211,3 +211,4 @@ async function exportAccountsPayableData(downloadButton, journalId, status) {
         displayToasterError('Something went wrong, more details: ' + error);
     }
 }
+

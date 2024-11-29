@@ -19,3 +19,10 @@
 $(document).ready(function () {
    getJournalAccountsPayableList(true, false);
 });
+
+function cleanValue(value) {
+    if (typeof value === 'string') {
+        return value.trim();
+    }
+    return value;
+}

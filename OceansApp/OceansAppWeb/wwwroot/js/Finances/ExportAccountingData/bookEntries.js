@@ -144,17 +144,17 @@ async function exportBookEntriesData(downloadButton, parentId, status) {
         let dataToExportList = [];
         dataFromApi.bookEntriesData.forEach(function (obj, index) {
             let bookEntryMovement = {
-                "Cuenta Bancaria": obj.bankAccount,
-                "Fecha": formatDateMmDdYyyy(obj.accountingDate),
-                "Número": obj.referenceNumber,
-                "Concepto": obj.notes,
-                "Monto": obj.paymentAmount,
-                "Tipo Documento": obj.documentType,
-                "Subtipo Documento": obj.documentSubType,
-                "Fecha Contable": formatDateMmDdYyyy(obj.accountingDate),
-                "Tipo Asiento": obj.entryType,
-                "Paquete": obj.entryType,
-                "Cod Impuesto": obj.taxCode
+                "Cuenta Bancaria": cleanValue(obj.bankAccount),
+                "Fecha": cleanValue(formatDateMmDdYyyy(obj.accountingDate)),
+                "Número": cleanValue(obj.referenceNumber),
+                "Concepto": cleanValue(obj.notes),
+                "Monto": cleanValue(obj.paymentAmount),
+                "Tipo Documento": cleanValue(obj.documentType),
+                "Subtipo Documento": cleanValue(obj.documentSubType),
+                "Fecha Contable": cleanValue(formatDateMmDdYyyy(obj.accountingDate)),
+                "Tipo Asiento": cleanValue(obj.entryType),
+                "Paquete": cleanValue(obj.entryType),
+                "Cod Impuesto": cleanValue(obj.taxCode)
             };
 
             dataToExportList.push(bookEntryMovement);
