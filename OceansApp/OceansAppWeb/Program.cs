@@ -194,7 +194,7 @@ try
     // CORS configuration
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://oceansapp.azurewebsites.net/"));
+        options.AddPolicy("AllowSpecificOrigin", builder => builder.WithOrigins("https://www.ripple.oceanscode.com/"));
     });
 
     //Bonusly
