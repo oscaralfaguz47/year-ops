@@ -339,7 +339,7 @@ namespace OceansAppWeb.Areas.General.Controllers
         {
             var messageContent = JsonConvert.SerializeObject(emailToSend);
 
-            //await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
+            await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
         }
 
 
