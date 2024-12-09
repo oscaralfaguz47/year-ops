@@ -35,7 +35,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
         public async Task InitializeAsync()
         {
-            bool isThereNewMigrationToUpdate = true; // False if no migration updates in the DB are needed
+            bool isThereNewMigrationToUpdate = false; // False if no migration updates in the DB are needed
             if (isThereNewMigrationToUpdate)
             {
                 // Migrations if they are not applied
@@ -52,7 +52,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
             }
 
-            bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
+            bool createDefaultDataToDatabase = false; // False if no updates in the DB are needed
 
             if (createDefaultDataToDatabase)
             {

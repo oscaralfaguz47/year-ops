@@ -206,7 +206,9 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToSearchAllActiveConsultantsBySearchText", policy =>
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
-                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)));
+                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue) 
+                        || context.User.HasClaim(claim => claim.Type == InterviewsClaimsCD.Manage_Interviews_Page_ClaimType
+                        && claim.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue)));
             });
             services.AddAuthorization(options =>
             {
