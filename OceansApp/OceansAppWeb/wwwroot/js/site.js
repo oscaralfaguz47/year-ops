@@ -8,6 +8,29 @@ window.onload = function () {
     }
 }
 
+function copyToClipboard(inputId) {
+    const inputElement = document.getElementById(inputId);
+
+    if (inputElement) {
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.value = inputElement.value;
+        document.body.appendChild(tempTextarea);
+
+        // Select and copy the text
+        tempTextarea.select();
+        tempTextarea.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+
+        document.body.removeChild(tempTextarea);
+
+        displayToasterSuccess('Token copied to clipboard!');
+    } else {
+        alert('Element not found!');
+    }
+}
+
+
+
 function validateSessionExpiration(message, statusCode) {
     if (statusCode === undefined || statusCode === 501) {
         if (message.toString().includes('Unexpected token')) {

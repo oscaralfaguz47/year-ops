@@ -8,47 +8,55 @@
         <div class="sub-box">
             <div>
                 <h2>Please set up your two-factor authentication to continue with your account.</h2>
-                <p>
-                    Enter the code below into your Two-Factor Authentication app.
-                </p>
-                <p style="color: var(--clr-blueLight)">
-                    @Model.Token
-                </p>
-                <p>
-                    Or you can scan the QR code below with your mobile phone.
-                </p>
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div id="qr-Container">
-                            <div id="qrCode"></div>
+                <div>
+                    <p>
+                        Enter the code below into your Two-Factor Authentication app.
+                    </p>
+                    <p class="token-text">
+                        @Model.Token
+                    </p>
+                    <input type="hidden" id="hiddenToken" value="@Model.Token" />
+                   <div class="copy-btn-cont">
+                        <button class="copy-token-btn" onclick="copyToClipboard('hiddenToken')"><img src="/icons/Shared/copy-clipboard.svg">Copy Token</button>
+                   </div>
+                </div>
+               <div>
+                    <p>
+                        Or you can scan the QR code below with your mobile phone.
+                    </p>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div id="qr-Container">
+                                <div id="qrCode"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <form method="post">
+                                <input hidden asp-for="Token" />
+                                <div class="form-group">
+                                    <input hidden asp-for="QRCodeUrl" />
+                                    <label>Enter the Code displayed in your mobile application:</label>
+                                    <input type="text" placeholder="Code" class="form-control" asp-for="Code" />
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                    <br />
+                                </div>
+                                <button style="width:100%" type="submit" class="btn-primary-submit">Submit</button>
+                            </form>
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                         <form method="post">
-                    <input hidden asp-for="Token" />
-                    <div class="form-group">
-                        <input hidden asp-for="QRCodeUrl" />
-                        <label>Enter the Code displayed in your mobile application:</label>
-                        <input type="text" placeholder="Code" class="form-control" asp-for="Code" />
-                        <span asp-validation-for="Code" class="text-danger"></span>
-                        <br />
-                    </div>
-                    <button style="width:100%" type="submit" class="btn-primary-submit">Submit</button>
-                </form>
-                    </div>
-                </div>
+               </div>
             </div>
         </div>
     </div>
 </div>
 
-    @section Scripts{
+@section Scripts {
     @{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-<script src="~/js/qrcode.js"></script>
-<script type="text/javascript">
-     new QRCode(document.getElementById("qrCode"), "@Model.QRCodeUrl");
-    // new enableAuthenticatorStyles();
-</script>
-    }
+    <script src="~/js/qrcode.js"></script>
+    <script type="text/javascript">
+        new QRCode(document.getElementById("qrCode"), "@Model.QRCodeUrl");
+        // new enableAuthenticatorStyles();
+    </script>
+}

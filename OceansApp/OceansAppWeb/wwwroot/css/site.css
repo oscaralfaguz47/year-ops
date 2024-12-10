@@ -383,6 +383,7 @@ html {
         justify-content: center;
         align-items: center;
         border-radius: 25px;
+        margin:15px;
     }
 
         .custom-box .sub-box a {
@@ -391,7 +392,7 @@ html {
 
         .custom-box .sub-box h2 {
             font-weight: bold;
-            font-size: 30px;
+            font-size: 25px;
             color: var(--clr-blueLight);
             letter-spacing: 0.05em; 
             margin-bottom: 1px;
@@ -407,7 +408,7 @@ html {
         }
 
         .custom-box .sub-box p {
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .custom-box .sub-box .sub-title {
@@ -616,7 +617,7 @@ footer {
 
 @media only screen and (max-width: 767px) {
     .custom-box .sub-box {
-        padding: 40px;
+        padding: 25px;
     }
 
         .custom-box .sub-box h2 {

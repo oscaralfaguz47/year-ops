@@ -28,7 +28,7 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    max-height: 251px; 
+    max-height: 265px; 
     overflow: hidden; 
     padding: 20px;
 }

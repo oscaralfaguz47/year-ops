@@ -5,33 +5,37 @@
 
 <div class="text-center">
     <div class="custom-box">
-        <div class="sub-box">
-           <div>
+        <div class="sub-box verify-auth-box">
+            <div>
                 <h2 class="text-center">Authentication Code Verification</h2>
-            <form asp-controller="Account" asp-action="VerifyAuthenticatorCode" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" role="form">
-                <p>Please enter the code that is displayed in your mobile authentication application.</p>
-                <input asp-for="RememberMe" type="hidden" />
-                <hr />
-                <div class="form-group">
-                    <div class="">
-                        <input placeholder="Code" asp-for="Code" class="form-control" />
-                        <span asp-validation-for="Code" class="text-danger"></span>
+                <form asp-controller="Account" asp-action="VerifyAuthenticatorCode" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" role="form">
+                   <div>
+                    <p>To continue, verify your identity by entering the 6-digit code from your authenticator app.</p>
+                   </div>
+                    <input asp-for="RememberMe" type="hidden" />
+                    <hr />
+                    <div>
+                        <div class="form-group">
+                            <div class="">
+                                <label>6-digit authenticator code</label>
+                                <input placeholder="000000" asp-for="Code" class="form-control" />
+                                <span asp-validation-for="Code" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group verify-btn-cont">
+                            <div class="">
+                                <button type="submit" class="btn-primary-submit">Submit</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group text-left">
-                    <br />
-                    <div class="">
-                        <button type="submit" class="btn-primary-submit">Submit</button>
-                    </div>
-                </div>
-            </form>
-           </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-@section Scripts{
+@section Scripts {
     @{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
- }
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

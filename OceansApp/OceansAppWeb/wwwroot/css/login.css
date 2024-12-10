@@ -43,3 +43,47 @@ body {
 #qrCode img{
     width: 120px !important;
 }
+.token-text {
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
+    word-break: break-all; 
+    white-space: normal;
+    max-width: 100%; 
+    overflow: hidden;
+    color: var(--clr-blueLight);
+    margin-bottom: 5px;
+}
+.copy-btn-cont{
+    display:flex;
+    justify-content:center;
+}
+.copy-token-btn {
+    border: none;
+    padding: 4px 8px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    font-weight: bold;
+    background-color: var(--clr-yellow);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.copy-token-btn:hover {
+    opacity: 0.8;
+}
+.copy-token-btn img{
+    margin-right: 2px;
+}
+.verify-auth-box{
+    width:540px;
+}
+.verify-btn-cont {
+    text-align: center;
+    margin-top: 10px;
+}
+.verify-btn-cont button:hover {
+   opacity: 0.8;
+}
