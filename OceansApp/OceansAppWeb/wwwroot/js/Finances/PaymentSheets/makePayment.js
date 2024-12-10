@@ -115,6 +115,7 @@ async function changePaymentMethod(select) {
         currentPaymentMethodId = select.value;
         companyNameDiv.textContent = dataFromApi.companyId === 'OCE' ? 'Oceans Consulting Firm' : 'OCE LLC';
         companyIdMP = dataFromApi.companyId;
+        await getBankAccounts(currentPaymentMethodId);
         hideSpinner();
         return dataFromApi;
     }
