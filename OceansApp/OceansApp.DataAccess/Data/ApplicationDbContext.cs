@@ -372,6 +372,9 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ConsultantReimbursedBenefit>(entity =>
             {
                 entity.HasIndex(e => new { e.ConsultantId, e.TransactionStatusId, e.BenefitId });
+                entity.HasIndex(e => new { e.ConsultantId, e.DateToBeReimbursed })
+      .IncludeProperties(e => new { e.TransactionStatusId, e.BenefitId, e.BenefitCategoryId, e.AmountReimbursed });
+
 
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.BenefitId);
