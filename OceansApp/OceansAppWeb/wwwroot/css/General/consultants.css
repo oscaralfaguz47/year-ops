@@ -2,8 +2,19 @@
     padding-inline: 8px;
     padding-top: 80px;
 }
-.location-cont
-{
+.profile-img-cont {
+    display: inline;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+    .profile-img-cont img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        margin-right: 3px;
+        object-fit: cover;
+    }
+.location-cont {
     display: flex;
     align-items: center;
 }

@@ -22,6 +22,7 @@ namespace OceansApp.Models.ViewModels.Consultants
         public string UserCategoryName { get; set; }
         public string? ConsultantPositions { get; set; }
         public string? ConsultantProjects { get; set; }
+        public string? ProfileImgUrl { get; set; }
 
     }
 }

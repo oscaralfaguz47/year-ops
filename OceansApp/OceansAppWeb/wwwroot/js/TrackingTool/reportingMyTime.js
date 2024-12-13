@@ -12,6 +12,7 @@ let selectedProjectName = '';
 const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-project-sec');
 const totalHoursLabelEl = getElementById('total-hours-label');
 const loadingBoxIntern = getElementById('loading-box-intern');
+let participatesInOnCalls = false;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -122,6 +123,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
+        participatesInOnCalls = statusInfo.participatesInOnCalls;
         contentBox.style.display = 'block';
 
         if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
@@ -265,7 +267,7 @@ async function submitReportToBePaid() {
         const dataFromApi = await response.json();
         displayToasterSuccess(dataFromApi.message);
         if (clientHasTrackingToolValue) {
-            await getProjectMovementsClientHasTrackTool();
+            await getProjectMovementsClientHasTrackTool(participatesInOnCalls);
         } else {
             const movements = await getTrackingToolProjectMovements();
             let dateFrom = startDateData;

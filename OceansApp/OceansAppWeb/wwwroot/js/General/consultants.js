@@ -68,7 +68,7 @@ async function getListOfResults(firstTime, filters) {
                              ${activateDeactivateTwoFactorBtn}
                            </ul>
                          </div>
-                      ${obj.consultantName}
+                      <div class="profile-img-cont"><img src="${obj.profileImgUrl === null ? '/icons/shared/profile-user.svg' : obj.profileImgUrl}"></div> ${obj.consultantName}
                   </td>
                   <td class="shared-table-td">${obj.isActive ? '<span class="check-label">Active</span>' : '<span class="red-label">Inactive</span>'}</td>
                   <td class="shared-table-td">${obj.twoFactorEnabled ? '<i class="bi bi-check check-label"></i>' : '<i class="bi bi-x red-label"></i>'}</td>
