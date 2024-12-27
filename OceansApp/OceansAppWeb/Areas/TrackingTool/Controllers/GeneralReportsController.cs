@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Utility.SharedMethods.InputValidations;
-using System.Security.Claims;
-using System.Threading;
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
 {
