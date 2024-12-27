@@ -63,7 +63,6 @@
                                                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><img src="/icons/Shared/Navbar/timesheet-white.svg" /> Timesheet</a>
                                                 <div class="dropdown-menu">
                                                     <a id="manage" class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index">Report My Time</a>
-                                                    <a id="manage" class="nav-link" asp-area="General" asp-controller="Consultants" asp-action="Index">My Reports History</a>
                                                     @if (User.HasClaim(c => c.Type == TrackingToolClaimsCD.General_Reports_ClaimType && c.Value == TrackingToolClaimsCD.General_Reports_ClaimValue))
                                                     {
                                                         <a id="manage" class="nav-link" asp-area="TrackingTool" asp-controller="GeneralReports" asp-action="Index">General Reports</a>

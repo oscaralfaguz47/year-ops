@@ -7,6 +7,20 @@ let resultsToPrint = [];
 const startDateFilterInput = getElementById('start-date');
 const endDateFilterInput = getElementById('end-date');
 const movementTypeFilterInput = getElementById('movement-type');
+
+const errorMessageContainer = document.createElement('div'); 
+
+getElementById('validations-container').appendChild(errorMessageContainer);
+
+// Function to validate date format (YYYY-MM-DD)
+function isValidDate(dateString) {
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/; // Regex for YYYY-MM-DD
+    if (!datePattern.test(dateString)) return false;
+
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date);
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     setTimesheetItemActive();
     var filterOptions = await getFilterOptions();
@@ -98,6 +112,27 @@ const updateSelectedCount = (containerId) => {
 
 
 document.getElementById("apply-filters").addEventListener("click", async () => {
+    errorMessageContainer.innerHTML = ""; // Clear previous error messages
+
+    // Validate dates
+    const startDateValueR = startDateFilterInput.value;
+    const endDateValueR = endDateFilterInput.value;
+
+    // Validate date format
+    if (!isValidDate(startDateValueR) || !isValidDate(endDateValueR)) {
+        errorMessageContainer.innerHTML = "Please enter valid dates in both Start Date and End Date (DD-MM-YYYY).";
+        return;
+    }
+
+    const startDate = new Date(startDateValueR);
+    const endDate = new Date(endDateValueR);
+
+    // Validate Start Date is not greater than End Date
+    if (startDate > endDate) {
+        errorMessageContainer.innerHTML = "Start Date cannot be greater than End Date.";
+        return;
+    }
+
     noResultsMessage.style.display = 'none';
     resultsSection.innerHTML = '<div style="display:flex;justify-content:center;"><div class="filter-spinner"></div><div>';
     const getCheckedValues = (containerId) =>
@@ -123,7 +158,7 @@ document.getElementById("apply-filters").addEventListener("click", async () => {
     const movementTypeValue = encodeURIComponent(filters.movementType);
 
     const url = `/TrackingTool/GeneralReports/GetGeneralReport?` +
-        `startDate=${startDateValue}&endDate=${endDateValue}` +
+        `startDate=${startDateValueR}&endDate=${endDateValueR}` +
         `&movementType=${movementTypeValue}` +
         `${filters.clients.length ? `&${buildQueryParam("clients", filters.clients)}` : ""}` +
         `${filters.projects.length ? `&${buildQueryParam("projects", filters.projects)}` : ""}` +
@@ -300,25 +335,42 @@ function generatePDF(data) {
     const pdf = new jsPDF();
     let yPosition = 20;
 
-    // Path to the logo image
     const logoPath = "/img/logo-color.png";
 
-    // Add the logo to the header
+    const startDateFilterInput = document.getElementById("start-date");
+    const endDateFilterInput = document.getElementById("end-date");
+    const startDateValue = startDateFilterInput?.value || "N/A";
+    const endDateValue = endDateFilterInput?.value || "N/A";
+
+    const startDate = formatDate(startDateValue);
+    const endDate = formatDate(endDateValue);
+
+    function formatDate(date) {
+        const [year, month, day] = date.split("-");
+        return `${month}/${day}/${year}`;
+    }
+
+    // Add logo to header
     const img = new Image();
     img.src = logoPath;
     img.onload = () => {
-        pdf.addImage(img, "PNG", 10, 10, 40, 20); // Set image size (20x20)
-        yPosition = 35; // Move below the image
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(16); // Title font size
-        pdf.text("HOURS REPORT", 105, yPosition, { align: "center" }); // Centered title
-        yPosition += 10; // Add space below the title
+        pdf.addImage(img, "PNG", 10, 10, 40, 20); // Logo size (40x20)
+        yPosition = 35; // Position after the logo
 
-        // Generate the PDF content
+        // Título principal
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(16);
+        pdf.text("HOURS REPORT", 105, yPosition, { align: "center" });
+        yPosition += 6; 
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.text(`From: ${startDate} to: ${endDate}`, 105, yPosition, { align: "center" });
+        yPosition += 10;
+
         generateContent(pdf, data, yPosition);
 
-        // Save the PDF
-        pdf.save("Oceans_Code_Experts_Hours_Report.pdf");
+        pdf.save(`Hours_Report_From_${startDate}_To_${endDate}.pdf`);
     };
 }
 
@@ -354,7 +406,8 @@ function generateContent(pdf, data, yPosition) {
         // Client name title
         pdf.setFontSize(14); // Slightly smaller font
         pdf.setFont("helvetica", "bold");
-        pdf.text(clientName, 10, yPosition);
+        pdf.setTextColor("#34495e"); // Client Name color
+        pdf.text(clientName, 105, yPosition, { align: "center" });
         yPosition += 8;
 
         for (const consultantName in groupedData[clientName]) {
@@ -365,13 +418,15 @@ function generateContent(pdf, data, yPosition) {
 
             // Consultant name
             pdf.setFontSize(12);
-            pdf.setFont("helvetica", "normal");
+            pdf.setFont("helvetica", "bold"); // Bold Consultant Name
+            pdf.setTextColor("#058993"); // Consultant Name color
             pdf.text(consultantName, 10, yPosition);
             yPosition += 8;
 
             // Table headers
             pdf.setFontSize(10); // Smaller headers
             pdf.setFont("helvetica", "bold");
+            pdf.setTextColor(0); // Default black for table headers
             pdf.text("Action Date", 10, yPosition);
             pdf.text("Project Name", 10 + columnWidths.actionDate, yPosition);
             pdf.text("Quantity", 10 + columnWidths.actionDate + columnWidths.projectName + columnWidths.quantity / 2, yPosition, { align: "center" });
@@ -389,6 +444,7 @@ function generateContent(pdf, data, yPosition) {
 
             pdf.setFont("helvetica", "normal");
             pdf.setFontSize(9); // Smaller font for records
+            pdf.setTextColor(0); // Default black for records
 
             records.forEach((record) => {
                 const actionDate = new Date(record.actionDate).toLocaleDateString();
@@ -404,12 +460,28 @@ function generateContent(pdf, data, yPosition) {
                 pdf.text(actionDate, 10, yPosition);
                 pdf.text(projectName, 10 + columnWidths.actionDate, yPosition);
                 pdf.text(quantity, 10 + columnWidths.actionDate + columnWidths.projectName + columnWidths.quantity / 2, yPosition, { align: "center" });
+
+                // Conditional color for Movement Type
+                if (record.movementType.includes("Time Off")) {
+                    pdf.setTextColor("#dc3545"); // Red color for "Time Off"
+                } else {
+                    pdf.setTextColor(0); // Default black
+                }
                 movementType.forEach((line, index) => {
                     pdf.text(line, 10 + columnWidths.actionDate + columnWidths.projectName + columnWidths.quantity, yPosition + index * 5);
                 });
+
+                // Notes
+                pdf.setTextColor(0); // Reset text color
                 notes.forEach((line, index) => {
                     pdf.text(line, 10 + columnWidths.actionDate + columnWidths.projectName + columnWidths.quantity + columnWidths.movementType, yPosition + index * 5);
                 });
+
+                // Add a thin gray line below each record
+                yPosition += rowHeight;
+                pdf.setDrawColor(220); // Light gray
+                pdf.line(10, yPosition, 200, yPosition); // Line below record
+                yPosition += 4;
 
                 // Update MovementType totals
                 if (!quantitySums[movementType[0]]) {
@@ -417,25 +489,22 @@ function generateContent(pdf, data, yPosition) {
                 }
                 quantitySums[movementType[0]] += record.quantity;
 
-                // Increment the yPosition by the height of the row
-                yPosition += rowHeight;
                 if (yPosition > 270) {
                     pdf.addPage();
                     yPosition = 20;
                 }
             });
 
-            yPosition += 4;
-            pdf.setDrawColor(220);
-            pdf.line(10, yPosition, 200, yPosition); // Line after the table
-            yPosition += 4;
-
-            // Summary section
+            // Summary Section
             pdf.setFont("helvetica", "bold");
-            pdf.text("Summary:", 10, yPosition);
+            pdf.setTextColor("#01c0b7"); // Summary title color
+            pdf.setFontSize(12);
+            pdf.text("Total Summary:", 10, yPosition);
             yPosition += 6;
 
-            pdf.setFont("helvetica", "normal");
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(10);
+            pdf.setTextColor(0); // Default black for summary content
             for (const movementType in quantitySums) {
                 const cleanedType = movementType.replace("(Non-payable)", "").trim();
                 pdf.text(`- ${cleanedType}: ${quantitySums[movementType]}`, 15, yPosition);
@@ -446,6 +515,10 @@ function generateContent(pdf, data, yPosition) {
                 }
             }
 
+            // Add a thin cyan line after Summary
+            yPosition += 4;
+            pdf.setDrawColor("#01c0b7");
+            pdf.line(10, yPosition, 200, yPosition); // Cyan line only for Summary
             yPosition += 8;
         }
     }
@@ -455,6 +528,11 @@ function generateContent(pdf, data, yPosition) {
     pdf.setFont("helvetica", "italic");
     pdf.text("Document generated by Oceans from Ripple By Oceans", 105, 290, { align: "center" });
 }
+
+
+
+
+
 
 
 
