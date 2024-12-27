@@ -330,7 +330,18 @@ namespace OceansApp.DataAccess.Repository
 
             }
         }
-
+        public async Task<List<GetDataForSelectVM>> GetAllConsultantsWithActiveInactiveAsync()
+        {
+            var consultants = await (from c in _db.CONSULTANT_DETAILS
+                                join u in _db.AspNetUsers on c.UserId equals u.Id
+                                select new GetDataForSelectVM
+                                {
+                                    Text = $"{u.Name} {u.LastName} ({(u.IsActive ? "Active" : "Inactive")})",
+                                    Value = c.ConsultantId
+                                }).ToListAsync();
+           
+            return consultants;
+        }
 
         //PAYMENT SHEETS
         public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(

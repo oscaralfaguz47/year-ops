@@ -7,6 +7,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
+using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.Blobs;
 using System.Data;
@@ -546,6 +547,64 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
+
+        // REPORTS
+        public async Task<List<GlobalHoursReport>> GetGlobalMovementsWithFiltersAsync(
+    DateTime startDate,
+    DateTime endDate,
+    int? movementTypeId,
+    IEnumerable<int>? projectIds,
+    IEnumerable<int>? clientIds,
+    IEnumerable<int>? consultantIds)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var projectIdsTable = new DataTable();
+            projectIdsTable.Columns.Add("Id", typeof(int));
+            if (projectIds != null)
+            {
+                foreach (var id in projectIds)
+                {
+                    projectIdsTable.Rows.Add(id);
+                }
+            }
+
+            var clientIdsTable = new DataTable();
+            clientIdsTable.Columns.Add("Id", typeof(int));
+            if (clientIds != null)
+            {
+                foreach (var id in clientIds)
+                {
+                    clientIdsTable.Rows.Add(id);
+                }
+            }
+
+            var consultantIdsTable = new DataTable();
+            consultantIdsTable.Columns.Add("Id", typeof(int));
+            if (consultantIds != null)
+            {
+                foreach (var id in consultantIds)
+                {
+                    consultantIdsTable.Rows.Add(id);
+                }
+            }
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectIds", projectIdsTable.AsTableValuedParameter("IntTableType"));
+            parameters.Add("@ClientIds", clientIdsTable.AsTableValuedParameter("IntTableType"));
+            parameters.Add("@ConsultantIds", consultantIdsTable.AsTableValuedParameter("IntTableType"));
+            parameters.Add("@StartDate", startDate, DbType.Date);
+            parameters.Add("@EndDate", endDate, DbType.Date);
+            parameters.Add("@MovementTypeId", movementTypeId, DbType.Int32);
+
+            var results = await connection.QueryAsync<GlobalHoursReport>(
+                "addSP_REPORTING_MY_TIME_MOVEMENTS_GetGlobalHoursReportWithFilters", 
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return results.ToList();
+        }
+
 
         // SHARED STATIC METHODS
         static (DateTime StartDate, DateTime EndDate) CalculatePaymentPeriodDates(DateTime actionDate, int paymentPeriod)

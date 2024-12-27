@@ -170,6 +170,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("BasicAccessToReportingMyTime", policy =>
                     policy.RequireClaim(TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType, TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToGeneralReports", policy =>
+                    policy.RequireClaim(TrackingToolClaimsCD.General_Reports_ClaimType, TrackingToolClaimsCD.General_Reports_ClaimValue));
+            });
             //INTERVIEWS
             services.AddAuthorization(options =>
             {

@@ -3,6 +3,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
+using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
 using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -36,5 +37,12 @@ namespace OceansApp.DataAccess.Repository.IRepository
             ConsultantDetail? consultant, int? projectId);
         Task<List<GetApprovedMovementsWhereConsultantVM>> GetApprovedMovementsWhereConsultant(int consultantId,
             int projectId, DateTime startDate, DateTime endDate);
+        Task<List<GlobalHoursReport>> GetGlobalMovementsWithFiltersAsync(
+    DateTime startDate,
+    DateTime endDate,
+    int? movementTypeId,
+    IEnumerable<int>? projectIds,
+    IEnumerable<int>? clientIds,
+    IEnumerable<int>? consultantIds);
     }
 }

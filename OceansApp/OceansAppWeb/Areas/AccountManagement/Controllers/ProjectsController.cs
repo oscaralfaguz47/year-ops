@@ -395,24 +395,33 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateDeactivateProject([FromForm] int projectId)
         {
-            try
+            using (var transaction = await _unitOfWork.BeginTranAsync())
             {
-                var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
-                if (project == null)
+                try
                 {
-                    return BadRequest(new { error = "The Project no longer exist in the database.", MessageType = "No Exists Error" });
-                }
-                project.IsActive = project.IsActive ? false : true;
-                await _unitOfWork.SaveAsync();
-                var successMessage = "The project " + project.Name + " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
+                    var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
+                    if (project == null)
+                    {
+                        return BadRequest(new { error = "The Project no longer exist in the database.", MessageType = "No Exists Error" });
+                    }
 
-                return Ok(new { success = true, message = successMessage });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = $"There was an error in the server, the project could not be updated.", detail = ex.Message });
+                    project.IsActive = project.IsActive ? false : true;
+
+                    await _unitOfWork.SaveAsync(); 
+
+                    await transaction.CommitAsync(); 
+
+                    var successMessage = "The project " + project.Name + " was " + (project.IsActive ? "Activated" : "Deactivated") + " successfully!";
+                    return Ok(new { success = true, message = successMessage });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(); 
+                    return BadRequest(new { error = $"There was an error in the server, the project could not be updated.", detail = ex.Message });
+                }
             }
         }
+
 
         [Authorize(Policy = "AccessToProjectsPage")]
         [HttpGet("GetProjectConsultantAssignedHistoryById")]

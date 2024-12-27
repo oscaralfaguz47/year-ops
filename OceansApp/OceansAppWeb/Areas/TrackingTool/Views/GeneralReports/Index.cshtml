@@ -1,0 +1,71 @@
+﻿<link rel="stylesheet" href="~/css/TrackingTool/GeneralReports/generalReports.css?v=@DateTime.Now.Ticks" />
+
+<div class="box-container" id="filters-section">
+    <div class="first-filters-group">
+        <div>
+            <label class="filter-label">Start Date</label>
+            <input type="date" id="start-date">
+        </div>
+        <div>
+            <label class="filter-label">End Date</label>
+            <input type="date" id="end-date">
+        </div>
+        <div class="movement-group">
+            <div>
+                <label class="filter-label">Hours Type</label>
+                <select id="movement-type">
+                    <option value="">-- All types --</option>
+                    <option value="1">Normal Hours (Payable)</option>
+                    <option value="2">On Call Flate Rate</option>
+                    <option value="3">On Call Time Worked</option>
+                    <option value="4">Time Off (Non-payable)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-row">
+        <!-- Clients -->
+        <div class="filter-group">
+            <label class="filter-label">Clients</label>
+            <input type="text" class="search-input" id="search-clients" placeholder="Search clients...">
+            <div class="checkbox-container" id="client-filters"></div>
+            <p class="selected-count" id="client-selected-count">No selected options</p>
+        </div>
+
+        <!-- Projects -->
+        <div class="filter-group">
+            <label class="filter-label">Projects</label>
+            <input type="text" class="search-input" id="search-projects" placeholder="Search projects...">
+            <div class="checkbox-container" id="project-filters"></div>
+            <p class="selected-count" id="project-selected-count">No selected options</p>
+        </div>
+
+        <!-- Consultants -->
+        <div class="filter-group">
+            <label class="filter-label">Consultants</label>
+            <input type="text" class="search-input" id="search-consultants" placeholder="Search consultants...">
+            <div class="checkbox-container" id="consultant-filters"></div>
+            <p class="selected-count" id="consultant-selected-count">No selected options</p>
+        </div>
+    </div>
+    <div class="filter-buttons">
+        <button id="apply-filters">Search</button>
+    </div>
+</div>
+
+<div class="box-container" id="results-section">
+    <div id="no-results-message">
+        <label>Select filters and click on the Search button</label>
+    </div>
+</div>
+
+<div id="filters-spinner">
+    <div>
+        <div class="filter-spinner"></div>
+    </div>
+</div>
+
+
+
+<script src="~/js/TrackingTool/GeneralReports/generalReports.js?v=@DateTime.Now.Ticks"></script>

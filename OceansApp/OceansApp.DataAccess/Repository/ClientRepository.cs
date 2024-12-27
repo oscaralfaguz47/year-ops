@@ -59,6 +59,25 @@ namespace OceansApp.DataAccess.Repository
             }
             return clientsList;
         }
+        public async Task<List<GetDataForSelectVM>> GetAllClientsWithActiveInactiveAsync()
+        {
+            var results = await _db.CLIENT
+                .Where(x => x.ClientCategory == "EXT" && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && 
+                x.ClientCode != "OCE_C0030" && x.ClientCode != "OCELL_C0001")
+                .OrderBy(x => x.Name).ToListAsync();
+            List<GetDataForSelectVM> clientsList = new List<GetDataForSelectVM>();
+
+            foreach (var client in results)
+            {
+                GetDataForSelectVM clientToAdd = new GetDataForSelectVM()
+                {
+                    Text = $"{client.Name} ({(client.IsActive == "S" ? "Active" : "Inactive")})",
+                    Value = client.ClientId
+                };
+                clientsList.Add(clientToAdd);
+            }
+            return clientsList;
+        }
 
         public async Task<List<GetDataForSelectVM>> GetAllActiveClientsForSelectAsync()
         {

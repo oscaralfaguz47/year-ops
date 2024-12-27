@@ -154,6 +154,23 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<GetDataForSelectVM>> GetAllProjectsWithActiveInactiveAsync()
+        {
+            var results = await _db.PROJECTS.OrderBy(x => x.Name).ToListAsync();
+            List<GetDataForSelectVM> projectsList = new List<GetDataForSelectVM>();
+
+            foreach (var project in results)
+            {
+                GetDataForSelectVM projectToAdd = new GetDataForSelectVM()
+                {
+                    Text = $"{project.Name} ({(project.IsActive ? "Active" : "Inactive")})",
+                    Value = project.ProjectId
+                };
+                projectsList.Add(projectToAdd);
+            }
+            return projectsList;
+        }
+
         public async Task<MethodResponse> AddUpdateConsultantInProjet(CreateUpdateProjectConsultantHistoryVM consultantAssignationData)
         {
             try

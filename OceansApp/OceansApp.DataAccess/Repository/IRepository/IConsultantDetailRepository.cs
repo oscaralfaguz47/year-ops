@@ -15,6 +15,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> CreateConsultant(string createdUserId, string userIdCreatedBy, CreateUpdateConsultantVM consultantData);
         Task<MethodResponse> UpdateUserConsultant(string userActionedBy, CreateUpdateConsultantVM consultantData, bool isAuthForManageAdminUsers);
         Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId);
+        Task<List<GetDataForSelectVM>> GetAllConsultantsWithActiveInactiveAsync();
 
         Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
             PaymentSheetsPaginationFiltersVM filtersAndPagination);

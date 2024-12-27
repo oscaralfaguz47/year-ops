@@ -12,6 +12,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> CreateProject(CreateUpdateProjectVM projectData);
         Task<MethodResponse> UpdateProject(CreateUpdateProjectVM projectData);
         Task<MethodResponse> AddUpdateConsultantInProjet(CreateUpdateProjectConsultantHistoryVM consultantAssignationData);
+        Task<List<GetDataForSelectVM>> GetAllProjectsWithActiveInactiveAsync();
 
     }
 }

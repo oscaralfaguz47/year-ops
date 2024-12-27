@@ -57,10 +57,18 @@
                                         <li class="nav-item" id="dashboardItem">
                                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard"><img src="/icons/Shared/Navbar/dashboard-white.svg" /> Dashboard</a>
                                         </li>
-                                        @if (User.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType && c.Value == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue))
+                                        @if (User.IsAuthorizedForReportTimeInTrackingTool())
                                         {
-                                            <li class="nav-item" id="timesheetItem">
-                                                <a class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index"><img src="/icons/Shared/Navbar/timesheet-white.svg" /> Timesheet</a>
+                                            <li class="nav-item dropdown" id="timesheetItem">
+                                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><img src="/icons/Shared/Navbar/timesheet-white.svg" /> Timesheet</a>
+                                                <div class="dropdown-menu">
+                                                    <a id="manage" class="nav-link" asp-area="TrackingTool" asp-controller="ReportingMyTime" asp-action="Index">Report My Time</a>
+                                                    <a id="manage" class="nav-link" asp-area="General" asp-controller="Consultants" asp-action="Index">My Reports History</a>
+                                                    @if (User.HasClaim(c => c.Type == TrackingToolClaimsCD.General_Reports_ClaimType && c.Value == TrackingToolClaimsCD.General_Reports_ClaimValue))
+                                                    {
+                                                        <a id="manage" class="nav-link" asp-area="TrackingTool" asp-controller="GeneralReports" asp-action="Index">General Reports</a>
+                                                    }
+                                                </div>
                                             </li>
                                         }
                                         @if (User.IsAuthorizedForGeneral())

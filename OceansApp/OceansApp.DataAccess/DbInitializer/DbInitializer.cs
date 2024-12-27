@@ -52,7 +52,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
             }
 
-            bool createDefaultDataToDatabase = false; // False if no updates in the DB are needed
+            bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
 
             if (createDefaultDataToDatabase)
             {
@@ -446,6 +446,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new SystemSubArea { SystemAreaId = 3, Name = "Consultant Reimbursed Benefits" },
                     new SystemSubArea { SystemAreaId = 3, Name = "Holidays" },
                     new SystemSubArea { SystemAreaId = 4, Name = "Reporting My Time" },
+                    new SystemSubArea { SystemAreaId = 4, Name = "General Reports" },
+                    new SystemSubArea { SystemAreaId = 4, Name = "My Reports History" },
                     new SystemSubArea { SystemAreaId = 5, Name = "Dashboard" },
                     new SystemSubArea { SystemAreaId = 6, Name = "Mi Cuenta" },
                     new SystemSubArea { SystemAreaId = 7, Name = "Clients" },
@@ -847,6 +849,13 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimType = TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType,
                     ClaimValue = TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue,
                     Description = "Basic access to report their time",
+                    SystemSubAreaId = reportingMyTimeSubAreaId.SystemSubAreaId
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = TrackingToolClaimsCD.General_Reports_ClaimType,
+                    ClaimValue = TrackingToolClaimsCD.General_Reports_ClaimValue,
+                    Description = "Access to view hours report for all consultants",
                     SystemSubAreaId = reportingMyTimeSubAreaId.SystemSubAreaId
                 });
 
