@@ -3,6 +3,7 @@
 }
 #results-section {
     margin-top: 10px;
+    display:none;
 }
 #no-results-message {
     text-align: center;
@@ -15,11 +16,6 @@
     padding: 20px;
 }
 
-.box-container h2 {
-    text-align: center;
-    margin-bottom: 10px;
-    color: #343a40;
-}
 
 .filter-row {
     display: flex;
@@ -154,3 +150,36 @@
     border-left-color: transparent;
     animation: spin 1s linear infinite;
 }
+#results-section h2 {
+    margin-bottom: 10px;
+    color: #34495e;
+    font-size: 26px;
+    text-align:center;
+}
+#results-section h4 {
+    margin-bottom: 10px;
+    color: var(--clr-blueDark);
+    font-size: 22px
+}
+.export-btn-container{
+    text-align:right;
+}
+/*Summary*/
+.summary-section {
+    margin: 10px 0 30px 0;
+    border-bottom: 1px solid rgb(5, 137, 147, 0.2);
+    border-end-end-radius: 10px;
+    border-end-start-radius: 10px;
+}
+.summary-section label {
+    font-weight: 900;
+    color: var(--clr-blueLight);
+}
+    .summary-section .summary-sub {
+        font-weight: bold;
+        color: rgb(0,0,0,0.7);
+    }
+    .summary-section .summary-val {
+        font-weight: normal;
+        color: gray;
+    }

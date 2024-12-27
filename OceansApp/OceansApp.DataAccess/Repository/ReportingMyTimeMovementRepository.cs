@@ -598,7 +598,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@MovementTypeId", movementTypeId, DbType.Int32);
 
             var results = await connection.QueryAsync<GlobalHoursReport>(
-                "addSP_REPORTING_MY_TIME_MOVEMENTS_GetGlobalHoursReportWithFilters", 
+                "SP_REPORTING_MY_TIME_MOVEMENTS_GetGlobalHoursReportWithFilters", 
                 parameters,
                 commandType: CommandType.StoredProcedure);
 

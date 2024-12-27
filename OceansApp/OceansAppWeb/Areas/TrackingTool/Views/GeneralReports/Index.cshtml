@@ -1,4 +1,5 @@
 ﻿<link rel="stylesheet" href="~/css/TrackingTool/GeneralReports/generalReports.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
 
 <div class="box-container" id="filters-section">
     <div class="first-filters-group">
@@ -12,13 +13,13 @@
         </div>
         <div class="movement-group">
             <div>
-                <label class="filter-label">Hours Type</label>
+                <label class="filter-label">Movement Type</label>
                 <select id="movement-type">
                     <option value="">-- All types --</option>
                     <option value="1">Normal Hours (Payable)</option>
                     <option value="2">On Call Flate Rate</option>
                     <option value="3">On Call Time Worked</option>
-                    <option value="4">Time Off (Non-payable)</option>
+                    <option value="8">Time Off (Non-payable)</option>
                 </select>
             </div>
         </div>
@@ -69,3 +70,4 @@
 
 
 <script src="~/js/TrackingTool/GeneralReports/generalReports.js?v=@DateTime.Now.Ticks"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
