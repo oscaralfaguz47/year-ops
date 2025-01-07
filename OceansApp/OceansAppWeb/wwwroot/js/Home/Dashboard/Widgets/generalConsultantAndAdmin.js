@@ -56,11 +56,12 @@ function getActiveAdminUsers() {
 }
 
 function getHolidaysList() {
+    const currentYear = new Date().getFullYear();
     return (async () => {
         firstCardHoContent.style.justifyContent = 'center';
         firstCardHoContent.style.overflowY = 'hidden';
         holidaysCont.innerHTML = loadingISpinner();
-        const url = `/GetConsultantHolidays`;
+        const url = `/GetConsultantHolidays?year=${currentYear}`;
         try {
             const response = await fetch(url);
             if (!response.ok) {

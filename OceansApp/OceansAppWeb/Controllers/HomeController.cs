@@ -344,7 +344,7 @@ namespace OceansAppWeb.Controllers
         }
 
         [HttpGet("GetConsultantHolidays")]
-        public async Task<IActionResult> GetConsultantHolidays()
+        public async Task<IActionResult> GetConsultantHolidays([FromQuery] int? year)
         {
             try
             {
@@ -367,7 +367,7 @@ namespace OceansAppWeb.Controllers
                     };
                 }
 
-                var holidaysList = await _unitOfWork.ConsultantHoliday.GetHolidaysByConsultantAsync(userConsultant.ConsultantId);
+                var holidaysList = await _unitOfWork.ConsultantHoliday.GetHolidaysByConsultantAsync(userConsultant.ConsultantId, (int)year);
 
                 return Ok(new
                 {

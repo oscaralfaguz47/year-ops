@@ -241,12 +241,12 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
-        public async Task<List<GetHolidaysNameAndDateVM>> GetHolidaysByConsultantAsync(int consultantId)
+        public async Task<List<GetHolidaysNameAndDateVM>> GetHolidaysByConsultantAsync(int consultantId, int year)
         {
             var result = await (from chd in _db.CONSULTANT_HOLIDAY_DATES
                                 join ch in _db.CONSULTANT_HOLIDAYS on chd.ConsultantHolidayId equals ch.ConsultantHolidayId
                                 join cd in _db.CONSULTANT_DETAILS on ch.ConsultantHolidayId equals cd.ConsultantHolidayId
-                                where cd.ConsultantId == consultantId
+                                where cd.ConsultantId == consultantId && chd.Date.Year == year
                                 select new GetHolidaysNameAndDateVM
                                 {
                                     HolidayName = chd.Name,

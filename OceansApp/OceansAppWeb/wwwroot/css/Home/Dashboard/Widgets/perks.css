@@ -47,7 +47,7 @@
     margin: 4px 0;
 }
     .request-row .date-lb{
-        width: 105px;
+        max-width: 110px;
     }
 
     .request-row .amount-lb {

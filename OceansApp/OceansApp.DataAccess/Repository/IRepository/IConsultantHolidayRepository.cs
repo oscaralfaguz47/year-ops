@@ -17,6 +17,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> DeleteHolidaysList(int holidaysListId);
         Task<List<ConsultantHolidayDate>?> GetHolidaysDatesWhereConsultantInPeriodAsync(
      DateTime startDate, DateTime endDate, int? consultantHolidayId);
-        Task<List<GetHolidaysNameAndDateVM>> GetHolidaysByConsultantAsync(int consultantId);
+        Task<List<GetHolidaysNameAndDateVM>> GetHolidaysByConsultantAsync(int consultantId, int year);
     }
 }
