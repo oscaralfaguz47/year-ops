@@ -66,6 +66,9 @@
                                     <img src="/icons/Shared/calendar.svg" />
                                 </div>
                             </div>
+                            <div>
+                                <button onclick="displayAutofillModal('modal-autofill')" id="auto-fill-btn"> <img src="/icons/Shared/wand-magic.svg" /> Default Autofill</button>
+                            </div>
                         </div>
                         <div class="loading-box loading-box-intern" id="loading-box-intern">
                             <div>
@@ -149,6 +152,8 @@
     }
 
 </div>
+
+<partial name="_TrackingToolTimeEntryAutofillModal" />
 
 <script src="~/js/Shared/navigateBetweenPeriods.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Labels/transactionStatuses.js?v=@DateTime.Now.Ticks"></script>

@@ -433,6 +433,120 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<MethodResponse> AutofillTimeEntryTrackingTool(string userIdCreatedBy,
+            CreateUpdateMovementTrackingToolVM timeEntryData, DateTime startDate, DateTime endDate)
+        {
+            if (timeEntryData == null)
+            {
+                return MethodResponse.CreateFailureExceptionResponse("Report movement data cannot be null.");
+            }
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    if (currentUser == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Consultant not found.");
+                    }
+
+                    if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == timeEntryData.ProjectId && x.ConsultantId == currentUser.ConsultantId))
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
+                    }
+
+                    var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == timeEntryData.ProjectId);
+                    if (project == null || project.ClientHasTrackingTool)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
+                    }
+
+                    MethodResponse responseValidateSubmission = await ValidateSubmission(null, startDate, currentUser,
+                        timeEntryData.ProjectId);
+                    if (!responseValidateSubmission.Success)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse(responseValidateSubmission.Message);
+                    }
+
+                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
+                    if (transactionStatus == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Transaction status 'No actions' not found.");
+                    }
+                    ReportingMyTimeMovementType? movementType = null;
+
+                    if (timeEntryData.MovementTypeId == null)
+                    {
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                        if (movementType == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        }
+                    }
+                    else
+                    {
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
+                        if (movementType == null)
+                        {
+                            return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
+                        }
+                    }
+
+                    //delete existing times
+                    var existingTimes = await _db.REPORTING_MY_TIME_MOVEMENTS
+     .Where(x => x.ConsultantId == currentUser.ConsultantId &&
+                 x.ProjectId == (int)timeEntryData.ProjectId &&
+                 x.ActionDate >= startDate &&
+                 x.ActionDate <= endDate)
+     .ToListAsync(); 
+
+                    foreach (var movementToDelete in existingTimes)
+                    {
+                        _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete); 
+                    }
+
+                    double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
+
+                    var startDateFormat = startDate.Date;
+                    var endDateFormat = endDate.Date;
+
+                    // Iterate over the days between TimeFrom and TimeTo
+                    for (var date = startDateFormat; date <= endDateFormat; date = date.AddDays(1))
+                    {
+                        // Skip Saturdays and Sundays
+                        if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+                            continue;
+
+                        var timeMovementToCreate = new ReportingMyTimeMovement
+                        {
+                            ConsultantId = currentUser.ConsultantId,
+                            ProjectId = (int)timeEntryData.ProjectId,
+                            ActionDate = date,
+                            Notes = timeEntryData.Notes,
+                            TransactionStatusId = transactionStatus.TransactionStatusId,
+                            MovementTypeId = movementType.MovementTypeId,
+                            CreationDate = DateTime.UtcNow,
+                            TimeFrom = timeEntryData.TimeFrom,
+                            TimeTo = timeEntryData.TimeTo,
+                            Quantity = (decimal)totalQuantity
+                        };
+
+                        await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
+                    }
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse("Autofill Completed!");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
         public async Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
            CreateUpdateMovementTrackingToolVM timeEntryData)
         {
@@ -598,7 +712,7 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@MovementTypeId", movementTypeId, DbType.Int32);
 
             var results = await connection.QueryAsync<GlobalHoursReport>(
-                "SP_REPORTING_MY_TIME_MOVEMENTS_GetGlobalHoursReportWithFilters", 
+                "SP_REPORTING_MY_TIME_MOVEMENTS_GetGlobalHoursReportWithFilters",
                 parameters,
                 commandType: CommandType.StoredProcedure);
 
@@ -664,7 +778,7 @@ namespace OceansApp.DataAccess.Repository
             return MethodResponse.CreateSuccessResponse();
         }
 
-        public async Task<List<GetApprovedMovementsWhereConsultantVM>> GetApprovedMovementsWhereConsultant(int consultantId, 
+        public async Task<List<GetApprovedMovementsWhereConsultantVM>> GetApprovedMovementsWhereConsultant(int consultantId,
             int projectId, DateTime startDate, DateTime endDate)
         {
             var connection = _db.Database.GetDbConnection();

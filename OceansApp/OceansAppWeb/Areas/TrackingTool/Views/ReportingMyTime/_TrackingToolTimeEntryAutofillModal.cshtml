@@ -1,0 +1,47 @@
+﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/TrackingTool/addTimetrackingToolModal.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+
+<div id="modal-autofill" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-autofill')">x</button></div>
+                <h2>Autofill All Days</h2>
+                <form id="form-autofill">
+                    <div class="autofill-warning">
+                        <span><strong>Warning:</strong> Using this tool will apply the same time to all days, overwriting any previously entered times.</span>
+                    </div>
+                    <div class="time-inputs-container">
+                        <div>
+                            <label>From</label>
+                            <input id="autofillTimeFromInput" type="time" class="time-from input-time" />
+                        </div>
+                        <div>
+                            <label>To</label>
+                            <input id="autoFillTimeToInput" type="time" class="time-to input-time" />
+                        </div>
+                    </div>
+                    <span id="time-zero-val-message-autofill" class="validation-message">You cannot add time equals to zero</span>
+                    <label>Time Classification</label>
+                    <select class="form-select" id="autofillTimeClassification">
+                    </select>
+                    <label>Notes</label>
+                    <textarea id="autoFillAddNotesInput" class="time-detail input-time"></textarea>
+                    <span id="notes-val-message-autofill" class="validation-message">You must enter a note</span>
+                </form>
+
+                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                    <button class="cancel-btn" onclick="hideModal('modal-autofill')">
+                       Cancel
+                    </button>&nbsp;
+                    <button onclick="saveAutofill('modal-autofill')" class="btn-primary-submit">
+                       Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/TrackingTool/timeEntryAutofill.js?v=@DateTime.Now.Ticks"></script>

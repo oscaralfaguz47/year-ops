@@ -28,6 +28,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
 
         Task<MethodResponse> CreateTimeEntryTrackingTool(string userIdCreatedBy,
             CreateUpdateMovementTrackingToolVM timeEntryData);
+        Task<MethodResponse> AutofillTimeEntryTrackingTool(string userIdCreatedBy,
+            CreateUpdateMovementTrackingToolVM timeEntryData, DateTime startDate, DateTime endDate);
         Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
            CreateUpdateMovementTrackingToolVM timeEntryData);
         Task<List<GetTrackingToolProjectMovementsVM>> GetTrackingToolProjectMovementsAsync(int projectId, int consultId, DateTime startDate,

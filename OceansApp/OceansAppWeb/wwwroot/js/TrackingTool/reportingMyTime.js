@@ -178,6 +178,8 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
 
                 if (typeof getTrackingToolProjectMovements === 'function') {
                     const movements = await getTrackingToolProjectMovements();
+                    console.log("Start Date: " + startDate);
+                    console.log(dateFromInput.value);
                     generateDateList(startDate, endDate, movements.movementsList);
                     trackingToolTimeEntrySection.style.display = 'block';
                 } else {
