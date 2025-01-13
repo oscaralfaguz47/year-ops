@@ -227,6 +227,14 @@
     border-radius: 10px;
     margin-bottom: 8px;
 }
+#autofill-sec-desk {
+    display: none;
+}
+#autofill-sec-mobile{
+    justify-content:center;
+    padding-bottom: 10px;
+    display: none;
+}
 @media (max-width: 411px) {
     .autofill-warning {
         max-width: 325px;
@@ -235,6 +243,12 @@
 @media (max-width: 768px) {
     .select-period-cont {
         justify-content: center;
+    }
+    #autofill-sec-mobile {
+        display: flex;
+    }
+    #autofill-sec-desk {
+        display: none;
     }
 }
 .loading-box-intern {

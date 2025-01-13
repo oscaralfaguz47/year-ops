@@ -95,15 +95,34 @@ function generateDateList(startDateString, endDateString, movements) {
                 submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor(movement.transactionStatusName)}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon(movement.transactionStatusName)} 
                 ${movement.transactionStatusName === 'Waiting to be approved' ? 'Pending approval' : movement.transactionStatusName === 'Approved' ? 'Timesheet approved' : movement.transactionStatusName}</button>`;
                 addButton.style.display = 'none';
+
+                autofillDeskbtn.style.display = 'none';
+                autofillMobilebtn.style.display = 'none';
+
                 dayItemBox.style.marginTop = '8px';
                 let submitBtn = document.getElementById('submitBtn');
                 submitBtn.disabled = true;
                 submitBtn.className = 'submit-button-disabled';
+            } else {
+                if (isAdministrative) {
+                    updateAutofillButtons();
+                    window.addEventListener('resize', updateAutofillButtons);
+                }
             }
+
             if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
                 addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName, movement.isPayable, movement.notes);
             }
         });
+        if (movements.length === 0) {
+            if (isAdministrative && isActiveInThePeriod) {
+                updateAutofillButtons();
+                window.addEventListener('resize', updateAutofillButtons);
+            } else {
+                autofillDeskbtn.style.display = 'none';
+                autofillMobilebtn.style.display = 'none';
+            }
+        }
         currentDate.setDate(currentDate.getDate() + 1);
     }
 }

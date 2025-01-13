@@ -20,6 +20,7 @@ function getBonuslyInfo() {
                 };
             }
             const data = await response.json();
+            console.log(data);
             return data;
         } catch (error) {
             validateSessionExpiration(error.message, error.status);
@@ -70,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let requestDate = new Date(obj.creationDate);
 
                     requestRow.innerHTML = `<span class="date-lb">${getMonthName(requestDate.getMonth()).slice(0, 3)} ${requestDate.getDate()}, ${requestDate.getFullYear()}</span>
-                   <img title="${obj.name}" src="${obj.imageUrl}"><span class="status-lb">${obj.status === 'new' ? 'Pending' : obj.status === 'approved' ? 'Approved' : 'Declined'}</span><span class="amount-lb">${obj.displayPrice}</span>`;
+                   <img title="${obj.name}" src="${obj.imageUrl}"><span class="status-lb">${obj.status.charAt(0).toUpperCase() + obj.status.slice(1) }</span><span class="amount-lb">${obj.displayPrice}</span>`;
                     rowsContainer.appendChild(requestRow);
                 });
                 bonuslyCont.appendChild(rowsContainer);

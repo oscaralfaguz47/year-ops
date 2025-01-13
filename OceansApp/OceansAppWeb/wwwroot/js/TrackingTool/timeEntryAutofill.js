@@ -49,6 +49,11 @@ function displayAutofillModal(modalId) {
 
     hideValidationMessage(autofillValidationMessageTimeZero);
     hideValidationMessage(autofillValidationMessageNotes);
+
+    const submitBtns = [{ id: 'btn-save-autofill', text: 'Save' }];
+    const otherBtns = ['autofill-close-modal-x-btn', 'btn-cancel-autofill'];
+    enableModalButtons(submitBtns, otherBtns, 'spinner-border');
+
     resetForm('form-autofill');
     autoFillFromInput.value = '08:00';
     autoFillToInput.value = '16:00';
@@ -62,14 +67,12 @@ async function saveAutofill(modalId) {
         autofillValidationMessageNotes.style.display = 'block';
         return;
     }
-    const submitBtnsInitialize = [{ id: 'btn-cancel', text: 'Delete' }, { id: 'btn-saving', text: 'Confirm' }];
-    const otherBtnsInitialize = ['close-modal-x-btn', 'btn-cancel'];
+    const submitBtnsInitialize = [{ id: 'btn-save-autofill', text: 'Save' }];
+    const otherBtnsInitialize = ['autofill-close-modal-x-btn', 'btn-cancel-autofill'];
 
-    //const otherBtns = ['btn-cancel', 'close-modal-x-btn'];
-    //disableButtonsWaitingForPostMethod('btn-saving', otherBtns, 'spinner-border')
+    disableButtonsWaitingForPostMethod('btn-save-autofill', otherBtnsInitialize, 'spinner-border')
 
     var token = $('[name="__RequestVerificationToken"]').val();
-    console.log(dateFromInput.value);
 
     const startDateToSubmit = getNormalizedOneDate(dateFromInput).normalizedDate;
     const endDateToSubmit = getNormalizedOneDate(dateToInput).normalizedDate;
@@ -104,13 +107,14 @@ async function saveAutofill(modalId) {
                 default:
                     displayToasterError('An unexpected error occurred: ' + errorData.error);
             }
-            //enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
+            enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
             return null;
         }
 
         const dataFromApi = await response.json();
         hideModal(modalId);
         displayToasterSuccess(dataFromApi.message);
+        initializeNavigation();
         const movements = await getTrackingToolProjectMovements();
 
         const startDateGenerateList = convertToIsoDate(dateFromInput.value); 
@@ -120,9 +124,9 @@ async function saveAutofill(modalId) {
             const [month, day, year] = dateInput.split('/');
             return `${year}-${month}-${day}`;
         }
-
         generateDateList(startDateGenerateList, endDateGenerateList, movements.movementsList);
         trackingToolTimeEntrySection.style.display = 'block';
+        loadingBoxIntern.style.display = 'none';
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);

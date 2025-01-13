@@ -6,11 +6,11 @@
     <div class="global-modal-content">
         <div class="container">
             <div>
-                <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-autofill')">x</button></div>
+                <div class="close-btn-container"><button id="autofill-close-modal-x-btn" onclick="hideModal('modal-autofill')">x</button></div>
                 <h2>Autofill All Days</h2>
                 <form id="form-autofill">
                     <div class="autofill-warning">
-                        <span><strong>Warning:</strong> Using this tool will apply the same time to all days, overwriting any previously entered times.</span>
+                        <span><strong>Warning:</strong> Using this tool will apply the same time to all days in this period, overwriting any previously entered times.</span>
                     </div>
                     <div class="time-inputs-container">
                         <div>
@@ -32,11 +32,14 @@
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                    <button class="cancel-btn" onclick="hideModal('modal-autofill')">
+                    <button id="btn-cancel-autofill" class="cancel-btn" onclick="hideModal('modal-autofill')">
                        Cancel
                     </button>&nbsp;
-                    <button onclick="saveAutofill('modal-autofill')" class="btn-primary-submit">
-                       Save
+                    <button id="btn-save-autofill" onclick="saveAutofill('modal-autofill')" class="btn-primary-submit">
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:none; margin-right:5px" class="spinner-border" role="status">
+                            </div><span></span>
+                        </div>
                     </button>
                 </div>
             </div>

@@ -1,10 +1,11 @@
 ﻿
 const trackingToolTimeEntrySection = getElementById('tracking-tool-time-entry');
 const trackingToolReportEntrySection = getElementById('tracking-tool-report-entry');
+let isActiveInThePeriod = false;
 const dateToInput = getElementById('dateToInput');
 const dateFromInput = getElementById('dateFromInput');
 const errorMessageIntern = getElementById('error-message-intern');
-const clientHasTrackingToolValue = getElementById('ClientHasTT').value;
+let clientHasTrackingToolValue = getElementById('ClientHasTT').value;
 const submissionInfo = getElementById('submission-info');
 const submissionError = getElementById('submission-errors');
 const projectIdInput = getElementById('projectId');
@@ -13,6 +14,9 @@ const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-pr
 const totalHoursLabelEl = getElementById('total-hours-label');
 const loadingBoxIntern = getElementById('loading-box-intern');
 let participatesInOnCalls = false;
+const autofillMobilebtn = getElementById('autofill-sec-mobile');
+const autofillDeskbtn = getElementById('autofill-sec-desk');
+let isAdministrative = false;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -117,12 +121,24 @@ function initializeNavigation() {
     trackingToolReportEntrySection.style.display = 'none';
     trackingToolTimeEntrySection.style.display = 'none';
 }
+function updateAutofillButtons() {
+    if (window.matchMedia('(max-width: 768px)').matches) {
+        autofillDeskbtn.style.display = 'none';
+        autofillMobilebtn.style.display = 'flex';
+    } else {
+        autofillDeskbtn.style.display = 'block';
+        autofillMobilebtn.style.display = 'none';
+    }
+}
 //Navitate between dates
 async function navitateBetweenDates(startDate, endDate, buttons) {
     try {
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
+        isAdministrative = statusInfo.userCategory === 'Administrative' ? true : false;
+        isActiveInThePeriod = statusInfo.isActive;
+
         participatesInOnCalls = statusInfo.participatesInOnCalls;
         contentBox.style.display = 'block';
 
@@ -153,6 +169,8 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         if (!statusInfo.isActive) {
             inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} 
                 <strong>Inactive</strong> for this period.<br> ${inactiveNoTrackingEndMessae}</label></div>`;
+            autofillDeskbtn.style.display = 'none';
+            autofillMobilebtn.style.display = 'none';
         }
         if (!statusInfo.accessToTrackingTool && statusInfo.isActive) {
             inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} Active in this project, but you ${inactiveNoTrackingMiddleMessage} not needed to report time for this period.
@@ -178,8 +196,6 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
 
                 if (typeof getTrackingToolProjectMovements === 'function') {
                     const movements = await getTrackingToolProjectMovements();
-                    console.log("Start Date: " + startDate);
-                    console.log(dateFromInput.value);
                     generateDateList(startDate, endDate, movements.movementsList);
                     trackingToolTimeEntrySection.style.display = 'block';
                 } else {
@@ -274,7 +290,7 @@ async function submitReportToBePaid() {
             const movements = await getTrackingToolProjectMovements();
             let dateFrom = startDateData;
             let dateTo = endDateData;
-            generateDateList(formatDateYyyyMmDd(convertNormalizedDate(dateFromInput).normalizedDate), formatDateYyyyMmDd(convertNormalizedDate(dateToInput).normalizedDate), movements.movementsList);
+            generateDateList(startDateData.split('T')[0], endDateData.split('T')[0], movements.movementsList);
         }
 
         submissionError.innerHTML = '';
