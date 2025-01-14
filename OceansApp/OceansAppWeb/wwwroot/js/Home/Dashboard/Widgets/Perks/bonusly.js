@@ -20,7 +20,6 @@ function getBonuslyInfo() {
                 };
             }
             const data = await response.json();
-            console.log(data);
             return data;
         } catch (error) {
             validateSessionExpiration(error.message, error.status);
