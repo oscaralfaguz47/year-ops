@@ -2119,8 +2119,11 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
         public async Task<bool> ValidateConsultantPaymentByDateAsync(DateTime actionDate, int consultantId)
         {
             return await _db.CONSULTANT_PAYMENTS
-                .AnyAsync(cp => (cp.StartDatePeriod.Date <= actionDate.Date && cp.EndDatePeriod.Date >= actionDate.Date)
-                && cp.ConsultantId == consultantId && cp.Voided == false);
+                .AnyAsync(cp =>
+            actionDate >= cp.StartDatePeriod && 
+            actionDate <= cp.EndDatePeriod &&  
+            cp.ConsultantId == consultantId && 
+            !cp.Voided);
         }
 
 

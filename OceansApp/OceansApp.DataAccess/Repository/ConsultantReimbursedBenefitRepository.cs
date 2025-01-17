@@ -140,11 +140,13 @@ namespace OceansApp.DataAccess.Repository
         public async Task<MethodResponse> UpdateBenefitReimbursement(string userActionedBy,
    CreateUpdateConsultantBenefitReimbursementVM benefitReimbursementData)
         {
+            bool isAuthorizedToCreateInPaidPeriod = await _applicationRoleClaimRepository.ValidateRoleClaimAsync(userActionedBy, "BasicPaymentSheets", "Have access to manage the basics of payment sheets");
+
             bool existsPayment = await _consultantPaymentRepository
                 .ValidateConsultantPaymentByDateAsync((DateTime)benefitReimbursementData.DateToBeReimbursed,
                 (int)benefitReimbursementData.ConsultantId);
 
-            if (existsPayment) return MethodResponse
+            if (existsPayment && !isAuthorizedToCreateInPaidPeriod) return MethodResponse
                     .CreateFailureValidationResponse($"The action date: '{benefitReimbursementData.DateToBeReimbursed.Value.ToString("MM/dd/yyyy")}' is not allowed, the consultant already has a payment for that period.");
 
             var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
