@@ -526,6 +526,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Composite index
                 entity.HasIndex(e => new { e.UserId, e.ConsultantId });
+                entity.HasIndex(e => new { e.ConsultantId, e.ConsultantHolidayId });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.UserId);
@@ -962,6 +963,9 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(p => new { p.ProjectConsultantAssignedId, p.IsActive, p.MonthlySalary, p.HourlySalary })
                 .HasFilter("[IsActive] = 1");
                 entity.HasIndex(e => new { e.IsActive, e.AccessToTrackingTool});
+                entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate, e.Id })
+                .HasDatabaseName("IX_ProjectConsultantsAssignedHistory_ProjectConsultantAssignedId_ActionDate_Id")
+                .IsDescending(false, true, true); // Define ActionDate and Id as descending
                 entity.HasIndex(e => e.ProjectConsultantAssignedId);
                 entity.HasIndex(e => e.UserIdActionedBy);
                 entity.HasIndex(e => e.ActionDate);
@@ -969,9 +973,6 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.PartnerId);
                 entity.HasIndex(e => e.IsActive);
                 entity.HasIndex(e => e.ParticipatesInOnCalls);
-
-                //Is there alreary de index: IX_PROJECTS_CONSULTANTS_ASSIGNED_HISTORY_ProjectConsultantAssignedId_ActionDate_Id
-                //(ProjectConsultantAssignedId ASC, ActionDate DESC, Id DESC)
 
                 //Columns
                 entity.HasKey(p => new { p.Id });

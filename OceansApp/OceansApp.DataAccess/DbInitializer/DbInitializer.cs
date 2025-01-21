@@ -52,7 +52,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
             }
 
-            bool createDefaultDataToDatabase = false; // False if no updates in the DB are needed
+            bool createDefaultDataToDatabase = true; // False if no updates in the DB are needed
 
             if (createDefaultDataToDatabase)
             {

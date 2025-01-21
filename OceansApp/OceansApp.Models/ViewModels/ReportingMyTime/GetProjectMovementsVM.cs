@@ -9,6 +9,6 @@ namespace OceansApp.Models.ViewModels.ReportingMyTime
         public string Notes { get; set; }
         public DateTime ActionDate { get; set; }
         public string TransactionStatus { get; set; }
-        public string BlobNames { get; set; } 
+        public string BlobData { get; set; } 
     }
 }

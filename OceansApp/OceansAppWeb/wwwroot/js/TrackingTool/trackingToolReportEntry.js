@@ -20,6 +20,8 @@ const holidaysContainer = getElementById('holidaysContainer');
 const dropArea = document.querySelector('.file-upload-wrapper');
 const noTrackingToolSection = getElementById('no-tracking-tool-sec');
 const onCallSectionEl = getElementById('on-call-section');
+const previewFilesElement = document.querySelector('.preview-files-section');
+const previewFilesContainer = getElementById('preview-files-container');
 
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
 let transactionStatus = 'No actions';
@@ -112,7 +114,7 @@ function updateInfoText() {
 }
 
 // File display functions
-function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus) {
+function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus, blobUrl) {
     const fileElement = document.createElement('div');
     fileElement.className = 'row-selected-file';
 
@@ -124,8 +126,30 @@ function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus)
     deleteBtn.className = 'delete-btn';
     deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
 
-    const fileName = document.createElement('span');
+    const fileName = document.createElement('a');
     fileName.textContent = isUploading ? file.name : cleanFileName(fileNameFromDb);
+
+    if (blobUrl) {
+        fileName.href = blobUrl;
+        fileName.target = '_blank';
+        fileName.rel = 'noopener noreferrer'; 
+    } else if (file) {
+        const localUrl = URL.createObjectURL(file); 
+        fileName.href = localUrl;
+        fileName.target = '_blank';
+        fileName.rel = 'noopener noreferrer'; 
+
+        fileName.onclick = function () {
+            setTimeout(() => URL.revokeObjectURL(localUrl), 5000);
+        };
+    } else {
+        fileName.href = '#';
+        fileName.onclick = function (event) {
+            event.preventDefault();
+            console.error('No file available to redirect.');
+        };
+    }
+
 
     const statusLabel = document.createElement('span');
     statusLabel.textContent = '';
@@ -168,10 +192,12 @@ async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinn
             fileList.splice(fileList.indexOf(file), 1);
             fileElement.remove();
             updateInfoText();
+            validateUploadedFilesToRemovePreviewBtn();
         };
         fileElement.appendChild(deleteBtn);
         fileElement.appendChild(spinnerLabel);
         displayElement(spinnerLabel, 'none');
+        validateUploadedFilesToRemovePreviewBtn();
     }).catch(error => {
         console.error("Error uploading the file:", error);
     });
@@ -186,6 +212,7 @@ function finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn
         await deleteFile(fileNameFromDb, statusLabel, deleteBtn, spinnerLabel);
         fileElement.remove();
         updateInfoText();
+        validateUploadedFilesToRemovePreviewBtn();
     };
     statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
 }
@@ -422,6 +449,7 @@ async function getProjectMovementsClientHasTrackTool(participatesOnCall) {
         }
 
         const data = await response.json();
+        console.log(data);
         updateProjectMovements(data);
     } catch (error) {
         validateSessionExpiration(error.message);
@@ -436,6 +464,7 @@ function updateProjectMovements(data) {
     let onCallTimeWorkedQuantity = 0;
     let notes = '';
     let blobNames = [];
+    previewFilesElement.style.display = 'none';
 
     if (data.movementsList.length > 0) {
         const normalMovement = data.movementsList.find(movement => movement.movementTypeName !== 'Holidays');
@@ -459,7 +488,11 @@ function updateProjectMovements(data) {
         if (obj.movementTypeName === 'Normal Hours') {
             notes += obj.notes === null ? '' : obj.notes;
             normalHoursQuantity += obj.quantity;
-            JSON.parse(obj.blobNames).forEach(blobName => blobNames.push(blobName));
+            JSON.parse(obj.blobData).forEach(blobName => blobNames.push(blobName));
+            console.log(blobNames);
+            if (blobNames.length > 0) {
+                previewFilesElement.style.display = 'flex';
+            }
         }
         if (obj.movementTypeName === 'On Call Flate Rate') {
             onCallFlateRateQuantity += obj.quantity;
@@ -491,7 +524,7 @@ function updateProjectMovements(data) {
     onCallFlateRateSelect.value = onCallFlateRateQuantity;
     onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
     notesInput.value = notes;
-    blobNames.forEach(blobName => updateFileDisplay(null, false, blobName, transactionStatus));
+    blobNames.forEach(blobName => updateFileDisplay(null, false, blobName.BlobName, transactionStatus, blobName.BlobUrl));
     updateInfoText();
     displayElement(noTrackingToolSection, 'block');
 }
@@ -528,6 +561,13 @@ async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
         handleDeleteError({ error: 'Network error occurred. Please try again.' }, statusLabel, deleteBtn, spinnerLabel);
     }
 }
+function validateUploadedFilesToRemovePreviewBtn() {
+    if (dropArea.querySelectorAll('.row-selected-file').length > 0) {
+        previewFilesElement.style.display = 'flex';
+    } else {
+        previewFilesElement.style.display = 'none';
+    }
+}
 function handleDeleteError(data, statusLabel, deleteBtn, spinnerLabel) {
     statusLabel.textContent = 'Delete failed';
     displayElement(deleteBtn, 'block');
@@ -547,5 +587,12 @@ notesInput.addEventListener('input', function () {
 function cleanFileName(fileName) {
     const regex = /^[a-f0-9]+_\d+_/i;
     return fileName.replace(regex, '');
+}
+
+function previewUploadedFiles(modalId) {
+
+
+
+    showModal(modalId);
 }
 
