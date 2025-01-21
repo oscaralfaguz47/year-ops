@@ -30,8 +30,15 @@
                 </div>
                 <div class="fields-backg">
                     <div class="col-7">
-                        <label>Total Hours Worked <span class="red-label">*</span></label>
-                        <i data-tooltip="Enter only worked hours. Do not include days off you didn't work. If you didn't work the holidays do not include them here." class="fa-solid fa-circle-info tooltip-target"></i>
+                        <label>Total Regular Hours <span class="red-label">*</span></label>
+
+                        <div class="tooltip-container ">
+                            <i class="fa-solid fa-circle-info tooltip-target"></i>
+                            <div class="tooltip-content">
+                                <div class="tooltip-arrow"></div>
+                                Enter only regular worked hours. Exclude days off, on-call flate rates, worked on-call hours, and holidays not worked.
+                            </div>
+                        </div>
                     </div>
                     <div class="col-5">
                         <input type="number" placeholder="0.00" oninput="limitDigitsAndDecimals(this); handleChangeData()" class="input-time" id="quantityInput" value="0" />

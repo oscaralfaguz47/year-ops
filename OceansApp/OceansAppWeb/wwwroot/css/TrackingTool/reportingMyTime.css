@@ -244,9 +244,7 @@
     .select-period-cont {
         justify-content: center;
     }
-    #autofill-sec-mobile {
-        display: flex;
-    }
+
     #autofill-sec-desk {
         display: none;
     }

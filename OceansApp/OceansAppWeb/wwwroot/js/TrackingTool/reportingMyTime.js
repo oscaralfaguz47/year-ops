@@ -142,6 +142,10 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         participatesInOnCalls = statusInfo.participatesInOnCalls;
         contentBox.style.display = 'block';
 
+        if (!isAdministrative) {
+            autofillMobilebtn.style.display = 'none';
+        }
+
         if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
             submissionInfo.style.display = 'flex';
             totalHoursLabelEl.style.display = 'block';
