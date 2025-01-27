@@ -21,7 +21,8 @@ const dropArea = document.querySelector('.file-upload-wrapper');
 const noTrackingToolSection = getElementById('no-tracking-tool-sec');
 const onCallSectionEl = getElementById('on-call-section');
 const previewFilesElement = document.querySelector('.preview-files-section');
-const previewFilesContainer = getElementById('preview-files-container');
+let blobNames = [];
+const previewContainer = getElementById("previewContainer");
 
 const maxFileSize = 10 * 1024 * 1024; // 10 MB
 let transactionStatus = 'No actions';
@@ -187,17 +188,32 @@ async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinn
         await movementCreationPromise;
     }
     uploadFile(file, statusLabel, fileElement).then(data => {
+        const blobUrl = URL.createObjectURL(file);
+        const newBlob = {
+            BlobName: data.fileNamesUploaded[0].blobName,
+            BlobUrl: data.fileNamesUploaded[0].blobUrl
+        };
+        blobNames.push(newBlob);
         deleteBtn.onclick = async function () {
-            await deleteFile(data.fileNamesUploaded[0], statusLabel, deleteBtn, spinnerLabel);
+            await deleteFile(data.fileNamesUploaded[0].blobName, statusLabel, deleteBtn, spinnerLabel);
             fileList.splice(fileList.indexOf(file), 1);
+
+            const blobIndex = blobNames.findIndex(blob => blob.BlobName === data.fileNamesUploaded[0].blobName);
+            if (blobIndex !== -1) {
+                blobNames.splice(blobIndex, 1);
+            }
+
             fileElement.remove();
             updateInfoText();
             validateUploadedFilesToRemovePreviewBtn();
+            URL.revokeObjectURL(blobUrl); 
         };
         fileElement.appendChild(deleteBtn);
         fileElement.appendChild(spinnerLabel);
         displayElement(spinnerLabel, 'none');
         validateUploadedFilesToRemovePreviewBtn();
+
+        console.log("Lista de blobs actualizada:", blobNames);
     }).catch(error => {
         console.error("Error uploading the file:", error);
     });
@@ -210,9 +226,14 @@ function finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn
     displayElement(spinnerLabel, 'none');
     deleteBtn.onclick = async function () {
         await deleteFile(fileNameFromDb, statusLabel, deleteBtn, spinnerLabel);
+        const blobIndex = blobNames.findIndex(blob => blob.BlobName === fileNameFromDb);
+        if (blobIndex !== -1) {
+            blobNames.splice(blobIndex, 1);
+        }
         fileElement.remove();
         updateInfoText();
         validateUploadedFilesToRemovePreviewBtn();
+        console.log(blobNames);
     };
     statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
 }
@@ -242,6 +263,7 @@ async function uploadFile(file, statusLabel, fileElement) {
             return null;
         }
         const data = await response.json();
+        console.log(data);
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
         return data;
     } catch (error) {
@@ -449,7 +471,6 @@ async function getProjectMovementsClientHasTrackTool(participatesOnCall) {
         }
 
         const data = await response.json();
-        console.log(data);
         updateProjectMovements(data);
     } catch (error) {
         validateSessionExpiration(error.message);
@@ -463,7 +484,7 @@ function updateProjectMovements(data) {
     let onCallFlateRateQuantity = 0;
     let onCallTimeWorkedQuantity = 0;
     let notes = '';
-    let blobNames = [];
+    blobNames = [];
     previewFilesElement.style.display = 'none';
 
     if (data.movementsList.length > 0) {
@@ -489,7 +510,6 @@ function updateProjectMovements(data) {
             notes += obj.notes === null ? '' : obj.notes;
             normalHoursQuantity += obj.quantity;
             JSON.parse(obj.blobData).forEach(blobName => blobNames.push(blobName));
-            console.log(blobNames);
             if (blobNames.length > 0) {
                 previewFilesElement.style.display = 'flex';
             }
@@ -583,16 +603,124 @@ notesInput.addEventListener('input', function () {
     }
 });
 
-// Other utility functions
 function cleanFileName(fileName) {
     const regex = /^[a-f0-9]+_\d+_/i;
     return fileName.replace(regex, '');
 }
 
 function previewUploadedFiles(modalId) {
+    previewContainer.innerHTML = "";
 
+    blobNames.forEach(blob => {
+        const fileType = getFileType(blob.BlobName);
 
+        if (fileType === "image" || fileType === "svg") {
+            previewImage(blob);
+        } else if (fileType === "pdf") {
+            previewPDF(blob);
+        } else if (fileType === "word" || fileType === "excel") {
+            previewTextOrOffice(blob);
+        } else {
+            previewOther(blob);
+        }
+    });
 
     showModal(modalId);
 }
 
+function getFileType(fileName) {
+    const lowerCaseName = fileName.toLowerCase();
+    if (lowerCaseName.endsWith(".jpg") || lowerCaseName.endsWith(".jpeg") || lowerCaseName.endsWith(".png") || lowerCaseName.endsWith(".gif")) {
+        return "image";
+    } else if (lowerCaseName.endsWith(".svg")) {
+        return "svg";
+    } else if (lowerCaseName.endsWith(".pdf")) {
+        return "pdf";
+    } else if (lowerCaseName.endsWith(".doc") || lowerCaseName.endsWith(".docx")) {
+        return "word";
+    } else if (lowerCaseName.endsWith(".xls") || lowerCaseName.endsWith(".xlsx")) {
+        return "excel";
+    } else {
+        return "other";
+    }
+}
+
+function previewImage(blob) {
+    const container = createPreviewContainer(blob);
+    const img = document.createElement("img");
+    img.src = blob.BlobUrl;
+    img.alt = blob.BlobName;
+    img.style.maxWidth = "90%";
+    img.style.margin = "0 auto";
+    img.style.display = "block";
+    container.appendChild(img);
+    previewContainer.appendChild(container);
+}
+
+function previewPDF(blob) {
+    const container = createPreviewContainer(blob);
+    const iframe = document.createElement("iframe");
+    iframe.src = blob.BlobUrl;
+    iframe.width = "100%";
+    iframe.height = "500px";
+    iframe.style.border = "1px solid #ccc";
+    container.appendChild(iframe);
+    previewContainer.appendChild(container);
+}
+
+function previewTextOrOffice(blob) {
+    const container = createPreviewContainer(blob);
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(blob.BlobUrl)}`;
+    iframe.width = "100%";
+    iframe.height = "500px";
+    iframe.style.border = "1px solid #ccc";
+    container.appendChild(iframe);
+    previewContainer.appendChild(container);
+}
+
+function previewOther(blob) {
+    const container = document.createElement("div");
+    container.className = 'item-container';
+
+    const linkContainer = document.createElement('div');
+    linkContainer.className = 'link-container';
+    const link = document.createElement("a");
+    link.href = blob.BlobUrl;
+    link.target = "_blank";
+    link.textContent = cleanFileName(blob.BlobName);
+    link.className = 'item-title';
+
+    linkContainer.appendChild(link);
+    container.appendChild(linkContainer);
+    previewContainer.appendChild(container);
+}
+
+function createPreviewContainer(blob) {
+    const container = document.createElement("div");
+    container.className = 'item-container';
+
+    const linkContainer = document.createElement('div');
+    linkContainer.className = 'link-container';
+    const titleLink = document.createElement("a");
+    titleLink.href = blob.BlobUrl;
+    titleLink.target = "_blank";
+    titleLink.textContent = cleanFileName(blob.BlobName);
+    titleLink.className = 'item-title';
+    titleLink.style.textDecoration = "underline";
+
+    linkContainer.appendChild(titleLink);
+    container.appendChild(linkContainer);
+    return container;
+}
+document.addEventListener("keydown", function (event) {
+    hideModal('modal-preview-files');
+});
+function closeModalOnOutsideClick(event, modalId) {
+    const modal = document.getElementById(modalId);
+    const modalContent = modal.querySelector(".global-modal-content");
+
+    if (!modalContent.contains(event.target)) {
+        hideModal(modalId);
+    }
+}

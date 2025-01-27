@@ -1,3 +1,36 @@
 ﻿#modal-preview-files{
     display:none;
 }
+#modal-preview-files .global-modal-content {
+    max-width: 80%;
+    width:auto;
+    margin-top: 30px !important;
+}
+    #modal-preview-files .global-modal-content .close-btn-container button {
+        position:relative;
+    }
+@media (max-width: 768px) {
+    #modal-preview-files .global-modal-content {
+        max-width: 95%;
+    }
+}
+#modal-preview-files .item-container {
+    margin-bottom: 15px;
+    text-align: center;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    background-color: var(--clr-grayLight);
+    padding: 20px;
+    border-radius: 10px;
+}
+#modal-preview-files .link-container{
+    display: flex;
+    justify-content:center;
+}
+#modal-preview-files .item-title {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: var(--clr-blueDark);
+    display: block;
+    width: fit-content;
+}

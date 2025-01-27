@@ -1,13 +1,12 @@
 ﻿<link rel="stylesheet" href="~/css/TrackingTool/previewUploadedFiles.css?v=@DateTime.Now.Ticks" />
 
-<div id="modal-preview-files" class="global-modal">
+<div id="modal-preview-files" class="global-modal" onclick="closeModalOnOutsideClick(event, 'modal-preview-files')">
     <div class="global-modal-content">
-        <div class="container">
-            <div>
+        <div>
                 <div class="close-btn-container"><button id="autofill-close-modal-x-btn" onclick="hideModal('modal-preview-files')">x</button></div>
-                <h2>Preview Uploaded Files</h2>
+                <h2>Uploaded Files</h2>
                
-                <div id="preview-files-container">
+                <div id="previewContainer">
                 </div>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
@@ -16,6 +15,5 @@
                     </button>
                 </div>
             </div>
-        </div>
     </div>
 </div>

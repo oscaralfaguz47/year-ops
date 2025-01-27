@@ -10,8 +10,10 @@ using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.Blobs;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using static OceansApp.Models.ViewModels.Components.MethodResponse;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -104,7 +106,8 @@ namespace OceansApp.DataAccess.Repository
                 string blobName = "";
                 try
                 {
-                    List<string> uploadedBlobsNames = new List<string>();
+                    var objectList = new List<AzureUploadedFilesVM>();
+
                     foreach (var uploadedBlob in uploadedBlobs)
                     {
                         if (uploadedBlob.Success)
@@ -120,7 +123,12 @@ namespace OceansApp.DataAccess.Repository
                                 CreationDate = uploadedBlob.UploadDate
                             };
                             _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.Add(blobToSave);
-                            uploadedBlobsNames.Add(uploadedBlob.FileName);
+                            AzureUploadedFilesVM uploadedFile = new AzureUploadedFilesVM()
+                            {
+                                BlobUrl = uploadedBlob.BlobUrl,
+                                BlobName = uploadedBlob.FileName
+                            };
+                            objectList.Add(uploadedFile);
                             blobName = uploadedBlob.FileName;
                         }
                         else
@@ -132,7 +140,7 @@ namespace OceansApp.DataAccess.Repository
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return MethodResponse.CreateSuccessResponseStringsList($"The file ({RemoveIdToBlobNames.RemoveId(blobName)}) was uploaded!", uploadedBlobsNames);
+                    return MethodResponse.CreateSuccessResponseAnyList($"The file ({RemoveIdToBlobNames.RemoveId(blobName)}) was uploaded!", objectList);
                 }
                 catch (Exception ex)
                 {

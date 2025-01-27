@@ -234,7 +234,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 reportToSend.AccountPayableAmount = accountPayableAmount;
 
                 var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
-                reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList;
+                reportToSend.ListOfMovements = (GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericObject;
 
                 List<GetConsultantPaymentsInPeriodVM> paymentsList = await _unitOfWork.ConsultantPayment.GetConsultantPaymentsInPeriod(consultantId,
                 startDate, endDate);
@@ -285,7 +285,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 {
                     var movementsListFromDb = await _unitOfWork.ConsultantPayment.GetMovementsToPay(consultant, startDate, endDate);
 
-                    totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
+                    totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericObject);
                 }
                 else
                 {
@@ -386,9 +386,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             DateTime.Parse(paymentData.EndDatePeriod));
                         decimal totalAmountToPay = 0;
 
-                        totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
+                        totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericObject);
 
-                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay, (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList);
+                        var res = await _unitOfWork.ConsultantPayment.CreatePayment(userActionedBy, paymentData, totalAmountToPay, (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericObject);
 
                         if (res.Success)
                         {
@@ -472,10 +472,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         DateTime.Parse(dataFromModel.EndDatePeriod));
                     decimal totalAmountToPay = 0;
 
-                    totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
+                    totalAmountToPay = _unitOfWork.ConsultantPayment.GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericObject);
 
                     var res = await _unitOfWork.ConsultantPayment.SetAsAccountPayable(userActionedBy, dataFromModel, totalAmountToPay,
-                        (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultant.CompanyId);
+                        (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericObject, consultant.CompanyId);
 
                     if (res.Success)
                     {
@@ -838,7 +838,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
                 if (saveRegistersResponse.Success)
                 {
-                    List<ConsultantAndProjectVM> projectConsultantsList = (List<ConsultantAndProjectVM>)saveRegistersResponse.GenericList;
+                    List<ConsultantAndProjectVM> projectConsultantsList = (List<ConsultantAndProjectVM>)saveRegistersResponse.GenericObject;
                     //Send emails
                     var groupedConsultants = projectConsultantsList
                         .GroupBy(c => new { c.ConsultantId, c.ConsultantName, c.Email })

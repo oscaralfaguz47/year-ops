@@ -292,7 +292,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 {
                     success = true,
                     message = resultBlob.Message,
-                    fileNamesUploaded = resultBlob.StringsList
+                    fileNamesUploaded = resultBlob.GenericObject
                 });
             }
             catch (Exception ex)

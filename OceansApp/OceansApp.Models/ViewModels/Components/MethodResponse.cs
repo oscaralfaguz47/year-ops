@@ -12,7 +12,7 @@ namespace OceansApp.Models.ViewModels.Components
         public string? FieldName { get; set; }
         public List<CreatedElement>? CreatedElementsList { get; set; }
         public List<string> StringsList { get; set; }
-        public object? GenericList { get; set; }
+        public object? GenericObject { get; set; }
         public MethodResponse()
         {
         }
@@ -23,7 +23,7 @@ namespace OceansApp.Models.ViewModels.Components
         }
 
         private MethodResponse(bool success, string message, string messageType, int? idCreatedElement = null, 
-            List<CreatedElement>? createdElementsList = null, List<string>? stringsList = null, string ? fieldName = null, object? genericList = null)
+            List<CreatedElement>? createdElementsList = null, List<string>? stringsList = null, string ? fieldName = null, object? genericObject = null)
         {
             Success = success;
             Message = message;
@@ -32,7 +32,7 @@ namespace OceansApp.Models.ViewModels.Components
             CreatedElementsList = createdElementsList;
             StringsList = stringsList;
             FieldName = fieldName;
-            GenericList = genericList;
+            GenericObject = genericObject;
         }
         public static MethodResponse CreateSuccessResponse(string? message = null, int? idCreatedElement = null, List<CreatedElement>? createdElementsList = null)
         {

@@ -296,7 +296,7 @@ namespace OceansApp.DataAccess.Repository
                 reportToSend.BenefitsAndOtherMovements = benefitsAndOtherMovements;
                 reportToSend.DebitsMovements = debitsMovements;
             }
-            return new MethodResponse { Success = true, GenericList = reportToSend };
+            return new MethodResponse { Success = true, GenericObject = reportToSend };
         }
 
         private async Task<GetListOfMovementsForPaymentVM> GetPaidMovementsAsync(int accountPayableId)
@@ -1754,8 +1754,8 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
             if (accountPayableAccuntedStatus == null) return MethodResponse.CreateFailureNotFoundResponse("The Accounted status was not found");
 
             var movementsListFromDb = await GetMovementsToPay(consultant, startDate, endDate);
-            decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
-            var journalEntriesToCreate = await GetJournalEntriesReadyToCreate((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultantId, consultant.CompanyId, endDate, totalAmountToPay);
+            decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericObject);
+            var journalEntriesToCreate = await GetJournalEntriesReadyToCreate((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericObject, consultantId, consultant.CompanyId, endDate, totalAmountToPay);
 
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -1803,7 +1803,7 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
                     accountPayable.UserLastUpdatedBy = userActionedBy;
 
                     // Create new account payable movements
-                    GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList;
+                    GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericObject;
                     List<AccountPayableMovement> newMovements = new();
                     newMovements.AddRange(movementsToPayList.ProjectMovements.Select(m => new AccountPayableMovement
                     {
@@ -1855,7 +1855,7 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
                                accountPayable.ConsultantId, "Sent to be paid");
 
                     // Send the payment details email outside the transaction
-                    await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList, consultant, 
+                    await GeneratePaymentDetailsAndSendEmail((GetListOfMovementsForPaymentVM)movementsListFromDb.GenericObject, consultant, 
                         accountPayable.AccountPayableId, accountPayable.StartDatePeriod, accountPayable.EndDatePeriod, accountPayable.Amount);
 
                     await transaction.CommitAsync(); // Commit the transaction
@@ -1878,9 +1878,9 @@ x.StartDatePeriod == startDate && x.EndDatePeriod == endDate
             x.StartDatePeriod == startDate && x.EndDatePeriod == endDate && x.Voided == false);
 
             var movementsListFromDb = await GetMovementsToPay(consultant, startDate, endDate);
-            GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericList;
+            GetListOfMovementsForPaymentVM movementsToPayList = (GetListOfMovementsForPaymentVM)movementsListFromDb.GenericObject;
 
-            decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericList);
+            decimal totalAmountToPay = GetConsultantTotalAmountToPay((GetListOfMovementsForPaymentVM?)movementsListFromDb.GenericObject);
 
             var existingAccountPayableMovements = await _db.ACCOUNTS_PAYABLE_MOVEMENTS
             .Where(x => x.AccountPayableId == existingAccountPayable.AccountPayableId)
