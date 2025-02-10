@@ -47,11 +47,11 @@ async function displayMakePaymentModal(modalId, paymentId) {
         consultantDetailsMP.innerHTML = `<label>Consultant Name: <span>${dataFromApi.reportDetails.consultantName}</span></label>
         <label>Country Name: <span>${dataFromApi.reportDetails.countryName}</span></label>
         <label>Report total amount: <span>$${dataFromApi.reportDetails.amountToPay.toFixed(2)}</span></label>`;
-        paymentMethodsSelectMP.value = dataFromApi.reportDetails.paymentMethodId;
         currentPaymentMethodId = dataFromApi.reportDetails.paymentMethodId;
 
         paymentMethodsArray = await getPaymentMethodsWhereCompanyList(dataFromApi.reportDetails.companyId);
         populateSelect('PaymentMethodSelect', paymentMethodsArray.paymentMethods, null, null);
+        paymentMethodsSelectMP.value = dataFromApi.reportDetails.paymentMethodId;
 
         await getBankAccounts(dataFromApi.reportDetails.paymentMethodId)
         companyNameDiv.textContent = dataFromApi.reportDetails.companyId === "OCE" ? 'Oceans Consulting Firm' : 'OCE LLC';
@@ -212,6 +212,7 @@ async function createUpdatePayment(modalId) {
         hideModal(modalId);
         enableModalButtons(submitBtnsInitialize, otherBtnsInitialize, 'spinner-border');
         await displayReviewForPaymentModal('modal-review-for-payment', consultantIdInputMP.value);
+        getListOfResults(false, true);
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);
@@ -263,6 +264,7 @@ async function deletePayment(paymentId) {
         const dataFromApi = await response.json();
         await displayReviewForPaymentModal('modal-review-for-payment', consultantIdInputMP.value);
         displayToasterSuccess(dataFromApi.message);
+        getListOfResults(false, true);
         hideSpinner();
         return dataFromApi;
     } catch (err) {

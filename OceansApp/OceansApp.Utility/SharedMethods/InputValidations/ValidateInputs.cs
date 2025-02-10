@@ -80,7 +80,7 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
             }
             else if (!(valueToValidate is int))
             {
-                modelState.AddModelError(field, $"The {fieldName} value should be an int.");
+                modelState.AddModelError(field, $"The {fieldName} value should be a number.");
             }
         }
         public void ValidateNonRequiredFieldIntType(string field, string fieldName, int? valueToValidate, ModelStateDictionary modelState)

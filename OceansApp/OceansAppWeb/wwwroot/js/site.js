@@ -23,7 +23,7 @@ function copyToClipboard(inputId) {
 
         document.body.removeChild(tempTextarea);
 
-        displayToasterSuccess('Token copied to clipboard!');
+        displayToasterSuccess('Copied to clipboard!');
     } else {
         alert('Element not found!');
     }

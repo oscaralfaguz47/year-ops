@@ -41,11 +41,16 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label>Reference Number</label>
-                                    <input class="form-control integer-input" type="number" maxlength="50" id="reference-number" />
+                                    <input class="form-control" type="text" maxlength="50" id="reference-number" />
                                 </div>
                                 <div class="col-md-4">
                                     <label>$ Amount to pay</label>
-                                    <input oninput="limitDigitsAndDecimals(this)" class="form-control" type="number" id="total-amount-to-pay" />
+                                    <div class="amount-to-pay-cont">
+                                        <input oninput="limitDigitsAndDecimals(this)" class="form-control" type="number" id="total-amount-to-pay" />
+                                        <button onclick="copyToClipboard('total-amount-to-pay')" title="Copy to clipboard">
+                                            <img src="/icons/Shared/copy-clipboard.svg">
+                                        </button>
+                                    </div>
                                 </div>
                                 <input type="hidden" />
                             </div>

@@ -41,3 +41,26 @@ padding-top: 8px;
 }
 .inputs-amount-container input{
 }
+.amount-to-pay-cont{
+    position:relative;
+}
+    .amount-to-pay-cont input {
+        padding-right: 38px;
+    }
+    .amount-to-pay-cont button {
+        position: absolute;
+        top: 50%;
+        right: -11px;
+        transform: translate(-50%, -50%);
+        border: none;
+        border-radius: 0.375rem;
+        background-color:var(--clr-yellow);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width: 30px;
+        height: 30px;
+    }
+    .amount-to-pay-cont button:hover {
+        background-color: var(--clr-grayDark);
+    }
