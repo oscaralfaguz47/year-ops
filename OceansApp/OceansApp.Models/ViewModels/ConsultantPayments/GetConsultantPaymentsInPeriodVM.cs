@@ -10,5 +10,7 @@ namespace OceansApp.Models.ViewModels.ConsultantPayments
         public DateTime AccountingDate { get; set; }
         public string CompanyId { get; set; }
         public string BankAccountName { get; set; }
+        public string? UserCreatedBy { get; set; }
+        public string? UserUpdatedBy { get; set; }
     }
 }

@@ -364,6 +364,10 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             referenceNumberTh.textContent = 'Reference Number';
             const AmountTh = document.createElement('th');
             AmountTh.textContent = 'Amount';
+            const userCreatedByTh = document.createElement('th');
+            userCreatedByTh.textContent = 'Created By';
+            const userUpdatedByTh = document.createElement('th');
+            userUpdatedByTh.textContent = 'Updated By';
 
             paymentTableTr.appendChild(actionsTh);
             paymentTableTr.appendChild(AmountTh);
@@ -372,6 +376,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
             paymentTableTr.appendChild(bankAccountTh);
             paymentTableTr.appendChild(companyTh);
             paymentTableTr.appendChild(referenceNumberTh);
+            paymentTableTr.appendChild(userCreatedByTh);
+            paymentTableTr.appendChild(userUpdatedByTh);
 
             paymentTableThead.appendChild(paymentTableTr);
 
@@ -416,6 +422,10 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 tdreferenceNumber.textContent = obj.referenceNumber;
                 const tdAmount = document.createElement('td');
                 tdAmount.innerHTML = '$' + obj.paymentAmount.toFixed(2);
+                const tdCreatedBy = document.createElement('td');
+                tdCreatedBy.textContent = obj.userCreatedBy;
+                const tdUpdatedBy = document.createElement('td');
+                tdUpdatedBy.textContent = obj.userUpdatedBy;
 
                 tr.appendChild(tdActions);
                 tr.appendChild(tdAmount);
@@ -424,6 +434,8 @@ async function displayReviewForPaymentModal(modalId, consultantId) {
                 tr.appendChild(tdbankAccount);
                 tr.appendChild(tdcompany);
                 tr.appendChild(tdreferenceNumber);
+                tr.appendChild(tdCreatedBy);
+                tr.appendChild(tdUpdatedBy);
                 tableBody.appendChild(tr);
             });
 

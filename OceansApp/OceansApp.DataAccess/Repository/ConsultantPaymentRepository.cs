@@ -24,6 +24,7 @@ using Azure.Storage.Queues;
 using Newtonsoft.Json;
 using iTextSharp.text.pdf;
 using iTextSharp.text;
+using MimeKit.Encodings;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -1527,8 +1528,13 @@ namespace OceansApp.DataAccess.Repository
             var result = await (from cp in _db.CONSULTANT_PAYMENTS
                                 join pm in _db.PAYMENT_METHODS on cp.PaymentMethodId equals pm.PaymentMethodId
                                 join ba in _db.BANK_ACCOUNTS on cp.BankAccountId equals ba.BankAccountId
-                                where cp.ConsultantId == consultantId && (cp.StartDatePeriod >= startDate && cp.EndDatePeriod <= endDate)
-                                && cp.Voided == false
+                                join uc in _db.AspNetUsers on cp.UserCreatedBy equals uc.Id into ucGroup
+                                from uc in ucGroup.DefaultIfEmpty() // LEFT JOIN para UserCreatedBy
+                                join uu in _db.AspNetUsers on cp.UserLastUpdatedBy equals uu.Id into uuGroup
+                                from uu in uuGroup.DefaultIfEmpty() // LEFT JOIN para UserLastUpdatedBy
+                                where cp.ConsultantId == consultantId
+                                    && (cp.StartDatePeriod >= startDate && cp.EndDatePeriod <= endDate)
+                                    && cp.Voided == false
                                 select new GetConsultantPaymentsInPeriodVM
                                 {
                                     ConsultantPaymentId = cp.ConsultantPaymentId,
@@ -1537,8 +1543,11 @@ namespace OceansApp.DataAccess.Repository
                                     CompanyId = cp.CompanyId,
                                     PaymentAmount = cp.PaymentAmount,
                                     PaymentMethodName = pm.Name,
-                                    BankAccountName = ba.BankAccountName
+                                    BankAccountName = ba.BankAccountName,
+                                    UserCreatedBy = uc != null ? $"{uc.Name} {uc.LastName}" : "N/A",
+                                    UserUpdatedBy = uu != null ? $"{uu.Name} {uu.LastName}" : "N/A"
                                 }).ToListAsync();
+
             return result;
         }
 
