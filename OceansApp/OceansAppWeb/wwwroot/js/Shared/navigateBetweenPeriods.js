@@ -4,14 +4,40 @@ let currentDate = new Date();
 
 // Calculate the new period based on direction and mode.
 function adjustDate(direction, mode) {
-    const dayAdjustment = Number(mode) === 1 ? 15 : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    let year = currentDate.getFullYear();
+    let month = currentDate.getMonth();
+    let day = currentDate.getDate();
 
-    if (direction === 'left') {
-        currentDate = new Date(currentDate.setDate(currentDate.getDate() - dayAdjustment));
-    } else if (direction === 'right') {
-        currentDate = new Date(currentDate.setDate(currentDate.getDate() + dayAdjustment));
+    if (Number(mode) === 1) {
+        if (day <= 15) {
+            if (direction === 'left') {
+                month -= 1; 
+                day = 16; 
+            } else {
+                day = 16; 
+            }
+        } else {
+            if (direction === 'left') {
+                day = 1; 
+            } else {
+                month += 1; 
+                day = 1; 
+            }
+        }
+    } else { 
+        month = (direction === 'left') ? month - 1 : month + 1;
+        day = 1; 
     }
+
+    let lastDay = new Date(year, month + 1, 0).getDate();
+    if (day > lastDay) {
+        day = lastDay; 
+    }
+
+    currentDate = new Date(year, month, day);
 }
+
+
 
 const formatDate = (date) => {
     let month = '' + (date.getMonth() + 1),
@@ -64,6 +90,7 @@ const calculatePeriod = async (date, mode, buttons) => {
     dateToInput.value = formatDate(endDate);
     dateFromInput.value = formatDate(startDate);
     await navitateBetweenDates(formatDateYyyyMmDd(startDate), formatDateYyyyMmDd(endDate), buttons);
+
 
     return { startDate, endDate };
 };
