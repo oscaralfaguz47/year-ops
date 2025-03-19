@@ -75,7 +75,7 @@
     align-items: center;
     justify-content: right;
 }
-#submission-errors {
+.submission-errors {
     display: none;
     color:red;
     text-align: center;
@@ -341,7 +341,52 @@
         width: -webkit-fill-available;
         font-weight: bold;
         color: #fff !important;
+        display:flex;
+        justify-content:center;
+        align-items:center;
     }
+    .submit-report button i {
+        margin-right: 5px;
+    }
+#add-remove-pr-in-period{
+    display: none;
+}
+#add-remove-pr-in-period button {
+    background-color: var(--clr-grayDark);
+}
+#add-remove-pr-in-period button svg {
+    margin-right: 5px;
+}
+.confirmation-message {
+    position: absolute;
+    top: 100%; /* Debajo del botón */
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    display: none; /* Oculto por defecto */
+    z-index: 10; /* Para superponerse */
+}
+
+    .confirmation-message button {
+        margin: 5px;
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+#confirm-btn {
+    background: green;
+    color: white;
+}
+
+#cancel-btn {
+    background: red;
+    color: white;
+}
 .submit-button-disabled {
     box-shadow: none !important;
     opacity: 0.8;

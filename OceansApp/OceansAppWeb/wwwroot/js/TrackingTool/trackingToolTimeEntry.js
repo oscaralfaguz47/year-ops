@@ -102,6 +102,7 @@ function generateDateList(startDateString, endDateString, movements) {
                 dayItemBox.style.marginTop = '8px';
                 let submitBtn = document.getElementById('submitBtn');
                 submitBtn.disabled = true;
+                noHoursSection.style.display = 'none';
                 submitBtn.className = 'submit-button-disabled';
             } else {
                 if (isAdministrative) {

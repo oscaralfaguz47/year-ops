@@ -18,6 +18,8 @@ using System.Text;
 using OceansApp.Models.ViewModels;
 using Microsoft.ApplicationInsights;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
+using OceansApp.Models.Models;
+using Microsoft.Build.Evaluation;
 
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
@@ -691,6 +693,135 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
             }
         }
 
+        [HttpPost("NoHoursToReportInPeriod")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> NoHoursToReportInPeriod([FromBody] NoHoursToReportInPeriodVM model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldIntType("ProjectId", "ProjectId", model.ProjectId, ModelState);
+            validateInputs.ValidateDateValidFormat("StartDatePeriod", "Start Date Period", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartDatePeriod", "Start Date Period", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndDatePeriod", "End Date Period", model.EndPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("EndtDatePeriod", "End Date Period", model.EndPeriodDate, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                }
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                if (consultant == null)
+                {
+                    return BadRequest(new { error = "Consultant does not exist.", messageType = "Exception Error" });
+                }
+
+                var movement = await _unitOfWork.ReportingMyTimeMovement.GetFirstOrDefaultAsync(x => x.ProjectId == model.ProjectId &&
+                    x.ConsultantId == consultant.ConsultantId && x.Quantity > 0 && (x.ActionDate.Date >= model.StartPeriodDate.Date &&
+                    x.ActionDate.Date <= model.EndPeriodDate.Date));
+
+                if (movement != null)
+                {
+                    var errors = new Dictionary<string, List<string>>
+        {
+            { "HoursReported", new List<string> { "You must remove all reported time to proceed." } }
+        };
+                    return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                }
+
+                ProjectConsultantPeriodDisabledTracking disableTracking = new()
+                {
+                    ProjectId = model.ProjectId,
+                    ConsultantId = consultant.ConsultantId,
+                    StartPeriodDate = model.StartPeriodDate,
+                    EndPeriodDate = model.EndPeriodDate,
+                    CreationDate = DateTime.UtcNow,
+                    CreatedBy = userActionedBy
+                };
+                await _unitOfWork.ProjectConsultantPeriodDisabledTracking.AddAsync(disableTracking);
+
+                var movementExists = await _unitOfWork.ReportingMyTimeMovement.GetFirstOrDefaultAsync(x => x.ProjectId == model.ProjectId &&
+                   x.ConsultantId == consultant.ConsultantId && (x.ActionDate.Date >= model.StartPeriodDate.Date &&
+                   x.ActionDate.Date <= model.EndPeriodDate.Date));
+
+                var transactionStatus = await _unitOfWork.TransactionStatus.GetFirstOrDefaultAsync(x => x.Name == "Approved");
+                if (transactionStatus == null)
+                {
+                    return BadRequest(new { error = "Transaction status 'Approved' not found.", messageType = "Exception Error" });
+                }
+
+                if (movementExists == null)
+                {
+                    var movementType = await _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                    if (movementType == null)
+                    {
+                        return BadRequest(new { error = "Movement Type 'Normal Hours' not found.", messageType = "Exception Error" });
+                    }
+                    var timeMovementToCreate = new ReportingMyTimeMovement
+                    {
+                        ConsultantId = consultant.ConsultantId,
+                        ProjectId = model.ProjectId,
+                        ActionDate = model.EndPeriodDate,
+                        Notes = "No hours to report for this period.",
+                        TransactionStatusId = transactionStatus.TransactionStatusId,
+                        MovementTypeId = movementType.MovementTypeId,
+                        CreationDate = DateTime.UtcNow,
+                        Quantity = 0
+                    };
+
+                    await _unitOfWork.ReportingMyTimeMovement.AddAsync(timeMovementToCreate);
+                }
+                else
+                {
+                    movementExists.Notes = "No hours to report for this period.";
+                }
+
+                var submission = await _unitOfWork.ReportingMyTimeMovementSubmission.GetFirstOrDefaultAsync(x => x.ProjectId == model.ProjectId &&
+                x.ConsultantId == consultant.ConsultantId && (x.StartPeriodDate.Date == model.StartPeriodDate.Date &&
+                x.EndPeriodDate.Date == model.EndPeriodDate.Date));
+
+                if (submission != null)
+                {
+                    submission.TransactionStatusId = transactionStatus.TransactionStatusId;
+                }
+                else
+                {
+                    var submissionToCreate = new ReportingMyTimeMovementSubmission
+                    {
+                        ConsultantId = consultant.ConsultantId,
+                        ProjectId = model.ProjectId,
+                        TransactionStatusId = transactionStatus.TransactionStatusId,
+                        SubmissionDate = DateTime.UtcNow,
+                        StartPeriodDate = model.StartPeriodDate,
+                        EndPeriodDate = model.EndPeriodDate
+                    };
+
+                    await _unitOfWork.ReportingMyTimeMovementSubmission.AddAsync(submissionToCreate);
+                }
+
+                await _unitOfWork.SaveAsync();
+
+                return Ok(new { success = true, message = "Report sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
 
         //NO HTTP METHODS
         [ApiExplorerSettings(IgnoreApi = true)]

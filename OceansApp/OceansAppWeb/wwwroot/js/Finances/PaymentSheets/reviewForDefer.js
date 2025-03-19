@@ -36,7 +36,6 @@ async function displayReviewForDeferModal(modalId, consultantId) {
         }
 
         const dataFromApi = await response.json();
-        console.log(dataFromApi);
         if (costCentersArray.length === 0) {
             costCentersArray = await getCostsCentersWhereCompanyList(dataFromApi.data.companyId);
         }
@@ -199,7 +198,6 @@ async function DeferDebitsCredits(modalId) {
         ActionDate: actionDateRD.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
         MovementsList: valuesArray
     };
-    console.log(data);
 
     displaySpinner();
     try {

@@ -331,6 +331,7 @@ async function createFirstMovementIfDoesNotExist() {
 // Time entry creation/update
 async function createUpdateTimeEntry() {
     submissionError.innerHTML = '';
+    noHoursError.innerHTML = '';
     const saveBtn = getElementById('save-btn');
     const savingLabel = `<i class="fa-solid fa-spinner saving-icon"></i> Saving Changes...`;
     const saveLabel = `<i class="fa-solid fa-floppy-disk"></i> Please save your changes`;
@@ -443,6 +444,7 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
                 ${transactionStatus === 'Waiting to be approved' ? 'Pending approval' : transactionStatus === 'Approved' ? 'Timesheet approved' : transactionStatus}</button>`;
     const submitBtn = getElementById('submitBtn');
     submitBtn.disabled = true;
+    noHoursSection.style.display = 'none';
     submitBtn.className = 'submit-button-disabled';
     quantityInput.disabled = true;
     notesInput.disabled = true;

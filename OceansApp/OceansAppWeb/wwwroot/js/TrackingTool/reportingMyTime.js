@@ -8,6 +8,7 @@ const errorMessageIntern = getElementById('error-message-intern');
 let clientHasTrackingToolValue = getElementById('ClientHasTT').value;
 const submissionInfo = getElementById('submission-info');
 const submissionError = getElementById('submission-errors');
+const noHoursError = getElementById('no-hours-errors');
 const projectIdInput = getElementById('projectId');
 let selectedProjectName = '';
 const inactiveNoTrackingToolSection = getElementById('inactive-no-tracking-in-project-sec');
@@ -17,6 +18,8 @@ let participatesInOnCalls = false;
 const autofillMobilebtn = getElementById('autofill-sec-mobile');
 const autofillDeskbtn = getElementById('autofill-sec-desk');
 let isAdministrative = false;
+const noHoursSection = getElementById('add-remove-pr-in-period');
+let projectIsActiveInThePeriod = false;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -145,8 +148,8 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         if (!isAdministrative) {
             autofillMobilebtn.style.display = 'none';
         }
-
-        if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+        projectIsActiveInThePeriod = statusInfo.projectIsActiveInThePeriod;
+        if (statusInfo.isActive && statusInfo.accessToTrackingTool && projectIsActiveInThePeriod) {
             submissionInfo.style.display = 'flex';
             totalHoursLabelEl.style.display = 'block';
             header.style.display = 'flex';
@@ -180,12 +183,20 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
             inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You ${inactiveNoTrackingMiddleMessage} Active in this project, but you ${inactiveNoTrackingMiddleMessage} not needed to report time for this period.
             <br>${inactiveNoTrackingEndMessae}</label></div>`;
         }
+        if (!projectIsActiveInThePeriod) {
+            noHoursSection.style.display = 'none';
+            inactiveNoTrackingToolSection.innerHTML = `<div><img src="/icons/Shared/question.svg"><br><label>You are Active in this project, but It looks like you haven’t reported hours for this period.<br> ${inactiveNoTrackingEndMessae}</label></div>`;
+            autofillDeskbtn.style.display = 'none';
+            autofillMobilebtn.style.display = 'none';
+        } else {
+            noHoursSection.style.display = 'block';
+        }
         submissionError.innerHTML = '';
         submissionInfo.innerHTML = `<div class="spinner"></div>`;
 
         if (clientHasTrackingToolValue) {
             totalHoursLabelEl.style.display = 'none';
-            if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+            if (statusInfo.isActive && statusInfo.accessToTrackingTool && statusInfo.projectIsActiveInThePeriod) {
                 await getProjectMovementsClientHasTrackTool(statusInfo.participatesInOnCalls);
                 trackingToolReportEntrySection.style.display = 'block';
             }
@@ -195,7 +206,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                 });
             }
         } else {
-            if (statusInfo.isActive && statusInfo.accessToTrackingTool) {
+            if (statusInfo.isActive && statusInfo.accessToTrackingTool && statusInfo.projectIsActiveInThePeriod) {
                 totalHoursLabelEl.style.display = 'block';
 
                 if (typeof getTrackingToolProjectMovements === 'function') {
@@ -237,6 +248,7 @@ async function submitReportToBePaid() {
     }
 
     try {
+        noHoursError.innerHTML = '';
         displaySpinner();
 
         const datesFromTo = getNormalizedDates(dateFromInput, dateToInput);
@@ -245,7 +257,7 @@ async function submitReportToBePaid() {
 
         var data = {
             ProjectId: Number(projectIdInput.value),
-            StartPeriodDate: startDateData, 
+            StartPeriodDate: startDateData,
             EndPeriodDate: endDateData
         };
 
@@ -287,13 +299,12 @@ async function submitReportToBePaid() {
         }
 
         const dataFromApi = await response.json();
+        noHoursSection.style.display = 'none';
         displayToasterSuccess(dataFromApi.message);
         if (clientHasTrackingToolValue) {
             await getProjectMovementsClientHasTrackTool(participatesInOnCalls);
         } else {
             const movements = await getTrackingToolProjectMovements();
-            let dateFrom = startDateData;
-            let dateTo = endDateData;
             generateDateList(startDateData.split('T')[0], endDateData.split('T')[0], movements.movementsList);
         }
 
@@ -309,3 +320,106 @@ async function submitReportToBePaid() {
     }
 }
 
+// No hours to report
+
+const messageBox = document.getElementById("confirmation-message");
+const toggleButton = document.getElementById("toggle-message-btn");
+const cancelButton = document.getElementById("cancel-btn");
+const confirmButton = document.getElementById("confirm-btn");
+
+function toggleMessage(event) {
+    event.stopPropagation();
+    messageBox.style.display = messageBox.style.display === "block" ? "none" : "block";
+}
+
+toggleButton.addEventListener("click", toggleMessage);
+
+cancelButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    noHoursError.innerHTML = '';
+    messageBox.style.display = "none";
+});
+
+confirmButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    noHoursToReportInPeriod(projectIdInput.value);
+    messageBox.style.display = "none";
+});
+
+document.addEventListener("click", () => {
+    messageBox.style.display = "none";
+});
+
+messageBox.addEventListener("click", (event) => {
+    event.stopPropagation();
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        messageBox.style.display = "none";
+    }
+});
+
+async function noHoursToReportInPeriod(projectId) {
+    displaySpinner();
+    var token = $('[name="__RequestVerificationToken"]').val();
+
+    const datesFromTo = getNormalizedDates(dateFromInput, dateToInput);
+    let startDateData = datesFromTo.startDate;
+    let endDateData = datesFromTo.endDate;
+
+    var data = {
+        ProjectId: Number(projectIdInput.value),
+        StartPeriodDate: startDateData,
+        EndPeriodDate: endDateData
+    };
+    try {
+        const response = await fetch('/TrackingTool/ReportingMyTime/NoHoursToReportInPeriod', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                RequestVerificationToken: token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Validation Error":
+                    const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
+                        return acc.concat(current);
+                    }, []);
+
+                    if (errorData.errors.HoursReported !== undefined) {
+                        noHoursError.style.display = 'block';
+                        noHoursError.innerHTML = `<span>${errorData.errors.HoursReported}</span>`;
+                    }
+                    break;
+                case "Not Found":
+                    displayToasterError(errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
+            }
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        noHoursSection.style.display = 'none';
+        displayToasterSuccess(dataFromApi.message);
+        navitateBetweenDates(startDateData, endDateData);
+
+        submissionError.innerHTML = '';
+        noHoursError.innerHTML = '';
+        hideSpinner();
+        return dataFromApi;
+    } catch (err) {
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err);
+        displayToasterError('Something went wrong, more details: ' + err);
+        hideSpinner();
+        return null;
+    }
+}

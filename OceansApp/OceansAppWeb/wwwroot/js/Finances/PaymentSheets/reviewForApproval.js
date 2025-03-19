@@ -166,14 +166,10 @@ function displayApproveRejectConfirmation(action, from, submissionId) {
     let confirmBtn = document.getElementById('confirm-approve-reject-btn');
     let newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    console.log(confirmBtn);
-    console.log("From: " + from);
     newConfirmBtn.addEventListener('click', function () {
         if (from === 'ReviewForApproval') {
-            console.log("Review For Approval");
             approveRejectSubmission();
         } else {
-            console.log("PAYMENT SHEETS");
             submissionIdToReject = submissionId;
             rejectApprovement();
         }

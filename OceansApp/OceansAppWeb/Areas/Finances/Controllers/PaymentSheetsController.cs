@@ -17,6 +17,7 @@ using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Reflection.Metadata;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
@@ -575,6 +576,63 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     CreatedBy = userActionedBy
                 };
                 await _unitOfWork.ProjectConsultantPeriodDisabledTracking.AddAsync(disableTracking);
+
+                var projectMovements = await _unitOfWork.ReportingMyTimeMovement.GetAllAsync(x => x.ProjectId == model.ProjectId &&
+                  x.ConsultantId == model.ConsultantId && (x.ActionDate.Date >= model.StartPeriodDate.Date &&
+                  x.ActionDate.Date <= model.EndPeriodDate.Date));
+
+                foreach (var movement in projectMovements)
+                {
+                    _unitOfWork.ReportingMyTimeMovement.Remove(movement);
+                }
+
+                var transactionStatus = await _unitOfWork.TransactionStatus.GetFirstOrDefaultAsync(x => x.Name == "Approved");
+                if (transactionStatus == null)
+                {
+                    return BadRequest(new { error = "Transaction status 'Approved' not found.", messageType = "Exception Error" });
+                }
+                var movementType = await _unitOfWork.ReportingMyTimeMovementType.GetFirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                if (movementType == null)
+                {
+                    return BadRequest(new { error = "Movement Type 'Normal Hours' not found.", messageType = "Exception Error" });
+                }
+                var timeMovementToCreate = new ReportingMyTimeMovement
+                {
+                    ConsultantId = model.ConsultantId,
+                    ProjectId = model.ProjectId,
+                    ActionDate = model.EndPeriodDate,
+                    Notes = "No hours to report for this period.",
+                    TransactionStatusId = transactionStatus.TransactionStatusId,
+                    MovementTypeId = movementType.MovementTypeId,
+                    CreationDate = DateTime.UtcNow,
+                    Quantity = 0
+                };
+                await _unitOfWork.ReportingMyTimeMovement.AddAsync(timeMovementToCreate);
+
+                var submission = await _unitOfWork.ReportingMyTimeMovementSubmission.GetFirstOrDefaultAsync(x => x.ProjectId == model.ProjectId &&
+                 x.ConsultantId == model.ConsultantId && (x.StartPeriodDate.Date == model.StartPeriodDate.Date &&
+                 x.EndPeriodDate.Date == model.EndPeriodDate.Date));
+
+                if (submission != null)
+                {
+                    submission.TransactionStatusId = transactionStatus.TransactionStatusId;
+                }
+                else
+                {
+                    //Create submission
+                    var submissionToCreate = new ReportingMyTimeMovementSubmission
+                    {
+                        ConsultantId = model.ConsultantId,
+                        ProjectId = model.ProjectId,
+                        TransactionStatusId = transactionStatus.TransactionStatusId,
+                        SubmissionDate = DateTime.UtcNow,
+                        StartPeriodDate = model.StartPeriodDate,
+                        EndPeriodDate = model.EndPeriodDate
+                    };
+
+                    await _unitOfWork.ReportingMyTimeMovementSubmission.AddAsync(submissionToCreate);
+                }
+
                 await _unitOfWork.SaveAsync();
 
                 return Ok(new { success = true, message = "The project was removed for this period" });
@@ -620,6 +678,31 @@ namespace OceansAppWeb.Areas.Finances.Controllers
              x.StartDatePeriod == removedProject.StartPeriodDate &&
              x.EndDatePeriod == removedProject.EndPeriodDate);
                 _unitOfWork.ProjectConsultantPeriodDisabledTracking.Remove(removedProject);
+
+                var transactionStatus = await _unitOfWork.TransactionStatus.GetFirstOrDefaultAsync(x => x.Name == "Rejected");
+                if (transactionStatus == null)
+                {
+                    return BadRequest(new { error = "Transaction status 'Rejected' not found.", messageType = "Exception Error" });
+                }
+
+                var projectMovements = await _unitOfWork.ReportingMyTimeMovement.GetAllAsync(x => x.ProjectId == removedProject.ProjectId &&
+                  x.ConsultantId == removedProject.ConsultantId && (x.ActionDate.Date >= removedProject.StartPeriodDate.Date &&
+                  x.ActionDate.Date <= removedProject.EndPeriodDate.Date));
+
+                foreach (var movement in projectMovements)
+                {
+                    _unitOfWork.ReportingMyTimeMovement.Remove(movement);
+                }
+
+                var submission = await _unitOfWork.ReportingMyTimeMovementSubmission.GetFirstOrDefaultAsync(x => x.ProjectId == removedProject.ProjectId &&
+                  x.ConsultantId == removedProject.ConsultantId && (x.StartPeriodDate.Date == removedProject.StartPeriodDate.Date &&
+                  x.EndPeriodDate.Date == removedProject.EndPeriodDate.Date));
+
+                if (submission != null)
+                {
+                    submission.TransactionStatusId = transactionStatus.TransactionStatusId;
+                }
+
                 await _unitOfWork.SaveAsync();
 
                 return Ok(new { success = true, message = "The project was added successfully to the period." });
@@ -874,8 +957,8 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                             {
                                 _telemetryClient.TrackTrace($"Sending email to {projectConsultantData.Email}");
                                 string message = JsonConvert.SerializeObject(emailToSend);
-                               var testing =  await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
- 
+                                var testing = await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(message));
+
                                 _telemetryClient.TrackTrace($"Email sent to {projectConsultantData.Email}");
                             }
                             catch (Exception ex)
@@ -924,6 +1007,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             };
         }
 
-        
+
     }
 }
