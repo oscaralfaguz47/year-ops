@@ -131,6 +131,10 @@ namespace OceansApp.DataAccess.Repository
                                     equals new { rmtms.ProjectId, rmtms.ConsultantId, StartDate = rmtms.StartPeriodDate, EndDate = rmtms.EndPeriodDate }
                                     into rmGroup
                                 from rmtms in rmGroup.DefaultIfEmpty()
+                                join ts in _db.TRANSACTION_STATUSES.AsNoTracking()
+                                    on rmtms.TransactionStatusId equals ts.TransactionStatusId
+                                    into tsGroup
+                                from ts in tsGroup.DefaultIfEmpty()
                                 join pct in _db.PROJECTS_CONSULTANTS_PERIODS_DISABLED_TRACKINGS.AsNoTracking()
                                     on new { pcps.ProjectId, pcps.ConsultantId, pcps.StartDate, pcps.EndDate }
                                     equals new { pct.ProjectId, pct.ConsultantId, StartDate = pct.StartPeriodDate, EndDate = pct.EndPeriodDate }
@@ -138,8 +142,8 @@ namespace OceansApp.DataAccess.Repository
                                 from pct in pctGroup.DefaultIfEmpty()
                                 where pcps.EndDate <= endDate
                                       && pcps.ConsultantId == consultantId
-                                      && rmtms == null
-                                      && pct == null 
+                                      && (rmtms == null || ts.Name == "Rejected")
+                                      && pct == null
                                 select new ProjectsPendingSubmissionVM
                                 {
                                     ProjectId = pcps.ProjectId,
@@ -148,8 +152,9 @@ namespace OceansApp.DataAccess.Repository
                                     EndDate = pcps.EndDate
                                 }).ToListAsync();
 
-
             return result;
+
+
 
         }
     }

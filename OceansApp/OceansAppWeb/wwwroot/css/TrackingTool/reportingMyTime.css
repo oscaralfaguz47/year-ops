@@ -359,7 +359,7 @@
 }
 .confirmation-message {
     position: absolute;
-    top: 100%; /* Debajo del botón */
+    top: 100%; 
     left: 0;
     width: 100%;
     background: rgba(0, 0, 0, 0.8);
@@ -367,8 +367,8 @@
     padding: 10px;
     text-align: center;
     border-radius: 5px;
-    display: none; /* Oculto por defecto */
-    z-index: 10; /* Para superponerse */
+    display: none; 
+    z-index: 10; 
 }
 
     .confirmation-message button {
