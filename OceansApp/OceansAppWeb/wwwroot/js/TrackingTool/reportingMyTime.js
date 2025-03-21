@@ -136,6 +136,7 @@ function updateAutofillButtons() {
 //Navitate between dates
 async function navitateBetweenDates(startDate, endDate, buttons) {
     try {
+        noHoursError.innerHTML = '';
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
