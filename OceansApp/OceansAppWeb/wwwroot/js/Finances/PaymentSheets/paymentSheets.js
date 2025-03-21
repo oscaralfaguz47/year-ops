@@ -13,7 +13,6 @@ $(document).ready(function () {
     calculatePeriod(currentDateNoChange, paymentPeriod);
 });
 
-
 function changePaymentPeriod() {
     let selectedDate = new Date(dateToInput.value);
     paymentPeriod = Number(paymentPeriodSelect.value);
