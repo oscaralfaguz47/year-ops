@@ -160,7 +160,7 @@ ORDER BY AA.AccountingAccountCode";
             command.CommandText = "SP_LEDGER_MOVEMENT_InsertLedgerMovements";
             command.CommandType = CommandType.StoredProcedure;
 
-            // Table type parameter
+            // Table type parameters
             var tableParam = new SqlParameter
             {
                 ParameterName = "@LedgerMovements",
