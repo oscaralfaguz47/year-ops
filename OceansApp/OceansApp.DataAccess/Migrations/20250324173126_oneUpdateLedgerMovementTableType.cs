@@ -1,0 +1,56 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace OceansApp.DataAccess.Migrations
+{
+    /// <inheritdoc />
+    public partial class oneUpdateLedgerMovementTableType : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            //UPDATE STORED PROCEDURE
+            var sp = @"CREATE TYPE LedgerMovementType AS TABLE
+(
+    IdSeat NVARCHAR(10),
+    Consecutive INT,
+    Date DATETIME2(7),
+    LocalDebit DECIMAL(18,2),
+    LocalCredit DECIMAL(18,2),
+    AccountingType NVARCHAR(1),
+    RecordDate DATETIME2(7),
+    AccountingAccountCode NVARCHAR(25),
+    CompanyId NVARCHAR(8),
+    CostCenterCode NVARCHAR(25)
+);";
+
+            // Delete stored procedure if exists
+            migrationBuilder.Sql("DROP PROCEDURE IF EXISTS SP_LEDGER_MOVEMENT_InsertLedgerMovements");
+            migrationBuilder.Sql("DROP TYPE IF EXISTS LedgerMovementType");
+
+            // Create new stored Procedure
+            migrationBuilder.Sql(sp);
+        }
+
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            // restart the stored procedure to the original version
+            var spOriginal = @"CREATE TYPE LedgerMovementType AS TABLE
+        (
+            IdSeat NVARCHAR(10),
+            Consecutive INT,
+            Date DATETIME2(7),
+            LocalDebit DECIMAL(18,2),
+            LocalCredit DECIMAL(18,2),
+            AccountingType NVARCHAR(1),
+            RecordDate DATETIME2(7),
+            AccountingAccountId INT,
+            CompanyId NVARCHAR(8),
+            CostCenterId INT
+        );";
+
+            migrationBuilder.Sql("DROP TYPE IF LedgerMovementType");
+            migrationBuilder.Sql(spOriginal);
+        }
+    }
+}

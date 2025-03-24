@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Cors;
+using OceansApp.Models.ViewModels.DataFromSoftland;
 
 namespace OceansApp.Areas.Admin.Controllers
 {
@@ -127,47 +128,43 @@ namespace OceansApp.Areas.Admin.Controllers
                             //INSERT LEDGER MOVEMENTS
                             if (jsonFromInput.ledgerMovements != null)
                             {
-                                int affectedRecords = 0;
+                                var ledgerMovementsList = new List<CreateLedgerMovementVM>();
+
                                 foreach (var jsonMaster in jsonFromInput.ledgerMovements)
                                 {
-                                    var accountingAccountCode = "";
-                                    var costCenterCode = "";
-                                    var companyId = "";
-                                    if (jsonMaster.CUENTA_CONTABLE != null && jsonMaster.CompanyId != null)
+                                    var accountingAccountCode = (string?)jsonMaster.CUENTA_CONTABLE ?? string.Empty;
+                                    var costCenterCode = (string?)jsonMaster.CENTRO_COSTO ?? string.Empty;
+                                    var companyId = (string?)jsonMaster.CompanyId ?? string.Empty;
+
+                                    if (string.IsNullOrWhiteSpace(accountingAccountCode) && string.IsNullOrWhiteSpace(companyId))
                                     {
-                                        accountingAccountCode = jsonMaster.CUENTA_CONTABLE;
-                                        costCenterCode = jsonMaster.CENTRO_COSTO;
-                                        companyId = jsonMaster.CompanyId;
+                                        companyId = string.Empty;
                                     }
-                                    var accountingAccount = await _unitOfWork.AccountingAccounts.GetFirstOrDefaultAsync(x => x.AccountingAccountCode == accountingAccountCode
-                                    && x.CompanyId == companyId);
-                                    var costCenter = await _unitOfWork.CenterOfCosts.GetFirstOrDefaultAsync(x => x.CostCenterCode == costCenterCode
-                                    && x.CompanyId == companyId);
-                                    LedgerMovement ledgerMovement = new()
+
+                                    ledgerMovementsList.Add(new CreateLedgerMovementVM
                                     {
-                                        IdSeat = jsonMaster.ASIENTO,
+                                        IdSeat = jsonMaster.ASIENTO ?? string.Empty,
                                         Consecutive = jsonMaster.CONSECUTIVO,
-                                        CostCenterId = costCenter.CostCenterId,
-                                        AccountingAccountId = accountingAccount.AccountingAccountId,
                                         Date = jsonMaster.FECHA,
                                         LocalDebit = jsonMaster.DEBITO_LOCAL,
                                         LocalCredit = jsonMaster.CREDITO_LOCAL,
-                                        AccountingType = jsonMaster.CONTABILIDAD,
+                                        AccountingType = jsonMaster.CONTABILIDAD ?? string.Empty,
                                         RecordDate = jsonMaster.RecordDate,
-                                        CompanyId = companyId
-                                    };
-                                    if (await _unitOfWork.LedgerMovements.AddIfNotExist(ledgerMovement))
-                                    {
-                                        affectedRecords = affectedRecords + 1;
-                                        await _unitOfWork.SaveAsync();
-                                    }
+                                        AccountingAccountCode = accountingAccountCode,
+                                        CompanyId = companyId,
+                                        CostCenterCode = costCenterCode
+                                    });
                                 }
+
+                                int affectedRecords = await _unitOfWork.LedgerMovements.AddIfNotExistBulkAsync(ledgerMovementsList);
+
                                 if (affectedRecords > 0)
                                 {
-                                    updatedSections = updatedSections + "Ledger Movements /";
+                                    updatedSections += "Ledger Movements /";
                                 }
-                                updatedRecords = updatedRecords + affectedRecords;
+                                updatedRecords = affectedRecords;
                             }
+
                             //INSERT CLIENTS
                             if (jsonFromInput.clients != null)
                             {

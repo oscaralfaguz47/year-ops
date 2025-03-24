@@ -1,5 +1,6 @@
 ﻿using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
+using OceansApp.Models.ViewModels.DataFromSoftland;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
@@ -11,6 +12,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<IEnumerable<AccountingAccountWithBalanceVM>> GetAccountingAccountsReturnsAndDiscountsWithBalance(
             DateTime fechaInicial, DateTime fechaFinal, int ignoreAccountingAccounts);
         void Update(LedgerMovement obj);
-        Task<bool> AddIfNotExist(LedgerMovement obj);
+        Task<int> AddIfNotExistBulkAsync(IEnumerable<CreateLedgerMovementVM> movements);
     }
 }

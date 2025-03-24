@@ -4,6 +4,9 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
+using OceansApp.Models.ViewModels.DataFromSoftland;
+using SkiaSharp;
+using System.Data;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -116,21 +119,71 @@ ORDER BY AA.AccountingAccountCode";
         {
             _db.LEDGER_MOVEMENT.Update(obj);
         }
-        public async Task<bool> AddIfNotExist(LedgerMovement obj)
+        public async Task<int> AddIfNotExistBulkAsync(IEnumerable<CreateLedgerMovementVM> movements)
         {
-            var existingLedgerMovement = await GetFirstOrDefaultAsync(u => u.IdSeat == obj.IdSeat && u.CostCenterId == obj.CostCenterId &&
-            u.AccountingAccountId == obj.AccountingAccountId && u.LocalDebit == obj.LocalDebit &&
-            u.LocalCredit == obj.LocalCredit && u.Consecutive == obj.Consecutive && u.CompanyId == obj.CompanyId);
+            if (movements == null || !movements.Any())
+                return 0;
 
-            if (existingLedgerMovement == null)
+            var dataTable = new DataTable();
+            dataTable.Columns.Add("IdSeat", typeof(string));
+            dataTable.Columns.Add("Consecutive", typeof(int));
+            dataTable.Columns.Add("Date", typeof(DateTime));
+            dataTable.Columns.Add("LocalDebit", typeof(decimal));
+            dataTable.Columns.Add("LocalCredit", typeof(decimal));
+            dataTable.Columns.Add("AccountingType", typeof(string));
+            dataTable.Columns.Add("RecordDate", typeof(DateTime));
+            dataTable.Columns.Add("AccountingAccountCode", typeof(string));
+            dataTable.Columns.Add("CompanyId", typeof(string));
+            dataTable.Columns.Add("CostCenterCode", typeof(string));
+
+            foreach (var item in movements)
             {
-                await _db.LEDGER_MOVEMENT.AddAsync(obj);
-                return true;
+                dataTable.Rows.Add(
+                    item.IdSeat,
+                    item.Consecutive,
+                    item.Date,
+                    item.LocalDebit,
+                    item.LocalCredit,
+                    item.AccountingType,
+                    item.RecordDate,
+                    item.AccountingAccountCode,
+                    item.CompanyId,
+                    item.CostCenterCode
+                );
             }
-            else
+            var connection = _db.Database.GetDbConnection();
+
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "SP_LEDGER_MOVEMENT_InsertLedgerMovements";
+            command.CommandType = CommandType.StoredProcedure;
+
+            // Table type parameter
+            var tableParam = new SqlParameter
             {
-                return false;
-            }
+                ParameterName = "@LedgerMovements",
+                SqlDbType = SqlDbType.Structured,
+                TypeName = "LedgerMovementType",
+                Value = dataTable
+            };
+            command.Parameters.Add(tableParam);
+
+            // Output parameter
+            var outputParam = new SqlParameter
+            {
+                ParameterName = "@InsertedCount",
+                SqlDbType = SqlDbType.Int,
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(outputParam);
+
+            await command.ExecuteNonQueryAsync();
+
+            return (int)(outputParam.Value ?? 0);
         }
+
+
     }
 }
