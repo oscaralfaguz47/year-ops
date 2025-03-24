@@ -23,22 +23,6 @@ namespace OceansApp.DataAccess.Migrations
         );
     ");
 
-            // Create the User-Defined Table Type
-            migrationBuilder.Sql(@"
-        CREATE TYPE LedgerMovementType AS TABLE
-        (
-            IdSeat NVARCHAR(10),
-            Consecutive INT,
-            Date DATETIME2(7),
-            LocalDebit DECIMAL(18,2),
-            LocalCredit DECIMAL(18,2),
-            AccountingType NVARCHAR(1),
-            RecordDate DATETIME2(7),
-            AccountingAccountId INT,
-            CompanyId NVARCHAR(8),
-            CostCenterId INT
-        );
-    ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -24,9 +24,6 @@ namespace OceansApp.DataAccess.Migrations
     CostCenterCode NVARCHAR(25)
 );";
 
-            // Delete stored procedure if exists
-            migrationBuilder.Sql("DROP PROCEDURE IF EXISTS SP_LEDGER_MOVEMENT_InsertLedgerMovements");
-            migrationBuilder.Sql("DROP TYPE IF EXISTS LedgerMovementType");
 
             // Create new stored Procedure
             migrationBuilder.Sql(sp);
