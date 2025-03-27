@@ -9,6 +9,10 @@ namespace OceansApp.DataAccess.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(@"
+        IF TYPE_ID(N'LedgerMovementType') IS NOT NULL
+            DROP TYPE LedgerMovementType;
+    ");
             //UPDATE STORED PROCEDURE
             var sp = @"CREATE TYPE LedgerMovementType AS TABLE
 (
