@@ -122,7 +122,7 @@
                                                     }
                                                     @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && c.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue))
                                                     {
-                                                        <a id="manage" class="nav-link" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Receivables</a>
+                                                        <a id="manage" class="nav-link" asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index">Receivables / Client Invoicing</a>
                                                     }
                                                     @if (User.HasClaim(c => c.Type == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimType && c.Value == FinancesClaimsCD.Manage_Basic_Payment_Sheets_ClaimValue))
                                                     {
