@@ -2,18 +2,21 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.DocumentsCC;
 using OceansApp.Models.ViewModels.Notifications;
-using OceansApp.Utility.LazyLoading;
 using OceansApp.Utility.SharedMethods;
+using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
+    [ApiController]
+    [Route("Finances/[controller]")]
     [Area("Finances")]
     [ServiceFilter(typeof(RequireTwoFactorEnabledAttribute))]
     [Authorize]
@@ -33,121 +36,102 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             _slackRepository = slackRepository;
         }
 
-        public async Task<IActionResult> Index(DocumentCCGetAllForListVM model)
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet]
+        public IActionResult Index()
+        {
+                //var documentTypes = (List<SelectVM>?) await _unitOfWork.DocumentCC.GetDocumentsTypeWhereDocumentsExistAsync();
+                //List<SelectVM> documentTypesList = new List<SelectVM>();
+                //if (documentTypes != null)
+                //{
+                //    foreach (var docType in documentTypes)
+                //    {
+                //        documentTypesList.Add(new SelectVM { Value = docType.Value, Text = docType.Text });
+                //    }
+                //}
+
+                //var clients = (await _unitOfWork.Client.GetAllAsync(x => x.ClientCode != "OCELL_C0001"
+                //&& x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && x.ClientCode != "OCE_C0030")).OrderBy(x => x.Name);
+                //List<SelectVM> clientList = new List<SelectVM>();
+                //if (clients != null)
+                //{
+                //    foreach (var client in clients)
+                //    {
+                //        clientList.Add(new SelectVM { Value = client.ClientId.ToString(), Text = client.Name });
+                //    }
+                //}
+               
+                return View();
+        }
+
+        [HttpGet("GetDocumentsCCList")]
+        public async Task<IActionResult> GetDocumentsCCList(string model)
         {
             try
             {
-                if (model != null)
+                if (model != "{}")
                 {
-                    if (model.Filters != null)
+                    JObject jsonToValidate = JObject.Parse(model);
+                    if (jsonToValidate["Filters"] == null || jsonToValidate["PaginationWithoutFilters"] == null)
                     {
-                        DocumentCCFiltersGetAllVM filtersToSend2 = new DocumentCCFiltersGetAllVM();
-
-                        if (model.Filters.StartDate != null || model.Filters.EndDate != null)
+                        return BadRequest(new { errors = new[] { "You should pass a valid Json like: {Filters: null, PaginationWithoutFilters:null}" }, result = "errorGet", detail = "The json is invalid." });
+                    }
+                    else
+                    {
+                        if (jsonToValidate["Filters"] != null)
                         {
-                            if (model.Filters.StartDate != null && model.Filters.EndDate == null)
+                            ValidateInputs validateInputs = new();
+                            //Validate Filter inputs
+                            validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
+                            if (!ModelState.IsValid)
                             {
-                                ViewData["StartDateFilled"] = "True";
-                                ViewData["EndDateFilled"] = "False";
-                                ViewData["DatePickerValidationMessage"] = "Selecciona la fecha hasta";
-                                return View(model);
-                            }
-                            else if (model.Filters.StartDate == null && model.Filters.EndDate != null)
-                            {
-                                ViewData["StartDateFilled"] = "False";
-                                ViewData["EndDateFilled"] = "True";
-                                ViewData["DatePickerValidationMessage"] = "Selecciona la fecha desde";
-                                return View(model);
-                            }
-                        }
-                        if (model.Filters.StartDate != null && model.Filters.EndDate != null)
-                        {
-                            if (model.Filters.StartDate > model.Filters.EndDate)
-                            {
-                                ViewData["StartDateFilled"] = "IsGreater";
-                                ViewData["DatePickerValidationMessage"] = "La fecha desde no puede ser mayor a la fecha hasta";
-                                return View(model);
+                                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                              .Select(e => e.ErrorMessage)
+                                                              .ToList();
+                                return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors, detail = "Parameters for filters are not correct." });
                             }
                         }
                     }
                 }
 
-                DocumentCCFiltersGetAllVM filtersToSend = new DocumentCCFiltersGetAllVM();
-                Pagination paginationToSend = new Pagination();
+                DocumentCCPaginationFiltersVM documentsCCPaginationFilters = System.Text.Json.JsonSerializer.Deserialize<DocumentCCPaginationFiltersVM>(model);
 
-                if (model.Pagination == null)
+                DocumentCCPaginationFiltersVM paginationFilters = new();
+                paginationFilters.Filters = new DocumentCCFiltersGetAllVM();
+
+                int numAppliedFilters = 0;
+                if (documentsCCPaginationFilters.Filters != null)
                 {
-                    paginationToSend = new Pagination();
-                }
-                else
-                {
-                    paginationToSend = model.Pagination;
-                    if (model.Filters.SearchText != filtersToSend.SearchText)
+                    foreach (var prop in documentsCCPaginationFilters.Filters.GetType().GetProperties())
                     {
-                        paginationToSend.PageIndex = 1;
+                        var value = prop.GetValue(documentsCCPaginationFilters.Filters, null);
+                        if (value is not null and not "")
+                        {
+                            numAppliedFilters++;
+                        }
                     }
                 }
-                if (model.Filters == null)
-                {
-                    filtersToSend.CompanyId = null;
-                }
-                else
-                {
-                    filtersToSend = model.Filters;
-                }
-                DocumentCCGetAllForListVM modelToSend = new DocumentCCGetAllForListVM
-                {
-                    Pagination = paginationToSend,
-                    Filters = filtersToSend
+                var setPagination = new PaginationFiltersBehavior();
+                paginationFilters.PaginationWithoutFilters = setPagination.SetPagination(documentsCCPaginationFilters.PaginationWithoutFilters, numAppliedFilters);
 
-                };
-
-                var documentTypes = (List<SelectVM>?) await _unitOfWork.DocumentCC.GetDocumentsTypeWhereDocumentsExistAsync();
-                List<SelectVM> documentTypesList = new List<SelectVM>();
-                if (documentTypes != null)
+                if (numAppliedFilters > 0)
                 {
-                    foreach (var docType in documentTypes)
-                    {
-                        documentTypesList.Add(new SelectVM { Value = docType.Value, Text = docType.Text });
-                    }
+                    paginationFilters.Filters = documentsCCPaginationFilters.Filters;
                 }
 
-                var clients = (await _unitOfWork.Client.GetAllAsync(x => x.ClientCode != "OCELL_C0001"
-                && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && x.ClientCode != "OCE_C0030")).OrderBy(x => x.Name);
-                List<SelectVM> clientList = new List<SelectVM>();
-                if (clients != null)
-                {
-                    foreach (var client in clients)
-                    {
-                        clientList.Add(new SelectVM { Value = client.ClientId.ToString(), Text = client.Name });
-                    }
-                }
-                var totalResults = await _unitOfWork.DocumentCC.GetAllDocumentsCCWithFiltersAsync(modelToSend);
-                int totalNum = totalResults.totalCount;
-                int totalPages = (int)Math.Ceiling(totalNum / (double)modelToSend.Pagination.PageSize);
+                var totalResults = await _unitOfWork.DocumentCC.GetAllDocumentsCCWithFiltersAsync(paginationFilters);
+                paginationFilters.PaginationWithoutFilters.Pagination.TotalResults = totalResults.totalCount;
 
-                ViewData["TotalPages"] = totalPages;
-
-                modelToSend.Pagination.PageIndex = Math.Max(1, Math.Min(modelToSend.Pagination.PageIndex, totalPages));
-                modelToSend.Pagination.TotalResults = totalResults.totalCount;
-
-                DocumentCCGetAllForListVM viewModel = new DocumentCCGetAllForListVM
-                {
-                    DocumentsCCList = totalResults.documentsCC,
-                    Pagination = modelToSend.Pagination,
-                    Filters = modelToSend.Filters,
-                    ClientList = clientList,
-                    DocumentTypeList = (List<SelectVM>)documentTypes
-                };
-                return View(viewModel);
+                var data = new { DocumentsCCList = totalResults.documentsCC, PaginationFilters = paginationFilters };
+                return Ok(data);
             }
             catch (Exception ex)
             {
-                return RedirectToAction("Error", "Home", new { area = "" });
+                return BadRequest(new { errors = new[] { $"There was an error fetching the list of documents." }, success = false, result = "errorGet", detail = ex.Message });
             }
         }
 
-        [HttpGet]
+        [HttpGet("GetInvoicesWithDaysExpired")]
         public async Task<IActionResult> GetInvoicesWithDaysExpired()
         {
             try
@@ -166,7 +150,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("SendCXCStatus")]
         public async Task<IActionResult> SendCXCStatus()
         {
             try
@@ -292,7 +276,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             });
         }
 
-        [HttpPost]
+        [HttpPost("SendNotification")]
         public async Task<IActionResult> SendNotification(int documentId)
         {
             using var transaction = await _unitOfWork.BeginTranAsync();
@@ -660,7 +644,7 @@ emailsCCString;
             }
         }
 
-        [HttpPost]
+        [HttpPost("GetNotificationsHistoryByDocument")]
         public IActionResult GetNotificationsHistoryByDocument(int documentId)
         {
             try

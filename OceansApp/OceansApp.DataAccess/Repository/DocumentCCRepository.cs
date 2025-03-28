@@ -140,7 +140,7 @@ namespace OceansApp.DataAccess.Repository
 
             return (documents);
         }
-        public async Task<(List<DocumentCCGetAllWithFiltersVM> documentsCC, int totalCount)> GetAllDocumentsCCWithFiltersAsync(DocumentCCGetAllForListVM filtersAndPagination)
+        public async Task<(List<DocumentCCGetAllWithFiltersVM> documentsCC, int totalCount)> GetAllDocumentsCCWithFiltersAsync(DocumentCCPaginationFiltersVM filtersAndPagination)
         {
             var connection = _db.Database.GetDbConnection();
 
@@ -151,16 +151,19 @@ namespace OceansApp.DataAccess.Repository
                 parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
                 parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
                 parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
-                parameters.Add("@Skip", (filtersAndPagination.Pagination.PageIndex - 1) * filtersAndPagination.Pagination.PageSize, DbType.Int32);
-                parameters.Add("@Take", filtersAndPagination.Pagination.PageSize, DbType.Int32);
+
+            parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
+            parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
+            parameters.Add("@Skip", (filtersAndPagination.PaginationWithoutFilters.Pagination.PageIndex - 1) * filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
                 // Ejecutar el procedimiento almacenado
-                var results = await connection.QueryMultipleAsync("GetAllDocumentsCCWithFilters", parameters, commandType: CommandType.StoredProcedure);
+                var results = await connection.QueryAsync<DocumentCCGetAllWithFiltersVM>("SP_DOCUMENTS_CC_GetAllDocumentsCCWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            var totalCount = parameters.Get<int>("@TotalCount");
+            var documentsCC = results.ToList();
 
-                var documentsCC = results.Read<DocumentCCGetAllWithFiltersVM>().ToList();
-                var totalCount = results.ReadSingle<int>();
-
-                return (documentsCC, totalCount);
+            return (documentsCC, totalCount);
         }
 
 

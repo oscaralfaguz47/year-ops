@@ -186,7 +186,6 @@
     }
 
 /* dropdown with checkboxes */
-/* Estilo del dropdown */
 .dropdown {
   
 }
@@ -205,7 +204,7 @@
     font-weight: bold;
 }
 
-/* Botón para desplegar el dropdown */
+
 .dropbtn {
     background-color: #2c3e50;
     color: white;
@@ -215,14 +214,14 @@
     border-radius: 15px;
     width: max-content;
 }
-/* Contenido del dropdown */
+
 .dropdown-content {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
     min-width: 160px;
     overflow-y: auto;
-    max-height: 200px; /* Ajusta para controlar la altura del scroll */
+    max-height: 200px; 
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
 }
@@ -230,7 +229,6 @@
     margin: 4px;
 }
 
-/* Estilos para las opciones dentro del dropdown */
 .dropdown-content div {
     color: black;
     padding: 5px;
@@ -238,26 +236,23 @@
     display: block;
 }
 
-/* Estilo para la barra de desplazamiento (el track) */
+
 .dropdown-content::-webkit-scrollbar {
-    width: 5px; /* Ancho de la barra de desplazamiento */
+    width: 5px; 
 }
 
-/* Estilo para el track de la barra de desplazamiento */
 .dropdown-content::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Color de fondo del track */
-    border-radius: 10px; /* Bordes redondeados para el track */
+    background: #f1f1f1; 
+    border-radius: 10px;
 }
 
-/* Estilo para el thumb de la barra de desplazamiento */
 .dropdown-content::-webkit-scrollbar-thumb {
-    background: #888; /* Color de fondo del thumb */
-    border-radius: 10px; /* Bordes redondeados para el thumb */
+    background: #888; 
+    border-radius: 10px; 
 }
 
-    /* Estilo para el thumb de la barra de desplazamiento al pasar el mouse */
     .dropdown-content::-webkit-scrollbar-thumb:hover {
-        background: #555; /* Color de fondo del thumb al pasar el mouse */
+        background: #555; 
     }
 
     /* VALIDATION MESSAGES */
