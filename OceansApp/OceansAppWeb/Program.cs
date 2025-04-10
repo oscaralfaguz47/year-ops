@@ -83,20 +83,18 @@ try
 
     // Retrieve the database connection string depending on the environment
     string connectionString;
-    if (environment == "Development") // For local environment
+
+    if (environment == "Development" || environment == "Test")
     {
-        // Try to get the DatabaseConnectionString from environment variables in local
+        // Intentar obtener desde variables de entorno
         connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
 
-        // Fallback to a local connection string from appsettings if not set in environment variables
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        }
+
+        logger.LogInformation("Using connection string from environment variables or local config.");
     }
     else
     {
-        // For Production/Demo, always use the connection string from Azure App Configuration
+        // Producción sí usa App Configuration
         connectionString = builder.Configuration["DbConnectionString"];
         logger.LogInformation("Using connection string from Azure App Configuration.");
     }
