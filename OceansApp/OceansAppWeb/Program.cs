@@ -22,7 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 var logger = LoggerFactory.Create(config =>
 {
     config.AddConsole();
-    config.AddAzureWebAppDiagnostics(); // Logs to Azure App Service
+    config.AddAzureWebAppDiagnostics(); 
 }).CreateLogger("ProgramLogger");
 
 
