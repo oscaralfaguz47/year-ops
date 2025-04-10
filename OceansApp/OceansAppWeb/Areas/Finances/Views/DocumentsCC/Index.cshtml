@@ -6,213 +6,88 @@
 <link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Finances/documentsCC.css?v=@DateTime.Now.Ticks" />
 <link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
 
 <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
-    <div class="filters-container">
-        <div class="row">
-            <form id="filtersPaginationForm" asp-controller="DocumentsCC" asp-action="Index">
-                <div class="search-header-container">
-                    <div>
-                        <h2>CUENTAS POR COBRAR</h2>
-                        <div class="input-container">
-                            <input onkeypress="enterInSearch(event)" type="text" asp-for="Filters.SearchText" placeholder="Buscar" class="form-control">
-                            <i class="bi bi-search placeholder-image"></i>
-                        </div>
-                        <div class="action-buttons">
-                            <a onclick="getInvoicesWithDaysExpired()">Envío de Notificaciones</a>
-                        </div>
-                         <div class="action-buttons">
-                            <a onclick="sendStatusToSM()">Enviar estado CXC a SM</a>
-                        </div>
-                    </div>
-                    <a id="show-hide-filters-btn" onclick="hideShowFilters()"><i class="bi bi-funnel-fill"></i> Ocultar Filtros </a>
-                </div>
-                <div class="more-filters-cont">
-                    <div id="more-filters">
-                        <div class="row">
-                            <div class="col-sm-2">
-                                <label for="documentType" class="select-label">Tipo de Documento</label>
-                                <div class="">
-                                    <span class="arrow-down"></span>
-                                    <select onchange="submitFiltersForm()" id="documentType" asp-for="Filters.DocumentType" class="form-select">
-                                        <option selected value="">Selecciona un tipo de documento</option>
-                                        @foreach (var docType in Model.DocumentTypeList)
-                                        {
-                                            <option value="@docType.Value">@docType.Text</option>
-                                        }
-                                    </select>
-                                    @foreach (var docType in Model.DocumentTypeList)
-                                    {
-                                        int index = Model.DocumentTypeList.IndexOf(docType);
-                                        <input type="hidden" asp-for="DocumentTypeList[index].Value" name="DocumentTypeList[@index].Value" />
-                                        <input type="hidden" asp-for="DocumentTypeList[index].Text" name="DocumentTypeList[@index].Name" />
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-sm-2">
-                                <label for="client" class="select-label">Cliente/Persona</label>
-                                <div class="">
-                                    <span class="arrow-down"></span>
-                                    <select onchange="submitFiltersForm()" id="client" asp-for="Filters.ClientId" class="form-select">
-                                        <option selected value="">Selecciona un Cliente/Persona</option>
-                                        @foreach (var client in Model.ClientList)
-                                        {
-                                            <option value="@client.Value">@client.Text</option>
-                                        }
-                                    </select>
-                                    @foreach (var client in Model.ClientList)
-                                    {
-                                        int index = Model.ClientList.IndexOf(client);
-                                        <input type="hidden" asp-for="ClientList[index].Text" name="ClientList[@index].Name" />
-                                        <input type="hidden" asp-for="ClientList[index].Value" name="ClientList[@index].Value" />
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-sm-1">
-                                <div class="radio-group">
-                                    <label class="radio-label">
-                                        <input onchange="submitFiltersForm()" asp-for="Filters.CompanyId" type="radio" value="OCE" class="radio-input">
-                                        <span class="radio-custom"></span>
-                                        &nbsp; Oceans
-                                    </label>
-                                    <label class="radio-label">
-                                        <input onchange="submitFiltersForm()" asp-for="Filters.CompanyId" type="radio" value="LLC" class="radio-input">
-                                        <span class="radio-custom"></span>
-                                        &nbsp; LLC
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-sm-3 text-center">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <label for="startDate" class="select-label">Fecha Desde</label>
-                                        <input onchange="submitFiltersForm()" asp-for="Filters.StartDate" class="form-control" type="date" id="startDate" />
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label for="endDate" class="select-label">Fecha Hasta</label>
-                                        <input onchange="submitFiltersForm()" asp-for="Filters.EndDate" class="form-control" type="date" id="endDate" />
-                                    </div>
-                                </div>
-                                <span style="font-size:15px" class="text-danger">@ViewData["DatePickerValidationMessage"]</span>
-                            </div>
-                        </div>
-                        <div class="principal-buttons">
-                            <a asp-area="Finances" asp-controller="DocumentsCC" asp-action="Index" class="cancel-btn"><i class="bi bi-eraser"></i> Limpiar Filtros</a>
-                        </div>
-                    </div>
-                </div>
+    <div class="principal-header-container">
+        <div class="filters-container">
+            <div class="header-page">
+                <h2>RECEIVABLES / CLIENT INVOICING</h2>
+            </div>
+            <partial name="_Pagination" />
+        </div>
+        <div class="table-header-actions">
+            <div class="input-container">
+                <input id="search-input" onchange="enterInSearch(event)" type="text" placeholder="Search" class="form-control">
+                <i class="bi bi-search placeholder-image"></i>
+            </div>
 
-                <div class="pagination-container">
-                    <div>
-                        <input type="hidden" asp-for="Pagination.PageIndex" />
-                        <label>Registros por página</label>
-                        <div class="">
-                            <select asp-for="Pagination.PageSize" class="form-select" onchange="paginationButtonActions('firstPage'); this.form.submit();">
-                                @foreach (var item in Model.Pagination.ItemsPerPageList)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
-                            </select>
-                        </div>
-
-                        <button type="submit" name="PageIndex" value="1" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('firstPage')"
-                                @(Model.Pagination.PageIndex == 1 ? "disabled" : "")>
-                            &laquo;&laquo;
-                        </button>
-
-                        <button type="submit" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('decrement')"
-                                @(Model.Pagination.PageIndex == 1 ? "disabled" : "")>
-                            &laquo;
-                        </button>
-
-                        <label>@Model.Pagination.PageIndex de @(Math.Ceiling((double)Model.Pagination.TotalResults / Model.Pagination.PageSize))</label>
-
-                        @if (ViewData["TotalPages"] != null)
-                        {
-                            <button type="submit" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('increment')"
-                                @(Model.Pagination.IsLastPage ? "disabled" : "")>
-                                &raquo;
-                            </button>
-
-                            <button type="submit" class="btn btn-sm btn-primary mr-1 pagination-button" onclick="paginationButtonActions('lastPage')"
-                                @(Model.Pagination.IsLastPage ? "disabled" : "")>
-                                &raquo;&raquo;
-                            </button>
-                        }
-                        <label><strong>Total Resultados: @Model.Pagination.TotalResults</strong></label>
-                    </div>
-                </div>
-            </form>
+            <div class="action-btns-container">
+                <button onclick="getInvoicesWithDaysExpired()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20">
+                        <path d="M224 0c-17.7 0-32 14.3-32 32l0 19.2C119 66 64 130.6 64 208l0 18.8c0 47-17.3 92.4-48.5 127.6l-7.4 8.3c-8.4 9.4-10.4 22.9-5.3 34.4S19.4 416 32 416l384 0c12.6 0 24-7.4 29.2-18.9s3.1-25-5.3-34.4l-7.4-8.3C401.3 319.2 384 273.9 384 226.8l0-18.8c0-77.4-55-142-128-156.8L256 32c0-17.7-14.3-32-32-32zm45.3 493.3c12-12 18.7-28.3 18.7-45.3l-64 0-64 0c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7z" />
+                    </svg>
+                </button>
+                <button onclick="sendStatusToSM()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20">
+                        <path d="M16.1 260.2c-22.6 12.9-20.5 47.3 3.6 57.3L160 376l0 103.3c0 18.1 14.6 32.7 32.7 32.7c9.7 0 18.9-4.3 25.1-11.8l62-74.3 123.9 51.6c18.9 7.9 40.8-4.5 43.9-24.7l64-416c1.9-12.1-3.4-24.3-13.5-31.2s-23.3-7.5-34-1.4l-448 256zm52.1 25.5L409.7 90.6 190.1 336l1.2 1L68.2 285.7zM403.3 425.4L236.7 355.9 450.8 116.6 403.3 425.4z" />
+                    </svg>
+                </button>
+                <button title="Create new document" id="openSidebarBtn" onclick="displayUpdateCreateConsultantModal('modal-update-create-consultant',null)"><img src="/icons/Shared/add.svg"></button>
+                <button title="See more filters" id="openSidebarBtn" onclick="displayMoreFiltersConsultants()"><img src="/icons/Shared/filter.svg"></button>
+            </div>
         </div>
     </div>
     <div class="global-table-container">
-        <table class="">
+        <table>
             <thead>
                 <tr>
-                    <th class="table-col-big">Cliente/Persona</th>
-                    <th class="table-col-little"># Documento</th>
-                    <th class="table-col-little">Tipo Doc</th>
-                    <th class="table-col-medium">Fecha Documento</th>
-                    <th class="table-col-medium">Fecha Vencimiento</th>
-                    <th class="table-col-little"># Días a vencer</th>
-                    <th class="table-col-little">Monto Total</th>
-                    <th class="table-col-little">Saldo</th>
-                    <th class="table-col-big">Descripción</th>
-                    <th class="table-col-little">Doc Anulado</th>
-                    <th class="table-col-little">Empresa</th>
+                    <th onclick="orderByTableList('ClientName', 'ClientNameTableHeader', 'sortArrowClientName')" data-sort="ANY" name="ClientNameTableHeader" class="sortable-col">
+                        Client/Person
+                        <span class="sort-arrow" id="sortArrowClientName">
+                        </span>
+                    </th>
+                    <th onclick="orderByTableList('DocumentNumber', 'DocumentNumberTableHeader', 'sortArrowDocumentNumber')" data-sort="ANY" name="DocumentNumberTableHeader" class="sortable-col">
+                        # Document
+                        <span class="sort-arrow" id="sortArrowDocumentNumber"></span>
+                    </th>
+                    <th onclick="orderByTableList('DocumentType', 'DocumentTypeTableHeader', 'sortArrowDocumentType')" data-sort="ANY" name="DocumentTypeTableHeader" class="sortable-col">
+                        Doc Type
+                        <span class="sort-arrow" id="sortArrowDocumentType"></span>
+                    </th>
+                    <th onclick="orderByTableList('DocumentDate', 'DocumentDateTableHeader', 'sortArrowDocumentDate')" data-sort="ANY" name="DocumentDateTableHeader" class="sortable-col">
+                        Date
+                        <span class="sort-arrow" id="sortArrowDocumentDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('ExpirationDate', 'ExpirationDateTableHeader', 'sortArrowExpirationDate')" data-sort="ANY" name="ExpirationDateTableHeader" class="sortable-col">
+                        Due Date
+                        <span class="sort-arrow" id="sortArrowExpirationDate"></span>
+                    </th>
+                    <th onclick="orderByTableList('NumDaysToExpire', 'NumDaysToExpireTableHeader', 'sortArrowNumDaysToExpire')" data-sort="ANY" name="NumDaysToExpireTableHeader" class="sortable-col">
+                        Days Until Due
+                        <span class="sort-arrow" id="sortArrowNumDaysToExpire"></span>
+                    </th>
+                    <th onclick="orderByTableList('DocumentAmount', 'DocumentAmountTableHeader', 'sortArrowDocumentAmount')" data-sort="ANY" name="DocumentAmountTableHeader" class="sortable-col">
+                        Total Amount
+                        <span class="sort-arrow" id="sortArrowDocumentAmount"></span>
+                    </th>
+                    <th onclick="orderByTableList('BalanceAmount', 'BalanceAmountTableHeader', 'sortArrowBalanceAmount')" data-sort="ANY" name="BalanceAmountTableHeader" class="sortable-col">
+                        Amount Due
+                        <span class="sort-arrow" id="sortArrowBalanceAmount"></span>
+                    </th>
+                    <th>Description</th>
+                    <th>Voided</th>
+                    <th>Company</th>
                 </tr>
             </thead>
             <tbody>
-                @if (Model.DocumentsCCList != null)
-                {
-                    @foreach (var documentCC in Model.DocumentsCCList)
-                    {
-                        <tr class="hover-group">
-                            <td>
-                                <div class="cel-with-btns-cont">
-                                    <span> @documentCC.ClientName</span>
-                                    @if (documentCC.ClientCategory == "EXT" && documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC" && documentCC.NumDaysToExpire < 0)
-                                    {
-                                        <div class="send-btn-container">
-                                            <a title="Ver historial de envío de recordatorios" onclick="getNotificationHistoryByDocument(@documentCC.DocumentCCId)" id="count-btn-@documentCC.DocumentCCId" class="send-btn-num @(documentCC.NumNotificationsSent > 0 ? "show-display-contents" : "hide")"><span id="count-@documentCC.DocumentCCId">@documentCC.NumNotificationsSent</span> <i class="bi bi-envelope"></i></a>
-                                        </div>
-                                    }
-                                </div>
-                            </td>
-                            <td>@documentCC.DocumentNumber</td>
-                            <td>@documentCC.DocumentType</td>
-                            <td>@documentCC.DocumentDate.ToString("dd/MM/yyyy")</td>
-                            <td>@documentCC.ExpirationDate.ToString("dd/MM/yyyy")</td>
-                            <td class="@(documentCC.NumDaysToExpire < 0 && documentCC.DocumentType == "FAC"? "red-label" : "green-label")">
-                                <strong>
-                                    @documentCC.NumDaysToExpire
-                                </strong>
-                            </td>
-                            <td>@(documentCC.DocumentAmount.ToString("#,##0.00"))</td>
-                            <td class="@(documentCC.BalanceAmount > 0 && documentCC.DocumentType == "FAC" ? "red-label" : "green-label")">
-                                <strong>
-                                    @(documentCC.BalanceAmount.ToString("#,##0.00"))
-                                </strong>
-                            </td>
-                            <td>@documentCC.ApplicationDescription</td>
-                            <td class="@(documentCC.Canceled == "S" ? "red-label" : "green-label")">
-                                @if (@documentCC.Canceled == "S")
-                                {
-                                    <strong> <span>Sí</span></strong>
-                                }
-                                else
-                                {
-                                    <strong><span>No</span></strong>
-                                }
-                            </td>
-                            <td>@documentCC.CompanyId</td>
-                        </tr>
-                    }
-                }
             </tbody>
         </table>
+        <div class="no-results"></div>
     </div>
 </div>
+<partial name="_SidebarRightPartial" />
+
 
 <!--MODAL INVOICES DAYS EXPIRED -->
 <div id="invoices-expired-modal" class="modal">
@@ -258,109 +133,23 @@
     </div>
 </div>
 
+<script src="~/js/Shared/pagination.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AccountManagement/clientsSectionFillDropdowns.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>
 
-@section Scripts{
+
+@section Scripts {
     @{
-    <partial name="_ValidationScriptsPartial" />
+        <partial name="_ValidationScriptsPartial" />
         <script src="~/js/Finances/documentsCC.js?v=@DateTime.Now.Ticks"></script>
     }
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-               function paginationButtonActions(action) {
-              if(action == 'increment'){
-                   var currentValue = parseInt('@Model.Pagination.PageIndex');
-              currentValue++;
-              $('[name="Pagination.PageIndex"]').val(currentValue);
-              } else if(action == 'decrement'){
-                   var currentValue = parseInt('@Model.Pagination.PageIndex');
-              currentValue--;
-               $('[name="Pagination.PageIndex"]').val(currentValue);
-              $('[name="Pagination.PageIndex"]').val(currentValue);
-              } else if(action == 'firstPage'){
-              $('[name="Pagination.PageIndex"]').val(1);
-              } else if(action == 'lastPage') {
-                  var newValue = Math.ceil((parseInt('@Model.Pagination.TotalResults') / parseInt('@Model.Pagination.PageSize')));
-                  $('[name="Pagination.PageIndex"]').val(newValue);
-              }
-          }
-
-
-              function submitFiltersForm(){
-                  paginationButtonActions('firstPage');
-                   const form = document.getElementById('filtersPaginationForm');
-              form.submit();
-              }
-              function enterInSearch(event) {
-              if (event.keyCode === 13 || event.which === 13) {
-                submitFiltersForm();
-              }
-            }
-
-        function updateNotificationCount(documentId) {
-            // Get the current notification count element
-            const notificationCountElement = document.getElementById('count-' + documentId);
-            const notificationCountBtn = document.getElementById('count-btn-' + documentId);
-
-            notificationCountBtn.classList.add("show-display-contents");
-            notificationCountBtn.classList.remove("hide");
-            // Increment the notification count by 1
-            const currentCount = parseInt(notificationCountElement.textContent, 10);
-            const updatedCount = currentCount + 1;
-
-            // Update the content of the notification count element
-            notificationCountElement.textContent = updatedCount;
-        }
-
-        function openModal() {
-        var modal = document.getElementById("notificationModal");
-        modal.style.display = "block";
-    }
-
-    function closeModal() {
-        var modal = document.getElementById("notificationModal");
-        modal.style.display = "none";
-    }
-
-    function getNotificationHistoryByDocument(documentId) {
-        openModal();
-        $.ajax({
-            url: 'DocumentsCC/GetNotificationsHistoryByDocument?documentId=' + documentId,
-            type: 'POST',
-            success: function (data) {
-                if (data.success) {
-                    var tbody = document.querySelector("#notificationTable tbody");
-                    tbody.innerHTML = "";
-
-                    data.notificationHistory.result.forEach(function (notification) {
-                        var sentDate = new Date(notification.sentDate);
-
-                        var hours = sentDate.getHours();
-                        var minutes = sentDate.getMinutes();
-                        var ampm = hours >= 12 ? 'PM' : 'AM';
-                        hours = hours % 12;
-                        hours = hours ? hours : 12; // Si es 0, lo ajustamos a 12
-
-                        var formattedTime = `${hours}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
-
-                        var row = `
-                            <tr>
-                                <td>${sentDate.getDate()}/${sentDate.getMonth() + 1}/${sentDate.getFullYear()} ${formattedTime}</td>
-                                <td>${notification.sentByUser}</td>
-                            </tr>
-                        `;
-                        tbody.insertAdjacentHTML("beforeend", row);
-                    });
-                } else {
-                    toastr.error(data.error);
-                }
-            },
-            error: function () {
-                toastr.error("Error de conexión.");
-            }
-        });
-    }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
 
 
 
-</script>
-    }
+
+
+
+    </script>
+}

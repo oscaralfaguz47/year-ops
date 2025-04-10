@@ -28,8 +28,6 @@ namespace OceansApp.DataAccess.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql("DROP INDEX IX_LEDGER_MOVEMENT_UniqueRecord ON LEDGER_MOVEMENT;");
-
-            migrationBuilder.Sql("DROP TYPE LedgerMovementType;");
         }
 
     }
