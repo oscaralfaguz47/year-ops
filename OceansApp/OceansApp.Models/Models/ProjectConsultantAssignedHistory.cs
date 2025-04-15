@@ -39,6 +39,9 @@ namespace OceansApp.Models.Models
         [Required]
         public bool ParticipatesInOnCalls { get; set; }
 
+        [Required]
+        public int NumHoursForHoliday { get; set; } = 8;
+
         [ValidateNever]
         public Partner? Partner { get; set; }
         [ValidateNever]

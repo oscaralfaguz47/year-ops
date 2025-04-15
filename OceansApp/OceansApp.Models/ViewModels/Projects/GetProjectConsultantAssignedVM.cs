@@ -22,5 +22,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool HolidaysMustBePaid { get; set; }
         public DateTime ActionDate { get; set; }
         public bool ParticipatesInOnCalls { get; set; }
+        public int NumHoursForHoliday { get; set; }
     }
 }

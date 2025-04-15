@@ -89,6 +89,7 @@ function generateDateList(startDateString, endDateString, movements) {
         dayItem.appendChild(countLabel);
         dateListBox.appendChild(dayItem);
         submissionInfo.innerHTML = `<button style="background-color: ${getStatusColor('No Actions')}" id="submitBtn" onclick="submitReportToBePaid()">${getStatusWhiteIcon('No Actions')} Submit your time</button>`;
+
         movements.forEach(function (movement) {
             const movementDate = new Date(movement.actionDate);
             if (movement.transactionStatusName !== 'No actions' && movement.transactionStatusName !== 'Rejected' && movement.transactionStatusName !== null) {
@@ -112,7 +113,7 @@ function generateDateList(startDateString, endDateString, movements) {
             }
 
             if (movementDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
-                addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName, movement.isPayable, movement.notes);
+                addTimeEntry(addButton, movement.movementId, movement.timeFrom, movement.timeTo, movement.transactionStatusName, movement.isPayable, movement.notes, movement.isHoliday);
             }
         });
         if (movements.length === 0) {
@@ -128,7 +129,7 @@ function generateDateList(startDateString, endDateString, movements) {
     }
 }
 
-function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, isPayable, notes) {
+function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, isPayable, notes, isHoliday) {
     const hoursMinutes = calculateTimeDifference(timeFrom, timeTo);
     const reportedTimeLabel = document.createElement('div');
     if (window.innerWidth >= 767) {
@@ -137,11 +138,17 @@ function addTimeEntry(button, movementId, timeFrom, timeTo, transactionStatus, i
     <p>${notes}</p>
     </div>`);
     }
-    reportedTimeLabel.className = `reported-time-span ${window.innerWidth >= 767 ? 'tooltip-target' : ''} ${timeFrom === 'Holiday' ? 'holiday-span' : ''} ${!isPayable || isPayable.toString().includes('(Non-payable)') ? 'non-payable' : ''}`;
-    if (timeFrom !== 'Holiday') {
+    reportedTimeLabel.className = `reported-time-span ${window.innerWidth >= 767 ? 'tooltip-target' : ''} ${isHoliday ? 'holiday-span' : ''} ${!isPayable || isPayable.toString().includes('(Non-payable)') ? 'non-payable' : ''}`;
+    if (!isHoliday) {
         reportedTimeLabel.innerHTML = `<span id="time-from-to-span-${movementId}" class="time-from-to-span">${formatTimeTo12Hour(timeFrom)} - ${formatTimeTo12Hour(timeTo)}</span><span id="reportedTimeSpan-${movementId}">${hoursMinutes.hours} h - ${hoursMinutes.minutes} m</span>`;
     } else {
-        reportedTimeLabel.innerHTML = `<span class="time-from-to-span">Paid Holiday <i class="fa-solid fa-gift"></i></span><span>8 hours</span>`;
+        let totalMinutes = 0;
+
+        const difference = calculateTimeDifference(timeFrom, timeTo);
+        totalMinutes += (difference.hours * 60) + difference.minutes;
+
+        const totalHours = Math.floor(totalMinutes / 60);
+        reportedTimeLabel.innerHTML = `<span class="time-from-to-span">Paid Holiday <i class="fa-solid fa-gift"></i></span><span>${totalHours} hours</span>`;
     }
 
     const timeEntryDiv = document.createElement('div');

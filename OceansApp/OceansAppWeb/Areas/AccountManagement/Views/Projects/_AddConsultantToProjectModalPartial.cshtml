@@ -186,15 +186,21 @@
                                 <label for="participatesInOnCalls" class="form-check-label"> Participates in On Calls?</label>
                             </div>
                         </div>
-                        <div class="checkbox-cont" id="holidaysMustBePaidEl">
-                            <input type="checkbox" checked class="form-check-input" id="holidaysMustBePaid">
-                            <label class="form-check-label" for="holidaysMustBePaid"> Holidays must be paid?</label>
-                            <div class="tooltip-container ">
-                                <i class="bi bi-question-circle tooltip-target"></i>
-                                <div class="tooltip-content">
-                                    <div class="tooltip-arrow"></div>
-                                    Uncheck if the Holidays assigned to the consultant do not must be paid.
+                        <div class="checkbox-cont row" id="holidaysMustBePaidEl">
+                           <div class="col-md-6">
+                                <input type="checkbox" checked class="form-check-input" id="holidaysMustBePaid">
+                                <label class="form-check-label" for="holidaysMustBePaid"> Holidays must be paid?</label>
+                                <div class="tooltip-container ">
+                                    <i class="bi bi-question-circle tooltip-target"></i>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-arrow"></div>
+                                        Uncheck if the Holidays assigned to the consultant do not must be paid.
+                                    </div>
                                 </div>
+                           </div>
+                            <div class="input-container col-md-6">
+                                <label>Num hours for Holiday</label>
+                                <input placeholder="8" value="8" type="number" inputmode="numeric" class="form-control" id="numHoursForHoliday">
                             </div>
                         </div>
 

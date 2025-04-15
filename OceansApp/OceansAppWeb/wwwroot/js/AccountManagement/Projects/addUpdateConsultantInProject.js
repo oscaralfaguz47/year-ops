@@ -15,6 +15,30 @@ const hourlyConsultantSalaryElCUCP = getElementById('hourlyConsultantSalaryEl');
 const isMonthlySalaryCalculatedPerHourElCUCP = getElementById("isMonthlySalaryCalculatedPerHour");
 const calculationMethodCheckboxCUCP = getElementById("calculationMethod");
 const participatesInOnCallsCheckboxCUCP = getElementById('participatesInOnCalls');
+const numHoursForHolidayInputCUCP = getElementById('numHoursForHoliday');
+
+
+numHoursForHolidayInputCUCP.addEventListener('input', () => {
+    let value = numHoursForHolidayInputCUCP.value;
+
+    value = value.replace(/\D/g, '');
+
+    if (value.startsWith('0')) {
+        value = value.replace(/^0+/, '');
+    }
+
+    if (value.length > 4) {
+        value = value.slice(0, 4);
+    }
+
+    numHoursForHolidayInputCUCP.value = value;
+});
+
+numHoursForHolidayInputCUCP.addEventListener('keypress', (e) => {
+    if (e.key === '.' || e.key === ',' || e.key === '-') {
+        e.preventDefault();
+    }
+});
 
 function validateRatesInputs() {
     let clientRateMethod = document.querySelector('input[name="client-rate-model"]:checked');
@@ -83,7 +107,7 @@ function validateRatesInputs() {
 }
 function hideShowMustPayHolidaysCheckbox(isDefault) {
     if (isDefault.checked) {
-        holidaysMustBePaidElCUCP.style.display = 'block';
+        holidaysMustBePaidElCUCP.style.display = 'flex';
         holidaysMustBePaidCheckboxCUCP.checked = true;
     } else {
         holidaysMustBePaidElCUCP.style.display = 'none';
@@ -194,6 +218,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 <strong>"${formatDateMmDdYyyy(data.consultantAssignation.actionDate)}"</strong>
                 . All the displayed data belongs to the last one. The changes were applied on (${formatUtcToLocalMmDdYyyyTime(creationDateDateFormat)}).
                 </label>`;
+                console.log(data);
                 disableActionDateDatePicker(data.consultantAssignation.actionDate);
                 lastActionDateMessage.style.display = 'block';
                 consultantIdInputCUCP.value = data.consultantAssignation.consultantId;
@@ -221,13 +246,14 @@ async function displayAddUpdateConsultant(modalId, id) {
                 accessToTrackingToolCheckboxCUCP.checked = data.consultantAssignation.accessToTrackingTool;
                 isDefaultProjectCheckboxCUCP.checked = data.consultantAssignation.isDefaultProject;
                 data.consultantAssignation.isDefaultProject ? isDefaultProjectCheckboxCUCP.disabled = true : isDefaultProjectCheckboxCUCP.disabled = false;
-                data.consultantAssignation.isDefaultProject ? holidaysMustBePaidElCUCP.style.display = 'block' :
+                data.consultantAssignation.isDefaultProject ? holidaysMustBePaidElCUCP.style.display = 'flex' :
                     holidaysMustBePaidElCUCP.style.display = 'none';
                 holidaysMustBePaidCheckboxCUCP.checked = data.consultantAssignation.holidaysMustBePaid;
                 validateRatesInputs();
                 benefitsArePaidByPartnerCheckboxCUCP.checked = data.consultantAssignation.partnerPaysBenefits;
                 isMonthlySalaryCalculatedPerHourCheckbox.checked = data.consultantAssignation.isMonthlySalaryCalculatedPerHour;
                 participatesInOnCallsCheckboxCUCP.checked = data.consultantAssignation.participatesInOnCalls;
+                numHoursForHolidayInputCUCP.value = data.consultantAssignation.numHoursForHoliday;
 
                 showModal(modalId);
             })
@@ -342,7 +368,8 @@ async function addConsultantToProject(modalId) {
             ConsultantId: consultantIdInputCUCP.value === '' ? null : Number(consultantIdInputCUCP.value),
             PartnerPaysBenefits: Boolean(benefitsArePaidByPartnerCheckboxCUCP.checked),
             HolidaysMustBePaid: Boolean(holidaysMustBePaidCheckboxCUCP.checked),
-            participatesInOnCalls: Boolean(participatesInOnCallsCheckboxCUCP.checked)
+            participatesInOnCalls: Boolean(participatesInOnCallsCheckboxCUCP.checked),
+            NumHoursForHoliday: numHoursForHolidayInputCUCP.value === '' || numHoursForHolidayInputCUCP.value === 'null' ? null : numHoursForHolidayInputCUCP.value
         };
 
         try {

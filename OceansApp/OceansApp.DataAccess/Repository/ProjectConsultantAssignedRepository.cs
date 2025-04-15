@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
-using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Models.ViewModels.Projects;
 using System.Data;

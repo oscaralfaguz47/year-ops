@@ -280,7 +280,8 @@ namespace OceansApp.DataAccess.Repository
                     ActionDate = (DateTime)consultantAssignationData.ActionDate,
                     CreationDate = DateTime.UtcNow,
                     UserIdActionedBy = consultantAssignationData.UserCreatedBy,
-                    ParticipatesInOnCalls = (bool)consultantAssignationData.ParticipatesInOnCalls
+                    ParticipatesInOnCalls = (bool)consultantAssignationData.ParticipatesInOnCalls,
+                    NumHoursForHoliday = consultantAssignationData.NumHoursForHoliday == null ? 8 : (int)consultantAssignationData.NumHoursForHoliday
                 };
 
                 if (existingConsultantAssignation == null && (bool)consultantAssignationData.IsAssigningFirstTime)
@@ -324,7 +325,8 @@ namespace OceansApp.DataAccess.Repository
                         consultantAssignedHistoryToCreate.AccessToTrackingTool != recentHistoryBeforeActionDate.AccessToTrackingTool ||
                         consultantAssignedHistoryToCreate.HolidaysMustBePaid != recentHistoryBeforeActionDate.HolidaysMustBePaid ||
                         consultantAssignedHistoryToCreate.IsDefaultProject != recentHistoryBeforeActionDate.IsDefaultProject ||
-                        consultantAssignedHistoryToCreate.ParticipatesInOnCalls != recentHistoryBeforeActionDate.ParticipatesInOnCalls
+                        consultantAssignedHistoryToCreate.ParticipatesInOnCalls != recentHistoryBeforeActionDate.ParticipatesInOnCalls ||
+                        consultantAssignedHistoryToCreate.NumHoursForHoliday != recentHistoryBeforeActionDate.NumHoursForHoliday
                         )
                     {
                         await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(consultantAssignedHistoryToCreate);
