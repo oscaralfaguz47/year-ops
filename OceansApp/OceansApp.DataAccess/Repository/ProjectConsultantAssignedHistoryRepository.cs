@@ -55,7 +55,8 @@ namespace OceansApp.DataAccess.Repository
                                            PartnerId = h.PartnerId,
                                            PartnerPaysBenefits = h.PartnerPaysBenefits,
                                            UserIdActionedBy = h.UserIdActionedBy,
-                                           ParticipatesInOnCalls = h.ParticipatesInOnCalls
+                                           ParticipatesInOnCalls = h.ParticipatesInOnCalls,
+                                           NumHoursForHoliday = h.NumHoursForHoliday
                                        }).FirstOrDefaultAsync(); 
             return currentHistory;
         }

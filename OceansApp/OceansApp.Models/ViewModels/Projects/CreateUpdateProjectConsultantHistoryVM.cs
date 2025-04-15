@@ -21,5 +21,6 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool? IsDefaultProject { get; set; }
         public string? UserCreatedBy { get; set; }
         public bool? ParticipatesInOnCalls { get; set; }
+        public int? NumHoursForHoliday { get; set; }
     }
 }

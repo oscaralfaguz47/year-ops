@@ -15,5 +15,6 @@ namespace OceansApp.Models.ViewModels.ProjectConsultantAssigned
         public bool AccessToTrackingTool { get; set; }
         public string? PartnerName { get; set; }
         public bool PartnerPaysBenefits { get; set; }
+        public int NumHoursForHoliday { get; set; }
     }
 }

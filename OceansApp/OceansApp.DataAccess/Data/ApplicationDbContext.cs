@@ -973,6 +973,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.PartnerId);
                 entity.HasIndex(e => e.IsActive);
                 entity.HasIndex(e => e.ParticipatesInOnCalls);
+                entity.HasIndex(e => e.NumHoursForHoliday);
 
                 //Columns
                 entity.HasKey(p => new { p.Id });
@@ -994,6 +995,8 @@ namespace OceansApp.DataAccess.Data
                 entity.HasOne(p => p.Partner)
                .WithMany()
                .HasForeignKey(p => p.PartnerId);
+                entity.Property(p => p.NumHoursForHoliday)
+                .HasDefaultValue(8);
             });
 
             // PROJECTS CONSULTANTS PENDING SUBMISSIONS

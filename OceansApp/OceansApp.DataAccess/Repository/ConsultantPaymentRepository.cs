@@ -217,7 +217,7 @@ namespace OceansApp.DataAccess.Repository
                                 PaymentType = "Holidays",
                                 MovementTypeId = holidaysMovementType.MovementTypeId,
                                 MovementTypeName = "Holiday - " + holiday.Name + " (" + holiday.Date.ToString("MM/dd/yyyy") + ")",
-                                Quantity = 8,
+                                Quantity = defaultProject.NumHoursForHoliday,
                                 UnitPrice = defaultHourlyCalculation
                             };
                             benefitsAndOtherMovements.Add(holidayMovement);
