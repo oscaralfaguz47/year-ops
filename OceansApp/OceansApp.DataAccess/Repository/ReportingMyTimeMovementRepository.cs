@@ -10,10 +10,8 @@ using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.Blobs;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
-using static OceansApp.Models.ViewModels.Components.MethodResponse;
 
 
 namespace OceansApp.DataAccess.Repository
@@ -21,9 +19,11 @@ namespace OceansApp.DataAccess.Repository
     public class ReportingMyTimeMovementRepository : Repository<ReportingMyTimeMovement>, IReportingMyTimeMovementRepository
     {
         private ApplicationDbContext _db;
-        public ReportingMyTimeMovementRepository(ApplicationDbContext db) : base(db)
+        private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
+        public ReportingMyTimeMovementRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
+            _projectConsultantAssignedHistoryRepository = unitOfWork.ProjectConsultantAssignedHistory;
         }
 
         //COMMON METHODS
@@ -506,11 +506,11 @@ namespace OceansApp.DataAccess.Repository
                  x.ProjectId == (int)timeEntryData.ProjectId &&
                  x.ActionDate >= startDate &&
                  x.ActionDate <= endDate)
-     .ToListAsync(); 
+     .ToListAsync();
 
                     foreach (var movementToDelete in existingTimes)
                     {
-                        _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete); 
+                        _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete);
                     }
 
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
@@ -518,11 +518,27 @@ namespace OceansApp.DataAccess.Repository
                     var startDateFormat = startDate.Date;
                     var endDateFormat = endDate.Date;
 
+                    var currentProjectHistory = await _projectConsultantAssignedHistoryRepository.GetCurrentProjectConsultantHistoryAsync(currentUser.ConsultantId, (int)timeEntryData.ProjectId, endDate);
+
+                    IEnumerable<ConsultantHolidayDate> holidays = new List<ConsultantHolidayDate>();
+
+                    if (currentProjectHistory.IsDefaultProject && currentProjectHistory.HolidaysMustBePaid && currentUser.ConsultantHolidayId > 0)
+                    {
+                        holidays = await _db.CONSULTANT_HOLIDAY_DATES
+                                   .Where(x => x.ConsultantHolidayId == currentUser.ConsultantHolidayId
+                                            && x.Date >= startDate
+                                            && x.Date <= endDate)
+                                   .ToListAsync();
+                    }
+
                     // Iterate over the days between TimeFrom and TimeTo
                     for (var date = startDateFormat; date <= endDateFormat; date = date.AddDays(1))
                     {
                         // Skip Saturdays and Sundays
                         if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+                            continue;
+
+                        if (holidays.Any(h => h.Date == date))
                             continue;
 
                         var timeMovementToCreate = new ReportingMyTimeMovement
