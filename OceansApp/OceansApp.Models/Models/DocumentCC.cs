@@ -31,6 +31,14 @@ namespace OceansApp.Models.Models
         public Client Client { get; set; }
         [MaxLength(8)]
         public string CompanyId { get; set; }
+        public int? DocumentCCSubtypeId { get; set; }
 
+
+        [ValidateNever]
+        public DocumentCCSubtype DocumentCCSubtype { get; set; }
+        [ValidateNever]
+        public Company Company { get; set; }
+        //[ValidateNever]
+        //public DocumentType DocumentCCType { get; set; }
     }
 }

@@ -173,6 +173,21 @@ async function displayMoreFiltersConsultants() {
     hideSpinner();
     openRightSidebar();
 }
+
+const gearButton = getElementById('gearButton');
+const gearDropdownMenu = getElementById('gearDropdownMenu');
+
+// Toggle dropdown on click
+gearButton.addEventListener('click', () => {
+    gearDropdownMenu.classList.toggle('gear-show');
+});
+
+// Close dropdown if clicked outside
+document.addEventListener('click', (e) => {
+    if (!gearButton.contains(e.target) && !gearDropdownMenu.contains(e.target)) {
+        gearDropdownMenu.classList.remove('gear-show');
+    }
+});
 function clearFilters(formId) {
     resetFormElements(formId);
     getListOfResults(false, true);

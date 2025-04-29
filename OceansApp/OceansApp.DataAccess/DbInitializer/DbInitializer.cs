@@ -290,6 +290,38 @@ namespace OceansApp.DataAccess.DbInitializer
                 }
                 await _db.SaveChangesAsync();
 
+                // ----------------- DOCUMENT TYPES --------------------------------
+
+                List<DocumentType> documentTypesList = new List<DocumentType>
+                {
+                    new DocumentType {DocumentTypeId = "FAC", TransactionTypeId = 1, Description = "Invoice" },
+                    new DocumentType {DocumentTypeId = "I/C", TransactionTypeId = 1, Description = "Current Interest" },
+                    new DocumentType {DocumentTypeId = "INT", TransactionTypeId = 1, Description = "Late Payment Interest" },
+                    new DocumentType {DocumentTypeId = "L/C", TransactionTypeId = 1, Description = "Bill of Exchange" },
+                    new DocumentType {DocumentTypeId = "N/D", TransactionTypeId = 1, Description = "Debit Note" },
+                    new DocumentType {DocumentTypeId = "O/D", TransactionTypeId = 1, Description = "Other Debit" },
+                    new DocumentType {DocumentTypeId = "DEP", TransactionTypeId = 2, Description = "Deposit" },
+                    new DocumentType {DocumentTypeId = "N/C", TransactionTypeId = 2, Description = "Credit Note" },
+                    new DocumentType {DocumentTypeId = "O/C", TransactionTypeId = 2, Description = "Other Credit" },
+                    new DocumentType {DocumentTypeId = "REC", TransactionTypeId = 2, Description = "Receipt" },
+                    new DocumentType {DocumentTypeId = "TEF", TransactionTypeId = 2, Description = "Transfer" }
+                };
+                foreach (var docType in documentTypesList)
+                {
+                    if (await _db.DOCUMENTS_TYPES.FirstOrDefaultAsync(x => x.Description == docType.Description && x.TransactionTypeId == docType.TransactionTypeId && 
+                    x.DocumentTypeId == docType.DocumentTypeId) == null)
+                    {
+                        DocumentType documentType = new()
+                        {
+                            DocumentTypeId = docType.DocumentTypeId,
+                            Description = docType.Description,
+                            TransactionTypeId = docType.TransactionTypeId
+                        };
+                        await _db.DOCUMENTS_TYPES.AddAsync(documentType);
+                    }
+                }
+                await _db.SaveChangesAsync();
+
                 // ----------------- GLOBAL CONSECUTIVES --------------------------------
 
                 List<GlobalConsecutive> globalConsecutivesList = new List<GlobalConsecutive>
@@ -310,71 +342,6 @@ namespace OceansApp.DataAccess.DbInitializer
                             CompanyId = consecutive.CompanyId
                         };
                         await _db.GLOBAL_CONSECUTIVES.AddAsync(conToCreate);
-                    }
-                }
-                await _db.SaveChangesAsync();
-
-                // ----------------- NOTIFICATIONS MEDIA --------------------------------
-
-                List<NotificationMedia> notificatinMediaList = new List<NotificationMedia>
-                {
-                    new NotificationMedia { Name = "Email" },
-                    new NotificationMedia { Name = "Slack" }
-                };
-
-                foreach (var notMedia in notificatinMediaList)
-                {
-                    var existingMedia = await _db.NOTIFICATION_MEDIA.FirstOrDefaultAsync(x => x.Name == notMedia.Name);
-                    if (existingMedia == null)
-                    {
-                        NotificationMedia notificationMedia = new()
-                        {
-                            Name = notMedia.Name
-                        };
-                        await _db.NOTIFICATION_MEDIA.AddAsync(notificationMedia);
-                    }
-                }
-                await _db.SaveChangesAsync();
-
-                // ----------------- NOTIFICATION STATUS --------------------------------
-
-                List<NotificationStatus> notificatinStatusList = new List<NotificationStatus>
-                {
-                    new NotificationStatus { Name = "Enviando" },
-                    new NotificationStatus { Name = "Enviado" },
-                    new NotificationStatus { Name = "No enviado" },
-                    new NotificationStatus { Name = "Envío fallido" }
-                };
-                foreach (var notStatus in notificatinStatusList)
-                {
-                    var existingNS = await _db.NOTIFICATION_STATUS.FirstOrDefaultAsync(x => x.Name == notStatus.Name);
-                    if (existingNS == null)
-                    {
-                        NotificationStatus notificationStatus = new()
-                        {
-                            Name = notStatus.Name
-                        };
-                        await _db.NOTIFICATION_STATUS.AddAsync(notificationStatus);
-                    }
-                }
-                await _db.SaveChangesAsync();
-
-                // ----------------- NOTIFICATION TYPES --------------------------------
-
-                List<NotificationType> notificationTypeList = new List<NotificationType>
-                {
-                    new NotificationType { Name = "Cuentas por cobrar" },
-                    new NotificationType { Name = "Create new Consultant" }
-                };
-                foreach (var notType in notificationTypeList)
-                {
-                    if (await _db.NOTIFICATION_TYPES.FirstOrDefaultAsync(x => x.Name == notType.Name) == null)
-                    {
-                        NotificationType notificationType = new()
-                        {
-                            Name = notType.Name
-                        };
-                        await _db.NOTIFICATION_TYPES.AddAsync(notificationType);
                     }
                 }
                 await _db.SaveChangesAsync();

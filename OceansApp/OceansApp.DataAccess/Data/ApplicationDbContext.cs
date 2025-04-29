@@ -652,6 +652,61 @@ namespace OceansApp.DataAccess.Data
 
                 entity.HasIndex(e => e.ClientId);
                 entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.DocumentCCSubtypeId);
+                entity.HasIndex(e => e.DocumentType);
+
+                entity.HasOne(p => p.DocumentCCSubtype)
+              .WithMany()
+              .HasForeignKey(p => p.DocumentCCSubtypeId)
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.Company)
+              .WithMany()
+              .HasForeignKey(p => p.CompanyId);
+             //   entity.HasOne(p => p.DocumentCCType)
+             //.WithMany()
+             //.HasForeignKey(p => p.DocumentType)
+                entity.Property(c => c.CompanyId)
+                 .HasColumnType("varchar(8)");
+            });
+
+            // DOCUMENT CC SUBTYPE
+            modelBuilder.Entity<DocumentCCSubtype>(entity =>
+            {
+                entity.HasIndex(e => e.AccountingAccountId);
+                entity.HasIndex(e => e.CostCenterId);
+                entity.HasIndex(e => e.DocumentTypeId);
+                entity.HasIndex(e => e.CompanyId);
+
+                entity.HasOne(p => p.CostCenter)
+              .WithMany()
+              .HasForeignKey(p => p.CostCenterId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.AccountingAccount)
+              .WithMany()
+              .HasForeignKey(p => p.AccountingAccountId)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.Company)
+              .WithMany()
+              .HasForeignKey(p => p.CompanyId)
+              .IsRequired();
+                entity.HasOne(p => p.DocumentType)
+             .WithMany()
+             .HasForeignKey(p => p.DocumentTypeId)
+             .IsRequired();
+            });
+
+            // DOCUMENT TYPES
+            modelBuilder.Entity<DocumentType>(entity =>
+            {
+                entity.HasIndex(e => e.TransactionTypeId);
+
+                entity.HasOne(p => p.TransactionType)
+             .WithMany()
+             .HasForeignKey(p => p.TransactionTypeId)
+             .IsRequired();
+
             });
 
             // CLIENT
@@ -673,6 +728,35 @@ namespace OceansApp.DataAccess.Data
 
                 entity.Property(p => p.LatePaymentFee)
                 .HasColumnType("decimal(18, 4)");
+
+            });
+
+            // CLIENT ACCOUNTING CATEGORY
+            modelBuilder.Entity<ClientAccountingCategory>(entity =>
+            {
+                // Indexes for columns
+                entity.HasIndex(e => e.AccountingAccountIdSalesReturn);
+                entity.HasIndex(e => e.AccountingAccountIdSalesDiscounts);
+                entity.HasIndex(e => e.CostCenterIdSalesReturn);
+                entity.HasIndex(e => e.CostCenterIdSalesDiscounts);
+                entity.HasIndex(e => e.CompanyId);
+
+                entity.Property(c => c.Description)
+                 .HasColumnType("varchar(50)");
+                entity.HasOne(p => p.AccountingAccountSalesReturn)
+              .WithMany()
+              .HasForeignKey(p => p.AccountingAccountIdSalesReturn)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.AccountingAccountSalesDiscount)
+              .WithMany()
+              .HasForeignKey(p => p.AccountingAccountIdSalesDiscounts)
+              .IsRequired()
+              .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.Company)
+              .WithMany()
+              .HasForeignKey(p => p.CompanyId)
+              .IsRequired();
 
             });
 
@@ -962,7 +1046,7 @@ namespace OceansApp.DataAccess.Data
                 // Indexes
                 entity.HasIndex(p => new { p.ProjectConsultantAssignedId, p.IsActive, p.MonthlySalary, p.HourlySalary })
                 .HasFilter("[IsActive] = 1");
-                entity.HasIndex(e => new { e.IsActive, e.AccessToTrackingTool});
+                entity.HasIndex(e => new { e.IsActive, e.AccessToTrackingTool });
                 entity.HasIndex(e => new { e.ProjectConsultantAssignedId, e.ActionDate, e.Id })
                 .HasDatabaseName("IX_ProjectConsultantsAssignedHistory_ProjectConsultantAssignedId_ActionDate_Id")
                 .IsDescending(false, true, true); // Define ActionDate and Id as descending
@@ -1363,6 +1447,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<CalculatorSearchHistory> CALCULATOR_SEARCH_HISTORY { get; set; }
         public DbSet<CalculatorAccountingAccountToIgnore> CALCULATOR_ACCOUNTING_ACCOUNTS_TO_IGNORE { get; set; }
         public DbSet<Client> CLIENT { get; set; }
+        public DbSet<ClientAccountingCategory> CLIENT_ACCOUNT_CATEGORIES { get; set; }
         public DbSet<Company> COMPANIES { get; set; }
         public DbSet<CostCenter> COST_CENTER { get; set; }
         public DbSet<CostCenterAccountingAccount> COSTS_CENTERS_ACCOUNTING_ACCOUNTS { get; set; }
@@ -1385,6 +1470,9 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantPaymentDebitsCredits> CONSULTANT_PAYMENTS_DEBITS_CREDITS { get; set; }
         public DbSet<ConsultantPositionAccountingConfiguration> CONSULTANT_POSITIONS_ACCOUNTING_CONFIGURATION { get; set; }
         public DbSet<ConsultantReimbursedBenefit> CONSULTANT_REIMBURSED_BENEFITS { get; set; }
+        public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
+        public DbSet<DocumentCCSubtype> DOCUMENTS_CC_SUBTYPES { get; set; }
+        public DbSet<DocumentType> DOCUMENTS_TYPES { get; set; }
         public DbSet<GlobalConsecutive> GLOBAL_CONSECUTIVES { get; set; }
         public DbSet<ImageBlob> IMAGE_BLOBS { get; set; }
         public DbSet<Interview> INTERVIEWS { get; set; }
@@ -1409,7 +1497,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ReportingMyTimeMovementSubmission> REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS { get; set; }
         public DbSet<TransactionType> TRANSACTION_TYPES { get; set; }
         public DbSet<TransactionStatus> TRANSACTION_STATUSES { get; set; }
-        public DbSet<DocumentCC> DOCUMENTS_CC { get; set; }
         public DbSet<NotificationType> NOTIFICATION_TYPES { get; set; }
         public DbSet<Notification> NOTIFICATIONS { get; set; }
         public DbSet<NotificationStatus> NOTIFICATION_STATUS { get; set; }
