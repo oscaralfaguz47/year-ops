@@ -40,27 +40,6 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-                //var documentTypes = (List<SelectVM>?) await _unitOfWork.DocumentCC.GetDocumentsTypeWhereDocumentsExistAsync();
-                //List<SelectVM> documentTypesList = new List<SelectVM>();
-                //if (documentTypes != null)
-                //{
-                //    foreach (var docType in documentTypes)
-                //    {
-                //        documentTypesList.Add(new SelectVM { Value = docType.Value, Text = docType.Text });
-                //    }
-                //}
-
-                //var clients = (await _unitOfWork.Client.GetAllAsync(x => x.ClientCode != "OCELL_C0001"
-                //&& x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && x.ClientCode != "OCE_C0030")).OrderBy(x => x.Name);
-                //List<SelectVM> clientList = new List<SelectVM>();
-                //if (clients != null)
-                //{
-                //    foreach (var client in clients)
-                //    {
-                //        clientList.Add(new SelectVM { Value = client.ClientId.ToString(), Text = client.Name });
-                //    }
-                //}
-               
                 return View();
         }
 

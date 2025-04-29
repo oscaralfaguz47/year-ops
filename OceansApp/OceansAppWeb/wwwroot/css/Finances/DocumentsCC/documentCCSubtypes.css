@@ -1,0 +1,26 @@
+﻿.subtype-containers {
+    border: solid 2px var(--clr-grayLight);
+    border-radius: 5px;
+    padding: 10px;
+}
+h4 {
+    text-align: center;
+    color: var(--clr-blueDark);
+    border-bottom: solid 2px var(--clr-grayLight);
+}
+#subtypes-list-container{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+#create-subtype-container{
+    display: none;
+    background-color: var(--clr-grayLight);
+}
+.create-subtype-btns-container {
+    text-align: center;
+    margin-top: 10px;
+}
+#create-subtype-out-btn-cont {
+    text-align: right;
+    margin-top: 10px;
+}

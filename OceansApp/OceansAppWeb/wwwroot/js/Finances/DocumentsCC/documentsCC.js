@@ -188,6 +188,18 @@ document.addEventListener('click', (e) => {
         gearDropdownMenu.classList.remove('gear-show');
     }
 });
+// Close dropdown when clicking on any option inside
+gearDropdownMenu.querySelectorAll('a').forEach(option => {
+    option.addEventListener('click', () => {
+        gearDropdownMenu.classList.remove('gear-show');
+    });
+});
+// Close dropdown when pressing Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        gearDropdownMenu.classList.remove('gear-show');
+    }
+});
 function clearFilters(formId) {
     resetFormElements(formId);
     getListOfResults(false, true);

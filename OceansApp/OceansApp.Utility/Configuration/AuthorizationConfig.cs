@@ -249,6 +249,16 @@ namespace OceansApp.Utility.Configuration
             });
             services.AddAuthorization(options =>
             {
+                options.AddPolicy("AccessToAllCompaniesList", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType
+                        && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
+                        ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue) || context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType
+                        && claim.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
                 options.AddPolicy("AccessToAllConsultantPositionsList", policy =>
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Consultants_Page_ClaimType

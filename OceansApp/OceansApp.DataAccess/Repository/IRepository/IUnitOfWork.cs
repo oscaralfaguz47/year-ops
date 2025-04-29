@@ -22,6 +22,7 @@
         IClientRepository Client { get; }
         IPartnerRepository Partner { get; }
         ICountryRepository Country { get; }
+        ICompanyRepository Company { get; }
         IConsultantBenefitRepository ConsultantBenefit { get; }
         IConsultantAndBenefitRepository ConsultantAndBenefit { get; }
         IConsultantBenefitCategoryRepository ConsultantBenefitCategory { get; }
@@ -36,6 +37,7 @@
         IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; }
         IConsultantSeniorityRepository ConsultantSeniority { get; }
         ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; }
+        IDocumentCCSubtypeRepository DocumentCCSubtype { get; }
         IInterviewRepository Interview { get; }
         IImageBlobRepository ImageBlob { get; }
         IJournalAccountPayableRepository JournalAccountPayable { get; }

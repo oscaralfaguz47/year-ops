@@ -1,4 +1,6 @@
-﻿<div id="modal-document-subtypes" class="global-modal" style="display:none">
+﻿<link rel="stylesheet" href="~/css/Finances/DocumentsCC/documentCCSubtypes.css?v=@DateTime.Now.Ticks" />
+
+<div id="modal-document-subtypes" class="global-modal" style="display:none">
     <div class="global-modal-content">
 
         <div class="container">
@@ -6,20 +8,76 @@
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-document-subtypes')">x</button></div>
                 <h2>Document Subtypes</h2>
 
+                @* Create subtypes *@
 
-                <div id="modal-btns-cont" style="display:flex; justify-content:center;">
-                    <a id="btn-cancel" onclick="hideModal('modal-document-subtypes')" class="cancel-btn">Cancel</a>&nbsp;
-                    <button id="btn-saving" onclick="createUpdateConsultant('modal-document-subtypes')" class="btn-primary-submit">
-                        <div style="display:flex;align-items:center;">
-                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
-                            </div><span></span>
+                <div id="create-subtype-container" class="subtype-containers">
+                    <h4>Create new Subtype</h4>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label>Description <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" id="description">
+                            </div>
                         </div>
-                    </button>
+                        <div class="col-md-4">
+                            <label for="documentTypeId">Document Type <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="documentTypeId">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="companyId">Company <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="companyId">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="costCenterId">Cost Center <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="costCenterId">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="accountingAccountId">Accounting Account <span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="accountingAccountId">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="create-subtype-btns-container">
+                        <button class="cancel-btn" id="cancel-btn-create-subtype">Cancel</button>
+                        <button class="btn-primary-submit">Save</button>
+                    </div>
+
+                </div>
+
+                @* Subtypes List *@
+                <div id="create-subtype-out-btn-cont"><button class="blue-btn">Create new Subtype</button></div>
+                <div id="subtypes-list-container" class="subtype-containers">
                 </div>
             </div>
-        </div>
 
+
+            <div id="modal-btns-cont" style="display:flex; justify-content:center;">
+                <a onclick="hideModal('modal-document-subtypes')" class="cancel-btn">Close</a>&nbsp;
+            </div>
+        </div>
     </div>
+
+</div>
 </div>
 
-<script src="~/js/Finances/DocumentsCC/documentSubtypes.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Finances/DocumentsCC/documentCCSubtypes.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/AdminCenter/Companies/companies.js?v=@DateTime.Now.Ticks"></script>

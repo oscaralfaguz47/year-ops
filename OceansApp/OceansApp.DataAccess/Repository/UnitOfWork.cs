@@ -52,6 +52,7 @@ namespace OceansApp.DataAccess.Repository
             CalculatorAccountingAccountToIgnore = new CalculatorAccountingAccountToIgnoreRepository(_db);
             Client = new ClientRepository(_db);
             Country = new CountryRepository(_db);
+            Company = new CompanyRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
             ConsultantPayment = new ConsultantPaymentRepository(_db, this, _config, _queueClient);
             ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db, this);
@@ -66,6 +67,7 @@ namespace OceansApp.DataAccess.Repository
             ConsultantRoleQualityLevel = new ConsultantRoleQualityLevelRepository(_db);
             ConsultantSeniority = new ConsultantSeniorityRepository(_db);
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
+            DocumentCCSubtype = new DocumentCCSubtypeRepository(_db);
             Interview = new InterviewRepository(_db, this);
             ImageBlob = new ImageBlobRepository(_db);
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
@@ -113,6 +115,7 @@ namespace OceansApp.DataAccess.Repository
         public IClientRepository Client { get; set; }
         public IPartnerRepository Partner { get; set; }
         public ICountryRepository Country { get; set; }
+        public ICompanyRepository Company { get; set; }
         public IConsultantHolidayRepository ConsultantHoliday { get; set; }
         public IConsultantDetailRepository ConsultantDetail { get; set; }
         public IConsultantPaymentRepository ConsultantPayment{ get; set; }
@@ -127,6 +130,7 @@ namespace OceansApp.DataAccess.Repository
         public IConsultantRoleQualityLevelRepository ConsultantRoleQualityLevel { get; set; }
         public IConsultantSeniorityRepository ConsultantSeniority { get; set; }
         public ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; set; }
+        public IDocumentCCSubtypeRepository DocumentCCSubtype { get; set; }
         public IInterviewRepository Interview { get; set; }
         public IImageBlobRepository ImageBlob { get; set; }
         public IJournalAccountPayableRepository JournalAccountPayable { get; set; }
