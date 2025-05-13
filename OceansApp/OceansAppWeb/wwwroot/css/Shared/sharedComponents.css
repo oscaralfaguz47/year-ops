@@ -77,6 +77,9 @@
         border: 1px solid #ccc;
     }
 /*Inputs*/
+.global-form .input-container input{
+    padding-left: 10px;
+}
 #form-create-update .input-container input {
     padding-left: 10px;
 }
@@ -273,6 +276,67 @@
     display: inline-block;
 }
 
+/*GLOBAL TOOGLE*/
+.global-toggle-container {
+    position: relative;
+    width: 160px; 
+    height: 40px; 
+    background-color: #ddd;
+    border-radius: 40px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+    margin: 15px 0; 
+}
+
+.global-toggle-option {
+    flex: 1;
+    text-align: center;
+    font-weight: 700;
+    color: #888;
+    z-index: 2;
+    transition: color 0.3s;
+    user-select: none;
+    font-size: 0.9rem;
+}
+
+    .global-toggle-option.active {
+        color: #fff;
+        font-size: 1rem;
+    }
+
+.global-toggle-slider {
+    position: absolute;
+    top: 3px;
+    width: 75px; 
+    height: 34px; 
+    background-color: #444;
+    border-radius: 40px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.global-toggle-container.active .global-toggle-slider {
+    left: 80px;
+    background-color: #555;
+}
+
+.global-toggle-container:not(.active) .global-toggle-slider {
+    left: 3px;
+    background-color: #444;
+}
+
+.global-toggle-container.active .global-toggle-debit {
+    color: #fff;
+}
+
+.global-toggle-container:not(.active) .global-toggle-credit {
+    color: #fff;
+}
 @keyframes spin {
     0% {
         transform: rotate(0deg);

@@ -1,4 +1,4 @@
-﻿<link rel="stylesheet" href="~/css/General/createUpdateConsultantModal.css?v=@DateTime.Now.Ticks" />
+﻿<link rel="stylesheet" href="~/css/Finances/DocumentsCC/createNewDocument.css?v=@DateTime.Now.Ticks" />
 
 <div id="modal-create-new-documents" class="global-modal" style="display:none">
     <div class="global-modal-content">
@@ -7,7 +7,66 @@
             <div>
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-create-new-documents')">x</button></div>
                 <h2>Create New Document</h2>
-  
+
+               <form id="createDocForm" class="global-form">
+                    <div class="create-doc-header-cont">
+                        <div class="global-toggle-container" data-toggle-type="debit-credit">
+                            <div class="global-toggle-option global-toggle-debit active">Debit</div>
+                            <div class="global-toggle-option global-toggle-credit">Credit</div>
+                            <div class="global-toggle-slider"></div>
+                        </div>
+
+                        <div class="document-number-container">
+                            <label for="documentNumberCreateDoc">Document Number</label>
+                           <div>
+                                <input type="text" value="Select Document Type" id="documentNumberCreateDoc" disabled/>
+                           </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="row">
+                            <input type="hidden" id="documentCCIdCreateDoc">
+                            <div class="col-md-4">
+                                <label for="documentTypeIdCreateDoc">Document Type <span class="required-asterisk">*</span></label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select class="form-select" id="documentTypeIdCreateDoc">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="subTypeIdCreateDoc">Subtype <span class="required-asterisk">*</span></label>
+                                <div class="custom-select">
+                                    <span class="arrow-down"></span>
+                                    <select class="form-select" id="subTypeIdCreateDoc">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ActionDate">Document Date <span class="required-asterisk">*</span> </label> <div class="tooltip-container ">
+                                    <i class="bi bi-question-circle tooltip-target"></i>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-arrow"></div>
+                                        Date on which the accounting entry will be created.
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <input type="date" class="form-control" id="documentDateCreateDoc">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label>Description <span class="required-asterisk">*</span></label>
+                                <div class="input-container">
+                                    <input type="text" class="form-control" id="applicationDescriptionCreateDoc">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+               </form>
+
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
                     <a id="btn-cancel" onclick="hideModal('modal-create-new-documents')" class="cancel-btn">Cancel</a>&nbsp;

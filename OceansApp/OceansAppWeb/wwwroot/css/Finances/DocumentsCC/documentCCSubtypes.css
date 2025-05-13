@@ -1,4 +1,7 @@
-﻿.subtype-containers {
+﻿.global-modal-content{
+    max-width:850px;
+}
+.subtype-containers {
     border: solid 2px var(--clr-grayLight);
     border-radius: 5px;
     padding: 10px;

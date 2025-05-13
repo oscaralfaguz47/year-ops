@@ -551,7 +551,6 @@ h2 {
     position: relative;
     display: inline-block;
     width: 100%;
-    margin-top: 10px;
 }
 
     .custom-select select {
@@ -563,7 +562,6 @@ h2 {
         border: 1px solid #ced4da;
         border-radius: 10px;
         outline: none;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
         color: var(--clr-grayDark);
         width: 100%;
     }

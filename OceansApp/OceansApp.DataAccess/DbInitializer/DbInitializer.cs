@@ -300,6 +300,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     new DocumentType {DocumentTypeId = "L/C", TransactionTypeId = 1, Description = "Bill of Exchange" },
                     new DocumentType {DocumentTypeId = "N/D", TransactionTypeId = 1, Description = "Debit Note" },
                     new DocumentType {DocumentTypeId = "O/D", TransactionTypeId = 1, Description = "Other Debit" },
+                    new DocumentType {DocumentTypeId = "PAG", TransactionTypeId = 1, Description = "Promissory Note" },
                     new DocumentType {DocumentTypeId = "DEP", TransactionTypeId = 2, Description = "Deposit" },
                     new DocumentType {DocumentTypeId = "N/C", TransactionTypeId = 2, Description = "Credit Note" },
                     new DocumentType {DocumentTypeId = "O/C", TransactionTypeId = 2, Description = "Other Credit" },
@@ -308,7 +309,7 @@ namespace OceansApp.DataAccess.DbInitializer
                 };
                 foreach (var docType in documentTypesList)
                 {
-                    if (await _db.DOCUMENTS_TYPES.FirstOrDefaultAsync(x => x.Description == docType.Description && x.TransactionTypeId == docType.TransactionTypeId && 
+                    if (await _db.DOCUMENTS_TYPES.FirstOrDefaultAsync(x => x.Description == docType.Description && x.TransactionTypeId == docType.TransactionTypeId &&
                     x.DocumentTypeId == docType.DocumentTypeId) == null)
                     {
                         DocumentType documentType = new()
@@ -569,7 +570,7 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 foreach (var paymentMethodBankAccount in paymentMethodBankAccountList)
                 {
-                    if (await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.FirstOrDefaultAsync(x => x.PaymentMethodId == paymentMethodBankAccount.PaymentMethodId && 
+                    if (await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.FirstOrDefaultAsync(x => x.PaymentMethodId == paymentMethodBankAccount.PaymentMethodId &&
                     x.BankAccountId == paymentMethodBankAccount.BankAccountId) == null)
                     {
                         PaymentMethodBankAccount pmba = new()

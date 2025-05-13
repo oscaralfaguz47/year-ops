@@ -1,0 +1,25 @@
+﻿.create-doc-header-cont {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 2px;
+}
+.document-number-container {
+    text-align: center;
+}
+
+    .document-number-container input {
+        font-size: 0.9rem;
+        font-weight: bold;
+        width: 100%;
+        text-align: center;
+        color: #960b03;
+    }
+    .document-number-container label {
+        color: var(--clr-blueDark);
+        font-weight: 900;
+    }
+
