@@ -133,5 +133,27 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 return BadRequest(new { MessageType = "Exception Error", error = $"There was an error saving the changes. More details: " + ex.Message, detail = ex.Message });
             }
         }
+
+        [HttpGet("GetDocumentSubtypeDataById")]
+        public async Task<IActionResult> GetDocumentSubtypeDataById(int docSubtypeId)
+        {
+            try
+            {
+                var docSubtypeData = await _unitOfWork.DocumentCCSubtype.GetDocumentSubtypeByIdAsync(docSubtypeId);
+                if (docSubtypeData == null)
+                {
+                    return BadRequest(new { error = "The Document Subtype is not longer in the database." });
+                }
+
+                return Ok(new
+                {
+                    documentSubtypeData = docSubtypeData
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

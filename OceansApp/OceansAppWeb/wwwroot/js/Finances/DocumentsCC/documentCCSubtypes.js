@@ -31,6 +31,10 @@ function hideCreateSubtypeSection() {
 }
 
 createBtn.addEventListener('click', async () => {
+    await showCreateUpdateDocSubtypeForm();
+});
+
+async function showCreateUpdateDocSubtypeForm() {
     displaySpinner();
     costCenterSelectCreateSubtype.disabled = true;
     accountingAccountSelectCreateSubtype.disabled = true;
@@ -47,65 +51,119 @@ createBtn.addEventListener('click', async () => {
 
     createSubtypeContainer.style.display = 'block';
     createBtnContainer.style.display = 'none';
+    documentTypeSelectCreateSubtype.disabled = false;
+    companySelectCreateSubtype.disabled = false;
 
-    hideSpinner();
-});
-
-async function selectCompany(companyId) {
-    displaySpinner();
-    let costCenterList = await getCostsCentersWhereCompanyList(companyId);
-
-    if (companySelectCreateSubtype.value !== 'null') {
-        costCenterSelectCreateSubtype.innerHTML = '';
-        costCenterSelectCreateSubtype.innerHTML = '<option value>-Select a Cost Center-</option>';
-        costCenterSelectCreateSubtype.disabled = false;
-        costCenterList.costsCenters.forEach(obj => {
-            var costCenterCode = '';
-            var selectValue = null;
-            obj.acceptData === 'S' ? costCenterCode = '(' + obj.costCenterCode + ')' : costCenterCode = '';
-            obj.acceptData === 'S' ? selectValue = obj.costCenterId : selectValue = null;
-            var option = new Option(obj.description + ' ' + costCenterCode, selectValue);
-            if (obj.acceptData === 'N') {
-                option.className = 'option-no-accept-data';
-                option.disabled = true;
-            }
-            costCenterSelectCreateSubtype.add(option);
-        });
-    } else {
-        costCenterSelectCreateSubtype.innerHTML = '<option value>-Select a Company-</option>';
-        costCenterSelectCreateSubtype.disabled = true;
-    }
-    accountingAccountSelectCreateSubtype.disabled = true;
-    accountingAccountSelectCreateSubtype.innerHTML = '<option value>-Select a Cost Center-</option>';
     hideSpinner();
 }
-function selectCostCenter(selectedValue) {
-    accountingAccountSelectCreateSubtype.innerHTML = '<option value>Loading options… (⏳)</option>';
-    displaySpinner();
-    getAccountingAccountsWhereCostCenterList(selectedValue)
-        .then(data => {
-            accountingAccountSelectCreateSubtype.innerHTML = '';
-            accountingAccountSelectCreateSubtype.innerHTML = '<option value>-Select an Account-</option>';
-            accountingAccountSelectCreateSubtype.disabled = false;
-            data.accountingAccounts.forEach(obj => {
-                var accountCode = '';
-                var selectValue = null;
-                obj.acceptData === 'S' ? accountCode = '(' + obj.accountingAccountCode + ')' : accountCode = '';
-                obj.acceptData === 'S' ? selectValue = obj.accountingAccountId : selectValue = null;
-                var option = new Option(obj.description + ' ' + accountCode, selectValue);
+async function displayUpdateDocumentSubtypeForm(id) {
+    try {
+        await showCreateUpdateDocSubtypeForm();
+        displaySpinner();
+
+        const url = `/Finances/DocumentCCSubtypes/GetDocumentSubtypeDataById?docSubtypeId=${encodeURIComponent(id)}`;
+        const response = await fetch(url);
+
+        // Validate server response
+        if (!response.ok) {
+            const errorData = await response.json();
+            displayToasterError(errorData.error || 'An unexpected error occurred.');
+            throw new Error(`The request to the server failed! More details: ${errorData.detail || 'No details available.'}`);
+        }
+
+        // Process document data
+        const data = await response.json();
+        descriptionInputCreateSubtype.value = data.documentSubtypeData.description;
+        documentTypeSelectCreateSubtype.value = data.documentSubtypeData.documentTypeId;
+        companySelectCreateSubtype.value = data.documentSubtypeData.companyId;
+
+        // Wait for cost centers and accounting accounts to be loaded
+        await selectCompany(data.documentSubtypeData.companyId);
+        await selectCostCenter(data.documentSubtypeData.costCenterId);
+
+        costCenterSelectCreateSubtype.value = data.documentSubtypeData.costCenterId;
+        accountingAccountSelectCreateSubtype.value = data.documentSubtypeData.accountingAccountId;
+        documentTypeSelectCreateSubtype.disabled = true;
+        companySelectCreateSubtype.disabled = true;
+
+    } catch (error) {
+        validateSessionExpiration(error.message);
+        console.error('Error fetching document subtype data:', error);
+    } finally {
+        hideSpinner();
+    }
+}
+
+async function selectCompany(companyId) {
+    try {
+        displaySpinner();
+        const costCenterList = await getCostsCentersWhereCompanyList(companyId);
+
+        if (companyId !== null && companyId !== 'null' && companyId !== '') {
+            costCenterSelectCreateSubtype.innerHTML = '<option value="">-Select a Cost Center-</option>';
+            costCenterSelectCreateSubtype.disabled = false;
+
+            costCenterList.costsCenters.forEach(obj => {
+                const costCenterCode = obj.acceptData === 'S' ? `(${obj.costCenterCode})` : '';
+                const selectValue = obj.acceptData === 'S' ? obj.costCenterId : null;
+                const option = new Option(`${obj.description} ${costCenterCode}`, selectValue);
+
                 if (obj.acceptData === 'N') {
                     option.className = 'option-no-accept-data';
                     option.disabled = true;
                 }
-                accountingAccountSelectCreateSubtype.add(option);
+
+                costCenterSelectCreateSubtype.add(option);
             });
-            hideSpinner();
-        })
-        .catch(error => {
-            hideSpinner();
-            console.error('Error fetching roles:', error);
-        });
+        } else {
+            costCenterSelectCreateSubtype.innerHTML = '<option value="">-Select a Company-</option>';
+            costCenterSelectCreateSubtype.disabled = true;
+        }
+
+        accountingAccountSelectCreateSubtype.disabled = true;
+        accountingAccountSelectCreateSubtype.innerHTML = '<option value="">-Select a Cost Center-</option>';
+
+    } catch (error) {
+        console.error('Error loading cost centers:', error);
+    } finally {
+        hideSpinner();
+    }
 }
+
+async function selectCostCenter(selectedValue) {
+    if (!selectedValue || selectedValue === 'null') {
+        accountingAccountSelectCreateSubtype.innerHTML = '<option value="">-Select a Cost Center-</option>';
+        accountingAccountSelectCreateSubtype.disabled = true;
+        return;
+    }
+    try {
+        displaySpinner();
+        accountingAccountSelectCreateSubtype.innerHTML = '<option value="">Loading options… (⏳)</option>';
+        const data = await getAccountingAccountsWhereCostCenterList(selectedValue);
+
+        accountingAccountSelectCreateSubtype.innerHTML = '<option value="">-Select an Account-</option>';
+        accountingAccountSelectCreateSubtype.disabled = false;
+
+        data.accountingAccounts.forEach(obj => {
+            const accountCode = obj.acceptData === 'S' ? `(${obj.accountingAccountCode})` : '';
+            const selectValue = obj.acceptData === 'S' ? obj.accountingAccountId : null;
+            const option = new Option(`${obj.description} ${accountCode}`, selectValue);
+
+            if (obj.acceptData === 'N') {
+                option.className = 'option-no-accept-data';
+                option.disabled = true;
+            }
+
+            accountingAccountSelectCreateSubtype.add(option);
+        });
+
+    } catch (error) {
+        console.error('Error loading accounting accounts:', error);
+    } finally {
+        hideSpinner();
+    }
+}
+
 
 function displayDocumentSubtypesModal(modalId) {
     hideCreateSubtypeSection();
@@ -147,7 +205,7 @@ function showDocumentSubtypesInList(subtypesListData) {
     tbody.empty();
     subtypesListData.forEach(function (docSubtype) {
 
-        var editBtn = `<li onclick="displayUpdateCreateInterviewModal('modal-update-create-interview', ${docSubtype.documentCCSubtypeId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
+        var editBtn = `<li onclick="displayUpdateDocumentSubtypeForm(${docSubtype.documentCCSubtypeId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
 
         var menuBtn = `<i onclick="displayMenuListFromMenuIcon('menuOptions-${docSubtype.documentCCSubtypeId}', 'menuIcon-${docSubtype.documentCCSubtypeId}')" class="bi bi-three-dots-vertical" id="menuIcon-${docSubtype.documentCCSubtypeId}"></i>
                               <div class="menu-options" id="menuOptions-${docSubtype.documentCCSubtypeId}">

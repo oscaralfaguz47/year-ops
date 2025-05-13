@@ -43,6 +43,28 @@ namespace OceansApp.DataAccess.Repository
                 throw;
             }
         }
+
+        public async Task<GetDocumentSubtypeVM> GetDocumentSubtypeByIdAsync(int docSubtypeId)
+        {
+            try
+            {
+                var result = await (from ds in _db.DOCUMENTS_CC_SUBTYPES
+                                    where ds.DocumentCCSybtypeId == docSubtypeId
+                                     select new GetDocumentSubtypeVM
+                                     {
+                                         Description = ds.Description,
+                                         DocumentTypeId = ds.DocumentTypeId,
+                                         CompanyId = ds.CompanyId,
+                                         CostCenterId = ds.CostCenterId,
+                                         AccountingAccountId = ds.AccountingAccountId
+                                     }).FirstOrDefaultAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
         public async Task<MethodResponse> CreateDocumentSubType(
            CreateUpdateDocumentSubtypeVM docSubtypeData)
         {

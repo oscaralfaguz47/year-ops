@@ -7,6 +7,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IDocumentCCSubtypeRepository : IRepository<DocumentCCSubtype>
     {
+        Task<GetDocumentSubtypeVM> GetDocumentSubtypeByIdAsync(int docSubtypeId);
         Task<List<GetDocumentSubtypesListVM>> GetDocumentSubtypesListAsync();
         Task<MethodResponse> CreateDocumentSubType(CreateUpdateDocumentSubtypeVM docSubtypeData);
         Task<MethodResponse> UpdateDocumentSubtype(CreateUpdateDocumentSubtypeVM docSubtypeData);
