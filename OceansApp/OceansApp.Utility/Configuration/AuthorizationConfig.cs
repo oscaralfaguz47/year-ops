@@ -211,7 +211,7 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToSearchAllActiveConsultantsBySearchText", policy =>
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
-                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue) 
+                        && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)
                         || context.User.HasClaim(claim => claim.Type == InterviewsClaimsCD.Manage_Interviews_Page_ClaimType
                         && claim.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue)));
             });
@@ -255,6 +255,12 @@ namespace OceansApp.Utility.Configuration
                         && claim.Value == ConsultantsClaimsCD.Consultants_Page_ClaimValue) ||
                         context.User.HasClaim(claim => claim.Type == ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimType && claim.Value ==
                         ConsultantsClaimsCD.Manage_Administrative_Consultants_ClaimValue) || context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType
+                        && claim.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue)));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAllDocumentTypesList", policy =>
+                    policy.RequireAssertion(context => context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType
                         && claim.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue)));
             });
             services.AddAuthorization(options =>

@@ -38,6 +38,7 @@
         IConsultantSeniorityRepository ConsultantSeniority { get; }
         ICostCenterAccountingAccountRepository CostCenterAccountingAccount { get; }
         IDocumentCCSubtypeRepository DocumentCCSubtype { get; }
+        IDocumentTypeRepository DocumentType { get; }
         IInterviewRepository Interview { get; }
         IImageBlobRepository ImageBlob { get; }
         IJournalAccountPayableRepository JournalAccountPayable { get; }
