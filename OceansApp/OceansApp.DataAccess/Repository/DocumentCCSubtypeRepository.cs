@@ -113,7 +113,7 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<MethodResponse> UpdateDocumentSubtype(CreateUpdateDocumentSubtypeVM docSubtypeData)
         {
-            bool existsDocumentSubtypeWithSameDescription = await _db.DOCUMENTS_CC_SUBTYPES.AnyAsync(x => x.Description == docSubtypeData.Description.Trim());
+            bool existsDocumentSubtypeWithSameDescription = await _db.DOCUMENTS_CC_SUBTYPES.AnyAsync(x => x.Description == docSubtypeData.Description.Trim() && x.DocumentCCSybtypeId != docSubtypeData.DocumentCCSubtypeId);
 
             if (existsDocumentSubtypeWithSameDescription) return MethodResponse
                     .CreateFailureValidationResponse($"The is already a subtype with the description: '{docSubtypeData.Description}'.");

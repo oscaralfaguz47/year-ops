@@ -62,7 +62,7 @@ namespace OceansApp.DataAccess.Repository
         public async Task<List<GetDataForSelectVM>> GetAllClientsWithActiveInactiveAsync()
         {
             var results = await _db.CLIENT
-                .Where(x => (x.ClientCategory == "EXT" || x.ClientCategory == "OCEADMIN") && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" && 
+                .Where(x => (x.ClientCategory == "EXT" || x.ClientCategory == "OCEADMIN") && x.ClientCode != "OCE_C0028" && x.ClientCode != "OCE_C0029" &&
                 x.ClientCode != "OCE_C0030" && x.ClientCode != "OCELL_C0001" && x.ClientCode != "OCE_C0040")
                 .OrderBy(x => x.Name).ToListAsync();
             List<GetDataForSelectVM> clientsList = new List<GetDataForSelectVM>();
@@ -156,6 +156,32 @@ namespace OceansApp.DataAccess.Repository
                     return true;
                 }
                 return false;
+            }
+        }
+
+        public async Task<List<GetClientsForSelectVM>> SearchClientsByNameAsync(string nameOrAlias)
+        {
+            if (string.IsNullOrWhiteSpace(nameOrAlias))
+                return new List<GetClientsForSelectVM>();
+
+            try
+            {
+                var results = await (from c in _db.CLIENT
+                                     where EF.Functions.Like(c.Name, $"%{nameOrAlias}%") ||
+                                           EF.Functions.Like(c.Alias, $"%{nameOrAlias}%")
+                                     orderby c.Name
+                                     select new GetClientsForSelectVM
+                                     {
+                                         ClientId = c.ClientId,
+                                         ClientName = $"{c.Name} - ({(c.IsActive == "S" ? "Active" : "Inactive")})"
+                                     }).ToListAsync();
+
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
 

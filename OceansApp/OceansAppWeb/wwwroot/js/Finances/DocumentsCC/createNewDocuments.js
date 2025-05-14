@@ -23,5 +23,6 @@ function initGlobalToggles() {
     });
 }
 
-// Inicializa todos los toggles cuando el DOM esté listo
+
 document.addEventListener('DOMContentLoaded', initGlobalToggles);
+

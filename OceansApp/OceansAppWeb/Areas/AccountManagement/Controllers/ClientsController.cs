@@ -319,5 +319,24 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 return BadRequest(new { error = $"There was an error in the server, the client notification status could not be updated.", detail = ex.Message });
             }
         }
+
+        [Authorize(Policy = "AccessToAccountsReceivable")]
+        [HttpGet("SearchClientsByName")]
+        public async Task<IActionResult> SearchClientsByName(string nameOrAlias)
+        {
+            try
+            {
+                var clientsList = await _unitOfWork.Client.SearchClientsByNameAsync(nameOrAlias);
+
+                return Ok(new
+                {
+                    clientsList = clientsList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

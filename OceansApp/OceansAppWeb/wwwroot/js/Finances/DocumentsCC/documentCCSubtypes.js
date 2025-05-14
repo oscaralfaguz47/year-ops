@@ -36,6 +36,7 @@ createBtn.addEventListener('click', async () => {
 
 async function showCreateUpdateDocSubtypeForm() {
     displaySpinner();
+    documentSubtypeIdInputCreateSubtype.value = null;
     costCenterSelectCreateSubtype.disabled = true;
     accountingAccountSelectCreateSubtype.disabled = true;
     if (documentTypesArray.length === 0) {
@@ -73,6 +74,7 @@ async function displayUpdateDocumentSubtypeForm(id) {
 
         // Process document data
         const data = await response.json();
+        documentSubtypeIdInputCreateSubtype.value = id;
         descriptionInputCreateSubtype.value = data.documentSubtypeData.description;
         documentTypeSelectCreateSubtype.value = data.documentSubtypeData.documentTypeId;
         companySelectCreateSubtype.value = data.documentSubtypeData.companyId;

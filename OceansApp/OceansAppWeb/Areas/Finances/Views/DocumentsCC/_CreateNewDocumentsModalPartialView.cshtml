@@ -1,4 +1,5 @@
 ﻿<link rel="stylesheet" href="~/css/Finances/DocumentsCC/createNewDocument.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/Clients/searchClientsElement.css" />
 
 <div id="modal-create-new-documents" class="global-modal" style="display:none">
     <div class="global-modal-content">
@@ -22,6 +23,10 @@
                                 <input type="text" value="Select Document Type" id="documentNumberCreateDoc" disabled/>
                            </div>
                         </div>
+                    </div>
+
+                    <div id="searchClientContainer">
+                        @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml")
                     </div>
 
                     <div>
@@ -85,5 +90,6 @@
 
 
 <script src="~/js/Finances/DocumentsCC/createNewDocuments.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/Clients/searchClientsElement.js"></script>
 
 
