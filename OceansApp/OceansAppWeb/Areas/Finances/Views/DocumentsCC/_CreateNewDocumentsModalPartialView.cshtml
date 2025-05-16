@@ -9,7 +9,7 @@
                 <div class="close-btn-container"><button id="close-modal-x-btn" onclick="hideModal('modal-create-new-documents')">x</button></div>
                 <h2>Create New Document</h2>
 
-               <form id="createDocForm" class="global-form">
+                <form id="createDocForm" class="global-form">
                     <div class="create-doc-header-cont">
                         <div class="global-toggle-container" data-toggle-type="debit-credit">
                             <div class="global-toggle-option global-toggle-debit active">Debit</div>
@@ -19,15 +19,13 @@
 
                         <div class="document-number-container">
                             <label for="documentNumberCreateDoc">Document Number</label>
-                           <div>
-                                <input type="text" value="Select Document Type" id="documentNumberCreateDoc" disabled/>
-                           </div>
+                            <div>
+                                <input type="text" value="Select Document Type" id="documentNumberCreateDoc" disabled />
+                            </div>
                         </div>
                     </div>
 
-                    <div id="searchClientContainer">
-                        @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml")
-                    </div>
+                    @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml")
 
                     <div>
                         <div class="row">
@@ -70,7 +68,7 @@
                             </div>
                         </div>
                     </div>
-               </form>
+                </form>
 
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">

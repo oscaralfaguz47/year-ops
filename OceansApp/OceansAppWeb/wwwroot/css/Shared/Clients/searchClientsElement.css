@@ -65,7 +65,8 @@
     border:none;
     display: none;
     width: 100%;
-    padding: 4px 7px;
+    padding: 4px 10px;
+    border-radius: 30px;
 }
 
 .client-status-active {

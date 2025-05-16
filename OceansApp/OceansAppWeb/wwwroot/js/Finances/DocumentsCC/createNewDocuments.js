@@ -1,4 +1,9 @@
-﻿function displayCreateNewDocumentsModal(modalId){
+﻿
+const createDocForm = getElementById('createDocForm');
+const selectedClientInputCreateDoc = document.querySelector('#createDocForm .client-selected-input');
+
+function displayCreateNewDocumentsModal(modalId) {
+    createDocForm.reset();
     showModal(modalId);
 }
 
