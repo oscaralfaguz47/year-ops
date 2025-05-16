@@ -42,5 +42,28 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+
+        [Authorize(Policy = "AccessToAllDocumentTypesList")]
+        [HttpGet("GetAllDocumentTypesListByTransactionType")]
+        public async Task<IActionResult> GetAllDocumentTypesListByTransactionType(int transactionTypeId)
+        {
+            try
+            {
+                List<SelectVM> documentTypesList = new();
+                var documentTypes = await _unitOfWork.DocumentType.GetAllAsync(x => x.TransactionTypeId == transactionTypeId);
+                foreach (var docType in documentTypes)
+                {
+                    documentTypesList.Add(new SelectVM { Value = docType.DocumentTypeId, Text = docType.Description });
+                }
+                return Ok(new
+                {
+                    DocumentTypes = documentTypesList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

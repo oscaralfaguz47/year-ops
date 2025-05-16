@@ -122,9 +122,6 @@ function selectClient(element, selectedInput, clientIdInput, searchResults, sear
     clientIdInput.value = clientId;
     selectedInput.style.display = 'block';
 
-    console.log(`Selected Client Name: ${cleanClientName}`);
-    console.log(`Selected Client ID: ${clientId}`);
-
     hideResults(searchResults, true, searchInput);
 }
 

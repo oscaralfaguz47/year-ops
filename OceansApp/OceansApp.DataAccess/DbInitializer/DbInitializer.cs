@@ -328,7 +328,21 @@ namespace OceansApp.DataAccess.DbInitializer
                 List<GlobalConsecutive> globalConsecutivesList = new List<GlobalConsecutive>
                 {
                     new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "OCE" },
-                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "LLC" }
+                    new GlobalConsecutive { Name = "JOURNAL_CXP", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "FAC", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "FAC", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "I/C", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "I/C", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "INT", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "INT", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "L/C", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "L/C", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "N/D", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "N/D", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "O/D", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "O/D", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "OCE" },
+                    new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "LLC" }
                 };
 
                 foreach (var consecutive in globalConsecutivesList)

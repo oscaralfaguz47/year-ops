@@ -1,0 +1,16 @@
+﻿@model (string ToogleId, string Option1Text, string Option2Text)
+
+<link rel="stylesheet" href="~/css/Shared/FormElements/globalToogle.css" />
+
+<div id="@Model.ToogleId" class="global-toggle-container" data-toggle-type="global-toogle">
+    <div class="global-toggle-option global-toggle-opt1 active">
+        @Model.Option1Text
+    </div>
+    <div class="global-toggle-option global-toggle-opt2">
+        @Model.Option2Text
+    </div>
+    <div class="global-toggle-slider"></div>
+    <input type="hidden" class="global-toggle-hidden-input" />
+</div>
+
+<script src="~/js/Shared/FormElements/globalToogle.js"></script>

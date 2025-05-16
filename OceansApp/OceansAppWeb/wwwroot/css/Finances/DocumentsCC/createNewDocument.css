@@ -1,4 +1,7 @@
-﻿.create-doc-header-cont {
+﻿.global-modal-content{
+    width: 800px;
+}
+.create-doc-header-cont {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -23,5 +26,9 @@
         font-weight: 900;
     }
 
-
+@media only screen and (max-width: 837px) {
+    .global-modal-content {
+        width: 95%;
+    }
+}
 

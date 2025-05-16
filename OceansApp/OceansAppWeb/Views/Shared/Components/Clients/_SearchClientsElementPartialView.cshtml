@@ -1,6 +1,12 @@
-﻿<div class="client-search-container" data-client-search>
-    <input type="text" class="client-search-input" placeholder="Search and select a client..." />
+﻿@model (string SearchClientEleId, string PlaceholderInputText)
+
+<link rel="stylesheet" href="~/css/Shared/Clients/searchClientsElement.css" />
+
+<div id="@Model.SearchClientEleId" class="client-search-container" data-client-search>
+    <input type="text" class="client-search-input" placeholder="@Model.PlaceholderInputText" />
     <div class="client-search-results"></div>
     <input type="hidden" class="clientId" />
     <input disabled class="client-selected-input" />
 </div>
+
+<script src="~/js/Shared/Clients/searchClientsElement.js"></script>

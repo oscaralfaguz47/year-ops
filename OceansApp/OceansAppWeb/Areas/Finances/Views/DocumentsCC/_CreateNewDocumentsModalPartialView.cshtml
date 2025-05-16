@@ -1,5 +1,4 @@
 ﻿<link rel="stylesheet" href="~/css/Finances/DocumentsCC/createNewDocument.css?v=@DateTime.Now.Ticks" />
-<link rel="stylesheet" href="~/css/Shared/Clients/searchClientsElement.css" />
 
 <div id="modal-create-new-documents" class="global-modal" style="display:none">
     <div class="global-modal-content">
@@ -11,23 +10,21 @@
 
                 <form id="createDocForm" class="global-form">
                     <div class="create-doc-header-cont">
-                        <div class="global-toggle-container" data-toggle-type="debit-credit">
-                            <div class="global-toggle-option global-toggle-debit active">Debit</div>
-                            <div class="global-toggle-option global-toggle-credit">Credit</div>
-                            <div class="global-toggle-slider"></div>
-                        </div>
+
+                        @await Html.PartialAsync("~/Views/Shared/Components/FormElements/_GlobalTooglePartialView.cshtml",
+                                 ("transaction-Type-toogle","Debit", "Credit"))
 
                         <div class="document-number-container">
                             <label for="documentNumberCreateDoc">Document Number</label>
                             <div>
-                                <input type="text" value="Select Document Type" id="documentNumberCreateDoc" disabled />
+                                <input type="text" id="documentNumberCreateDoc" disabled />
                             </div>
                         </div>
                     </div>
 
-                    @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml")
+                    @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml", ("search-client-element", "Search and select a client..."))
 
-                    <div>
+                    <div id="more-form-elements-container">
                         <div class="row">
                             <input type="hidden" id="documentCCIdCreateDoc">
                             <div class="col-md-4">
@@ -88,6 +85,5 @@
 
 
 <script src="~/js/Finances/DocumentsCC/createNewDocuments.js?v=@DateTime.Now.Ticks"></script>
-<script src="~/js/Shared/Clients/searchClientsElement.js"></script>
 
 
