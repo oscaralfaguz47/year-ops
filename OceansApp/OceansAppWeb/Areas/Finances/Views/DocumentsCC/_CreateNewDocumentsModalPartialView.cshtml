@@ -9,6 +9,9 @@
                 <h2>Create New Document</h2>
 
                 <form id="createDocForm" class="global-form">
+
+                    @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml", ("search-client-element", "Search and select a client..."))
+
                     <div class="create-doc-header-cont">
 
                         @await Html.PartialAsync("~/Views/Shared/Components/FormElements/_GlobalTooglePartialView.cshtml",
@@ -22,7 +25,6 @@
                         </div>
                     </div>
 
-                    @await Html.PartialAsync("~/Views/Shared/Components/Clients/_SearchClientsElementPartialView.cshtml", ("search-client-element", "Search and select a client..."))
 
                     <div id="more-form-elements-container">
                         <div class="row">
