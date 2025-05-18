@@ -145,12 +145,12 @@ namespace OceansApp.DataAccess.Repository
             var connection = _db.Database.GetDbConnection();
 
             var parameters = new DynamicParameters();
-                parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
-                parameters.Add("@DocumentType", filtersAndPagination.Filters.DocumentType, DbType.String);
-                parameters.Add("@ClientId", filtersAndPagination.Filters.ClientId, DbType.Int32);
-                parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
-                parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
-                parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
+            parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
+            parameters.Add("@DocumentType", filtersAndPagination.Filters.DocumentType, DbType.String);
+            parameters.Add("@ClientId", filtersAndPagination.Filters.ClientId, DbType.Int32);
+            parameters.Add("@CompanyId", filtersAndPagination.Filters.CompanyId, DbType.String);
+            parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
+            parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
 
             parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
             parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);
@@ -158,14 +158,13 @@ namespace OceansApp.DataAccess.Repository
             parameters.Add("@Take", filtersAndPagination.PaginationWithoutFilters.Pagination.PageSize, DbType.Int32);
             parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                // Ejecutar el procedimiento almacenado
-                var results = await connection.QueryAsync<DocumentCCGetAllWithFiltersVM>("SP_DOCUMENTS_CC_GetAllDocumentsCCWithFilters", parameters, commandType: CommandType.StoredProcedure);
+            // Ejecutar el procedimiento almacenado
+            var results = await connection.QueryAsync<DocumentCCGetAllWithFiltersVM>("SP_DOCUMENTS_CC_GetAllDocumentsCCWithFilters", parameters, commandType: CommandType.StoredProcedure);
             var totalCount = parameters.Get<int>("@TotalCount");
             var documentsCC = results.ToList();
 
             return (documentsCC, totalCount);
         }
-
 
         public async Task<List<DocumentCCGetNotificationsHistoryVM>> GetNotificationsHistoryByDocumentIdAsync(int documentId)
         {
@@ -229,5 +228,56 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<GetSubtypesListAndDocTypeConsecutiveNumberVM> GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(string docTypeId, int clientConsultantId,
+            bool isClient, bool isCredit)
+        {
+            try
+            {
+                string companyId = "";
+
+                if (isClient)
+                {
+                    var client = await _db.CLIENT.FirstOrDefaultAsync(x => x.ClientId == clientConsultantId);
+                    companyId = client.CompanyId;
+                }
+                else
+                {
+                    var consultant = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == clientConsultantId);
+                    companyId = consultant.CompanyId;
+                }
+
+
+                var results = await (from ds in _db.DOCUMENTS_CC_SUBTYPES
+                                     where ds.CompanyId == companyId && ds.DocumentTypeId == docTypeId
+                                     orderby ds.Description
+                                     select new SelectVM
+                                     {
+                                         Value = ds.DocumentCCSybtypeId.ToString(),
+                                         Text = ds.Description
+                                     }).ToListAsync();
+
+                var docConsecutiveNumber = 0;
+
+                if (isCredit)
+                {
+                    var consecutiveNumberData = await _db.GLOBAL_CONSECUTIVES.FirstOrDefaultAsync(x => x.Name == docTypeId && x.CompanyId == companyId);
+                    docConsecutiveNumber = consecutiveNumberData.ConsecutiveNumber;
+                    docConsecutiveNumber++;
+                }
+              
+
+                GetSubtypesListAndDocTypeConsecutiveNumberVM modelToReturn = new()
+                {
+                    SubtypesList = results,
+                    DocConsecutiveNumber = docConsecutiveNumber
+                };
+
+                return modelToReturn;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

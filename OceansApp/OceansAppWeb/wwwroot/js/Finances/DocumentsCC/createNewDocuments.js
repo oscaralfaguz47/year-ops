@@ -9,8 +9,6 @@ const documentTypeSelectCreateDoc = getElementById('documentTypeIdCreateDoc');
 const subtypeSelectCreateDoc = getElementById('subTypeIdCreateDoc');
 
 
-
-
 function resetToggle() {
     moreFormElementsContainer.style.display = 'none';
     headerContainerCreateDoc.style.display = 'none';
@@ -80,7 +78,6 @@ async function initClientIdInputEventListener() {
     }
 }
 
-
 async function handleClientSelection() {
     try {
         let debitCredit = transactionTypeInputCreateDoc.value === null ? 1 : transactionTypeInputCreateDoc.value;
@@ -92,7 +89,6 @@ async function handleClientSelection() {
         console.error("Error in handleClientSelection:", error);
     }
 }
-
 
 async function fillDocumentTypeDropdown(transactionTypeId) {
     if (Number(transactionTypeId) === 1) {
@@ -116,6 +112,24 @@ async function fillDocumentTypeDropdown(transactionTypeId) {
 
 documentTypeSelectCreateDoc.addEventListener('change', async (event) => {
     //execute debit or credit changes
+    displaySpinner();
+    let isCredit = Number(transactionTypeInputCreateDoc.value) === 1 ? true : false;
+    let data = await getSubtypesAndDocConsecutiveNumber(documentTypeSelectCreateDoc.value, clientIdInputCreateDoc.value, true, isCredit);
+
+    console.log(data);
+
+    subtypeSelectCreateDoc.innerHTML = '<option>-Select a Subtype-</option>';
+
+    if (data.subtypesListAndConsecutiveNumber.subtypesList.length > 0) {
+
+        populateSelect('subTypeIdCreateDoc', data.subtypesListAndConsecutiveNumber.subtypesList, '-Select a Subtype-', null);
+    }
+    if (isCredit) {
+        documentNumberInputCreateDoc.value = data.subtypesListAndConsecutiveNumber.docConsecutiveNumber;
+    } else {
+        documentNumberInputCreateDoc.value = null;
+    }
 
     subtypeSelectCreateDoc.disabled = false;
+    hideSpinner();
 });

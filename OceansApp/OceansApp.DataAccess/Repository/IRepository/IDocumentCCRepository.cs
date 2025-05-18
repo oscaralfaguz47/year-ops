@@ -14,5 +14,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<List<DocumentCCGetNotificationsHistoryVM>> GetNotificationsHistoryByDocumentIdAsync(int documentId);
         void Update(DocumentCC obj);
         Task<bool> UpdateIfExistAddIfNot(DocumentCC obj);
+        Task<GetSubtypesListAndDocTypeConsecutiveNumberVM> GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(string docTypeId, int clientConsultantId, bool isClient, bool isCredit);
     }
 }

@@ -40,7 +40,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-                return View();
+            return View();
         }
 
         [HttpGet("GetDocumentsCCList")]
@@ -581,7 +581,7 @@ emailsCCString;
 
                 try
                 {
-                   await _slackRepository.Value.SendMessageToChannelAsync(slackChannelId, slackBody);
+                    await _slackRepository.Value.SendMessageToChannelAsync(slackChannelId, slackBody);
                 }
                 catch (Exception ex)
                 {
@@ -1226,6 +1226,35 @@ emailsCCString;
 </body>
 </html>";
             return body;
+        }
+
+
+        [HttpGet("GetSubtypesAndDocTypeConsecutiveNumber")]
+        public async Task<IActionResult> GetSubtypesAndDocTypeConsecutiveNumber(string? docTypeId, int? clientConsultantId, bool? isClient, bool? isCredit)
+        {
+            if (string.IsNullOrWhiteSpace(docTypeId) || clientConsultantId == null || !isClient.HasValue || !isCredit.HasValue)
+            {
+                return BadRequest(new
+                {
+                    MessageType = "Validation Error",
+                    errors = new[] { "DocTypeId, ClientConsultantId and IsClient are required." }
+                });
+            }
+            try
+            {
+
+               var subtypesListAndDocConsecutive = await _unitOfWork.DocumentCC.GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(docTypeId, (int)clientConsultantId, (bool)isClient, (bool)isCredit);
+
+
+                return Ok(new
+                {
+                    SubtypesListAndConsecutiveNumber = subtypesListAndDocConsecutive
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
         }
 
     }
