@@ -322,11 +322,11 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
 
         [Authorize(Policy = "AccessToAccountsReceivable")]
         [HttpGet("SearchClientsByName")]
-        public async Task<IActionResult> SearchClientsByName(string nameOrAlias)
+        public async Task<IActionResult> SearchClientsByName(string searchText, bool showInactive)
         {
             try
             {
-                var clientsList = await _unitOfWork.Client.SearchClientsByNameAsync(nameOrAlias);
+                var clientsList = await _unitOfWork.Client.SearchClientsByNameAsync(searchText, showInactive);
 
                 return Ok(new
                 {

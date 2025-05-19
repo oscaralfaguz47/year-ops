@@ -115,5 +115,24 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+
+        [Authorize(Policy = "AccessToSearchAllActiveConsultantsBySearchText")]
+        [HttpGet("SearchConsultantsByNameAndShowInactive")]
+        public async Task<IActionResult> SearchConsultantsByNameAndShowInactive(string searchText, bool showInactive)
+        {
+            try
+            {
+                var consultantList = await _unitOfWork.ConsultantDetail.SearchConsultantsByNameAndShowInactiveAsync(searchText, showInactive);
+
+                return Ok(new
+                {
+                    consultantList = consultantList
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
     }
 }

@@ -1,0 +1,27 @@
+﻿@model (string SearchElementId, string PlaceholderText, string EntityName, string SearchEndpointUrl, string ResultListPropertyName)
+
+
+<link rel="stylesheet" href="~/css/Shared/GlobalComponents/globalSearchElement.css" />
+
+<div id="@Model.SearchElementId"
+     class="global-search-container"
+     data-global-search
+     data-entity="@Model.EntityName"
+     data-search-url="@Model.SearchEndpointUrl"
+     data-result-list-property="@Model.ResultListPropertyName">
+
+    <div class="search-input-container">
+        <input type="text" class="global-search-input" placeholder="@Model.PlaceholderText" />
+        <div class="filter-toggle-container">
+            <label for="showInactiveToggle-@Model.SearchElementId" class="filter-toggle-label">
+                <input type="checkbox" id="showInactiveToggle-@Model.SearchElementId" class="filter-toggle-checkbox" />
+                Show inactive @Model.EntityName
+            </label>
+        </div>
+    </div>
+    <div class="global-search-results"></div>
+    <input type="hidden" class="selected-entity-id" />
+    <input disabled class="selected-entity-display" />
+</div>
+
+<script src="~/js/Shared/GlobalComponents/globalSearchElement.js"></script>

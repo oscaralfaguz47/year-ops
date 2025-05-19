@@ -1,15 +1,28 @@
 ﻿const searchClientElementContainer = getElementById('search-client-element');
+const searchConsultantElementContainer = getElementById('search-consultant-element');
 const headerContainerCreateDoc = document.querySelector('.create-doc-header-cont');
 const moreFormElementsContainer = getElementById('more-form-elements-container');
-const selectedClientInputCreateDoc = searchClientElementContainer.querySelector('.client-selected-input');
+const selectedClientInputCreateDoc = searchClientElementContainer.querySelector('.selected-entity-display');
+const selectedConsultantInputCreateDoc = searchConsultantElementContainer.querySelector('.selected-entity-display');
 const transactionTypeInputCreateDoc = document.querySelector('#transaction-Type-toogle .global-toggle-hidden-input');
 const documentNumberInputCreateDoc = getElementById('documentNumberCreateDoc');
-const clientIdInputCreateDoc = searchClientElementContainer.querySelector('#search-client-element .clientId');
+const clientIdInputCreateDoc = searchClientElementContainer.querySelector('.selected-entity-id');
+const consultantIdInputCreateDoc = searchConsultantElementContainer.querySelector('.selected-entity-id');
 const documentTypeSelectCreateDoc = getElementById('documentTypeIdCreateDoc');
 const subtypeSelectCreateDoc = getElementById('subTypeIdCreateDoc');
 
 
-function resetToggle() {
+function resetClientToggle() {
+    moreFormElementsContainer.style.display = 'none';
+    headerContainerCreateDoc.style.display = 'none';
+    const transactionTypeToggleContainer = getElementById('transaction-Type-toogle');
+    const debitTobbleOpt = document.querySelector('#client-consultant-toogle .global-toggle-opt1');
+    const creditTobbleOpt = document.querySelector('#client-consultant-toogle .global-toggle-opt2');
+    transactionTypeToggleContainer.classList.remove('active');
+    debitTobbleOpt.classList.add('active');
+    creditTobbleOpt.classList.remove('active');
+}
+function resetTransactionTypeToggle() {
     moreFormElementsContainer.style.display = 'none';
     headerContainerCreateDoc.style.display = 'none';
     const transactionTypeToggleContainer = getElementById('transaction-Type-toogle');
@@ -21,15 +34,19 @@ function resetToggle() {
 }
 async function displayCreateNewDocumentsModal(modalId) {
     createDocForm.reset();
-    resetToggle();
     initClientIdInputEventListener();
     selectedClientInputCreateDoc.style.display = 'none';
+    selectedConsultantInputCreateDoc.style.display = 'none';
+    searchConsultantElementContainer.style.display = 'none';
     clientIdInputCreateDoc.value = null;
+    consultantIdInputCreateDoc.value = null;
+    initGlobalToggles();
+    resetClientToggle();
     showModal(modalId);
 }
 
 //Load global toogle
-document.addEventListener('DOMContentLoaded', initGlobalToggles);
+//document.addEventListener('DOMContentLoaded', initGlobalToggles);
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -81,8 +98,9 @@ async function initClientIdInputEventListener() {
 async function handleClientSelection() {
     try {
         let debitCredit = transactionTypeInputCreateDoc.value === null ? 1 : transactionTypeInputCreateDoc.value;
-
         await fillDocumentTypeDropdown(debitCredit);
+        initGlobalToggles();
+        resetTransactionTypeToggle();
         moreFormElementsContainer.style.display = 'block';
         headerContainerCreateDoc.style.display = 'flex';
     } catch (error) {

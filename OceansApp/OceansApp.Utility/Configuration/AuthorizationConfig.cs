@@ -213,7 +213,8 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
                         && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)
                         || context.User.HasClaim(claim => claim.Type == InterviewsClaimsCD.Manage_Interviews_Page_ClaimType
-                        && claim.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue)));
+                        && claim.Value == InterviewsClaimsCD.Manage_Interviews_ClaimValue) || context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType
+                        && claim.Value == FinancesClaimsCD.Accounts_Receivable_ClaimValue)));
             });
             services.AddAuthorization(options =>
             {

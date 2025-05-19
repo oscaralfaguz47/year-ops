@@ -16,6 +16,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<GetUsersSelectVM> GetSuccessManagerIdAndNameByClientId(int clientId);
         void Update(Client obj);
         Task<bool> UpdateIfExistAddIfNot(Client obj);
-        Task<List<GetClientsForSelectVM>> SearchClientsByNameAsync(string nameOrAlias);
+        Task<List<SelectVM>> SearchClientsByNameAsync(string nameOrAlias, bool showInactiveClients);
     }
 }

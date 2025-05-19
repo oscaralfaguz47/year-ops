@@ -20,5 +20,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
             PaymentSheetsPaginationFiltersVM filtersAndPagination);
         Task<GetReportDetailsFromSubmissionVM> GetReportDetailsFromSubmission(int submissionId);
+        Task<List<SelectVM>> SearchConsultantsByNameAndShowInactiveAsync(string searchText, bool showInactiveConsultants);
     }
 }

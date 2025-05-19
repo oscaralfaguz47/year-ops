@@ -343,6 +343,47 @@ namespace OceansApp.DataAccess.Repository
             return consultants;
         }
 
+        public async Task<List<SelectVM>> SearchConsultantsByNameAndShowInactiveAsync(string searchText, bool showInactiveConsultants)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return new List<SelectVM>();
+
+            try
+            {
+                var query = from cd in _db.CONSULTANT_DETAILS
+                            join u in _db.AspNetUsers on cd.UserId equals u.Id
+                            where (EF.Functions.Like(u.Name, $"%{searchText}%") ||
+                                   EF.Functions.Like(u.LastName, $"%{searchText}%"))
+                            select new
+                            {
+                                cd.ConsultantId,
+                                u.Name,
+                                u.LastName,
+                                u.IsActive
+                            };
+
+                // Apply the active filter if needed
+                if (!showInactiveConsultants)
+                    query = query.Where(x => x.IsActive);
+
+                var results = await query
+                    .OrderBy(x => x.Name)
+                    .Select(x => new SelectVM
+                    {
+                        Value = x.ConsultantId.ToString(),
+                        Text = $"{x.Name} {x.LastName} - ({(x.IsActive ? "Active" : "Inactive")})"
+                    })
+                    .ToListAsync();
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
         //PAYMENT SHEETS
         public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
     PaymentSheetsPaginationFiltersVM filtersAndPagination)
