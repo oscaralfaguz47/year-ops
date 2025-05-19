@@ -304,7 +304,6 @@ namespace OceansApp.DataAccess.DbInitializer
                     new DocumentType {DocumentTypeId = "DEP", TransactionTypeId = 2, Description = "Deposit" },
                     new DocumentType {DocumentTypeId = "N/C", TransactionTypeId = 2, Description = "Credit Note" },
                     new DocumentType {DocumentTypeId = "O/C", TransactionTypeId = 2, Description = "Other Credit" },
-                    new DocumentType {DocumentTypeId = "REC", TransactionTypeId = 2, Description = "Receipt" },
                     new DocumentType {DocumentTypeId = "TEF", TransactionTypeId = 2, Description = "Transfer" }
                 };
                 foreach (var docType in documentTypesList)
