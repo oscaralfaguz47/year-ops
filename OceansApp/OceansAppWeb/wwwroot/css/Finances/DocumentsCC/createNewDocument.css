@@ -1,5 +1,6 @@
 ﻿.global-modal-content{
     width: 900px;
+    min-width: 900px;
 }
 .create-doc-header-cont {
     display: flex;
@@ -86,48 +87,40 @@
     margin-bottom: 0.5rem;
 }
 
-.blue-btn {
-    background: #1e3a8a;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-}
 
 .table-scroll-wrapper {
-    max-height: 300px;
+    max-height: 410px;
     overflow: auto;
     border: 1px solid #ccc;
 }
 
 .table-inner {
     display: block;
-    min-width: 1000px;
+    width: 100%;
     width: fit-content;
 }
 
 .document-lines-header,
 .document-line {
     display: grid;
-    grid-template-columns: 30px 300px 100px 100px 100px 100px 100px 60px;
-    gap: 0.5rem;
+    grid-template-columns: 15px 322px 72px 72px 72px 72px 100px 45px;
+    gap: 0.3rem;
     align-items: center;
 }
 
 .document-lines-header {
     position: sticky;
-    top: 0;
+    top: -2px;
     background: #f8f8f8;
-    font-weight: bold;
+    font-weight: 900;
+    font-size: 0.9rem;
     padding: 0.5rem;
     z-index: 2;
     border-bottom: 2px solid #ccc;
 }
 
 .document-line {
-    padding: 0.5rem;
+    padding: 0.3rem;
     border-bottom: 1px solid #eee;
     background: #fff;
 }
@@ -140,12 +133,18 @@
     }
 
 .delete-line {
-    background: crimson;
+    background-color: transparent;
     color: white;
     border: none;
     border-radius: 3px;
     cursor: pointer;
     padding: 0.3rem 0.6rem;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.delete-line:hover {
+    background-color: var(--clr-grayLight);
 }
 
 .line-number {
@@ -179,8 +178,19 @@
     gap: 0.5rem;
     min-width: 200px;
 }
-
+.empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: rgb(150, 11, 3);
+    font-style: italic;
+}
 /* MOBILE */
+@media only screen and (max-width: 928px) {
+    .global-modal-content {
+        width: 900px;
+        min-width: 95%;
+    }
+}
 @media only screen and (max-width: 837px) {
     .global-modal-content {
         width: 95%;

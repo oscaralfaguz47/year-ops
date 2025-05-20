@@ -93,7 +93,8 @@
 
                         <!-- Top section with Add Line button -->
                         <div class="top-bar">
-                            <button id="addLineBtn" class="blue-btn">Add Line</button>
+                            <button id="addLineBtn" class="blue-btn">Add New Line</button>
+                            <button onclick="logAllLines()" id="logLinesBtn" class="blue-btn">Log Lines</button>
                         </div>
 
                         <!-- Scrolls container -->
@@ -113,7 +114,7 @@
 
                                 <div id="linesContainer">
                                     <!-- Message displayed when there are no lines -->
-                                    <div class="empty-message" style="text-align: center; padding: 2rem; color: #888; font-style: italic;">
+                                    <div class="empty-message">
                                         No lines found. Please add a line.
                                     </div>
                                 </div>
