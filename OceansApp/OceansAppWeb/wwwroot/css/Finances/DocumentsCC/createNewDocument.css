@@ -1,6 +1,6 @@
 ﻿.global-modal-content{
-    width: 900px;
-    min-width: 900px;
+    width: 950px;
+    min-width: 950px;
 }
 .create-doc-header-cont {
     display: flex;
@@ -103,7 +103,7 @@
 .document-lines-header,
 .document-line {
     display: grid;
-    grid-template-columns: 15px 322px 72px 72px 72px 72px 100px 45px;
+    grid-template-columns: auto 362px 70px 73px 76px 80px 98px 45px;
     gap: 0.3rem;
     align-items: center;
 }
@@ -130,6 +130,7 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         width: 100%;
+        font-size: 0.9rem;
     }
 
 .delete-line {
@@ -150,8 +151,12 @@
 .line-number {
     text-align: center;
     font-weight: bold;
+    font-size: 0.8rem;
 }
-
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+}
 .column {
     text-align: left;
 }
@@ -170,13 +175,25 @@
 
 .summary-box {
     background: #fff;
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: 8px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.1rem;
     min-width: 200px;
+}
+.summary-box strong {
+   font-weight: 900;
+}
+.summary-total-cont {
+    font-size: 1.3rem;
+    background-color: var(--clr-yellow);
+    padding: 5px 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+.summary-total-cont span {
+    font-weight: bold;
 }
 .empty-message {
     text-align: center;
@@ -184,8 +201,9 @@
     color: rgb(150, 11, 3);
     font-style: italic;
 }
+
 /* MOBILE */
-@media only screen and (max-width: 928px) {
+@media only screen and (max-width: 970px) {
     .global-modal-content {
         width: 900px;
         min-width: 95%;

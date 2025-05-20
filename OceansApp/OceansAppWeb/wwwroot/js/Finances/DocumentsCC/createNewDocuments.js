@@ -28,7 +28,7 @@ function resetClientToggle() {
     creditTobbleOpt.classList.remove('active');
 }
 function resetTransactionTypeToggle() {
-    if (Number(transactionTypeInputCreateDoc.value) === 1 ) {
+    if (Number(transactionTypeInputCreateDoc.value) === 1) {
         moreFormElementsContainer.style.display = 'none';
         headerContainerCreateDoc.style.display = 'none';
         const transactionTypeToggleContainer = getElementById('transaction-Type-toogle');
@@ -257,6 +257,9 @@ function docTypeIsNull() {
 function displayInvoice() {
     hideShowDescriptionInput('hide', null);
     showHideHtmlElements(invoiceBodyContainer, 'block');
+    container.querySelectorAll('.document-line').forEach(line => line.remove());
+    lineCount = 0;
+    createLine();
 }
 function displayCurrentInterest() {
     hideShowDescriptionInput('show', null);
@@ -349,8 +352,8 @@ function createLine() {
     lineCount++;
     const line = document.createElement('div');
     line.className = 'document-line';
-    line.draggable = true;
 
+    // 👇 Solo defines el contenido HTML aquí primero
     line.innerHTML = `
         <span class="line-number">${lineCount}</span>
         <input type="text" placeholder="Description" class="product-description column" />
@@ -364,7 +367,12 @@ function createLine() {
         <path fill="#ed143d" d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
         </svg>
         </button>
-      `;
+    `;
+
+    // ✅ Ahora sí puedes seleccionar .line-number porque ya existe en el DOM
+    const handle = line.querySelector('.line-number');
+    handle.classList.add('drag-handle');
+    handle.draggable = true;
 
     line.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', () => {
@@ -381,7 +389,8 @@ function createLine() {
         checkEmpty();
     });
 
-    line.addEventListener('dragstart', handleDragStart);
+    // ✅ Evento drag solo desde el handle
+    handle.addEventListener('dragstart', handleDragStart);
     line.addEventListener('dragover', handleDragOver);
     line.addEventListener('drop', handleDrop);
 
@@ -426,12 +435,15 @@ function updateSummary() {
 
     const total = subtotalBruto - totalDiscount + totalTax;
 
-    summarySubtotal.textContent = subtotalBruto.toFixed(2);
-    summaryDiscount.textContent = totalDiscount.toFixed(2);
-    summaryTax.textContent = totalTax.toFixed(2);
-    summaryTotal.textContent = total.toFixed(2);
+    summarySubtotal.textContent = formatCurrency(subtotalBruto);
+    summaryDiscount.textContent = formatCurrency(totalDiscount);
+    summaryTax.textContent = formatCurrency(totalTax);
+    summaryTotal.textContent = formatCurrency(total);
 }
 
+function formatCurrency(value) {
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 function checkEmpty() {
     if (container.querySelectorAll('.document-line').length === 0) {
         emptyMessage.style.display = 'block';
@@ -441,10 +453,14 @@ function checkEmpty() {
 
 let dragged;
 function handleDragStart(e) {
-    dragged = this;
+    dragged = this.closest('.document-line');
     e.dataTransfer.effectAllowed = 'move';
-}
 
+    // 🧼 Prevents default ghost image showing up
+    const emptyImg = new Image();
+    emptyImg.src = '';
+    e.dataTransfer.setDragImage(emptyImg, 0, 0);
+}
 function handleDragOver(e) {
     e.preventDefault();
     const draggingOver = this;
@@ -466,7 +482,6 @@ function handleDrop(e) {
 }
 
 addLineBtn.addEventListener('click', () => createLine());
-createLine();
 
 //CREATE DOCUMENT
 
