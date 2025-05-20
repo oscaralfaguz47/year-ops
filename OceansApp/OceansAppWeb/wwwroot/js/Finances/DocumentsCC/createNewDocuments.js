@@ -12,6 +12,9 @@ const consultantIdInputCreateDoc = searchConsultantElementContainer.querySelecto
 const documentTypeSelectCreateDoc = getElementById('documentTypeIdCreateDoc');
 const subtypeSelectCreateDoc = getElementById('subTypeIdCreateDoc');
 const descriptionInputCreateDoc = getElementById('applicationDescriptionCreateDoc');
+const documentBody = document.querySelector('.document-body');
+const descriptionContainerInputElement = getElementById('description-container');
+const invoiceBodyContainer = getElementById('invoice-body-container');
 
 
 function resetClientToggle() {
@@ -43,9 +46,11 @@ async function displayCreateNewDocumentsModal(modalId) {
     selectedClientInputCreateDoc.style.display = 'none';
     selectedConsultantInputCreateDoc.style.display = 'none';
     searchConsultantElementContainer.style.display = 'none';
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+    showHideHtmlElements(documentBody, 'none');
     searchClientElementContainer.style.display = 'block';
     hideShowDescriptionInput('hide');
-    descriptionInputCreateDoc.placeholder = 'Enter a description';
+    descriptionInputCreateDoc.placeholder = 'Enter the document description';
     clientIdInputCreateDoc.value = null;
     initGlobalToggles();
     resetClientToggle();
@@ -70,6 +75,7 @@ if (clientConsultantRBCreateDoc) {
         clientIdInputCreateDoc.value = null;
         consultantIdInputCreateDoc.value = null;
         showHideFormToCreate('hide');
+        showHideHtmlElements(documentBody, 'none');
     });
 }
 
@@ -79,6 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
         transactionTypeInputCreateDoc.addEventListener('input', async (event) => {
             //execute debit or credit changes
             await fillDocumentTypeDropdownHtmlElement();
+            showHideHtmlElements(invoiceBodyContainer, 'none');
+            showHideHtmlElements(documentBody, 'none');
         });
     }
 });
@@ -218,19 +226,83 @@ documentTypeSelectCreateDoc.addEventListener('change', async (event) => {
         }
 
         subtypeSelectCreateDoc.disabled = false;
+        showHideHtmlElements(documentBody, 'block');
     } else {
         subtypeSelectCreateDoc.disabled = true;
         subtypeSelectCreateDoc.innerHTML = '<option>-Select a Doc Type-</option>';
+        showHideHtmlElements(documentBody, 'none');
     }
 
-
     documentTypeCases(documentTypeSelectCreateDoc.value);
+
     hideSpinner();
 });
 
 function hideShowDescriptionInput(hideShow, descValue) {
-    descriptionInputCreateDoc.style.display = hideShow === 'show' ? 'block' : 'none';
+    descriptionContainerInputElement.style.display = hideShow === 'show' ? 'block' : 'none';
     descriptionInputCreateDoc.value = descValue;
+}
+
+function showHideHtmlElements(htmlElement, showHide) {
+    htmlElement.style.display = showHide;
+}
+
+
+
+//DISPLAY DEBITS
+function docTypeIsNull() {
+    hideShowDescriptionInput('hide', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayInvoice() {
+    hideShowDescriptionInput('hide', null);
+    showHideHtmlElements(invoiceBodyContainer, 'block');
+}
+function displayCurrentInterest() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayLatePaymentFee() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayBillOfExchange() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayDebitNote() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayOtherDebit() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayPromissoryNote() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+
+//DISPLAY CREDITS
+function displayDeposit() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayCreditNote() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayCreditNote() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayOtherCredit() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
+}
+function displayTransfer() {
+    hideShowDescriptionInput('show', null);
+    showHideHtmlElements(invoiceBodyContainer, 'none');
 }
 
 //DOCUMENT TYPES CASES
@@ -263,45 +335,125 @@ function documentTypeCases(documentType) {
     }
 }
 
-//DISPLAY DEBITS
-function docTypeIsNull() {
-    hideShowDescriptionInput('hide', null);
-}
-function displayInvoice() {
-    hideShowDescriptionInput('hide', null);
-}
-function displayCurrentInterest() {
-    hideShowDescriptionInput('show', null);
-}
-function displayLatePaymentFee() {
-    hideShowDescriptionInput('show', null);
-}
-function displayBillOfExchange() {
-    hideShowDescriptionInput('show', null);
-}
-function displayDebitNote() {
-    hideShowDescriptionInput('show', null);
-}
-function displayOtherDebit() {
-    hideShowDescriptionInput('show', null);
-}
-function displayPromissoryNote() {
-    hideShowDescriptionInput('show', null);
+//ADD LINES TO THE DOCUMENT
+const container = document.getElementById('linesContainer');
+const addLineBtn = document.getElementById('addLineBtn');
+const summarySubtotal = document.getElementById('summary-subtotal');
+const summaryDiscount = document.getElementById('summary-discount');
+const summaryTax = document.getElementById('summary-tax');
+const summaryTotal = document.getElementById('summary-total');
+const emptyMessage = container.querySelector('.empty-message');
+let lineCount = 0;
+
+function createLine() {
+    lineCount++;
+    const line = document.createElement('div');
+    line.className = 'document-line';
+    line.draggable = true;
+
+    line.innerHTML = `
+        <span class="line-number">${lineCount}</span>
+        <input type="text" placeholder="Description" class="product-description column" />
+        <input type="number" min="0" value="0" class="quantity column" />
+        <input type="number" min="0" value="0" class="unit-price column" />
+        <input type="number" min="0" value="0" class="discount column" />
+        <input type="text" class="tax column" readonly />
+        <input type="text" class="subtotal column" readonly />
+        <button class="delete-line column">X</button>
+      `;
+
+    line.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+            updateLineCalculations(line);
+            updateSummary();
+        });
+    });
+
+    const deleteBtn = line.querySelector('.delete-line');
+    deleteBtn.addEventListener('click', () => {
+        line.remove();
+        updateLineNumbers();
+        updateSummary();
+        checkEmpty();
+    });
+
+    line.addEventListener('dragstart', handleDragStart);
+    line.addEventListener('dragover', handleDragOver);
+    line.addEventListener('drop', handleDrop);
+
+    container.appendChild(line);
+    emptyMessage.style.display = 'none';
 }
 
-//DISPLAY CREDITS
-function displayDeposit() {
-    hideShowDescriptionInput('show', null);
+function updateLineCalculations(line) {
+    const qty = parseFloat(line.querySelector('.quantity').value) || 0;
+    const price = parseFloat(line.querySelector('.unit-price').value) || 0;
+    const discount = parseFloat(line.querySelector('.discount').value) || 0;
+    const base = (qty * price) - discount;
+    const tax = base * 0.13;
+    line.querySelector('.tax').value = tax.toFixed(2);
+    line.querySelector('.subtotal').value = base.toFixed(2);
 }
-function displayCreditNote() {
-    hideShowDescriptionInput('show', null);
+
+function updateLineNumbers() {
+    const lines = container.querySelectorAll('.document-line');
+    lines.forEach((line, index) => {
+        line.querySelector('.line-number').textContent = index + 1;
+    });
 }
-function displayCreditNote() {
-    hideShowDescriptionInput('show', null);
+
+function updateSummary() {
+    let subtotal = 0;
+    let totalDiscount = 0;
+    let totalTax = 0;
+    container.querySelectorAll('.document-line').forEach(line => {
+        const qty = parseFloat(line.querySelector('.quantity').value) || 0;
+        const price = parseFloat(line.querySelector('.unit-price').value) || 0;
+        const discount = parseFloat(line.querySelector('.discount').value) || 0;
+        const base = (qty * price) - discount;
+        const tax = base * 0.13;
+        subtotal += base;
+        totalDiscount += discount;
+        totalTax += tax;
+    });
+    summarySubtotal.textContent = subtotal.toFixed(2);
+    summaryDiscount.textContent = totalDiscount.toFixed(2);
+    summaryTax.textContent = totalTax.toFixed(2);
+    summaryTotal.textContent = (subtotal + totalTax).toFixed(2);
 }
-function displayOtherCredit() {
-    hideShowDescriptionInput('show', null);
+
+function checkEmpty() {
+    if (container.querySelectorAll('.document-line').length === 0) {
+        emptyMessage.style.display = 'block';
+        lineCount = 0;
+    }
 }
-function displayTransfer() {
-    hideShowDescriptionInput('show', null);
+
+let dragged;
+function handleDragStart(e) {
+    dragged = this;
+    e.dataTransfer.effectAllowed = 'move';
 }
+
+function handleDragOver(e) {
+    e.preventDefault();
+    const draggingOver = this;
+    if (draggingOver !== dragged) {
+        const bounding = draggingOver.getBoundingClientRect();
+        const offset = bounding.y + bounding.height / 2;
+        if (e.clientY - offset > 0) {
+            draggingOver.after(dragged);
+        } else {
+            draggingOver.before(dragged);
+        }
+        updateLineNumbers();
+        updateSummary();
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+}
+
+addLineBtn.addEventListener('click', () => createLine());
+createLine();

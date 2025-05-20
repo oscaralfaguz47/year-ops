@@ -30,7 +30,6 @@
                         </div>
                     </div>
 
-
                     <div id="more-form-elements-container">
                         <div class="row">
                             <input type="hidden" id="documentCCIdCreateDoc">
@@ -58,30 +57,87 @@
                                         Date on which the accounting entry will be created.
                                     </div>
                                 </div>
-                                <div class="">
+                                <div>
                                     <input type="date" class="form-control" id="documentDateCreateDoc">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-8">
-                                <label>Description <span class="required-asterisk">*</span></label>
-                                <div class="input-container">
-                                    <input type="text" class="form-control" id="applicationDescriptionCreateDoc">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
 
+                <div class="document-body">
+                    <div class="row">
+                        <div class="col-md-12" id="description-container">
+                            <label>Description <span class="required-asterisk">*</span></label>
+                            <div class="input-container">
+                                <input type="text" class="form-control" id="applicationDescriptionCreateDoc">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="invoice-body-container">
+                        <h5>Search for billable hours</h5>
+                        <div class="search-hours-elements-container">
+                            <div class="search-child-cont">
+                                <label for="ActionDate">Start Date <span class="required-asterisk">*</span> </label>
+                                <input type="date" class="form-control" id="startDateSearchBillHours">
+                            </div>
+                            <div class="search-child-cont">
+                                <label for="ActionDate">End Date <span class="required-asterisk">*</span> </label>
+                                <input type="date" class="form-control" id="endDateSearchBillHours">
+                            </div>
+                            <div class="search-child-cont search-btn">
+                                <button>Search</button>
+                            </div>
+                        </div>
+
+                        <!-- Top section with Add Line button -->
+                        <div class="top-bar">
+                            <button id="addLineBtn" class="blue-btn">Add Line</button>
+                        </div>
+
+                        <!-- Scrolls container -->
+                        <div class="table-scroll-wrapper">
+                            <div class="table-inner">
+                                <!-- Header -->
+                                <div class="document-lines-header">
+                                    <div class="line-number">#</div>
+                                    <div class="column description">Product Description</div>
+                                    <div class="column">Quantity</div>
+                                    <div class="column">Unit Price</div>
+                                    <div class="column">Discount</div>
+                                    <div class="column">Tax</div>
+                                    <div class="column">Subtotal</div>
+                                    <div class="column">Action</div>
+                                </div>
+
+                                <div id="linesContainer">
+                                    <!-- Message displayed when there are no lines -->
+                                    <div class="empty-message" style="text-align: center; padding: 2rem; color: #888; font-style: italic;">
+                                        No lines found. Please add a line.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total resume -->
+                        <div class="document-summary">
+                            <div class="summary-box">
+                                <div><strong>Total Subtotal:</strong> <span id="summary-subtotal">0.00</span></div>
+                                <div><strong>Total Discount:</strong> <span id="summary-discount">0.00</span></div>
+                                <div><strong>Total Tax:</strong> <span id="summary-tax">0.00</span></div>
+                                <div><strong>Total:</strong> <span id="summary-total">0.00</span></div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
                     <a id="btn-cancel" onclick="hideModal('modal-create-new-documents')" class="cancel-btn">Cancel</a>&nbsp;
                     <button id="btn-saving" onclick="createUpdateConsultant('modal-create-new-documents')" class="btn-primary-submit">
-                        <div style="display:flex;align-items:center;">
-                            <div style="display:none; margin-right:5px" id="spinner-saving" class="spinner-border" role="status">
-                            </div><span></span>
-                        </div>
+                        Save
                     </button>
                 </div>
             </div>
