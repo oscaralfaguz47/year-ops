@@ -20,6 +20,7 @@ const autofillDeskbtn = getElementById('autofill-sec-desk');
 let isAdministrative = false;
 const noHoursSection = getElementById('add-remove-pr-in-period');
 let projectIsActiveInThePeriod = false;
+let projectIsBillable = false;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -140,6 +141,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
+        projectIsBillable = statusInfo.projectIsBillable;
         isAdministrative = statusInfo.userCategory === 'Administrative' ? true : false;
         isActiveInThePeriod = statusInfo.isActive;
 

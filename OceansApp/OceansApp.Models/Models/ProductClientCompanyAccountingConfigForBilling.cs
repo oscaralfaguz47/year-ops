@@ -1,0 +1,54 @@
+﻿
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
+
+namespace OceansApp.Models.Models
+{
+    public class ProductClientCompanyAccountingConfigForBilling
+    {
+        [Required]
+        public int ProductId { get; set; }
+        [Required]
+        public int ClientId { get; set; }
+        [MaxLength(8)]
+        [Required]
+        public required string CompanyId { get; set; }
+        public int? MovementTypeId { get; set; }
+        [Required]
+        public int CostCenterIdSales { get; set; }
+
+        [Required]
+        public int CostCenterIdSalesDiscount { get; set; }
+        [Required]
+        public int CostCenterIdSalesReturn { get; set; }
+        [Required]
+        public int AccountingAccountIdSales { get; set; }
+        [Required]
+        public int AccountingAccountIdSalesDiscount { get; set; }
+        [Required]
+        public int AccountingAccountIdSalesReturn { get; set; }
+        [Required]
+        public decimal TaxPercentage { get; set; }
+
+        [ValidateNever]
+        public required Product Product { get; set; }
+        [ValidateNever]
+        public required Client Client { get; set; }
+        [ValidateNever]
+        public ReportingMyTimeMovementType? ReportingMyTimeMovementType { get; set; }
+        [ValidateNever]
+        public required Company Company { get; set; }
+        [ValidateNever]
+        public required CostCenter CostCenterSales { get; set; }
+        [ValidateNever]
+        public required CostCenter CostCenterSalesDiscount { get; set; }
+        [ValidateNever]
+        public required CostCenter CostCenterSalesReturn { get; set; }
+        [ValidateNever]
+        public required AccountingAccount AccountingAccountSales { get; set; }
+        [ValidateNever]
+        public required AccountingAccount AccountingAccountSalesDiscount { get; set; }
+        [ValidateNever]
+        public required AccountingAccount AccountingAccountSalesReturn { get; set; }
+    }
+}

@@ -19,7 +19,6 @@ using OceansApp.Models.ViewModels;
 using Microsoft.ApplicationInsights;
 using OceansApp.Models.ViewModels.ProjectConsultantAssigned;
 using OceansApp.Models.Models;
-using Microsoft.Build.Evaluation;
 
 
 namespace OceansAppWeb.Areas.TrackingTool.Controllers
@@ -422,6 +421,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"You cannot add time equals to zero." } });
             }
             validateInputs.ValidateNotRequiredAndStringLength("Notes", "Notes", timeEntryData.Notes, 400, ModelState);
+            validateInputs.ValidateNotRequiredAndStringLength("NonBillableReason", "Non Billable Reason", timeEntryData.NonBillableReason, 400, ModelState);
             validateInputs.ValidateRequiredAndStringLength("TimeFrom", "Time From", timeEntryData.TimeFrom, 5, ModelState);
             validateInputs.ValidateRequiredAndStringLength("TimeTo", "Time To", timeEntryData.TimeTo, 5, ModelState);
             validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", timeEntryData.ProjectId, ModelState);
@@ -682,7 +682,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                     TimeFrom = existingMovement.TimeFrom,
                     TimeTo = existingMovement.TimeTo,
                     MovementTypeId = existingMovement.MovementTypeId,
-                    MovementTypeName = existingMovement.ReportingMyTimeMovementType.Name
+                    MovementTypeName = existingMovement.ReportingMyTimeMovementType.Name,
+                    IsBillable = existingMovement.IsBillable,
+                    NonBillableReason = existingMovement.NonBillableReason
                 };
                 var data = new { movementData = vm };
                 return Ok(data);

@@ -140,6 +140,7 @@ async function handleConsultantSelection() {
         initGlobalToggles();
         resetTransactionTypeToggle();
         showHideFormToCreate('show');
+        showHideHtmlElements(documentBody, 'none');
     } catch (error) {
         console.error("Error in handleConsultantSelection:", error);
     }
@@ -179,6 +180,7 @@ async function handleClientSelection() {
         initGlobalToggles();
         resetTransactionTypeToggle();
         showHideFormToCreate('show');
+        showHideHtmlElements(documentBody, 'none');
     } catch (error) {
         console.error("Error in handleClientSelection:", error);
     }
@@ -260,6 +262,7 @@ function displayInvoice() {
     container.querySelectorAll('.document-line').forEach(line => line.remove());
     lineCount = 0;
     createLine();
+    updateSummary();
 }
 function displayCurrentInterest() {
     hideShowDescriptionInput('show', null);
@@ -353,7 +356,6 @@ function createLine() {
     const line = document.createElement('div');
     line.className = 'document-line';
 
-    // 👇 Solo defines el contenido HTML aquí primero
     line.innerHTML = `
         <span class="line-number">${lineCount}</span>
         <input type="text" placeholder="Description" class="product-description column" />
@@ -369,7 +371,6 @@ function createLine() {
         </button>
     `;
 
-    // ✅ Ahora sí puedes seleccionar .line-number porque ya existe en el DOM
     const handle = line.querySelector('.line-number');
     handle.classList.add('drag-handle');
     handle.draggable = true;
@@ -389,7 +390,6 @@ function createLine() {
         checkEmpty();
     });
 
-    // ✅ Evento drag solo desde el handle
     handle.addEventListener('dragstart', handleDragStart);
     line.addEventListener('dragover', handleDragOver);
     line.addEventListener('drop', handleDrop);
@@ -456,7 +456,6 @@ function handleDragStart(e) {
     dragged = this.closest('.document-line');
     e.dataTransfer.effectAllowed = 'move';
 
-    // 🧼 Prevents default ghost image showing up
     const emptyImg = new Image();
     emptyImg.src = '';
     e.dataTransfer.setDragImage(emptyImg, 0, 0);

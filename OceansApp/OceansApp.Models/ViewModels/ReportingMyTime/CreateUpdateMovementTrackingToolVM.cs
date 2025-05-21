@@ -10,5 +10,7 @@ namespace OceansApp.Models.ViewModels.ReportingMyTime
         public string? TimeFrom { get; set; }
         public string? TimeTo { get; set; }
         public int? MovementTypeId { get; set; }
+        public bool? IsBillable { get; set; }
+        public string? NonBillableReason { get; set; }
     }
 }

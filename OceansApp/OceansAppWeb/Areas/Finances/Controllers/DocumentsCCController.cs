@@ -1257,5 +1257,40 @@ emailsCCString;
             }
         }
 
+        [HttpGet("GetBillableHoursByClient")]
+        public async Task<IActionResult> GetBillableHoursByClient([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int? clientId)
+        {
+            ValidateInputs validateInputs = new();
+            //Validate Filter inputs
+            validateInputs.ValidateDateValidFormat("StartDate", "Start Date", startDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndDate", "End Date", endDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartDate", "Start Date", startDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("EndDate", "End Date", endDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("ClientId", "Client", clientId, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors });
+            }
+            try
+            {
+
+               // var subtypesListAndDocConsecutive = await _unitOfWork.DocumentCC.GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(docTypeId, (int)clientConsultantId, (bool)isClient, (bool)isCredit);
+
+
+                return Ok(new
+                {
+                    billableHoursAndProductRelation = ""
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
+            }
+        }
+
     }
 }

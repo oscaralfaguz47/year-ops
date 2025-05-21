@@ -6,7 +6,9 @@ let actionDateInput = document.getElementById('actionDateInput');
 let movementIdInput = document.getElementById('movementIdInput');
 let validationMessageTimeZero = document.getElementById('time-zero-val-message');
 let validationMessageNotes = document.getElementById('notes-val-message');
+let validationMessageWhyNonBillable = document.getElementById('why-non-billable-val-message');
 let timeClassificationSelect = document.getElementById('timeClassification');
+const isBillableInput = getElementById('isBillableInput');
 let addBtn = null;
 let htmlReportedTimeElement = null;
 let timeClasifications = [];
@@ -27,6 +29,19 @@ timeToInput.addEventListener('change', () => {
         validationMessageTimeZero.style.display = 'none';
     }
 });
+timeClassificationSelect.addEventListener('change', () => {
+    validateNonPayableHours();
+});
+function validateNonPayableHours() {
+    if (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)')) {
+        isBillableInput.disabled = true;
+        isBillableInput.checked = false;
+    } else {
+        isBillableInput.disabled = false;
+        isBillableInput.checked = true;
+    }
+    showHideIsBillableTextArea();
+}
 additionalNotesInput.addEventListener('input', () => {
     if (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') && additionalNotesInput.value === '') {
         validationMessageNotes.style.display = 'block';
@@ -51,6 +66,68 @@ document.getElementById('addNotesInput').addEventListener('input', function (e) 
     }
 });
 
+isBillableInput.addEventListener('change', () => {
+    showHideIsBillableTextArea();
+});
+
+function showHideIsBillableTextArea() {
+    const billableContainer = document.getElementById('billable-element-container');
+    if (projectIsBillable) {
+        billableContainer.style.display = 'block';
+
+        billableContainer.querySelectorAll('textarea, span').forEach(element => {
+            element.remove();
+        });
+
+        let whyNotBillableTextArea = document.getElementById('whyNonBillableInput');
+
+        if (!isBillableInput.checked) {
+            if (!whyNotBillableTextArea) {
+                whyNotBillableTextArea = document.createElement('textarea');
+                whyNotBillableTextArea.id = 'whyNonBillableInput';
+                whyNotBillableTextArea.className = 'time-detail input-time';
+                whyNotBillableTextArea.placeholder = 'Please enter the reason why this time is NON-BILLABLE.';
+                billableContainer.appendChild(whyNotBillableTextArea);
+
+                const validationMessage = document.createElement('span');
+                validationMessage.id = 'why-non-billable-val-message';
+                validationMessage.className = 'validation-message';
+                validationMessage.textContent = 'You must enter a reason';
+                validationMessage.style.display = 'none';
+                billableContainer.appendChild(validationMessage);
+
+                whyNotBillableTextArea.addEventListener('input', (event) => {
+                    const input = event.target;
+
+                    if (input.value.length > 400) {
+                        input.value = input.value.slice(0, 400);
+                    }
+
+                    if (input.value.trim() === '') {
+                        validationMessage.style.display = 'block';
+                    } else {
+                        validationMessage.style.display = 'none';
+                    }
+                });
+
+            }
+        } else {
+            if (whyNotBillableTextArea) {
+                billableContainer.removeChild(whyNotBillableTextArea);
+            }
+        }
+        if (isBillableInput.disabled) {
+            billableContainer.querySelectorAll('textarea, span').forEach(element => {
+                element.remove();
+            });
+        }
+    } else {
+        billableContainer.style.display = 'none';
+    }
+    
+}
+
+
 function displayCreateUpdateTime(modalId, selectedDate, movementId, button, htmlElement) {
     const tooltip = document.querySelector('.tooltip');
     if (tooltip) {
@@ -64,10 +141,14 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
     addBtn = button;
     hideValidationMessage(validationMessageTimeZero);
     hideValidationMessage(validationMessageNotes);
+    if (document.getElementById('why-non-billable-val-message')) {
+        hideValidationMessage(document.getElementById('why-non-billable-val-message'));
+    }
     const submitBtns = [{ id: 'btn-cancel', text: 'Delete' }, { id: 'btn-saving', text: 'Confirm' }];
     const otherBtns = ['close-modal-x-btn'];
     enableModalButtons(submitBtns, otherBtns, 'spinner-border');
     resetForm('form-create-update');
+    validateNonPayableHours();
     if (movementId === null) {
         movementIdInput.value = movementId;
         modalTitle.textContent = selectedDate;
@@ -75,6 +156,7 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
         timeToInput.value = '16:00';
         actionDateInput.value = convertDateStringToMMDDYYYY(fullDateString);
         showModal(modalId);
+        showHideIsBillableTextArea();
     } else {
         displaySpinner();
         var url = "/TrackingTool/ReportingMyTime/GetTrackingToolMovementDataById?movementId=" + encodeURIComponent(movementId);
@@ -113,6 +195,13 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
                 actionDateInput.value = convertDateStringToMMDDYYYY(data.movementData.actionDate);
                 timeClassificationSelect.value = data.movementData.movementTypeName === 'Normal Hours' ? 'Normal Hours' : data.movementData.movementTypeId;
                 additionalNotesInput.value = data.movementData.notes;
+                validateNonPayableHours();
+                isBillableInput.checked = data.movementData.isBillable;
+                showHideIsBillableTextArea();
+                let nonBillableTAElement = document.getElementById('whyNonBillableInput');
+                if (!data.movementData.isBillable && nonBillableTAElement) {
+                    nonBillableTAElement.value = data.movementData.nonBillableReason;
+                }
                 showModal(modalId);
                 return data;
             })
@@ -128,9 +217,17 @@ function displayCreateUpdateTime(modalId, selectedDate, movementId, button, html
 //CREATE, UPDATE TIME ENTRY
 async function createUpdateTimeEntryTrackingTool(modalId) {
     let hoursMinutes = calculateTimeDifference(timeFromInput.value, timeToInput.value);
+    let whyIsNotBillableInput = getElementById('whyNonBillableInput');
     if ((hoursMinutes.hours === 0 && hoursMinutes.minutes === 0)
-        || (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') && additionalNotesInput.value === '')) {
-        validationMessageNotes.style.display = 'block';
+        || (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') && additionalNotesInput.value === '')
+        || (whyIsNotBillableInput && whyIsNotBillableInput.value === '')) {
+        if (timeClassificationSelect.selectedOptions[0].text.includes('(Non-payable)') && additionalNotesInput.value === '') {
+            validationMessageNotes.style.display = 'block';
+        }
+        if (whyIsNotBillableInput && whyIsNotBillableInput.value === '') {
+            document.getElementById('why-non-billable-val-message').style.display = 'block';
+        }
+
         return;
     }
     const submitBtnsInitialize = [{ id: 'btn-cancel', text: 'Delete' }, { id: 'btn-saving', text: 'Confirm' }];
@@ -142,6 +239,12 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
 
     var token = $('[name="__RequestVerificationToken"]').val();
 
+    const nonBillableReasonTA = document.getElementById('whyNonBillableInput');
+    let nonBillableReasonText = null;
+    if (nonBillableReasonTA) {
+        nonBillableReasonText = nonBillableReasonTA.value;
+    } 
+
     var data = {
         MovementId: movementIdInput.value === '' ? null : Number(movementIdInput.value),
         ProjectId: Number(projectIdInput.value),
@@ -149,7 +252,9 @@ async function createUpdateTimeEntryTrackingTool(modalId) {
         Notes: additionalNotesInput.value,
         TimeFrom: timeFromInput.value,
         TimeTo: timeToInput.value,
-        MovementTypeId: timeClassificationSelect.value === 'Normal Hours' ? null : Number(timeClassificationSelect.value)
+        MovementTypeId: timeClassificationSelect.value === 'Normal Hours' ? null : Number(timeClassificationSelect.value),
+        IsBillable: isBillableInput.checked,
+        NonBillableReason: nonBillableReasonText
     };
 
     try {

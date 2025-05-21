@@ -30,6 +30,10 @@ namespace OceansApp.Models.Models
         public int TransactionStatusId { get; set; }
         [Required]
         public int MovementTypeId { get; set; }
+        [Required]
+        public bool IsBillable { get; set; }
+        [MaxLength(800)]
+        public string? NonBillableReason { get; set; }
 
 
 

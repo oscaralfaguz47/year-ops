@@ -8,5 +8,6 @@ namespace OceansApp.Models.ViewModels.ProjectConsultantAssigned
         public bool ParticipatesInOnCalls { get; set; }
         public string UserCategory { get; set; }
         public bool ProjectIsActiveInThePeriod { get; set; }
+        public bool ProjectIsBillable { get; set; }
     }
 }

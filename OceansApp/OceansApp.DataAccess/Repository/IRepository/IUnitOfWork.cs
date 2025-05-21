@@ -45,6 +45,7 @@
         IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; }
         IPaymentMethodRepository PaymentMethod { get; }
         IPaymentBookEntryParentRepository PaymentBookEntryParent { get; }
+        IProductRepository Product { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; }

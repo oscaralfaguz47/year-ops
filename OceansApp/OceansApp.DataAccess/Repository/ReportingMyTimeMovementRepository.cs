@@ -227,6 +227,23 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureExceptionResponse("There is a time movement with the same action date.");
                     }
+
+                    bool isBillable = true;
+                    string? nonBillableReason = null;
+
+                    if (!movementType.IsPayable || !project.IsBillable)
+                    {
+                        if (!movementType.IsPayable)
+                        {
+                            nonBillableReason = "This time is not paid to the consultant.";
+                        }
+                        if (!project.IsBillable)
+                        {
+                            nonBillableReason = "The project is non billable by default.";
+                        }
+                        isBillable = false;
+                    }
+
                     var timeMovementToCreate = new ReportingMyTimeMovement
                     {
                         ConsultantId = currentUser.ConsultantId,
@@ -237,6 +254,8 @@ namespace OceansApp.DataAccess.Repository
                         TransactionStatusId = transactionStatusNoActions.TransactionStatusId,
                         MovementTypeId = movementType.MovementTypeId,
                         CreationDate = DateTime.UtcNow,
+                        IsBillable = isBillable,
+                        NonBillableReason = nonBillableReason
                     };
                     if (reportMovementData.MovementType == "Normal Hours"
                         || (reportMovementData.MovementType != "Normal Hours")) //&& currentUser.ParticipatesInOnCalls
@@ -414,6 +433,26 @@ namespace OceansApp.DataAccess.Repository
 
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
 
+                    bool isBillable = true;
+                    string nonBillableReason = timeEntryData.NonBillableReason;
+
+                    if (!movementType.IsPayable || !project.IsBillable)
+                    {
+                        isBillable = false;
+                        if (!movementType.IsPayable)
+                        {
+                            nonBillableReason = "This time is not paid to the consultant.";
+                        }
+                        if (!project.IsBillable)
+                        {
+                            nonBillableReason = "The project is non billable by default.";
+                        }
+                    }
+                    else
+                    {
+                        isBillable = (bool)timeEntryData.IsBillable;
+                    }
+
                     var timeMovementToCreate = new ReportingMyTimeMovement
                     {
                         ConsultantId = currentUser.ConsultantId,
@@ -425,7 +464,9 @@ namespace OceansApp.DataAccess.Repository
                         CreationDate = DateTime.UtcNow,
                         TimeFrom = timeEntryData.TimeFrom,
                         TimeTo = timeEntryData.TimeTo,
-                        Quantity = (decimal)totalQuantity
+                        Quantity = (decimal)totalQuantity,
+                        IsBillable = isBillable,
+                        NonBillableReason = nonBillableReason
                     };
                     await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
                     await _db.SaveChangesAsync();
@@ -541,6 +582,10 @@ namespace OceansApp.DataAccess.Repository
                         if (holidays.Any(h => h.Date == date))
                             continue;
 
+
+                        bool isBillable = project.IsBillable;
+                        string nonBillableReason = "The project is non billable by default.";
+
                         var timeMovementToCreate = new ReportingMyTimeMovement
                         {
                             ConsultantId = currentUser.ConsultantId,
@@ -552,7 +597,9 @@ namespace OceansApp.DataAccess.Repository
                             CreationDate = DateTime.UtcNow,
                             TimeFrom = timeEntryData.TimeFrom,
                             TimeTo = timeEntryData.TimeTo,
-                            Quantity = (decimal)totalQuantity
+                            Quantity = (decimal)totalQuantity,
+                            IsBillable = isBillable,
+                            NonBillableReason = nonBillableReason
                         };
 
                         await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
@@ -579,6 +626,12 @@ namespace OceansApp.DataAccess.Repository
             {
                 var result = await CreateTimeEntryTrackingTool(userActionedBy, timeEntryData);
                 return MethodResponse.CreateSuccessResponse("New time entry created!", result.IdCreatedElement);
+            }
+
+            var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == existingTimeMovement.ProjectId);
+            if (project == null || project.ClientHasTrackingTool)
+            {
+                return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
             }
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
@@ -616,12 +669,34 @@ namespace OceansApp.DataAccess.Repository
 
                     double totalQuantity = DateAndTimes.CalculateNumHours(timeEntryData.TimeFrom, timeEntryData.TimeTo);
 
+                    bool isBillable = true;
+                    string nonBillableReason = timeEntryData.NonBillableReason;
+
+                    if (!movementType.IsPayable || !project.IsBillable)
+                    {
+                        isBillable = false;
+                        if (!movementType.IsPayable)
+                        {
+                            nonBillableReason = "This time is not paid to the consultant.";
+                        }
+                        if (!project.IsBillable)
+                        {
+                            nonBillableReason = "The project is non billable by default.";
+                        }
+                    }
+                    else
+                    {
+                        isBillable = (bool)timeEntryData.IsBillable;
+                    }
+
                     existingTimeMovement.TimeFrom = timeEntryData.TimeFrom;
                     existingTimeMovement.TimeTo = timeEntryData.TimeTo;
                     existingTimeMovement.Quantity = (decimal)totalQuantity;
                     existingTimeMovement.Notes = timeEntryData.Notes;
                     existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
                     existingTimeMovement.MovementTypeId = movementType.MovementTypeId;
+                    existingTimeMovement.IsBillable = isBillable;
+                    existingTimeMovement.NonBillableReason = nonBillableReason;
 
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();

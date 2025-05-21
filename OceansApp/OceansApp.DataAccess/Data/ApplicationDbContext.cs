@@ -980,6 +980,85 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
             });
 
+            // PRODUCTS
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasIndex(e => e.ProductId);
+
+                entity.HasKey(p => new { p.ProductId });
+                entity.Property(c => c.ProductCode)
+                  .HasColumnType("varchar(10)");
+                entity.Property(c => c.Name)
+                  .HasColumnType("varchar(150)");
+                entity.Property(c => c.Alias)
+                  .HasColumnType("varchar(150)");
+                entity.Property(c => c.Detail)
+                  .HasColumnType("varchar(300)");
+            });
+
+            // PRODUCTS CLIENTS COMPANIES ACCOUNTING CONFIG
+            modelBuilder.Entity<ProductClientCompanyAccountingConfigForBilling>(entity =>
+            {
+                entity.HasIndex(e => e.ProductId);
+                entity.HasIndex(e => e.ClientId);
+                entity.HasIndex(e => e.CompanyId);
+                entity.HasIndex(e => e.MovementTypeId);
+                entity.HasIndex(e => e.CostCenterIdSales);
+                entity.HasIndex(e => e.CostCenterIdSalesReturn);
+                entity.HasIndex(e => e.CostCenterIdSalesDiscount);
+                entity.HasIndex(e => e.AccountingAccountIdSales);
+                entity.HasIndex(e => e.AccountingAccountIdSalesReturn);
+                entity.HasIndex(e => e.AccountingAccountIdSalesDiscount);
+
+                entity.HasKey(pcca => new { pcca.ProductId, pcca.ClientId, pcca.CompanyId });
+
+                entity.HasOne(p => p.Product)
+                .WithMany()
+                .HasForeignKey(p => p.ProductId)
+                .IsRequired();
+                entity.HasOne(p => p.Client)
+                .WithMany()
+                .HasForeignKey(p => p.ClientId)
+                .IsRequired();
+                entity.HasOne(p => p.Company)
+                .WithMany()
+                .HasForeignKey(p => p.CompanyId)
+                .IsRequired();
+                entity.HasOne(p => p.ReportingMyTimeMovementType)
+                .WithMany()
+                .HasForeignKey(p => p.MovementTypeId);
+                entity.HasOne(p => p.CostCenterSales)
+                .WithMany()
+                .HasForeignKey(p => p.CostCenterIdSales)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+                entity.HasOne(p => p.CostCenterSalesReturn)
+                .WithMany()
+                .HasForeignKey(p => p.CostCenterIdSalesReturn)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+                entity.HasOne(p => p.CostCenterSalesDiscount)
+                .WithMany()
+                .HasForeignKey(p => p.CostCenterIdSalesDiscount)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+                entity.HasOne(p => p.AccountingAccountSales)
+                .WithMany()
+                .HasForeignKey(p => p.AccountingAccountIdSales)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+                entity.HasOne(p => p.AccountingAccountSalesReturn)
+                .WithMany()
+                .HasForeignKey(p => p.AccountingAccountIdSalesReturn)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+                entity.HasOne(p => p.AccountingAccountSalesDiscount)
+                .WithMany()
+                .HasForeignKey(p => p.AccountingAccountIdSalesDiscount)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+            });
+
             // PROJECTS
             modelBuilder.Entity<Project>(entity =>
             {
@@ -1322,6 +1401,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.ConsultantId);
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.MovementTypeId);
+                entity.HasIndex(e => e.IsBillable);
 
                 entity.HasKey(r => new { r.MovementId });
                 entity.HasOne(p => p.Project)
@@ -1347,6 +1427,11 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("varchar");
                 entity.Property(d => d.TimeTo)
                 .HasColumnType("varchar");
+                entity.Property(i => i.IsBillable)
+                .HasDefaultValue(true)
+                .IsRequired();
+                entity.Property(c => c.NonBillableReason)
+                  .HasColumnType("varchar(800)");
             });
 
             // REPORTING MY TIME MOVEMENT BLOBS
@@ -1483,6 +1568,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<PaymentBookEntryParent> PAYMENT_BOOK_ENTRIES_PARENT { get; set; }
         public DbSet<PaymentBookEntryChild> PAYMENT_BOOK_ENTRIES_CHILD { get; set; }
         public DbSet<PaymentMethodBankAccount> PAYMENT_METHOD_AND_BANK_ACCOUNTS { get; set; }
+        public DbSet<Product> PRODUCTS { get; set; }
+        public DbSet<ProductClientCompanyAccountingConfigForBilling> PRODUCTS_CLIENTS_COMPANIES_ACCOUNTING_CONFIG { get; set; }
         public DbSet<Project> PROJECTS { get; set; }
         public DbSet<ProjectConsultantAssigned> PROJECTS_CONSULTANTS_ASSIGNED { get; set; }
         public DbSet<ProjectConsultantAssignedHistory> PROJECTS_CONSULTANTS_ASSIGNED_HISTORY { get; set; }

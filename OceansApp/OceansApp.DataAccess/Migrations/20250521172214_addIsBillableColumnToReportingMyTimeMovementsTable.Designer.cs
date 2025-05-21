@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521172214_addIsBillableColumnToReportingMyTimeMovementsTable")]
+    partial class addIsBillableColumnToReportingMyTimeMovementsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3068,10 +3071,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<int>("MovementTypeId")
                         .HasColumnType("int");
-
-                    b.Property<string>("NonBillableReason")
-                        .HasMaxLength(800)
-                        .HasColumnType("varchar(800)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(800)
