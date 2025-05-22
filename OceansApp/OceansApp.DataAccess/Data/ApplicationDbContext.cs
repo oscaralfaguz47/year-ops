@@ -1006,9 +1006,11 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.CostCenterIdSales);
                 entity.HasIndex(e => e.CostCenterIdSalesReturn);
                 entity.HasIndex(e => e.CostCenterIdSalesDiscount);
+                entity.HasIndex(e => e.CostCenterIdTaxPercentage);
                 entity.HasIndex(e => e.AccountingAccountIdSales);
                 entity.HasIndex(e => e.AccountingAccountIdSalesReturn);
                 entity.HasIndex(e => e.AccountingAccountIdSalesDiscount);
+                entity.HasIndex(e => e.AccountingAccountIdTaxPercentage);
 
                 entity.HasKey(pcca => new { pcca.ProductId, pcca.ClientId, pcca.CompanyId });
 
@@ -1042,6 +1044,9 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(p => p.CostCenterIdSalesDiscount)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
+                entity.HasOne(p => p.CostCenterTaxPercentage)
+                .WithMany()
+                .HasForeignKey(p => p.CostCenterIdTaxPercentage);
                 entity.HasOne(p => p.AccountingAccountSales)
                 .WithMany()
                 .HasForeignKey(p => p.AccountingAccountIdSales)
@@ -1057,6 +1062,9 @@ namespace OceansApp.DataAccess.Data
                 .HasForeignKey(p => p.AccountingAccountIdSalesDiscount)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
+                entity.HasOne(p => p.AccountingAccountTaxPercentage)
+                .WithMany()
+                .HasForeignKey(p => p.AccountingAccountIdTaxPercentage);
             });
 
             // PROJECTS

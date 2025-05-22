@@ -29,6 +29,8 @@ namespace OceansApp.Models.Models
         public int AccountingAccountIdSalesReturn { get; set; }
         [Required]
         public decimal TaxPercentage { get; set; }
+        public int? CostCenterIdTaxPercentage { get; set; }
+        public int? AccountingAccountIdTaxPercentage { get; set; }
 
         [ValidateNever]
         public required Product Product { get; set; }
@@ -50,5 +52,9 @@ namespace OceansApp.Models.Models
         public required AccountingAccount AccountingAccountSalesDiscount { get; set; }
         [ValidateNever]
         public required AccountingAccount AccountingAccountSalesReturn { get; set; }
+        [ValidateNever]
+        public CostCenter? CostCenterTaxPercentage { get; set; }
+        [ValidateNever]
+        public AccountingAccount? AccountingAccountTaxPercentage { get; set; }
     }
 }
