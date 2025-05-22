@@ -351,25 +351,38 @@ const summaryTotal = document.getElementById('summary-total');
 const emptyMessage = container.querySelector('.empty-message');
 let lineCount = 0;
 
+// ✅ Create a new invoice line
 function createLine() {
     lineCount++;
     const line = document.createElement('div');
     line.className = 'document-line';
+    line.style.position = 'relative';
 
     line.innerHTML = `
-        <span class="line-number">${lineCount}</span>
-        <input type="text" placeholder="Description" class="product-description column" />
-        <input type="number" min="0" value="0" class="quantity column" />
-        <input type="number" min="0" value="0" class="unit-price column" />
-        <input type="number" min="0" value="0" class="discount column" />
-        <input type="text" class="tax column" readonly />
-        <input type="text" class="subtotal column" readonly />
-        <button class="delete-line column">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20">
+    <div class="invoice-body-left-section">
+      <span class="line-number">${lineCount}</span>
+      <div class="invoice-body-search-container">
+        <input type="text" class="invoice-body-product-search" placeholder="🔍" />
+        <div class="invoice-body-search-results"></div>
+      </div>
+    </div>
+    <div class="invoice-body-description-wrapper">
+      <label class="invoice-body-product-code-label"></label>
+      <input type="text" placeholder="Description" class="product-description column" readonly />
+    </div>
+    <input type="number" min="0" value="0" class="quantity column" />
+    <input type="number" min="0" value="0" class="unit-price column" />
+    <input type="number" min="0" value="0" class="discount column" />
+    <input type="text" class="tax column" readonly />
+    <input type="text" class="subtotal column" readonly />
+    <button class="delete-line column">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20">
         <path fill="#ed143d" d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
-        </svg>
-        </button>
-    `;
+      </svg>
+    </button>
+  `;
+
+    setupSearchHandlers(line);
 
     const handle = line.querySelector('.line-number');
     handle.classList.add('drag-handle');
@@ -394,16 +407,65 @@ function createLine() {
     line.addEventListener('dragover', handleDragOver);
     line.addEventListener('drop', handleDrop);
 
+    // ✅ Animate the dropdown when it receives focus even before input
+    const searchInput = line.querySelector('.invoice-body-product-search');
+    searchInput.addEventListener('focus', () => {
+        line.classList.add('search-active');
+    });
+    searchInput.addEventListener('blur', () => {
+        setTimeout(() => line.classList.remove('search-active'), 200);
+    });
+
     container.appendChild(line);
     emptyMessage.style.display = 'none';
+    updateLineNumbers();
+}
+
+// ✅ Ensure dropdown stays visible and on top of added lines
+function ensureSearchListVisibility(searchInput, resultsBox) {
+    const line = searchInput.closest('.document-line');
+    const inputRect = searchInput.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    resultsBox.style.position = 'absolute';
+    resultsBox.style.top = `${searchInput.offsetTop + searchInput.offsetHeight + 6}px`;
+    resultsBox.style.left = `${searchInput.offsetLeft}px`;
+    resultsBox.style.width = '280px';
+    resultsBox.style.zIndex = '1000';
+    resultsBox.style.background = '#fff';
+    resultsBox.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    resultsBox.style.border = '1px solid #ccc';
+    resultsBox.style.borderRadius = '4px';
+    resultsBox.style.maxHeight = '200px';
+    resultsBox.style.overflowY = 'auto';
+
+    // Push current line to front if active
+    container.querySelectorAll('.document-line').forEach(l => {
+        l.style.zIndex = l === line ? '1000' : '1';
+    });
+}
+
+// ✅ Reposition all dropdowns on DOM change
+function repositionAllSearchDropdowns() {
+    const searchInputs = container.querySelectorAll('.invoice-body-product-search');
+    searchInputs.forEach(input => {
+        const line = input.closest('.document-line');
+        if (line && line.classList.contains('search-active')) {
+            const resultsBox = line.querySelector('.invoice-body-search-results');
+            if (resultsBox && resultsBox.style.display === 'block') {
+                ensureSearchListVisibility(input, resultsBox);
+            }
+        }
+    });
 }
 
 function updateLineCalculations(line) {
     const qty = parseFloat(line.querySelector('.quantity').value) || 0;
     const price = parseFloat(line.querySelector('.unit-price').value) || 0;
     const discount = parseFloat(line.querySelector('.discount').value) || 0;
+    const taxPercentage = parseFloat(line.dataset.taxPercentage) || 13;
     const base = (qty * price) - discount;
-    const tax = base * 0.13;
+    const tax = base * (taxPercentage / 100);
     line.querySelector('.tax').value = tax.toFixed(2);
     line.querySelector('.subtotal').value = base.toFixed(2);
 }
@@ -424,9 +486,10 @@ function updateSummary() {
         const qty = parseFloat(line.querySelector('.quantity').value) || 0;
         const price = parseFloat(line.querySelector('.unit-price').value) || 0;
         const discount = parseFloat(line.querySelector('.discount').value) || 0;
+        const taxPercentage = parseFloat(line.dataset.taxPercentage) || 13;
 
         const lineSubtotal = qty * price;
-        const lineTax = (lineSubtotal - discount) * 0.13;
+        const lineTax = (lineSubtotal - discount) * (taxPercentage / 100);
 
         subtotalBruto += lineSubtotal;
         totalDiscount += discount;
@@ -444,6 +507,7 @@ function updateSummary() {
 function formatCurrency(value) {
     return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
 function checkEmpty() {
     if (container.querySelectorAll('.document-line').length === 0) {
         emptyMessage.style.display = 'block';
@@ -455,11 +519,11 @@ let dragged;
 function handleDragStart(e) {
     dragged = this.closest('.document-line');
     e.dataTransfer.effectAllowed = 'move';
-
     const emptyImg = new Image();
     emptyImg.src = '';
     e.dataTransfer.setDragImage(emptyImg, 0, 0);
 }
+
 function handleDragOver(e) {
     e.preventDefault();
     const draggingOver = this;
@@ -480,7 +544,137 @@ function handleDrop(e) {
     e.preventDefault();
 }
 
-addLineBtn.addEventListener('click', () => createLine());
+addLineBtn.addEventListener('click', createLine);
+
+// ✅ Setup product search logic
+function setupSearchHandlers(line) {
+    const searchInput = line.querySelector('.invoice-body-product-search');
+    const resultsBox = line.querySelector('.invoice-body-search-results');
+    const descriptionInput = line.querySelector('.product-description');
+    const productCodeLabel = line.querySelector('.invoice-body-product-code-label');
+    let activeIndex = -1;
+    let results = [];
+
+    const mockProducts = [
+        { ProductName: "Testing 1", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 2", ProductCode: "CONS-002", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 3", ProductCode: "CONS-003", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 4", ProductCode: "CONS-004", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 5", ProductCode: "CONS-005", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 6", ProductCode: "CONS-006", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 7", ProductCode: "CONS-007", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 8", ProductCode: "CONS-008", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 9", ProductCode: "CONS-009", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 10", ProductCode: "CONS-010", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 11", ProductCode: "CONS-011", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Testing 12", ProductCode: "CONS-012", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductName: "Consulting Session", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: true },
+        { ProductName: "Consulting Session 2", ProductCode: "CONS-002", TaxPercentage: 15, ClientHasAccountingConfig: true },
+        { ProductName: "Consulting Session 3", ProductCode: "CONS-003", TaxPercentage: 20, ClientHasAccountingConfig: true },
+    ];
+
+    // 🔍 Input change
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        line.classList.toggle('search-active', query.length > 0);
+        if (query.length < 2) {
+            resultsBox.innerHTML = '';
+            resultsBox.style.display = 'none';
+            return;
+        }
+
+        results = mockProducts.filter(p => p.ProductName.toLowerCase().includes(query));
+        if (results.length === 0) {
+            resultsBox.innerHTML = '<div class="no-results">No results found</div>';
+        } else {
+            resultsBox.innerHTML = results.map((p, i) =>
+                `<div class="result-item" data-index="${i}">${p.ProductName}</div>`).join('');
+        }
+
+        activeIndex = -1;
+        resultsBox.style.display = 'block';
+
+        // ✅ Ensure it's over all other rows and positioned visually below
+        ensureSearchListVisibility(searchInput, resultsBox);
+    });
+
+    // ⌨️ Keyboard navigation
+    searchInput.addEventListener('keydown', e => {
+        const items = resultsBox.querySelectorAll('.result-item');
+        if (e.key === 'ArrowDown') {
+            activeIndex = (activeIndex + 1) % items.length;
+        } else if (e.key === 'ArrowUp') {
+            activeIndex = (activeIndex - 1 + items.length) % items.length;
+        } else if (e.key === 'Enter') {
+            if (items[activeIndex]) {
+                items[activeIndex].click();
+                e.preventDefault();
+            }
+        } else if (e.key === 'Escape') {
+            resetSearchUI();
+        }
+        items.forEach((el, idx) => el.classList.toggle('active', idx === activeIndex));
+    });
+
+    // 🖱️ Click on item
+    resultsBox.addEventListener('click', e => {
+        const index = e.target.closest('.result-item')?.dataset?.index;
+        if (index !== undefined) {
+            const product = results[index];
+            if (!product.ClientHasAccountingConfig) {
+                openInvoiceBodyModal(product, () => applyProduct(product));
+            } else {
+                applyProduct(product);
+            }
+        }
+    });
+
+    // ✅ Apply product selection
+    function applyProduct(product) {
+        searchInput.value = '';
+        descriptionInput.value = product.ProductName;
+        productCodeLabel.textContent = product.ProductCode;
+        line.dataset.taxPercentage = product.TaxPercentage;
+        resetSearchUI();
+        updateLineCalculations(line);
+        updateSummary();
+    }
+
+    // ❌ Reset list
+    function resetSearchUI() {
+        line.classList.remove('search-active');
+        searchInput.value = '';
+        resultsBox.innerHTML = '';
+        resultsBox.style.display = 'none';
+    }
+
+    // 🖱️ Click outside
+    document.addEventListener('click', e => {
+        if (!line.contains(e.target)) resetSearchUI();
+    });
+}
+
+
+// ✅ Modal logic
+function openInvoiceBodyModal(product, onSave) {
+    const modal = document.getElementById('invoice-body-modal');
+    modal.querySelector('.invoice-body-modal-message').textContent = `This client doesn't have an accounting config for ${product.ProductName}.`;
+    const taxInput = modal.querySelector('.invoice-body-tax-input');
+    taxInput.value = product.TaxPercentage || 0;
+
+    modal.style.display = 'flex';
+
+    modal.querySelector('.invoice-body-save-btn').onclick = () => {
+        product.TaxPercentage = parseFloat(taxInput.value);
+        modal.style.display = 'none';
+        onSave();
+    };
+    modal.querySelector('.invoice-body-cancel-btn').onclick = () => {
+        modal.style.display = 'none';
+    };
+}
+
+addLineBtn.addEventListener('click', createLine);
 
 //CREATE DOCUMENT
 

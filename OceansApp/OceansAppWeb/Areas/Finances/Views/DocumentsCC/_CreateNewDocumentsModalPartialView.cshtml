@@ -130,7 +130,6 @@
                             </div>
                         </div>
 
-
                     </div>
                 </div>
 
@@ -146,6 +145,19 @@
     </div>
 </div>
 
+<div id="invoice-body-modal">
+    <div id="invoice-body-modal-content">
+        <p class="invoice-body-modal-message"></p>
+        <label>Accounting configuration</label>
+        <input type="number" min="0" step="0.01" class="invoice-body-tax-input" />
+        <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="invoice-body-cancel-btn">Cancel</button>
+            <button class="invoice-body-save-btn">Save Configuration</button>
+        </div>
+    </div>
+</div>
+
+<div id="global-dropdown-layer"></div>
 
 <script src="~/js/Finances/DocumentsCC/createNewDocuments.js?v=@DateTime.Now.Ticks"></script>
 
