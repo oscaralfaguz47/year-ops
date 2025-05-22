@@ -257,6 +257,7 @@
 .document-line.search-active .invoice-body-product-search {
     width: 300px;
     position: absolute;
+    top:5px;
     left: 0;
     z-index: 12;
     background: white;
@@ -307,7 +308,8 @@
 }
 .invoice-body-product-code-label {
     font-size: 0.75rem;
-    color: #555;
+    color: RGB(10, 187, 90);
+    text-decoration:underline;
     white-space: nowrap;
 }
 

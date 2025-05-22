@@ -349,7 +349,11 @@ const summaryDiscount = document.getElementById('summary-discount');
 const summaryTax = document.getElementById('summary-tax');
 const summaryTotal = document.getElementById('summary-total');
 const emptyMessage = container.querySelector('.empty-message');
+const modal = document.getElementById('invoice-body-modal');
+const modalTaxInput = modal.querySelector('.invoice-body-tax-input');
+const modalHiddenProductId = modal.querySelector('#invoice-body-hidden-product-id');
 let lineCount = 0;
+let currentProductLine = null;
 
 // ✅ Create a new invoice line
 function createLine() {
@@ -368,7 +372,8 @@ function createLine() {
     </div>
     <div class="invoice-body-description-wrapper">
       <label class="invoice-body-product-code-label"></label>
-      <input type="text" placeholder="Description" class="product-description column" readonly />
+      <input type="text" placeholder="Description" class="product-description column" />
+      <input type="hidden" class="hidden-product-id" />
     </div>
     <input type="number" min="0" value="0" class="quantity column" />
     <input type="number" min="0" value="0" class="unit-price column" />
@@ -403,11 +408,6 @@ function createLine() {
         checkEmpty();
     });
 
-    handle.addEventListener('dragstart', handleDragStart);
-    line.addEventListener('dragover', handleDragOver);
-    line.addEventListener('drop', handleDrop);
-
-    // ✅ Animate the dropdown when it receives focus even before input
     const searchInput = line.querySelector('.invoice-body-product-search');
     searchInput.addEventListener('focus', () => {
         line.classList.add('search-active');
@@ -416,16 +416,18 @@ function createLine() {
         setTimeout(() => line.classList.remove('search-active'), 200);
     });
 
+    handle.addEventListener('dragstart', handleDragStart);
+    line.addEventListener('dragover', handleDragOver);
+    line.addEventListener('drop', handleDrop);
+
     container.appendChild(line);
     emptyMessage.style.display = 'none';
     updateLineNumbers();
 }
 
-// ✅ Ensure dropdown stays visible and on top of added lines
+// Ensure dropdown stays visible and on top of added lines
 function ensureSearchListVisibility(searchInput, resultsBox) {
     const line = searchInput.closest('.document-line');
-    const inputRect = searchInput.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
 
     resultsBox.style.position = 'absolute';
     resultsBox.style.top = `${searchInput.offsetTop + searchInput.offsetHeight + 6}px`;
@@ -439,13 +441,12 @@ function ensureSearchListVisibility(searchInput, resultsBox) {
     resultsBox.style.maxHeight = '200px';
     resultsBox.style.overflowY = 'auto';
 
-    // Push current line to front if active
     container.querySelectorAll('.document-line').forEach(l => {
         l.style.zIndex = l === line ? '1000' : '1';
     });
 }
 
-// ✅ Reposition all dropdowns on DOM change
+// Reposition all dropdowns on DOM change
 function repositionAllSearchDropdowns() {
     const searchInputs = container.querySelectorAll('.invoice-body-product-search');
     searchInputs.forEach(input => {
@@ -546,34 +547,27 @@ function handleDrop(e) {
 
 addLineBtn.addEventListener('click', createLine);
 
-// ✅ Setup product search logic
+// Setup product search logic
 function setupSearchHandlers(line) {
     const searchInput = line.querySelector('.invoice-body-product-search');
     const resultsBox = line.querySelector('.invoice-body-search-results');
     const descriptionInput = line.querySelector('.product-description');
     const productCodeLabel = line.querySelector('.invoice-body-product-code-label');
+    const hiddenProductId = line.querySelector('.hidden-product-id');
     let activeIndex = -1;
     let results = [];
 
     const mockProducts = [
-        { ProductName: "Testing 1", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 2", ProductCode: "CONS-002", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 3", ProductCode: "CONS-003", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 4", ProductCode: "CONS-004", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 5", ProductCode: "CONS-005", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 6", ProductCode: "CONS-006", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 7", ProductCode: "CONS-007", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 8", ProductCode: "CONS-008", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 9", ProductCode: "CONS-009", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 10", ProductCode: "CONS-010", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 11", ProductCode: "CONS-011", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Testing 12", ProductCode: "CONS-012", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductName: "Consulting Session", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: true },
-        { ProductName: "Consulting Session 2", ProductCode: "CONS-002", TaxPercentage: 15, ClientHasAccountingConfig: true },
-        { ProductName: "Consulting Session 3", ProductCode: "CONS-003", TaxPercentage: 20, ClientHasAccountingConfig: true },
+        { ProductId: "1", ProductName: "Testing 1", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductId: "2", ProductName: "Testing 2", ProductCode: "CONS-002", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductId: "3", ProductName: "Testing 3", ProductCode: "CONS-003", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductId: "4", ProductName: "Testing 4", ProductCode: "CONS-004", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductId: "5", ProductName: "Testing 5", ProductCode: "CONS-005", TaxPercentage: 10, ClientHasAccountingConfig: false },
+        { ProductId: "6", ProductName: "Consulting Session", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: true },
+        { ProductId: "7", ProductName: "Consulting Session 2", ProductCode: "CONS-002", TaxPercentage: 15, ClientHasAccountingConfig: true },
+        { ProductId: "8", ProductName: "Consulting Session 3", ProductCode: "CONS-003", TaxPercentage: 20, ClientHasAccountingConfig: true }
     ];
 
-    // 🔍 Input change
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.trim().toLowerCase();
         line.classList.toggle('search-active', query.length > 0);
@@ -584,44 +578,36 @@ function setupSearchHandlers(line) {
         }
 
         results = mockProducts.filter(p => p.ProductName.toLowerCase().includes(query));
-        if (results.length === 0) {
-            resultsBox.innerHTML = '<div class="no-results">No results found</div>';
-        } else {
-            resultsBox.innerHTML = results.map((p, i) =>
-                `<div class="result-item" data-index="${i}">${p.ProductName}</div>`).join('');
-        }
+        resultsBox.innerHTML = results.length === 0
+            ? '<div class="no-results">No results found</div>'
+            : results.map((p, i) => `<div class="result-item" data-index="${i}">${p.ProductName}</div>`).join('');
 
         activeIndex = -1;
         resultsBox.style.display = 'block';
-
-        // ✅ Ensure it's over all other rows and positioned visually below
         ensureSearchListVisibility(searchInput, resultsBox);
     });
 
-    // ⌨️ Keyboard navigation
     searchInput.addEventListener('keydown', e => {
         const items = resultsBox.querySelectorAll('.result-item');
         if (e.key === 'ArrowDown') {
             activeIndex = (activeIndex + 1) % items.length;
         } else if (e.key === 'ArrowUp') {
             activeIndex = (activeIndex - 1 + items.length) % items.length;
-        } else if (e.key === 'Enter') {
-            if (items[activeIndex]) {
-                items[activeIndex].click();
-                e.preventDefault();
-            }
+        } else if (e.key === 'Enter' && items[activeIndex]) {
+            items[activeIndex].click();
+            e.preventDefault();
         } else if (e.key === 'Escape') {
             resetSearchUI();
         }
         items.forEach((el, idx) => el.classList.toggle('active', idx === activeIndex));
     });
 
-    // 🖱️ Click on item
     resultsBox.addEventListener('click', e => {
         const index = e.target.closest('.result-item')?.dataset?.index;
         if (index !== undefined) {
             const product = results[index];
             if (!product.ClientHasAccountingConfig) {
+                currentProductLine = line;
                 openInvoiceBodyModal(product, () => applyProduct(product));
             } else {
                 applyProduct(product);
@@ -629,18 +615,18 @@ function setupSearchHandlers(line) {
         }
     });
 
-    // ✅ Apply product selection
     function applyProduct(product) {
         searchInput.value = '';
+        line.classList.remove('search-active');
         descriptionInput.value = product.ProductName;
         productCodeLabel.textContent = product.ProductCode;
+        hiddenProductId.value = product.ProductId;
         line.dataset.taxPercentage = product.TaxPercentage;
         resetSearchUI();
         updateLineCalculations(line);
         updateSummary();
     }
 
-    // ❌ Reset list
     function resetSearchUI() {
         line.classList.remove('search-active');
         searchInput.value = '';
@@ -648,29 +634,58 @@ function setupSearchHandlers(line) {
         resultsBox.style.display = 'none';
     }
 
-    // 🖱️ Click outside
     document.addEventListener('click', e => {
         if (!line.contains(e.target)) resetSearchUI();
     });
 }
 
 
-// ✅ Modal logic
+
+// Modal logic
 function openInvoiceBodyModal(product, onSave) {
-    const modal = document.getElementById('invoice-body-modal');
     modal.querySelector('.invoice-body-modal-message').textContent = `This client doesn't have an accounting config for ${product.ProductName}.`;
-    const taxInput = modal.querySelector('.invoice-body-tax-input');
-    taxInput.value = product.TaxPercentage || 0;
+    modalTaxInput.value = product.TaxPercentage || 0;
+    modalHiddenProductId.value = product.ProductId;
+
+    // ❌ Reset active dropdown and search input when modal opens
+    if (currentProductLine) {
+        const searchInput = currentProductLine.querySelector('.invoice-body-product-search');
+        const resultsBox = currentProductLine.querySelector('.invoice-body-search-results');
+        searchInput.value = '';
+        resultsBox.innerHTML = '';
+        resultsBox.style.display = 'none';
+        currentProductLine.classList.remove('search-active');
+    }
 
     modal.style.display = 'flex';
 
     modal.querySelector('.invoice-body-save-btn').onclick = () => {
-        product.TaxPercentage = parseFloat(taxInput.value);
+        product.TaxPercentage = parseFloat(modalTaxInput.value);
         modal.style.display = 'none';
-        onSave();
+        if (currentProductLine) {
+            const hiddenProductIdInput = currentProductLine.querySelector('.hidden-product-id');
+            hiddenProductIdInput.value = product.ProductId;
+            currentProductLine.dataset.taxPercentage = product.TaxPercentage;
+            const descriptionInput = currentProductLine.querySelector('.product-description');
+            const productCodeLabel = currentProductLine.querySelector('.invoice-body-product-code-label');
+            descriptionInput.value = product.ProductName;
+            productCodeLabel.textContent = product.ProductCode;
+            currentProductLine.classList.remove('search-active');
+            updateLineCalculations(currentProductLine);
+            updateSummary();
+        }
     };
+
     modal.querySelector('.invoice-body-cancel-btn').onclick = () => {
         modal.style.display = 'none';
+        if (currentProductLine) {
+            const searchInput = currentProductLine.querySelector('.invoice-body-product-search');
+            const resultsBox = currentProductLine.querySelector('.invoice-body-search-results');
+            searchInput.value = '';
+            resultsBox.innerHTML = '';
+            resultsBox.style.display = 'none';
+            currentProductLine.classList.remove('search-active');
+        }
     };
 }
 

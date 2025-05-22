@@ -101,7 +101,7 @@
                             <div class="table-inner">
                                 <!-- Header -->
                                 <div class="document-lines-header">
-                                    <div class="line-number">#</div>
+                                    <div class="line-number"></div>
                                     <div class="column description">Product Description</div>
                                     <div class="column">Quantity</div>
                                     <div class="column">Unit Price</div>
@@ -148,6 +148,7 @@
 <div id="invoice-body-modal">
     <div id="invoice-body-modal-content">
         <p class="invoice-body-modal-message"></p>
+        <input type="hidden" id="invoice-body-hidden-product-id" />
         <label>Accounting configuration</label>
         <input type="number" min="0" step="0.01" class="invoice-body-tax-input" />
         <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 10px;">
