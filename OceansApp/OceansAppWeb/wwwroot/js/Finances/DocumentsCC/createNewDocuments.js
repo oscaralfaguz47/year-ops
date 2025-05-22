@@ -372,7 +372,7 @@ function createLine() {
     </div>
     <div class="invoice-body-description-wrapper">
       <label class="invoice-body-product-code-label"></label>
-      <input type="text" placeholder="Description" class="product-description column" />
+      <input type="text" disabled placeholder="Search and select a Product" class="product-description column" />
       <input type="hidden" class="hidden-product-id" />
     </div>
     <input type="number" min="0" value="0" class="quantity column" />
@@ -619,6 +619,7 @@ function setupSearchHandlers(line) {
         searchInput.value = '';
         line.classList.remove('search-active');
         descriptionInput.value = product.ProductName;
+        descriptionInput.disabled = false;
         productCodeLabel.textContent = product.ProductCode;
         hiddenProductId.value = product.ProductId;
         line.dataset.taxPercentage = product.TaxPercentage;

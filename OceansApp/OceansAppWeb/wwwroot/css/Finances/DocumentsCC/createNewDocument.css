@@ -106,7 +106,7 @@
 .document-lines-header,
 .document-line {
     display: grid;
-    grid-template-columns: 60px 300px 70px 73px 76px 80px 98px 45px;
+    grid-template-columns: 58px 300px 70px 73px 76px 80px 98px 45px;
     gap: 0.3rem;
     align-items: center;
 }
