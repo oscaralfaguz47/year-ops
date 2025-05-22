@@ -464,7 +464,7 @@ function updateLineCalculations(line) {
     const qty = parseFloat(line.querySelector('.quantity').value) || 0;
     const price = parseFloat(line.querySelector('.unit-price').value) || 0;
     const discount = parseFloat(line.querySelector('.discount').value) || 0;
-    const taxPercentage = parseFloat(line.dataset.taxPercentage) || 13;
+    const taxPercentage = parseFloat(line.dataset.taxPercentage) || 0;
     const base = (qty * price) - discount;
     const tax = base * (taxPercentage / 100);
     line.querySelector('.tax').value = tax.toFixed(2);
@@ -487,7 +487,7 @@ function updateSummary() {
         const qty = parseFloat(line.querySelector('.quantity').value) || 0;
         const price = parseFloat(line.querySelector('.unit-price').value) || 0;
         const discount = parseFloat(line.querySelector('.discount').value) || 0;
-        const taxPercentage = parseFloat(line.dataset.taxPercentage) || 13;
+        const taxPercentage = parseFloat(line.dataset.taxPercentage) || 0;
 
         const lineSubtotal = qty * price;
         const lineTax = (lineSubtotal - discount) * (taxPercentage / 100);
