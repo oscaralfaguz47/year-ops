@@ -335,6 +335,11 @@ namespace OceansApp.Utility.Configuration
                         context.User.HasClaim(claim => claim.Type == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimType
                         && claim.Value == ConsultantReimbursedBenefitsClaimsCD.Manage_Consultant_Reimbursed_Benefits_ClaimValue)));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToSearchForProjectsList", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
+            });
 
         }
     }

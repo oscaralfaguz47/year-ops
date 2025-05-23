@@ -352,6 +352,7 @@ const emptyMessage = container.querySelector('.empty-message');
 const modal = document.getElementById('invoice-body-modal');
 const modalTaxInput = modal.querySelector('.invoice-body-tax-input');
 const modalHiddenProductId = modal.querySelector('#invoice-body-hidden-product-id');
+const newProductModal = document.getElementById('new-product-modal');
 let lineCount = 0;
 let currentProductLine = null;
 
@@ -372,7 +373,7 @@ function createLine() {
     </div>
     <div class="invoice-body-description-wrapper">
       <label class="invoice-body-product-code-label"></label>
-      <input type="text" disabled placeholder="Search and select a Product" class="product-description column" />
+      <input type="text" placeholder="Description" class="product-description column" />
       <input type="hidden" class="hidden-product-id" />
     </div>
     <input type="number" min="0" value="0" class="quantity column" />
@@ -557,18 +558,7 @@ function setupSearchHandlers(line) {
     let activeIndex = -1;
     let results = [];
 
-    const mockProducts = [
-        { ProductId: "1", ProductName: "Testing 1", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductId: "2", ProductName: "Testing 2", ProductCode: "CONS-002", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductId: "3", ProductName: "Testing 3", ProductCode: "CONS-003", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductId: "4", ProductName: "Testing 4", ProductCode: "CONS-004", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductId: "5", ProductName: "Testing 5", ProductCode: "CONS-005", TaxPercentage: 10, ClientHasAccountingConfig: false },
-        { ProductId: "6", ProductName: "Consulting Session", ProductCode: "CONS-001", TaxPercentage: 10, ClientHasAccountingConfig: true },
-        { ProductId: "7", ProductName: "Consulting Session 2", ProductCode: "CONS-002", TaxPercentage: 15, ClientHasAccountingConfig: true },
-        { ProductId: "8", ProductName: "Consulting Session 3", ProductCode: "CONS-003", TaxPercentage: 20, ClientHasAccountingConfig: true }
-    ];
-
-    searchInput.addEventListener('input', () => {
+    searchInput.addEventListener('input', async () => {
         const query = searchInput.value.trim().toLowerCase();
         line.classList.toggle('search-active', query.length > 0);
         if (query.length < 2) {
@@ -577,10 +567,32 @@ function setupSearchHandlers(line) {
             return;
         }
 
-        results = mockProducts.filter(p => p.ProductName.toLowerCase().includes(query));
-        resultsBox.innerHTML = results.length === 0
-            ? '<div class="no-results">No results found</div>'
-            : results.map((p, i) => `<div class="result-item" data-index="${i}">${p.ProductName}</div>`).join('');
+        try {
+            const clientId = clientIdInputCreateDoc.value;
+            const response = await fetch(`/AdminCenter/Products/SearchProjectsByTextWithAccountingConfigStatus?searchText=${encodeURIComponent(query)}&clientId=${encodeURIComponent(clientId)}`);
+            const data = await response.json();
+            results = data.productsList || [];
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            results = [];
+        }
+
+        if (results.length === 0) {
+            resultsBox.innerHTML = `
+        <div class="no-results">
+          No results found
+          <button class="add-new-product-btn">Add New Product</button>
+        </div>
+      `;
+
+            const addBtn = resultsBox.querySelector('.add-new-product-btn');
+            addBtn.addEventListener('click', () => {
+                newProductModal.style.display = 'flex';
+                resultsBox.style.display = 'none';
+            });
+        } else {
+            resultsBox.innerHTML = results.map((p, i) => `<div class="result-item" data-index="${i}">${p.productName}</div>`).join('');
+        }
 
         activeIndex = -1;
         resultsBox.style.display = 'block';
@@ -606,7 +618,7 @@ function setupSearchHandlers(line) {
         const index = e.target.closest('.result-item')?.dataset?.index;
         if (index !== undefined) {
             const product = results[index];
-            if (!product.ClientHasAccountingConfig) {
+            if (!product.clientHasAccountingConfig) {
                 currentProductLine = line;
                 openInvoiceBodyModal(product, () => applyProduct(product));
             } else {
@@ -618,11 +630,11 @@ function setupSearchHandlers(line) {
     function applyProduct(product) {
         searchInput.value = '';
         line.classList.remove('search-active');
-        descriptionInput.value = product.ProductName;
+        descriptionInput.value = product.productName;
         descriptionInput.disabled = false;
-        productCodeLabel.textContent = product.ProductCode;
-        hiddenProductId.value = product.ProductId;
-        line.dataset.taxPercentage = product.TaxPercentage;
+        productCodeLabel.textContent = product.productCode;
+        hiddenProductId.value = product.productId;
+        line.dataset.taxPercentage = product.taxPercentage;
         resetSearchUI();
         updateLineCalculations(line);
         updateSummary();
@@ -644,9 +656,9 @@ function setupSearchHandlers(line) {
 
 // Modal logic
 function openInvoiceBodyModal(product, onSave) {
-    modal.querySelector('.invoice-body-modal-message').textContent = `This client doesn't have an accounting config for ${product.ProductName}.`;
-    modalTaxInput.value = product.TaxPercentage || 0;
-    modalHiddenProductId.value = product.ProductId;
+    modal.querySelector('.invoice-body-modal-message').textContent = `This client doesn't have an accounting config for ${product.productName}.`;
+    modalTaxInput.value = product.taxPercentage || 0;
+    modalHiddenProductId.value = product.productId;
 
     // ❌ Reset active dropdown and search input when modal opens
     if (currentProductLine) {
@@ -661,16 +673,16 @@ function openInvoiceBodyModal(product, onSave) {
     modal.style.display = 'flex';
 
     modal.querySelector('.invoice-body-save-btn').onclick = () => {
-        product.TaxPercentage = parseFloat(modalTaxInput.value);
+        product.taxPercentage = parseFloat(modalTaxInput.value);
         modal.style.display = 'none';
         if (currentProductLine) {
             const hiddenProductIdInput = currentProductLine.querySelector('.hidden-product-id');
-            hiddenProductIdInput.value = product.ProductId;
-            currentProductLine.dataset.taxPercentage = product.TaxPercentage;
+            hiddenProductIdInput.value = product.productId;
+            currentProductLine.dataset.taxPercentage = product.taxPercentage;
             const descriptionInput = currentProductLine.querySelector('.product-description');
             const productCodeLabel = currentProductLine.querySelector('.invoice-body-product-code-label');
-            descriptionInput.value = product.ProductName;
-            productCodeLabel.textContent = product.ProductCode;
+            descriptionInput.value = product.productName;
+            productCodeLabel.textContent = product.productCode;
             currentProductLine.classList.remove('search-active');
             updateLineCalculations(currentProductLine);
             updateSummary();

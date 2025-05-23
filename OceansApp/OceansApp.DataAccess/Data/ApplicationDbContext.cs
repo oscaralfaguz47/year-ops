@@ -662,9 +662,9 @@ namespace OceansApp.DataAccess.Data
                 entity.HasOne(p => p.Company)
               .WithMany()
               .HasForeignKey(p => p.CompanyId);
-             //   entity.HasOne(p => p.DocumentCCType)
-             //.WithMany()
-             //.HasForeignKey(p => p.DocumentType)
+                //   entity.HasOne(p => p.DocumentCCType)
+                //.WithMany()
+                //.HasForeignKey(p => p.DocumentType)
                 entity.Property(c => c.CompanyId)
                  .HasColumnType("varchar(8)");
             });
@@ -983,6 +983,9 @@ namespace OceansApp.DataAccess.Data
             // PRODUCTS
             modelBuilder.Entity<Product>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.Name, e.Alias, e.ProductCode });
+
                 entity.HasIndex(e => e.ProductId);
 
                 entity.HasKey(p => new { p.ProductId });
@@ -999,6 +1002,11 @@ namespace OceansApp.DataAccess.Data
             // PRODUCTS CLIENTS COMPANIES ACCOUNTING CONFIG
             modelBuilder.Entity<ProductClientCompanyAccountingConfigForBilling>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => new { e.ProductId, e.ClientId, e.CompanyId })
+    .HasDatabaseName("IX_ACC_ProductClientCompany")
+    .IncludeProperties(e => new { e.TaxPercentage });
+
                 entity.HasIndex(e => e.ProductId);
                 entity.HasIndex(e => e.ClientId);
                 entity.HasIndex(e => e.CompanyId);
