@@ -341,7 +341,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new GlobalConsecutive { Name = "O/D", ConsecutiveNumber = 0, CompanyId = "OCE" },
                     new GlobalConsecutive { Name = "O/D", ConsecutiveNumber = 0, CompanyId = "LLC" },
                     new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "OCE" },
-                    new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "LLC" }
+                    new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "LLC" },
+                    new GlobalConsecutive { Name = "PRODUCTS", ConsecutiveNumber = 0, CompanyId = "OCE" }
                 };
 
                 foreach (var consecutive in globalConsecutivesList)

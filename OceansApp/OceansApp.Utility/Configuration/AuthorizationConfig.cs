@@ -340,6 +340,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToSearchForProjectsList", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToCreateAndUpdateProducts", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
+            });
 
         }
     }

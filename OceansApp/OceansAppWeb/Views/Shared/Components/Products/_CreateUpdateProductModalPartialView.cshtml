@@ -1,0 +1,23 @@
+﻿
+<link rel="stylesheet" href="~/css/Shared/Products/createUpdateProductModal.css" />
+
+<div id="@ViewData["ModalId"]" class="new-product-modal" style="display: none;">
+    <div class="modal-content">
+        <h2 class="new-product-modal-title">Create New Product</h2>
+        <div class="modal-body">
+            <label>Product Name</label>
+            <input type="text" class="new-product-name" />
+            <label>Alias</label>
+            <input type="text" class="new-product-alias" />
+            <label>Detail</label>
+            <textarea class="new-product-detail"></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="new-product-cancel-btn cancel-btn cancel-btn">Cancel</button>
+            <button class="new-product-save-btn btn-primary-submit">Save</button>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/js/Shared/Products/createUpdateProductModal.js"></script>

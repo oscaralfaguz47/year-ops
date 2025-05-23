@@ -152,25 +152,21 @@
         <label>Accounting configuration</label>
         <input type="number" min="0" step="0.01" class="invoice-body-tax-input" />
         <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="invoice-body-cancel-btn">Cancel</button>
-            <button class="invoice-body-save-btn">Save Configuration</button>
+            <button class="invoice-body-cancel-btn cancel-btn">Cancel</button>
+            <button class="invoice-body-save-btn btn-primary-submit">Save Configuration</button>
         </div>
     </div>
 </div>
 
 <div id="global-dropdown-layer"></div>
 
-<div id="new-product-modal" style="display: none;">
-    <div class="modal-content">
-        <h3>Add New Product</h3>
-        <input type="text" id="new-product-code" placeholder="Product Code">
-        <input type="text" id="new-product-name" placeholder="Product Name">
-        <input type="text" id="new-product-alias" placeholder="Alias">
-        <input type="text" id="new-product-detail" placeholder="Detail">
-        <button id="save-new-product">Save</button>
-        <button id="cancel-new-product">Cancel</button>
-    </div>
-</div>
+@await Html.PartialAsync(
+        "~/Views/Shared/Components/Products/_CreateUpdateProductModalPartialView.cshtml",
+        null,
+        new ViewDataDictionary(ViewData) { { "ModalId", "new-product-modal" } }
+    )
+
+
 
 <script src="~/js/Finances/DocumentsCC/createNewDocuments.js?v=@DateTime.Now.Ticks"></script>
 

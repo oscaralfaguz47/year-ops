@@ -352,7 +352,7 @@ const emptyMessage = container.querySelector('.empty-message');
 const modal = document.getElementById('invoice-body-modal');
 const modalTaxInput = modal.querySelector('.invoice-body-tax-input');
 const modalHiddenProductId = modal.querySelector('#invoice-body-hidden-product-id');
-const newProductModal = document.getElementById('new-product-modal');
+
 let lineCount = 0;
 let currentProductLine = null;
 
@@ -373,7 +373,7 @@ function createLine() {
     </div>
     <div class="invoice-body-description-wrapper">
       <label class="invoice-body-product-code-label"></label>
-      <input type="text" placeholder="Description" class="product-description column" />
+      <input type="text" disabled placeholder="Search and select a Product" class="product-description column" />
       <input type="hidden" class="hidden-product-id" />
     </div>
     <input type="number" min="0" value="0" class="quantity column" />
@@ -581,14 +581,26 @@ function setupSearchHandlers(line) {
             resultsBox.innerHTML = `
         <div class="no-results">
           No results found
-          <button class="add-new-product-btn">Add New Product</button>
+          <button class="add-new-product-btn btn-primary-submit">Add New Product</button>
         </div>
       `;
 
             const addBtn = resultsBox.querySelector('.add-new-product-btn');
             addBtn.addEventListener('click', () => {
-                newProductModal.style.display = 'flex';
-                resultsBox.style.display = 'none';
+                const value = searchInput.value.trim();
+                if (typeof window.showNewProductModal === 'function') {
+                    window.showNewProductModal({
+                        modalId: 'new-product-modal',
+                        title: 'Create New Product',
+                        name: value,
+                        alias: value,
+                        detail: '',
+                        onSaveCallback: (createdProduct) => {
+                            openInvoiceBodyModal(createdProduct.genericObject, () => applyProduct(createdProduct.genericObject));
+                        }
+                    });
+                }
+                resetSearchUI();
             });
         } else {
             resultsBox.innerHTML = results.map((p, i) => `<div class="result-item" data-index="${i}">${p.productName}</div>`).join('');
