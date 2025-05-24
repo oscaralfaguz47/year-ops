@@ -1,20 +1,27 @@
 ﻿
 <link rel="stylesheet" href="~/css/Shared/Products/createUpdateProductModal.css" />
 
-<div id="@ViewData["ModalId"]" class="new-product-modal" style="display: none;">
-    <div class="modal-content">
-        <h2 class="new-product-modal-title">Create New Product</h2>
-        <div class="modal-body">
-            <label>Product Name</label>
-            <input type="text" class="new-product-name" />
-            <label>Alias</label>
-            <input type="text" class="new-product-alias" />
-            <label>Detail</label>
-            <textarea class="new-product-detail"></textarea>
-        </div>
-        <div class="modal-footer">
-            <button class="new-product-cancel-btn cancel-btn cancel-btn">Cancel</button>
-            <button class="new-product-save-btn btn-primary-submit">Save</button>
+<div id="@ViewData["ModalId"]" class="new-product-modal global-modal" style="display: none;">
+    <div class="global-modal-content">
+        <div class="container">
+            <div class="close-btn-container"><button class="new-product-cancel-btn">x</button></div>
+            <h2 class="new-product-modal-title">Create New Product</h2>
+            <div class="modal-body">
+                <label>Product Name <span class="required-asterisk">*</span></label>
+                <input type="text" class="new-product-name form-control" maxlength="150" />
+                <div class="input-validation-message product-name-validation">Product Name is required.</div>
+
+                <label>Alias <span class="required-asterisk">*</span></label>
+                <input type="text" class="new-product-alias form-control" maxlength="150" />
+                <div class="input-validation-message product-alias-validation">Alias is required.</div>
+
+                <label>Detail</label>
+                <textarea class="form-control new-product-detail" maxlength="300"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="new-product-cancel-btn cancel-btn">Cancel</button>
+                <button class="new-product-save-btn btn-primary-submit">Save</button>
+            </div>
         </div>
     </div>
 </div>
