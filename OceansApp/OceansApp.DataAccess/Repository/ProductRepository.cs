@@ -97,7 +97,7 @@ namespace OceansApp.DataAccess.Repository
                         return new MethodResponse
                         {
                             Success = true,
-                            Message = $"The Product was created successfully.",
+                            Message = $"The Product '{productData.ProductName.Trim()}' was created successfully.",
                             GenericObject = genericObjectToReturn
                         };
                     }

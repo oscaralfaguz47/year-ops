@@ -89,6 +89,7 @@ window.showNewProductModal = function ({ modalId, title, name, alias, detail, on
             nameInput.value = '';
             aliasInput.value = '';
             detailInput.value = '';
+            toastr.success(data.message);
 
             hideValidationMessage(nameValidation);
             hideValidationMessage(aliasValidation);
