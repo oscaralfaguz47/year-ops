@@ -1,0 +1,28 @@
+﻿.product-client-config-modal .global-modal-content {
+    width: 400px;
+    min-width: 400px;
+}
+
+.product-client-config-modal .new-product-modal-title {
+    text-align: center;
+}
+
+
+.product-client-config-modal .modal-footer {
+    margin-top: 10px;
+    display: block;
+    text-align: center;
+}
+
+.input-validation-message {
+    display: none;
+    color: red;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 500px) {
+    .product-client-config-modal .global-modal-content {
+        width: 95%;
+        min-width: 95%;
+    }
+}

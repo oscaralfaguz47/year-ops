@@ -145,20 +145,14 @@
     </div>
 </div>
 
-<div id="invoice-body-modal">
-    <div id="invoice-body-modal-content">
-        <p class="invoice-body-modal-message"></p>
-        <input type="hidden" id="invoice-body-hidden-product-id" />
-        <label>Accounting configuration</label>
-        <input type="number" min="0" step="0.01" class="invoice-body-tax-input" />
-        <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="invoice-body-cancel-btn cancel-btn">Cancel</button>
-            <button class="invoice-body-save-btn btn-primary-submit">Save Configuration</button>
-        </div>
-    </div>
-</div>
 
 <div id="global-dropdown-layer"></div>
+
+@await Html.PartialAsync(
+                "~/Views/Shared/Components/ProductsClientsCompaniesAccountingConfig/_CreateUpdateProductClientCompanyAccountingConfigPartialView.cshtml",
+        null,
+            new ViewDataDictionary(ViewData) { { "ModalId", "product-client-config-modal" } }
+    )
 
 @await Html.PartialAsync(
         "~/Views/Shared/Components/Products/_CreateUpdateProductModalPartialView.cshtml",

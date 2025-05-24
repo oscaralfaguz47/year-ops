@@ -349,14 +349,10 @@ const summaryDiscount = document.getElementById('summary-discount');
 const summaryTax = document.getElementById('summary-tax');
 const summaryTotal = document.getElementById('summary-total');
 const emptyMessage = container.querySelector('.empty-message');
-const modal = document.getElementById('invoice-body-modal');
-const modalTaxInput = modal.querySelector('.invoice-body-tax-input');
-const modalHiddenProductId = modal.querySelector('#invoice-body-hidden-product-id');
 
 let lineCount = 0;
 let currentProductLine = null;
 
-// ✅ Create a new invoice line
 function createLine() {
     lineCount++;
     const line = document.createElement('div');
@@ -426,7 +422,6 @@ function createLine() {
     updateLineNumbers();
 }
 
-// Ensure dropdown stays visible and on top of added lines
 function ensureSearchListVisibility(searchInput, resultsBox) {
     const line = searchInput.closest('.document-line');
 
@@ -447,7 +442,6 @@ function ensureSearchListVisibility(searchInput, resultsBox) {
     });
 }
 
-// Reposition all dropdowns on DOM change
 function repositionAllSearchDropdowns() {
     const searchInputs = container.querySelectorAll('.invoice-body-product-search');
     searchInputs.forEach(input => {
@@ -548,7 +542,6 @@ function handleDrop(e) {
 
 addLineBtn.addEventListener('click', createLine);
 
-// Setup product search logic
 function setupSearchHandlers(line) {
     const searchInput = line.querySelector('.invoice-body-product-search');
     const resultsBox = line.querySelector('.invoice-body-search-results');
@@ -579,11 +572,11 @@ function setupSearchHandlers(line) {
 
         if (results.length === 0) {
             resultsBox.innerHTML = `
-        <div class="no-results">
-          No results found
-          <button class="add-new-product-btn btn-primary-submit">Create New Product</button>
-        </div>
-      `;
+                <div class="no-results">
+                    No results found
+                    <button class="add-new-product-btn btn-primary-submit">Create New Product</button>
+                </div>
+            `;
 
             const addBtn = resultsBox.querySelector('.add-new-product-btn');
             addBtn.addEventListener('click', () => {
@@ -596,14 +589,21 @@ function setupSearchHandlers(line) {
                         alias: value,
                         detail: '',
                         onSaveCallback: (createdProduct) => {
-                            openInvoiceBodyModal(createdProduct.genericObject, () => applyProduct(createdProduct.genericObject), line);
+                            window.showProductClientCompanyAccountingConfigModal({
+                                modalId: 'product-client-config-modal',
+                                product: createdProduct.genericObject,
+                                targetLine: line,
+                                onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse)
+                            });
                         }
                     });
                 }
                 resetSearchUI();
             });
         } else {
-            resultsBox.innerHTML = results.map((p, i) => `<div class="result-item" data-index="${i}">${p.productName}</div>`).join('');
+            resultsBox.innerHTML = results.map((p, i) =>
+                `<div class="result-item" data-index="${i}">${p.productName}</div>`
+            ).join('');
         }
 
         activeIndex = -1;
@@ -632,23 +632,37 @@ function setupSearchHandlers(line) {
             const product = results[index];
             if (!product.clientHasAccountingConfig) {
                 currentProductLine = line;
-                openInvoiceBodyModal(product, () => applyProduct(product));
+                window.showProductClientCompanyAccountingConfigModal({
+                    modalId: 'product-client-config-modal',
+                    product,
+                    targetLine: line,
+                    onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse)
+                });
             } else {
-                applyProduct(product);
+                applyProduct(product, line);
             }
         }
     });
 
-    function applyProduct(product) {
+    function applyProduct(product, targetLine) {
+        const searchInput = targetLine.querySelector('.invoice-body-product-search');
+        const resultsBox = targetLine.querySelector('.invoice-body-search-results');
+        const descriptionInput = targetLine.querySelector('.product-description');
+        const productCodeLabel = targetLine.querySelector('.invoice-body-product-code-label');
+        const hiddenProductId = targetLine.querySelector('.hidden-product-id');
+
         searchInput.value = '';
-        line.classList.remove('search-active');
+        resultsBox.innerHTML = '';
+        resultsBox.style.display = 'none';
+        targetLine.classList.remove('search-active');
+
         descriptionInput.value = product.productName;
         descriptionInput.disabled = false;
         productCodeLabel.textContent = product.productCode;
         hiddenProductId.value = product.productId;
-        line.dataset.taxPercentage = product.taxPercentage;
-        resetSearchUI();
-        updateLineCalculations(line);
+        targetLine.dataset.taxPercentage = product.taxPercentage;
+
+        updateLineCalculations(targetLine);
         updateSummary();
     }
 
@@ -666,62 +680,6 @@ function setupSearchHandlers(line) {
 
 
 
-// Modal logic
-function openInvoiceBodyModal(product, onSave, targetLine = null) {
-    const lineToUse = targetLine || currentProductLine;
-    modal.querySelector('.invoice-body-modal-message').textContent = `This client doesn't have an accounting config for ${product.productName}.`;
-    modalTaxInput.value = product.taxPercentage || 0;
-    modalHiddenProductId.value = product.productId;
-
-    // ✅ Clear dropdown on correct line
-    if (lineToUse) {
-        const searchInput = lineToUse.querySelector('.invoice-body-product-search');
-        const resultsBox = lineToUse.querySelector('.invoice-body-search-results');
-        searchInput.value = '';
-        resultsBox.innerHTML = '';
-        resultsBox.style.display = 'none';
-        lineToUse.classList.remove('search-active');
-    }
-
-    modal.style.display = 'flex';
-
-    modal.querySelector('.invoice-body-save-btn').onclick = () => {
-        product.taxPercentage = parseFloat(modalTaxInput.value);
-        modal.style.display = 'none';
-
-        if (lineToUse) {
-            const hiddenProductIdInput = lineToUse.querySelector('.hidden-product-id');
-            const descriptionInput = lineToUse.querySelector('.product-description');
-            const productCodeLabel = lineToUse.querySelector('.invoice-body-product-code-label');
-
-            hiddenProductIdInput.value = product.productId;
-            descriptionInput.value = product.productName;
-            descriptionInput.disabled = false;
-            productCodeLabel.textContent = product.productCode;
-            lineToUse.dataset.taxPercentage = product.taxPercentage;
-
-            lineToUse.classList.remove('search-active');
-            updateLineCalculations(lineToUse);
-            updateSummary();
-        }
-    };
-
-    modal.querySelector('.invoice-body-cancel-btn').onclick = () => {
-        modal.style.display = 'none';
-
-        if (lineToUse) {
-            const searchInput = lineToUse.querySelector('.invoice-body-product-search');
-            const resultsBox = lineToUse.querySelector('.invoice-body-search-results');
-            searchInput.value = '';
-            resultsBox.innerHTML = '';
-            resultsBox.style.display = 'none';
-            lineToUse.classList.remove('search-active');
-        }
-    };
-}
-
-
-addLineBtn.addEventListener('click', createLine);
 
 //CREATE DOCUMENT
 
