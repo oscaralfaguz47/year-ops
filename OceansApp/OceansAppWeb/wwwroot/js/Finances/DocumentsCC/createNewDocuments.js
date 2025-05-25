@@ -422,6 +422,7 @@ function createLine() {
     updateLineNumbers();
 }
 
+
 function ensureSearchListVisibility(searchInput, resultsBox) {
     const line = searchInput.closest('.document-line');
 
@@ -678,7 +679,19 @@ function setupSearchHandlers(line) {
     });
 }
 
+// Hide search UI when product config modal is opened
+window.addEventListener('showProductClientCompanyAccountingConfigModal:open', (e) => {
+    const line = e.detail?.targetLine;
+    if (!line) return;
 
+    const searchInput = line.querySelector('.invoice-body-product-search');
+    const resultsBox = line.querySelector('.invoice-body-search-results');
+
+    searchInput.value = '';
+    resultsBox.innerHTML = '';
+    resultsBox.style.display = 'none';
+    line.classList.remove('search-active');
+});
 
 
 //CREATE DOCUMENT

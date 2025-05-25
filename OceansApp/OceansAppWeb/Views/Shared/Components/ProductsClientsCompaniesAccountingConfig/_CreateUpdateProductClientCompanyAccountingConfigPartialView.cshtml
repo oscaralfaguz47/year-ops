@@ -3,14 +3,16 @@
 <div id="@ViewData["ModalId"]" class="product-client-config-modal global-modal" style="display: none;">
     <div class="global-modal-content">
         <div class="container">
-            <div class="close-btn-container"><button class="new-product-cancel-btn">x</button></div>
+            <div class="close-btn-container"><button class="product-client-config-cancel-btn">x</button></div>
             <p class="product-client-config-message"></p>
             <input type="hidden" class="product-client-config-hidden-product-id" />
 
-            <label>Accounting configuration</label>
-            <input type="number" min="0" step="0.01" class="product-client-config-tax-input" />
+            @await Html.PartialAsync("~/Views/Shared/Components/GlobalComponents/_GlobalSearchComponentPartialView.cshtml", ("search-client-element-prod-config", "Search and select a client...", "Clients", "/AccountManagement/Clients/SearchClientsByName", "clientsList"))
 
-            <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 10px;">
+            <label>Percentage Tax</label>
+            <input type="number" min="0" step="0.01" value="0.00" class="product-client-config-tax-input form-control" />
+
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 10px;">
                 <button class="product-client-config-cancel-btn cancel-btn">Cancel</button>
                 <button class="product-client-config-save-btn btn-primary-submit">Save Configuration</button>
             </div>
