@@ -14,7 +14,7 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-        public async Task<List<GetProductsListWithAccountingClientStatusVM>> SearchProjectsByTextWithAccountingConfigStatusAsync(string searchText, int clientId)
+        public async Task<List<GetProductsListWithAccountingClientStatusVM>> SearchProductsByTextWithAccountingConfigStatusAsync(string searchText, int clientId)
         {
             if (string.IsNullOrWhiteSpace(searchText))
                 return new List<GetProductsListWithAccountingClientStatusVM>();

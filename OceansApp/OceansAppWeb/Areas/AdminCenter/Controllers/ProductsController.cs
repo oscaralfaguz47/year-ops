@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
-using OceansApp.Models.ViewModels.Interviews;
 using OceansApp.Models.ViewModels.Products;
 using OceansApp.Utility.SharedMethods.InputValidations;
-using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.AdminCenter.Controllers
 {
@@ -34,7 +32,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
                 return BadRequest(new { error = "A valid client ID must be provided." });
             try
             {
-                var productsList = await _unitOfWork.Product.SearchProjectsByTextWithAccountingConfigStatusAsync(searchText, clientId);
+                var productsList = await _unitOfWork.Product.SearchProductsByTextWithAccountingConfigStatusAsync(searchText, clientId);
 
                 return Ok(new
                 {

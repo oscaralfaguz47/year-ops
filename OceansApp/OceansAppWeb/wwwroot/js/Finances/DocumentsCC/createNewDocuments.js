@@ -593,6 +593,8 @@ function setupSearchHandlers(line) {
                             window.showProductClientCompanyAccountingConfigModal({
                                 modalId: 'product-client-config-modal',
                                 product: createdProduct.genericObject,
+                                clientId: clientIdInputCreateDoc.value,
+                                clientName: selectedClientInputCreateDoc.value,
                                 targetLine: line,
                                 onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse)
                             });
@@ -636,6 +638,8 @@ function setupSearchHandlers(line) {
                 window.showProductClientCompanyAccountingConfigModal({
                     modalId: 'product-client-config-modal',
                     product,
+                    clientId: clientIdInputCreateDoc.value,
+                    clientName: selectedClientInputCreateDoc.value,
                     targetLine: line,
                     onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse)
                 });

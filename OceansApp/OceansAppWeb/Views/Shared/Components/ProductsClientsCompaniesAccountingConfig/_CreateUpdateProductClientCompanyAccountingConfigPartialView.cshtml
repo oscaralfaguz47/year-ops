@@ -9,8 +9,107 @@
 
             @await Html.PartialAsync("~/Views/Shared/Components/GlobalComponents/_GlobalSearchComponentPartialView.cshtml", ("search-client-element-prod-config", "Search and select a client...", "Clients", "/AccountManagement/Clients/SearchClientsByName", "clientsList"))
 
-            <label>Percentage Tax</label>
-            <input type="number" min="0" step="0.01" value="0.00" class="product-client-config-tax-input form-control" />
+            <div class="row prod-config-section-container">
+                <div class="col-md-6">
+                    <label>Company <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select companyId">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>Movement Type <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select movementTypeId">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row prod-config-section-container">
+                <label class="prod-config-subtitles">SALES</label>
+                <div class="col-md-6">
+                    <label>Cost Center <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select costCenterSalesId">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>Accounting Account <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select accountingAccountSalesId">
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row prod-config-section-container">
+                <label class="prod-config-subtitles">SALES RETURNS</label>
+                <div class="col-md-6">
+                    <label>Cost Center <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select costCenterSalesReturnId">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>Accounting Account <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select" id="accountingAccountSalesReturnId">
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row prod-config-section-container">
+                <label class="prod-config-subtitles">SALES DISCOUNTS</label>
+                <div class="col-md-6">
+                    <label>Cost Center <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select costCenterSalesDiscountId">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>Accounting Account <span class="required-asterisk">*</span></label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select" id="accountingAccountSalesDiscountId">
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row prod-config-section-container">
+                <label class="prod-config-subtitles">SALES TAX</label>
+                <div class="col-md-2">
+                    <label>% Tax</label>
+                    <input type="number" min="0" step="0.01" value="0.00" class="product-client-config-tax-input form-control" />
+                </div>
+                <div class="col-md-5">
+                    <label>Cost Center</label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select costCenterSalesDiscountId">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <label>Accounting Account</label>
+                    <div class="custom-select">
+                        <span class="arrow-down"></span>
+                        <select class="form-select" id="accountingAccountSalesDiscountId">
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 10px;">
                 <button class="product-client-config-cancel-btn cancel-btn">Cancel</button>

@@ -1,12 +1,20 @@
 ﻿.product-client-config-modal .global-modal-content {
-    width: 400px;
-    min-width: 400px;
+    width: 700px;
+    min-width: 700px;
 }
 
 .product-client-config-modal .new-product-modal-title {
     text-align: center;
 }
-
+.product-client-config-message {
+    font-weight: bold;
+    text-align: center;
+    background-color: rgb(42, 167, 255, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
 
 .product-client-config-modal .modal-footer {
     margin-top: 10px;
@@ -19,6 +27,15 @@
     color: red;
     font-size: 0.875rem;
 }
+.prod-config-section-container {
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+    border-radius: 10px;
+    padding: 5px 0px;
+}
+    .prod-config-section-container  .prod-config-subtitles {
+        text-align: center;
+        font-weight: 900;
+    }
 
 @media (max-width: 500px) {
     .product-client-config-modal .global-modal-content {
