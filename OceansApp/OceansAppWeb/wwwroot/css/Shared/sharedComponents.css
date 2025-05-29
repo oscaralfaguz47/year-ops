@@ -138,6 +138,11 @@
     font-size: 20px;
 
 }
+.optional-span{
+    font-size: 0.8rem;
+    color: var(--clr-yellow);
+    margin-bottom: 7px;
+}
 /* MENU FROM 3 DOOTS*/
 .menu-options {
     display: none;

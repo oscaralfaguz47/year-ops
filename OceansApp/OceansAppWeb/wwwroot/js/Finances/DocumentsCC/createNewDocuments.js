@@ -546,9 +546,6 @@ addLineBtn.addEventListener('click', createLine);
 function setupSearchHandlers(line) {
     const searchInput = line.querySelector('.invoice-body-product-search');
     const resultsBox = line.querySelector('.invoice-body-search-results');
-    const descriptionInput = line.querySelector('.product-description');
-    const productCodeLabel = line.querySelector('.invoice-body-product-code-label');
-    const hiddenProductId = line.querySelector('.hidden-product-id');
     let activeIndex = -1;
     let results = [];
 

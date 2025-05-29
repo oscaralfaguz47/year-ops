@@ -11,3 +11,16 @@
         selectElement.add(option);
     });
 }
+
+function populateSelectByElement(selectElement, data, defaultOptionText, defaultOptionValue) {
+    if (selectElement.length > 1) {
+        return;
+    }
+    if (defaultOptionText !== null) {
+        selectElement.innerHTML = `<option value="${defaultOptionValue}">${defaultOptionText}</option>`;
+    }
+    data.forEach(obj => {
+        var option = new Option(obj.text, obj.value);
+        selectElement.add(option);
+    });
+}

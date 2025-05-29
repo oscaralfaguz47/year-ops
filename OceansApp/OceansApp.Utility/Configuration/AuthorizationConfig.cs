@@ -84,11 +84,17 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToManageConsultantPaymentsDebitsAndCredits", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
             });
+
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToCostsCentersList", policy =>
-                    policy.RequireClaim(FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType, FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue));
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimType
+                        && claim.Value == FinancesClaimsCD.Manage_Payment_Debits_Credits_ClaimValue) ||
+                        context.User.HasClaim(claim => claim.Type == FinancesClaimsCD.Accounts_Receivable_ClaimType && claim.Value ==
+                        FinancesClaimsCD.Accounts_Receivable_ClaimValue)));
             });
+
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToAccountingAccountsList", policy =>
@@ -343,6 +349,11 @@ namespace OceansApp.Utility.Configuration
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AccessToCreateAndUpdateProducts", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToReportingMyTimeMovementTypesListForSelect", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
             });
 
