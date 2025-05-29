@@ -74,7 +74,7 @@ namespace OceansApp.DataAccess.Repository
                     {
                         Name = productData.ProductName.Trim(),
                         Alias = productData.Alias.Trim(),
-                        ProductCode = $"OCE_{currentConsecutiveNumber.ToString("D6")}",
+                        ProductCode = $"PR_{currentConsecutiveNumber.ToString("D7")}",
                         Detail = productData.Detail
                     };
 

@@ -353,6 +353,11 @@ namespace OceansApp.Utility.Configuration
             });
             services.AddAuthorization(options =>
             {
+                options.AddPolicy("AccessToCreateAndUpdateProductsClientsCompaniesAccountingConfig", policy =>
+                    policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
                 options.AddPolicy("AccessToReportingMyTimeMovementTypesListForSelect", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
             });

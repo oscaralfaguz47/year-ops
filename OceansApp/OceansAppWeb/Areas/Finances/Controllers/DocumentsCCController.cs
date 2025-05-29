@@ -1258,7 +1258,7 @@ emailsCCString;
         }
 
         [HttpGet("GetBillableHoursByClient")]
-        public async Task<IActionResult> GetBillableHoursByClient([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int? clientId)
+        public async Task<IActionResult> GetBillableHoursByClient(int? clientId, DateTime? startDate, DateTime? endDate)
         {
             ValidateInputs validateInputs = new();
             //Validate Filter inputs
@@ -1278,7 +1278,7 @@ emailsCCString;
             try
             {
 
-               // var subtypesListAndDocConsecutive = await _unitOfWork.DocumentCC.GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(docTypeId, (int)clientConsultantId, (bool)isClient, (bool)isCredit);
+              // var subtypesListAndDocConsecutive = await _unitOfWork.DocumentCC.GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(docTypeId, (int)clientConsultantId, (bool)isClient, (bool)isCredit);
 
 
                 return Ok(new
@@ -1291,6 +1291,8 @@ emailsCCString;
                 return BadRequest(new { error = "Error retrieving data. Please report this issue.", detail = ex.Message });
             }
         }
+
+
 
     }
 }

@@ -46,6 +46,7 @@
         IPaymentMethodRepository PaymentMethod { get; }
         IPaymentBookEntryParentRepository PaymentBookEntryParent { get; }
         IProductRepository Product { get; }
+        IProductClientCompanyAccountingConfigForBillingRepository ProductClientCompanyAccountingConfig { get; }
         IProjectRepository Project { get; }
         IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; }
         IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; }

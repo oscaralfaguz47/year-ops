@@ -33,25 +33,25 @@ namespace OceansApp.Models.Models
         public int? AccountingAccountIdTaxPercentage { get; set; }
 
         [ValidateNever]
-        public required Product Product { get; set; }
+        public Product Product { get; set; }
         [ValidateNever]
-        public required Client Client { get; set; }
+        public Client Client { get; set; }
         [ValidateNever]
         public ReportingMyTimeMovementType? ReportingMyTimeMovementType { get; set; }
         [ValidateNever]
-        public required Company Company { get; set; }
+        public Company Company { get; set; }
         [ValidateNever]
-        public required CostCenter CostCenterSales { get; set; }
+        public CostCenter CostCenterSales { get; set; }
         [ValidateNever]
-        public required CostCenter CostCenterSalesDiscount { get; set; }
+        public CostCenter CostCenterSalesDiscount { get; set; }
         [ValidateNever]
-        public required CostCenter CostCenterSalesReturn { get; set; }
+        public CostCenter CostCenterSalesReturn { get; set; }
         [ValidateNever]
-        public required AccountingAccount AccountingAccountSales { get; set; }
+        public AccountingAccount AccountingAccountSales { get; set; }
         [ValidateNever]
-        public required AccountingAccount AccountingAccountSalesDiscount { get; set; }
+        public AccountingAccount AccountingAccountSalesDiscount { get; set; }
         [ValidateNever]
-        public required AccountingAccount AccountingAccountSalesReturn { get; set; }
+        public AccountingAccount AccountingAccountSalesReturn { get; set; }
         [ValidateNever]
         public CostCenter? CostCenterTaxPercentage { get; set; }
         [ValidateNever]

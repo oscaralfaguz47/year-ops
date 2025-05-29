@@ -21,10 +21,10 @@
     const accountingAccountSalesDiscountsSelectProdConfig = modal.querySelector('.accountingAccountSalesDiscountId');
     const accountingAccountSalesTaxSelectProdConfig = modal.querySelector('.accountingAccountSalesTaxId');
 
-    accountingAccountSalesSelectProdConfig.innerHTML = `<option>-Select a Cost Center-<option>`;
-    accountingAccountSalesReturnsSelectProdConfig.innerHTML = `<option>-Select a Cost Center-<option>`;
-    accountingAccountSalesDiscountsSelectProdConfig.innerHTML = `<option>-Select a Cost Center-<option>`;
-    accountingAccountSalesTaxSelectProdConfig.innerHTML = `<option>-Select a Cost Center-<option>`;
+    accountingAccountSalesSelectProdConfig.innerHTML = `<option value>-Select a Cost Center-<option>`;
+    accountingAccountSalesReturnsSelectProdConfig.innerHTML = `<option value>-Select a Cost Center-<option>`;
+    accountingAccountSalesDiscountsSelectProdConfig.innerHTML = `<option value>-Select a Cost Center-<option>`;
+    accountingAccountSalesTaxSelectProdConfig.innerHTML = `<option value>-Select a Cost Center-<option>`;
 
     accountingAccountSalesSelectProdConfig.disabled = true;
     accountingAccountSalesReturnsSelectProdConfig.disabled = true;
@@ -55,7 +55,6 @@
 
     costCentersArray = await getCostsCentersWhereCompanyList(clientCompany.companyId);
 
-
     populateCostCentersSelects(costCenterSalesSelectProdConfig, costCentersArray.costsCenters);
     populateCostCentersSelects(costCenterSalesReturnsSelectProdConfig, costCentersArray.costsCenters);
     populateCostCentersSelects(costCenterSalesDiscountsSelectProdConfig, costCentersArray.costsCenters);
@@ -83,7 +82,10 @@
             ? `You are editing the Accounting Config for product: '${product.productName}'.`
             : `You are going to create a new Accounting Configuration.`;
     }
-
+    document.querySelectorAll('.validation-message').forEach(el => {
+        el.style.display = 'none';
+    });
+    validateIfTaxIsGreaterThanCero();
     showModal(modalId);
     hideSpinner();
 
@@ -92,12 +94,104 @@
     });
     window.dispatchEvent(event);
 
-    saveBtn.onclick = () => {
-        const updatedTax = parseFloat(taxInput.value);
-        hideModal(modalId);
-        product.taxPercentage = updatedTax;
-        if (typeof onSave === 'function') onSave(product, targetLine);
+    saveBtn.onclick = async () => {
+        const isFormValid = validateRequiredFields();
+        if (!isFormValid) return;
+
+        const success = await createUpdateProductClientCompanyAccountingConfig('product-client-config-modal');
+        if (success) {
+            const updatedTax = parseFloat(taxInput.value);
+            product.taxPercentage = updatedTax;
+            if (typeof onSave === 'function') onSave(product, targetLine);
+        }
     };
+
+
+    taxInput.addEventListener('input', () => {
+        validateIfTaxIsGreaterThanCero();
+    });
+
+    function validateIfTaxIsGreaterThanCero() {
+        const taxValue = Number(taxInput.value);
+
+        if (taxValue > 0) {
+            costCenterSalesTaxSelectProdConfig.disabled = false;
+        } else {
+            costCenterSalesTaxSelectProdConfig.disabled = true;
+            accountingAccountSalesTaxSelectProdConfig.disabled = true;
+
+            // Reset selects
+            costCenterSalesTaxSelectProdConfig.value = '';
+            accountingAccountSalesTaxSelectProdConfig.value = '';
+            accountingAccountSalesTaxSelectProdConfig.innerHTML = '<option value>-Select a Cost Center-</option>';
+            populateCostCentersSelects(costCenterSalesTaxSelectProdConfig, costCentersArray.costsCenters);
+
+            const costCenterMsg = costCenterSalesTaxSelectProdConfig.parentElement.parentElement.querySelector('.validation-message');
+            const accountMsg = accountingAccountSalesTaxSelectProdConfig.parentElement.parentElement.querySelector('.validation-message');
+            if (costCenterMsg) costCenterMsg.style.display = 'none';
+            if (accountMsg) accountMsg.style.display = 'none';
+        }
+    }
+
+
+    async function createUpdateProductClientCompanyAccountingConfig(modalId) {
+        displaySpinner();
+        const token = $('[name="__RequestVerificationToken"]').val();
+
+        const body = {
+            ProductId: product.productId,
+            ClientId: clientId,
+            MovementTypeId: movementTypeSelectProdConfig.value === 'null' ? null : Number(movementTypeSelectProdConfig.value),
+            CostCenterIdSales: costCenterSalesSelectProdConfig.value === '' ? null : costCenterSalesSelectProdConfig.value,
+            CostCenterIdSalesDiscount: costCenterSalesDiscountsSelectProdConfig.value === '' ? null : costCenterSalesDiscountsSelectProdConfig.value,
+            CostCenterIdSalesReturn: costCenterSalesReturnsSelectProdConfig.value === '' ? null : costCenterSalesReturnsSelectProdConfig.value,
+            CostCenterIdSalesTax: costCenterSalesTaxSelectProdConfig.value === '' ? null : costCenterSalesTaxSelectProdConfig.value,
+            AccountingAccountIdSales: accountingAccountSalesSelectProdConfig.value === '' ? null : accountingAccountSalesSelectProdConfig.value,
+            AccountingAccountIdSalesDiscount: accountingAccountSalesDiscountsSelectProdConfig.value === '' ? null : accountingAccountSalesDiscountsSelectProdConfig.value,
+            AccountingAccountIdSalesReturn: accountingAccountSalesReturnsSelectProdConfig.value === '' ? null : accountingAccountSalesReturnsSelectProdConfig.value,
+            AccountingAccountIdSalesTax: accountingAccountSalesTaxSelectProdConfig.value === '' ? null : accountingAccountSalesTaxSelectProdConfig.value,
+            TaxPercentage: taxInput.value === '' ? null : Number(taxInput.value),
+            IsCreating: true
+        };
+        console.log(body);
+        try {
+            const response = await fetch('/AdminCenter/ProductsClientsCompaniesAccountingConfigForBilling/CreateUpdateProductClientCompanyAccountingConfig', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    RequestVerificationToken: token
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+
+                if (errorData.messageType === "Validation Error") {
+                    displayToasterWarningArray(errorData.errors);
+                } else {
+                    displayToasterError(errorData.error);
+                }
+
+                hideSpinner();
+                return false;
+            }
+
+            const data = await response.json();
+
+            hideModal(modalId);
+            toastr.success(data.message);
+            hideSpinner();
+
+            return true;
+        } catch (err) {
+            hideSpinner();
+            validateSessionExpiration(err.message);
+            console.error('Error creating product:', err);
+            return false;
+        }
+    }
+
 
     cancelBtns.forEach(btn => {
         btn.onclick = () => {
@@ -168,4 +262,49 @@
             hideSpinner();
         }
     }
+
+    //Validation messages
+    [
+        costCenterSalesSelectProdConfig,
+        accountingAccountSalesSelectProdConfig,
+        costCenterSalesReturnsSelectProdConfig,
+        accountingAccountSalesReturnsSelectProdConfig,
+        costCenterSalesDiscountsSelectProdConfig,
+        accountingAccountSalesDiscountsSelectProdConfig,
+        costCenterSalesTaxSelectProdConfig,
+        accountingAccountSalesTaxSelectProdConfig
+    ].forEach(select => {
+        select.addEventListener('change', () => {
+            const msg = select.parentElement.parentElement.querySelector('.validation-message');
+            if (select.value) msg.style.display = 'none';
+        });
+    });
+    function validateRequiredFields() {
+        let isValid = true;
+
+        function validateField(selectElement) {
+            const messageEl = selectElement.parentElement.parentElement.querySelector('.validation-message');
+            if (!selectElement.value || selectElement.value === 'null') {
+                messageEl.style.display = 'block';
+                isValid = false;
+            } else {
+                messageEl.style.display = 'none';
+            }
+        }
+
+        validateField(costCenterSalesSelectProdConfig);
+        validateField(accountingAccountSalesSelectProdConfig);
+        validateField(costCenterSalesReturnsSelectProdConfig);
+        validateField(accountingAccountSalesReturnsSelectProdConfig);
+        validateField(costCenterSalesDiscountsSelectProdConfig);
+        validateField(accountingAccountSalesDiscountsSelectProdConfig);
+
+        if (Number(taxInput.value) > 0) {
+            validateField(costCenterSalesTaxSelectProdConfig);
+            validateField(accountingAccountSalesTaxSelectProdConfig);
+        }
+
+        return isValid;
+    }
+
 };

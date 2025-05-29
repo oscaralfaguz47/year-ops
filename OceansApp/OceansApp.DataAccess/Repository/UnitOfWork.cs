@@ -77,6 +77,7 @@ namespace OceansApp.DataAccess.Repository
             PaymentMethod = new PaymentMethodRepository(_db);
             PaymentBookEntryParent = new PaymentBookEntryParentRepository(_db);
             Product = new ProductRepository(_db);
+            ProductClientCompanyAccountingConfig = new ProductClientCompanyAccountingConfigForBillingRepository(_db);
             Project = new ProjectRepository(_db);
             ProjectConsultantAssigned = new ProjectConsultantAssignedRepository(_db);
             ProjectConsultantPeriodDisabledTracking = new ProjectConsultantPeriodDisabledTrackingRepository(_db);
@@ -141,6 +142,7 @@ namespace OceansApp.DataAccess.Repository
         public IPaymentMethodRepository PaymentMethod { get; set; }
         public IPaymentBookEntryParentRepository PaymentBookEntryParent { get; set; }
         public IProductRepository Product { get; set; }
+        public IProductClientCompanyAccountingConfigForBillingRepository ProductClientCompanyAccountingConfig { get; set; }
         public IProjectRepository Project { get; set; }
         public IProjectConsultantAssignedRepository ProjectConsultantAssigned { get; set; }
         public IProjectConsultantPeriodDisabledTrackingRepository ProjectConsultantPeriodDisabledTracking { get; set; }

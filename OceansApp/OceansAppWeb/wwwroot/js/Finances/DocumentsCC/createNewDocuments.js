@@ -15,6 +15,7 @@ const descriptionInputCreateDoc = getElementById('applicationDescriptionCreateDo
 const documentBody = document.querySelector('.document-body');
 const descriptionContainerInputElement = getElementById('description-container');
 const invoiceBodyContainer = getElementById('invoice-body-container');
+const searchBillableHoursBtn = document.getElementById('search-bill-hours-btn');
 
 
 function resetClientToggle() {
@@ -263,6 +264,10 @@ function displayInvoice() {
     lineCount = 0;
     createLine();
     updateSummary();
+    document.querySelectorAll('.validation-message').forEach(el => {
+        el.style.display = 'none';
+    });
+
 }
 function displayCurrentInterest() {
     hideShowDescriptionInput('show', null);
@@ -339,6 +344,88 @@ function documentTypeCases(documentType) {
         default:
             return docTypeIsNull();
     }
+}
+//SEARCH FOR BILLABLE HOURS
+searchBillableHoursBtn.onclick = async () => {
+    const startInput = document.getElementById('startDateSearchBillHours');
+    const endInput = document.getElementById('endDateSearchBillHours');
+
+    const startMsg = startInput.nextElementSibling;
+    const endMsg = endInput.nextElementSibling;
+
+    const startDateValue = startInput.value;
+    const endDateValue = endInput.value;
+
+    let isValid = true;
+
+    // Reset validation messages
+    startMsg.style.display = 'none';
+    endMsg.style.display = 'none';
+
+    // Helper to validate date string
+    const isValidDateStrict = (dateStr) => {
+        const date = new Date(dateStr);
+        return (
+            /^\d{4}-\d{2}-\d{2}$/.test(dateStr) &&
+            !isNaN(date.getTime()) &&
+            dateStr === date.toISOString().slice(0, 10)
+        );
+    };
+
+    // Required validation
+    if (!startDateValue) {
+        startMsg.textContent = 'This field is required.';
+        startMsg.style.display = 'block';
+        isValid = false;
+    } else if (!isValidDateStrict(startDateValue)) {
+        startMsg.textContent = 'Not valid date.';
+        startMsg.style.display = 'block';
+        isValid = false;
+    }
+
+    if (!endDateValue) {
+        endMsg.textContent = 'This field is required.';
+        endMsg.style.display = 'block';
+        isValid = false;
+    } else if (!isValidDateStrict(endDateValue)) {
+        endMsg.textContent = 'Not valid date.';
+        endMsg.style.display = 'block';
+        isValid = false;
+    }
+
+    // Date logic validation
+    if (isValid && new Date(startDateValue) > new Date(endDateValue)) {
+        startMsg.textContent = "Start date couldn't be greater than End Date.";
+        startMsg.style.display = 'block';
+        isValid = false;
+    }
+
+    if (!isValid) return;
+
+    // All good, proceed with the logic
+
+
+};
+async function searchForBillableHours(startDate, endDate, clientId) {
+    var url = "/Finances/DocumentsCC/GetBillableHoursByClient?clientId=" + encodeURIComponent(clientId)
+        + "&startDate=" + encodeURIComponent(startDate)
+        + "&endDate=" + encodeURIComponent(endDate);
+    return fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    displayToasterError(errorData.error);
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                });
+            }
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+            displayToasterError(error.message);
+        });
+
 }
 
 //ADD LINES TO THE DOCUMENT

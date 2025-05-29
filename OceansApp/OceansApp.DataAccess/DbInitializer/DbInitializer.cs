@@ -342,7 +342,7 @@ namespace OceansApp.DataAccess.DbInitializer
                     new GlobalConsecutive { Name = "O/D", ConsecutiveNumber = 0, CompanyId = "LLC" },
                     new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "OCE" },
                     new GlobalConsecutive { Name = "PAG", ConsecutiveNumber = 0, CompanyId = "LLC" },
-                    new GlobalConsecutive { Name = "PRODUCTS", ConsecutiveNumber = 0, CompanyId = "OCE" }
+                    new GlobalConsecutive { Name = "PRODUCTS", ConsecutiveNumber = 3, CompanyId = "OCE" }
                 };
 
                 foreach (var consecutive in globalConsecutivesList)
@@ -594,6 +594,30 @@ namespace OceansApp.DataAccess.DbInitializer
                             IsDefault = paymentMethodBankAccount.IsDefault
                         };
                         await _db.PAYMENT_METHOD_AND_BANK_ACCOUNTS.AddAsync(pmba);
+                    }
+                }
+                await _db.SaveChangesAsync();
+
+                // ----------------- PRODUCTS BY DEFAULT --------------------------------
+
+                List<Product> productsList = new List<Product>
+                {
+                    new Product { Name = "Hours of professional services", ProductCode = "PR_0000001", Alias = "Hours of professional services" },
+                    new Product { Name = "On Call Flate Rate", ProductCode = "PR_0000002", Alias = "On Call Flate Rate" },
+                    new Product { Name = "On Call Time Worked", ProductCode = "PR_0000003", Alias = "On Call Time Worked" }
+                };
+
+                foreach (var product in productsList)
+                {
+                    if (await _db.PRODUCTS.FirstOrDefaultAsync(x => x.Name == product.Name) == null)
+                    {
+                        Product pm = new()
+                        {
+                            Name = product.Name,
+                            ProductCode = product.ProductCode,
+                            Alias = product.Alias
+                        };
+                        await _db.PRODUCTS.AddAsync(pm);
                     }
                 }
                 await _db.SaveChangesAsync();
