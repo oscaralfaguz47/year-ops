@@ -4,6 +4,7 @@ using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
+using OceansApp.Models.ViewModels.ReportingMyTimeMovements;
 using System.Linq.Expressions;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -46,5 +47,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
     IEnumerable<int>? projectIds,
     IEnumerable<int>? clientIds,
     IEnumerable<int>? consultantIds);
+
+        Task<List<GetBillableHoursForBillingVM>> GetBillableHoursForBillingAsync(int clientId, DateTime startDate,
+            DateTime endDate);
     }
 }

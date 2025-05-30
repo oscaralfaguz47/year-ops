@@ -8,6 +8,7 @@ using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
+using OceansApp.Models.ViewModels.ReportingMyTimeMovements;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.Blobs;
 using System.Data;
@@ -889,6 +890,23 @@ namespace OceansApp.DataAccess.Repository
 
             var results = await connection.QueryAsync<GetApprovedMovementsWhereConsultantVM>("SP_REPORTING_MY_TIME_MOVEMENTS_GetApprovedMovementsWhereConsultant", parameters, commandType: CommandType.StoredProcedure);
             return results.ToList();
+        }
+
+        public async Task<List<GetBillableHoursForBillingVM>> GetBillableHoursForBillingAsync(int clientId, DateTime startDate,
+            DateTime endDate)
+        {
+            var connection = _db.Database.GetDbConnection();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ClientId", clientId, DbType.Int32);
+            parameters.Add("@StartDate", startDate, DbType.Date);
+            parameters.Add("@EndDate", endDate, DbType.Date);
+
+            var results = await connection.QueryAsync<GetBillableHoursForBillingVM>("SP_REPORTING_MY_TIME_MOVEMENTS_GetBillableHoursByClient",
+                parameters, commandType: CommandType.StoredProcedure);
+            var movements = results.ToList();
+
+            return movements;
         }
     }
 }

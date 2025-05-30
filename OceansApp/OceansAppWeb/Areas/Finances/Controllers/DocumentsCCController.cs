@@ -1278,12 +1278,12 @@ emailsCCString;
             try
             {
 
-              // var subtypesListAndDocConsecutive = await _unitOfWork.DocumentCC.GetDocumentSubtypesListAndDocTypeConsecutiveNumberAsync(docTypeId, (int)clientConsultantId, (bool)isClient, (bool)isCredit);
+                var billableHoursList = await _unitOfWork.ReportingMyTimeMovement.GetBillableHoursForBillingAsync((int)clientId, (DateTime)startDate, (DateTime)endDate);
 
 
                 return Ok(new
                 {
-                    billableHoursAndProductRelation = ""
+                    billableHours = billableHoursList
                 });
             }
             catch (Exception ex)

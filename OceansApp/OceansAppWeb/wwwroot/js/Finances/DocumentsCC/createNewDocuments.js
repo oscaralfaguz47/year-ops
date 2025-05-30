@@ -402,29 +402,45 @@ searchBillableHoursBtn.onclick = async () => {
 
     if (!isValid) return;
 
-    // All good, proceed with the logic
+    const dataFromApi = await searchForBillableHours(startInput.value, endInput.value, clientIdInputCreateDoc.value);
+    console.log(dataFromApi);
+    dataFromApi.billableHours.forEach(function (obj) {
 
+        
+    });
 
 };
 async function searchForBillableHours(startDate, endDate, clientId) {
     var url = "/Finances/DocumentsCC/GetBillableHoursByClient?clientId=" + encodeURIComponent(clientId)
         + "&startDate=" + encodeURIComponent(startDate)
         + "&endDate=" + encodeURIComponent(endDate);
-    return fetch(url)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.json().then(errorData => {
-                    displayToasterError(errorData.error);
-                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
-                });
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            switch (errorData.messageType) {
+                case "Not Found":
+                    displayToasterError('Resource not found: ' + errorData.detail);
+                    break;
+                default:
+                    displayToasterError('An unexpected error occurred: ' + errorData.error);
             }
-        })
-        .catch(error => {
-            validateSessionExpiration(error.message);
-            displayToasterError(error.message);
-        });
+            hideSpinner();
+            return null;
+        }
+
+        const dataFromApi = await response.json();
+        hideSpinner();
+        return dataFromApi;
+    }
+    catch (err) {
+        hideSpinner();
+        validateSessionExpiration(err.message);
+        console.error('Network or fetch error:', err.message);
+        displayToasterError('Something went wrong, more details: ' + err);
+        return null;
+    }
 
 }
 
