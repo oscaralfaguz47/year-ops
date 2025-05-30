@@ -604,7 +604,8 @@ namespace OceansApp.DataAccess.DbInitializer
                 {
                     new Product { Name = "Hours of professional services", ProductCode = "PR_0000001", Alias = "Hours of professional services" },
                     new Product { Name = "On Call Flate Rate", ProductCode = "PR_0000002", Alias = "On Call Flate Rate" },
-                    new Product { Name = "On Call Time Worked", ProductCode = "PR_0000003", Alias = "On Call Time Worked" }
+                    new Product { Name = "On Call Time Worked", ProductCode = "PR_0000003", Alias = "On Call Time Worked" },
+                    new Product { Name = "Hours of professional services(Overtime)", ProductCode = "PR_0000004", Alias = "Hours of professional services(Overtime)" }
                 };
 
                 foreach (var product in productsList)
@@ -634,7 +635,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new ReportingMyTimeMovementType { Name = "Bonusly Rewards", IsPayable = true },
                     new ReportingMyTimeMovementType { Name = "Interviews", IsPayable = true },
                     new ReportingMyTimeMovementType { Name = "Time Off (Non-payable)", IsPayable = false },
-                    new ReportingMyTimeMovementType { Name = "Holidays", IsPayable = true }
+                    new ReportingMyTimeMovementType { Name = "Holidays", IsPayable = true },
+                    new ReportingMyTimeMovementType { Name = "Overtime Hours", IsPayable = true }
                 };
 
                 foreach (var movementType in movTypesList)

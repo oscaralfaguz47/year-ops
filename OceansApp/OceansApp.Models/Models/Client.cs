@@ -54,5 +54,7 @@ namespace OceansApp.Models.Models
         public Decimal LatePaymentFee { get; set; }
         [Required]
         public bool AllowSentLatePaymentNotifications { get; set; } = true;
+        public int? LimitNumHoursForOverTime { get; set; }
+        public decimal? OverTimeAmount { get; set; }
     }
 }

@@ -27,7 +27,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             try
             {
                 List<SelectVM> movementTypesList = new();
-                var movementTypes = await _unitOfWork.ReportingMyTimeMovementType.GetAllAsync(x => x.Name == "Normal Hours" || x.Name == "On Call Flate Rate" || x.Name == "On Call Time Worked");
+                var movementTypes = await _unitOfWork.ReportingMyTimeMovementType.GetAllAsync(x => x.Name == "Normal Hours" || x.Name == "On Call Flate Rate" || x.Name == "On Call Time Worked" || x.Name == "Overtime Hours");
                 foreach (var movementType in movementTypes)
                 {
                     movementTypesList.Add(new SelectVM { Value = movementType.MovementTypeId.ToString(), Text = movementType.Name });
