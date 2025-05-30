@@ -118,6 +118,9 @@ namespace OceansApp.DataAccess.Data
                 // Composite index
                 entity.HasIndex(e => new { e.Id, e.Name, e.LastName });
                 entity.HasIndex(e => new { e.Name, e.LastName });
+                entity.HasIndex(e => e.Id)
+        .HasDatabaseName("IX_Users_Id")
+        .IncludeProperties(e => new { e.Name, e.LastName });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.UserCategoryId);
@@ -527,6 +530,9 @@ namespace OceansApp.DataAccess.Data
                 // Composite index
                 entity.HasIndex(e => new { e.UserId, e.ConsultantId });
                 entity.HasIndex(e => new { e.ConsultantId, e.ConsultantHolidayId });
+                entity.HasIndex(e => e.ConsultantId)
+        .HasDatabaseName("IX_CD_ConsultantId")
+        .IncludeProperties(e => new { e.UserId });
 
                 // Indexes on foreign keys
                 entity.HasIndex(e => e.UserId);
@@ -712,6 +718,11 @@ namespace OceansApp.DataAccess.Data
             // CLIENT
             modelBuilder.Entity<Client>(entity =>
             {
+                // Composite index
+                entity.HasIndex(e => e.ClientId)
+        .HasDatabaseName("IX_CLIENT_KeyColumns")
+        .IncludeProperties(e => new { e.CompanyId, e.LimitNumHoursForOverTime, e.OverTimeAmount });
+
                 // Indexes for columns
                 entity.HasIndex(e => e.Name);
                 entity.HasIndex(e => e.Contact);
@@ -985,6 +996,9 @@ namespace OceansApp.DataAccess.Data
             {
                 // Composite index
                 entity.HasIndex(e => new { e.Name, e.Alias, e.ProductCode });
+                entity.HasIndex(e => e.ProductCode)
+        .HasDatabaseName("IX_PRODUCTS_Code")
+        .IncludeProperties(e => e.ProductId);
 
                 entity.HasIndex(e => e.ProductId);
 
@@ -1006,6 +1020,9 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => new { e.ProductId, e.ClientId, e.CompanyId })
     .HasDatabaseName("IX_ACC_ProductClientCompany")
     .IncludeProperties(e => new { e.TaxPercentage });
+                entity.HasIndex(e => new { e.ClientId, e.CompanyId, e.MovementTypeId })
+        .HasDatabaseName("IX_PCC_ConfigMatch")
+        .IncludeProperties(e => new { e.ProductId, e.TaxPercentage });
 
                 entity.HasIndex(e => e.ProductId);
                 entity.HasIndex(e => e.ClientId);
@@ -1080,6 +1097,7 @@ namespace OceansApp.DataAccess.Data
             {
                 // Composite index
                 entity.HasIndex(e => new { e.IsActive, e.ClientId, e.SuccessManagerId, e.StartDate, e.Name });
+                entity.HasIndex(e => new { e.ProjectId, e.ClientId, e.SuccessManagerId});
 
                 entity.HasIndex(e => e.ProjectId);
                 entity.HasIndex(e => e.CreatedBy);
@@ -1409,6 +1427,7 @@ namespace OceansApp.DataAccess.Data
             modelBuilder.Entity<ReportingMyTimeMovement>(entity =>
             {
                 entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.ActionDate });
+                entity.HasIndex(e => new { e.ProjectId, e.ConsultantId, e.ActionDate, e.IsBillable, e.TransactionStatusId });
                 entity.HasIndex(e => new { e.ProjectId, e.ConsultantId });
 
                 entity.HasIndex(e => e.ActionDate);
