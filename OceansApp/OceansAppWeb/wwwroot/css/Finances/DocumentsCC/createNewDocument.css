@@ -307,7 +307,7 @@
     min-width: 0;
 }
 .invoice-body-product-code-label {
-    font-size: 0.75rem;
+    font-size: 0.70rem;
     color: RGB(10, 187, 90);
     text-decoration:underline;
     white-space: nowrap;

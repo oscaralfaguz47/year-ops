@@ -403,14 +403,59 @@ searchBillableHoursBtn.onclick = async () => {
     if (!isValid) return;
 
     const dataFromApi = await searchForBillableHours(startInput.value, endInput.value, clientIdInputCreateDoc.value);
-    console.log(dataFromApi);
-    dataFromApi.billableHours.forEach(function (obj) {
+    let isThereProductsToConfigure = false;
 
-        
-    });
+    for (const obj of dataFromApi.billableHours) {
+        if (obj.productIdConfigured === null) {
+            isThereProductsToConfigure = true;
+            let productObject = {
+                productId: obj.productIdToConfigure,
+                productName: obj.productNameToConfigure,
+                taxPercentage: 0
+            };
+            window.showProductClientCompanyAccountingConfigModal({
+                modalId: 'product-client-config-modal',
+                product: productObject,
+                clientId: clientIdInputCreateDoc.value,
+                clientName: selectedClientInputCreateDoc.value,
+                targetLine: null,
+                onSave: null,
+                movementTypeId: obj.movementTypeId
+            });
+            break;
+        }
+    }
 
+    if (!isThereProductsToConfigure) {
+        clearLines();
+        for (const obj of dataFromApi.billableHours) {
+            if (obj.productIdConfigured !== null) {
+                // Create new line
+                const newLine = createLine();
+
+                // Prepare the product
+                const product = {
+                    productId: obj.productIdConfigured,
+                    productName: obj.productDescription,
+                    productCode: obj.productCodeConfigured,
+                    taxPercentage: obj.taxPercentage || 0
+                };
+
+                // Aplicar el producto
+                applyProduct(product, newLine);
+
+                newLine.querySelector('.quantity').value = obj.totalHours;
+                newLine.querySelector('.unit-price').value = obj.unitPrice;
+                newLine.dataset.taxPercentage = obj.taxPercentage || 0;
+
+                updateLineCalculations(newLine);
+                updateSummary();
+            }
+        }
+    }
 };
 async function searchForBillableHours(startDate, endDate, clientId) {
+    displaySpinner();
     var url = "/Finances/DocumentsCC/GetBillableHoursByClient?clientId=" + encodeURIComponent(clientId)
         + "&startDate=" + encodeURIComponent(startDate)
         + "&endDate=" + encodeURIComponent(endDate);
@@ -456,6 +501,11 @@ const emptyMessage = container.querySelector('.empty-message');
 let lineCount = 0;
 let currentProductLine = null;
 
+function clearLines(){
+    container.querySelectorAll('.document-line').forEach(line => line.remove());
+    lineCount = 0;
+    updateSummary();
+}
 function createLine() {
     lineCount++;
     const line = document.createElement('div');
@@ -523,6 +573,7 @@ function createLine() {
     container.appendChild(line);
     emptyMessage.style.display = 'none';
     updateLineNumbers();
+    return line;
 }
 
 
@@ -696,7 +747,8 @@ function setupSearchHandlers(line) {
                                 clientId: clientIdInputCreateDoc.value,
                                 clientName: selectedClientInputCreateDoc.value,
                                 targetLine: line,
-                                onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse)
+                                onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse),
+                                movementTypeId: null
                             });
                         }
                     });
@@ -741,7 +793,8 @@ function setupSearchHandlers(line) {
                     clientId: clientIdInputCreateDoc.value,
                     clientName: selectedClientInputCreateDoc.value,
                     targetLine: line,
-                    onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse)
+                    onSave: (configuredProduct, lineToUse) => applyProduct(configuredProduct, lineToUse),
+                    movementTypeId: null
                 });
             } else {
                 applyProduct(product, line);
@@ -749,27 +802,6 @@ function setupSearchHandlers(line) {
         }
     });
 
-    function applyProduct(product, targetLine) {
-        const searchInput = targetLine.querySelector('.invoice-body-product-search');
-        const resultsBox = targetLine.querySelector('.invoice-body-search-results');
-        const descriptionInput = targetLine.querySelector('.product-description');
-        const productCodeLabel = targetLine.querySelector('.invoice-body-product-code-label');
-        const hiddenProductId = targetLine.querySelector('.hidden-product-id');
-
-        searchInput.value = '';
-        resultsBox.innerHTML = '';
-        resultsBox.style.display = 'none';
-        targetLine.classList.remove('search-active');
-
-        descriptionInput.value = product.productName;
-        descriptionInput.disabled = false;
-        productCodeLabel.textContent = product.productCode;
-        hiddenProductId.value = product.productId;
-        targetLine.dataset.taxPercentage = product.taxPercentage;
-
-        updateLineCalculations(targetLine);
-        updateSummary();
-    }
 
     function resetSearchUI() {
         line.classList.remove('search-active');
@@ -781,6 +813,27 @@ function setupSearchHandlers(line) {
     document.addEventListener('click', e => {
         if (!line.contains(e.target)) resetSearchUI();
     });
+}
+function applyProduct(product, targetLine) {
+    const searchInput = targetLine.querySelector('.invoice-body-product-search');
+    const resultsBox = targetLine.querySelector('.invoice-body-search-results');
+    const descriptionInput = targetLine.querySelector('.product-description');
+    const productCodeLabel = targetLine.querySelector('.invoice-body-product-code-label');
+    const hiddenProductId = targetLine.querySelector('.hidden-product-id');
+
+    searchInput.value = '';
+    resultsBox.innerHTML = '';
+    resultsBox.style.display = 'none';
+    targetLine.classList.remove('search-active');
+
+    descriptionInput.value = product.productName;
+    descriptionInput.disabled = false;
+    productCodeLabel.textContent = product.productCode;
+    hiddenProductId.value = product.productId;
+    targetLine.dataset.taxPercentage = product.taxPercentage;
+
+    updateLineCalculations(targetLine);
+    updateSummary();
 }
 
 // Hide search UI when product config modal is opened

@@ -4,7 +4,8 @@
     clientId,
     clientName,
     targetLine,
-    onSave
+    onSave,
+    movementTypeId
 }) {
     displaySpinner();
     const modal = document.getElementById(modalId);
@@ -52,6 +53,12 @@
     const movementTypesList = await getMovementTypesList();
     movementTypeSelectProdConfig.innerHTML = '';
     populateSelectByElement(movementTypeSelectProdConfig, movementTypesList.movementTypes, 'None', null);
+    if (movementTypeId !== null) {
+        movementTypeSelectProdConfig.value = movementTypeId;
+        movementTypeSelectProdConfig.disabled = true;
+    } else {
+        movementTypeSelectProdConfig.disabled = false;
+    }
 
     costCentersArray = await getCostsCentersWhereCompanyList(clientCompany.companyId);
 
