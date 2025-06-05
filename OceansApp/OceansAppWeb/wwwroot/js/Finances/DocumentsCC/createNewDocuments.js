@@ -540,15 +540,15 @@ function createLine() {
       </div>
     </div>
     <div class="invoice-body-description-wrapper">
-      <label class="invoice-body-product-code-label"></label>
+      <label class="invoice-body-product-code-label">No Product Code</label>
       <input type="text" disabled placeholder="Search and select a Product" class="product-description column" />
       <input type="hidden" class="hidden-product-id" />
     </div>
     <input type="number" min="0" value="0" class="quantity column" />
     <input type="number" min="0" value="0" class="unit-price column" />
     <input type="number" min="0" value="0" class="discount column" />
-    <input type="text" class="tax column" readonly />
-    <input type="text" class="subtotal column" readonly />
+    <input type="text" class="tax column" readonly disabled />
+    <input type="text" class="subtotal column" readonly disabled/>
     <button class="delete-line column">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20">
         <path fill="#ed143d" d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>
@@ -602,6 +602,8 @@ function createLine() {
     label.addEventListener('dragstart', e => e.preventDefault());
 
     deleteBtn.setAttribute('draggable', 'false');
+    const productCodeLabel = line.querySelector('.invoice-body-product-code-label');
+    productCodeLabel.style.color = '#f5611c';
     return line;
 }
 
@@ -864,6 +866,7 @@ function applyProduct(product, targetLine) {
     descriptionInput.value = product.productName;
     descriptionInput.disabled = false;
     productCodeLabel.textContent = product.productCode;
+    productCodeLabel.style.color = 'RGB(10, 187, 90)';
     hiddenProductId.value = product.productId;
     targetLine.dataset.taxPercentage = product.taxPercentage;
 

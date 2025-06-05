@@ -81,6 +81,9 @@
 }
 
 /*DOCUMENT LINES*/
+#linesContainer{
+    padding-top: 0.3rem;
+}
 .top-bar {
     display: flex;
     justify-content: flex-end;
@@ -99,14 +102,14 @@
 
 .table-inner {
     display: block;
-    min-width: 900px; /* Forces content wider than small screen */
+    min-width: -webkit-fill-available;
     width: fit-content;
 }
 
 .document-lines-header,
 .document-line {
     display: grid;
-    grid-template-columns: 58px 300px 70px 73px 76px 80px 98px 45px;
+    grid-template-columns: 58px 310px 70px 73px 76px 80px 98px 45px;
     gap: 0.3rem;
     align-items: center;
 }
@@ -124,11 +127,12 @@
 
 .document-line {
     display: grid;
-    grid-template-columns: 60px 300px 70px 73px 76px 80px 98px 45px;
+    grid-template-columns: 58px 310px 70px 73px 76px 80px 98px 45px;
     gap: 0.3rem;
     align-items: center;
     padding: 0.3rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+    border-radius: 10px;
     background: #fff;
     position: relative;
     z-index: 1;
@@ -140,6 +144,7 @@
         border-radius: 4px;
         width: 100%;
         font-size: 0.9rem;
+        height: 40px;
     }
 
 .delete-line {
@@ -268,6 +273,7 @@
     align-items: center;
     gap: 6px;
     width: 100%;
+    position:relative;
 }
 .invoice-body-search-results {
     position: absolute;
@@ -305,12 +311,16 @@
 .product-description {
     flex: 1;
     min-width: 0;
+    padding: 15px 4px 0 4px !important;
 }
 .invoice-body-product-code-label {
     font-size: 0.70rem;
-    color: RGB(10, 187, 90);
     text-decoration:underline;
     white-space: nowrap;
+    position: absolute;
+    left: 4px;
+    top: 1px;
+
 }
 
 /* Modal */
