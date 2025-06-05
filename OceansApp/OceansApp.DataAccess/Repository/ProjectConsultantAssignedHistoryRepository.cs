@@ -52,6 +52,7 @@ namespace OceansApp.DataAccess.Repository
                                            IsDefaultProject = h.IsDefaultProject,
                                            IsMonthlySalaryCalculatedPerHour = h.IsMonthlySalaryCalculatedPerHour,
                                            MonthlyClientRate = h.MonthlyClientRate,
+                                           MonthlyClientRateNumDays = h.MonthlyClientRateNumDays,
                                            PartnerId = h.PartnerId,
                                            PartnerPaysBenefits = h.PartnerPaysBenefits,
                                            UserIdActionedBy = h.UserIdActionedBy,

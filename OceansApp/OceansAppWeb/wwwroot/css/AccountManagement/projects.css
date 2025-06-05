@@ -15,6 +15,10 @@
     #thirdPartyConsultantSalaryEl .checkbox-cont {
         padding: 5px;
     }
+#client-rate-inputs .col-md-6{
+    padding-left: 5px;
+    padding-right: 5px;
+}
 .assigned-consultants-div .bi-person-fill {
     font-size: 18px;
     background-color: var(--clr-blueLight);

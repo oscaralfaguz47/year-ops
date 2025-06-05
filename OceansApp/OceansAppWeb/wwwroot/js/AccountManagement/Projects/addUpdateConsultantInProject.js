@@ -8,7 +8,9 @@ const hourlyClientRateElCUCP = getElementById('hourlyClientRateEl');
 const thirdPartySalaryInputCUCP = getElementById('thirdPartySalary');
 const partnerSelectCUCP = getElementById('PartnerSelect');
 const monthlyClientRateElCUCP = getElementById('monthlyClientRateEl');
+const monthlyClientRateNumDaysElCUCP = getElementById('monthlyClientRateNumDaysEl');
 const monthlyClientRateInputCUCP = getElementById('monthlyClientRate');
+const monthlyClientRateNumDaysInputCUCP = getElementById('monthlyClientRateNumDays');
 const hourlyClientRateInputCUCP = getElementById('hourlyClientRate');
 const monthlyConsultantSalaryElCUCP = getElementById('monthlyConsultantSalaryEl');
 const hourlyConsultantSalaryElCUCP = getElementById('hourlyConsultantSalaryEl');
@@ -75,10 +77,13 @@ function validateRatesInputs() {
     if (clientRateMethod.value === 'H') {
         hourlyClientRateElCUCP.style.display = 'block';
         monthlyClientRateElCUCP.style.display = 'none';
+        monthlyClientRateNumDaysElCUCP.style.display = 'none';
         monthlyClientRateInputCUCP.value = null;
+        monthlyClientRateNumDaysInputCUCP.value = null;
     } else {
         hourlyClientRateElCUCP.style.display = 'none';
         monthlyClientRateElCUCP.style.display = 'block';
+        monthlyClientRateNumDaysElCUCP.style.display = 'block';
         hourlyClientRateInputCUCP.value = null;
     }
     if (consultantRateMethod.value === 'M') {
@@ -218,7 +223,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 <strong>"${formatDateMmDdYyyy(data.consultantAssignation.actionDate)}"</strong>
                 . All the displayed data belongs to the last one. The changes were applied on (${formatUtcToLocalMmDdYyyyTime(creationDateDateFormat)}).
                 </label>`;
-                console.log(data);
+
                 disableActionDateDatePicker(data.consultantAssignation.actionDate);
                 lastActionDateMessage.style.display = 'block';
                 consultantIdInputCUCP.value = data.consultantAssignation.consultantId;
@@ -238,6 +243,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 if (data.consultantAssignation.monthlySalaryPartner !== 0 && (data.consultantAssignation.monthlySalary === 0 &&
                     data.consultantAssignation.hourlySalary === 0)) document.getElementsByName('consultant-payment-model')[2].checked = true;
                 monthlyClientRateInputCUCP.value = data.consultantAssignation.monthlyClientRate;
+                monthlyClientRateNumDaysInputCUCP.value = data.consultantAssignation.monthlyClientRateNumDays;
                 hourlyClientRateInputCUCP.value = data.consultantAssignation.hourlyClientRate;
                 monthlySalaryInputCUCP.value = data.consultantAssignation.monthlySalary;
                 hourlySalaryInputCUCP.value = data.consultantAssignation.hourlySalary;
@@ -321,6 +327,10 @@ async function addConsultantToProject(modalId) {
         modelState = false;
         displayToasterWarning('The Monthly Client Rate is required.');
     }
+    if (clientRateMethodRb === 'M' && (Number(monthlyClientRateNumDaysInputCUCP.value) === 0)) {
+        modelState = false;
+        displayToasterWarning('The Monthly Days is required.');
+    }
     if (Number(hourlySalaryInputCUCP.value) === 0 && consultantRateMethodRb === 'H' && (consultantPaymentModel === 'Hy' || consultantPaymentModel === 'O')) {
         modelState = false;
         displayToasterWarning('The Hourly Consultant Salary is required.');
@@ -355,6 +365,7 @@ async function addConsultantToProject(modalId) {
             HourlyClientRate: Number(hourlyClientRateInputCUCP.value),
             HourlySalary: Number(hourlySalaryInputCUCP.value),
             MonthlyClientRate: Number(monthlyClientRateInputCUCP.value),
+            MonthlyClientRateNumDays: Number(monthlyClientRateNumDaysInputCUCP.value),
             MonthlySalary: Number(monthlySalaryInputCUCP.value),
             MonthlySalaryPartner: Number(thirdPartySalaryInputCUCP.value),
             PartnerId: partnerSelect.value === '' || partnerSelect.value === 'null' ? null : partnerSelect.value,

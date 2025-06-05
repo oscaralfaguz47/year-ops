@@ -1194,6 +1194,8 @@ namespace OceansApp.DataAccess.Data
                .HasForeignKey(p => p.PartnerId);
                 entity.Property(p => p.NumHoursForHoliday)
                 .HasDefaultValue(8);
+                entity.Property(p => p.MonthlyClientRateNumDays)
+                .HasDefaultValue(0m);
             });
 
             // PROJECTS CONSULTANTS PENDING SUBMISSIONS

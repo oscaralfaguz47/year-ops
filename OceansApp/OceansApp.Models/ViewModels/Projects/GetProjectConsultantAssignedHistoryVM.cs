@@ -14,6 +14,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public bool? PartnerPaysBenefits { get; set; }
         public decimal? HourlyClientRate { get; set; }
         public decimal? MonthlyClientRate { get; set; }
+        public decimal? MonthlyClientRateNumDays { get; set; }
         public bool AccessToTrackingTool { get; set; }
         public bool HolidaysMustBePaid { get; set; }
         public bool IsActive { get; set; }

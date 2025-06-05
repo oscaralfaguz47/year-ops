@@ -284,6 +284,7 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("HourlyClientRate", "Hourly Client Rate", consultantAssignationData.HourlyClientRate, ModelState);
                 validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("HourlySalary", "Hourly Salary", consultantAssignationData.HourlySalary, ModelState);
                 validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlyClientRate", "Monthly Client Rate", consultantAssignationData.MonthlyClientRate, ModelState);
+                validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlyClientRateNumDays", "Monthly Client Rate Num Days", consultantAssignationData.MonthlyClientRateNumDays, ModelState);
                 validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlySalary", "Monthly Salary", consultantAssignationData.MonthlySalary, ModelState);
                 validateInputs.ValidateNotRequiredAndGreaterThanZeroFieldNumberValue("MonthlySalaryPartner", "Monthly Salary Partner", consultantAssignationData.MonthlySalaryPartner, ModelState);
 

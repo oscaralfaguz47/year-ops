@@ -267,6 +267,7 @@ namespace OceansApp.DataAccess.Repository
                 {
                     HourlyClientRate = consultantAssignationData.HourlyClientRate,
                     MonthlyClientRate = consultantAssignationData.MonthlyClientRate,
+                    MonthlyClientRateNumDays = consultantAssignationData.MonthlyClientRateNumDays,
                     HourlySalary = consultantAssignationData.HourlySalary,
                     MonthlySalary = consultantAssignationData.MonthlySalary,
                     MonthlySalaryPartner = consultantAssignationData.MonthlySalaryPartner,
@@ -322,6 +323,7 @@ namespace OceansApp.DataAccess.Repository
                         consultantAssignedHistoryToCreate.PartnerPaysBenefits != recentHistoryBeforeActionDate.PartnerPaysBenefits ||
                         consultantAssignedHistoryToCreate.HourlyClientRate != recentHistoryBeforeActionDate.HourlyClientRate ||
                         consultantAssignedHistoryToCreate.MonthlyClientRate != recentHistoryBeforeActionDate.MonthlyClientRate ||
+                        consultantAssignedHistoryToCreate.MonthlyClientRateNumDays != recentHistoryBeforeActionDate.MonthlyClientRateNumDays ||
                         consultantAssignedHistoryToCreate.AccessToTrackingTool != recentHistoryBeforeActionDate.AccessToTrackingTool ||
                         consultantAssignedHistoryToCreate.HolidaysMustBePaid != recentHistoryBeforeActionDate.HolidaysMustBePaid ||
                         consultantAssignedHistoryToCreate.IsDefaultProject != recentHistoryBeforeActionDate.IsDefaultProject ||

@@ -2,11 +2,10 @@
 async function getProjectConsultantHistory(projectConsultantAssignedId, modalId) {
     displaySpinner();
     await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
+        console.log(data);
         displayFirstRecord(data.historyList[0]);
         displayChanges(data.historyList);
-        data.historyList.forEach(function (obj) {
 
-        });
         hideSpinner();
         showModal(modalId);
     });
@@ -24,6 +23,7 @@ const customHeaders = {
     "partnerPaysBenefits": "Partner Pays Benefits",
     "hourlyClientRate": "Hourly Client Rate",
     "monthlyClientRate": "Monthly Client Rate",
+    "monthlyClientRateNumDays": "Monthly Client Num Days",
     "accessToTrackingTool": "Access To Tracking Tool",
     "participatesInOnCalls": "Participates in On Calls",
     "holidaysMustBePaid": "Holidays Must Be Paid",

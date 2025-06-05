@@ -501,11 +501,30 @@ const emptyMessage = container.querySelector('.empty-message');
 let lineCount = 0;
 let currentProductLine = null;
 
-function clearLines(){
-    container.querySelectorAll('.document-line').forEach(line => line.remove());
+function clearLines() {
+    container.querySelectorAll('.document-line').forEach(line => {
+        line.remove();
+    });
+
     lineCount = 0;
+
     updateSummary();
+
+    if (emptyMessage) {
+        emptyMessage.style.display = 'block';
+    }
+
+    dragged = null;
+
+    container.querySelectorAll('.validation-message').forEach(msg => {
+        msg.style.display = 'none';
+        msg.textContent = '';
+    });
 }
+
+
+
+
 function createLine() {
     lineCount++;
     const line = document.createElement('div');
@@ -573,6 +592,16 @@ function createLine() {
     container.appendChild(line);
     emptyMessage.style.display = 'none';
     updateLineNumbers();
+
+    const productDescriptionInput = line.querySelector('.product-description');
+    productDescriptionInput.addEventListener('dragstart', e => {
+        e.preventDefault(); // Prevent dragging text from the disabled input
+    });
+    const label = line.querySelector('.invoice-body-description-wrapper');
+    label.setAttribute('draggable', 'false');
+    label.addEventListener('dragstart', e => e.preventDefault());
+
+    deleteBtn.setAttribute('draggable', 'false');
     return line;
 }
 
@@ -668,8 +697,12 @@ function checkEmpty() {
 
 let dragged;
 function handleDragStart(e) {
-    dragged = this.closest('.document-line');
+    const line = e.target.closest('.document-line');
+    if (!line) return;
+
+    dragged = line;
     e.dataTransfer.effectAllowed = 'move';
+
     const emptyImg = new Image();
     emptyImg.src = '';
     e.dataTransfer.setDragImage(emptyImg, 0, 0);
@@ -693,7 +726,9 @@ function handleDragOver(e) {
 
 function handleDrop(e) {
     e.preventDefault();
+    if (!dragged) return;
 }
+
 
 addLineBtn.addEventListener('click', createLine);
 
@@ -850,6 +885,15 @@ window.addEventListener('showProductClientCompanyAccountingConfigModal:open', (e
     line.classList.remove('search-active');
 });
 
+
+container.addEventListener('dragstart', function (e) {
+    const isBadTarget =
+        ['INPUT', 'TEXTAREA', 'SELECT', 'LABEL'].includes(e.target.tagName);
+
+    if (isBadTarget && e.target.closest('.document-line')) {
+        e.preventDefault();
+    }
+});
 
 //CREATE DOCUMENT
 
