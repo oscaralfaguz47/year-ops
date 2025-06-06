@@ -997,6 +997,10 @@ namespace OceansApp.DataAccess.Data
                .HasForeignKey(p => p.PartnerId);
                 entity.Property(p => p.NumHoursForHoliday)
                 .HasDefaultValue(8);
+                entity.Property(c => c.PrimaryReportTrackingToolName)
+                .HasColumnType("varchar(30)");
+                entity.Property(c => c.SecondReportTrackingToolName)
+                .HasColumnType("varchar(30)");
             });
 
             // PROJECTS CONSULTANTS PENDING SUBMISSIONS
