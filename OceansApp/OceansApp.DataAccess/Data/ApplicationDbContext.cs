@@ -1196,6 +1196,10 @@ namespace OceansApp.DataAccess.Data
                 .HasDefaultValue(8);
                 entity.Property(p => p.MonthlyClientRateNumDays)
                 .HasDefaultValue(0m);
+                entity.Property(c => c.PrimaryReportTrackingToolName)
+                .HasColumnType("varchar(30)");
+                entity.Property(c => c.SecondReportTrackingToolName)
+                .HasColumnType("varchar(30)");
             });
 
             // PROJECTS CONSULTANTS PENDING SUBMISSIONS

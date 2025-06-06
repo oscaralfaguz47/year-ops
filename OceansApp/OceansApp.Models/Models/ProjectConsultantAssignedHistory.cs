@@ -42,6 +42,10 @@ namespace OceansApp.Models.Models
 
         [Required]
         public int NumHoursForHoliday { get; set; } = 8;
+        [MaxLength(30)]
+        public string? PrimaryReportTrackingToolName { get; set; }
+        [MaxLength(30)]
+        public string? SecondReportTrackingToolName { get; set; }
 
         [ValidateNever]
         public Partner? Partner { get; set; }

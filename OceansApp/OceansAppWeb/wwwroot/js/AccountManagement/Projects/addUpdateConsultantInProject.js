@@ -19,6 +19,11 @@ const calculationMethodCheckboxCUCP = getElementById("calculationMethod");
 const participatesInOnCallsCheckboxCUCP = getElementById('participatesInOnCalls');
 const numHoursForHolidayInputCUCP = getElementById('numHoursForHoliday');
 
+const secondReportCheckBox = getElementById('secondReportCheckBox');
+const secondReportInputSection = getElementById('secondReportInputSection');
+const primaryReportTrackingToolNameInputCUCP = getElementById('primaryReportTrackingToolName');
+const secondReportTrackingToolNameInputCUCP = getElementById('secondReportTrackingToolName');
+
 
 numHoursForHolidayInputCUCP.addEventListener('input', () => {
     let value = numHoursForHolidayInputCUCP.value;
@@ -118,7 +123,17 @@ function hideShowMustPayHolidaysCheckbox(isDefault) {
         holidaysMustBePaidElCUCP.style.display = 'none';
         holidaysMustBePaidCheckboxCUCP.checked = false;
     }
-
+}
+secondReportCheckBox.addEventListener("change", function () {
+    validateDisplayOfSecondReport(this);
+});
+function validateDisplayOfSecondReport(checkboxElement) {
+    if (checkboxElement.checked) {
+        secondReportInputSection.style.display = 'block';
+    } else {
+        secondReportInputSection.style.display = 'none';
+        secondReportInputSection.value = null;
+    }
 }
 //DISPLAY MODAL
 const createUpdateForm = getElementById('form-add-update-consultant');
@@ -260,6 +275,13 @@ async function displayAddUpdateConsultant(modalId, id) {
                 isMonthlySalaryCalculatedPerHourCheckbox.checked = data.consultantAssignation.isMonthlySalaryCalculatedPerHour;
                 participatesInOnCallsCheckboxCUCP.checked = data.consultantAssignation.participatesInOnCalls;
                 numHoursForHolidayInputCUCP.value = data.consultantAssignation.numHoursForHoliday;
+                primaryReportTrackingToolNameInputCUCP.value = data.consultantAssignation.primaryReportTrackingToolName;
+                secondReportTrackingToolNameInputCUCP.value = data.consultantAssignation.secondReportTrackingToolName;
+                if (data.consultantAssignation.secondReportTrackingToolName === null) {
+                    secondReportCheckBox.checked = false;
+                } else {
+                    secondReportCheckBox.checked = true;
+                }
 
                 showModal(modalId);
             })
@@ -270,6 +292,7 @@ async function displayAddUpdateConsultant(modalId, id) {
         const projectTypeCheckedInputCUP = createUpdateProjectForm.querySelector('input[name="projectTypeRb"]:checked');
         if (projectTypeCheckedInputCUP.value === 'I' || !clientHasTrackingToolInputCUP.checked) {
             participatesInOnCallsCheckboxCUCP.checked = false;
+            secondReportCheckBox.checked = false;
             getElementById('onCallSection').style.display = 'none';
 
         } else {
@@ -277,6 +300,7 @@ async function displayAddUpdateConsultant(modalId, id) {
         }
         showModal(modalId);
     }
+    validateDisplayOfSecondReport(secondReportCheckBox);
 }
 
 // FILL POSITIONS LIST
@@ -380,7 +404,9 @@ async function addConsultantToProject(modalId) {
             PartnerPaysBenefits: Boolean(benefitsArePaidByPartnerCheckboxCUCP.checked),
             HolidaysMustBePaid: Boolean(holidaysMustBePaidCheckboxCUCP.checked),
             participatesInOnCalls: Boolean(participatesInOnCallsCheckboxCUCP.checked),
-            NumHoursForHoliday: numHoursForHolidayInputCUCP.value === '' || numHoursForHolidayInputCUCP.value === 'null' ? null : numHoursForHolidayInputCUCP.value
+            NumHoursForHoliday: numHoursForHolidayInputCUCP.value === '' || numHoursForHolidayInputCUCP.value === 'null' ? null : numHoursForHolidayInputCUCP.value,
+            PrimaryReportTrackingToolName: primaryReportTrackingToolNameInputCUCP.value === '' ? null : primaryReportTrackingToolNameInputCUCP.value,
+            SecondReportTrackingToolName: secondReportTrackingToolNameInputCUCP.value === '' ? null : secondReportTrackingToolNameInputCUCP.value
         };
 
         try {

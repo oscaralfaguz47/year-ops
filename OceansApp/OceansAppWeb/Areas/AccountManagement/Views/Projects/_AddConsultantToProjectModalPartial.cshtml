@@ -139,7 +139,7 @@
                             </div>
                         </div>
                         <div id="thirdPartyConsultantSalaryEl">
-                           <div class="thirdPartyContainer">
+                            <div class="thirdPartyContainer">
                                 <div style="display:flex">
                                     <div style="padding: 0 4px" class="col-md-6">
                                         <label for="PaymentCondition">Partner <span class="required-asterisk">*</span></label>
@@ -164,7 +164,7 @@
                                         </div>
                                     </div>
                                 </div>
-                           </div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -191,9 +191,32 @@
                                 <input type="checkbox" class="form-check-input" id="participatesInOnCalls">
                                 <label for="participatesInOnCalls" class="form-check-label"> Participates in On Calls?</label>
                             </div>
+
+                            <div>
+                                <label>Our Client's Tracking tool Name<span class="required-asterisk">*</span></label>
+                                <div class="input-container">
+                                    <input placeholder="Enter our client's tracking tool name" type="text" class="form-control" id="primaryReportTrackingToolName">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="row">
+                                    <div class="checkbox-cont">
+                                        <input type="checkbox" class="form-check-input" id="secondReportCheckBox">
+                                        <label for="secondReportCheckBox" class="form-check-label"> Need a second report of the client's tracking tool?</label>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: -1rem" id="secondReportInputSection">
+                                    <label>Second Tracking Tool Name <span class="required-asterisk">*</span></label>
+                                    <div class="input-container">
+                                        <input placeholder="Enter the secondary tracking tool name" type="text" class="form-control" id="secondReportTrackingToolName">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                       
                         <div class="checkbox-cont row" id="holidaysMustBePaidEl">
-                           <div class="col-md-6">
+                            <div class="col-md-6">
                                 <input type="checkbox" checked class="form-check-input" id="holidaysMustBePaid">
                                 <label class="form-check-label" for="holidaysMustBePaid"> Holidays must be paid?</label>
                                 <div class="tooltip-container ">
@@ -203,7 +226,7 @@
                                         Uncheck if the Holidays assigned to the consultant do not must be paid.
                                     </div>
                                 </div>
-                           </div>
+                            </div>
                             <div class="input-container col-md-6">
                                 <label>Num hours for Holiday</label>
                                 <input placeholder="8" value="8" type="number" inputmode="numeric" class="form-control" id="numHoursForHoliday">
