@@ -181,6 +181,28 @@ namespace OceansApp.DataAccess.Repository
                 {
                     return MethodResponse.CreateFailureValidationResponse("The project you are trying to add the consultant to no longer exists.", "ProjectId");
                 }
+                if (existingProject.ClientHasTrackingTool)
+                {
+                    if (consultantAssignationData.PrimaryReportTrackingToolName == null)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse("Our Client's tracking tool name is required.");
+                    }
+                    if (consultantAssignationData.PrimaryReportTrackingToolName.Length > 30)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse("Our Client's tracking tool name must be between 1 and 30 characters.");
+                    }
+                    if ((bool)consultantAssignationData.NeedSecondReportTrackingTool)
+                    {
+                        if (consultantAssignationData.SecondReportTrackingToolName == null)
+                        {
+                            return MethodResponse.CreateFailureValidationResponse("The second tracking tool name is required.");
+                        }
+                        if (consultantAssignationData.SecondReportTrackingToolName.Length > 30)
+                        {
+                            return MethodResponse.CreateFailureValidationResponse("The second tracking tool name must be between 1 and 30 characters.");
+                        }
+                    }
+                }
                 var existingConsultant = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.ConsultantId == consultantAssignationData.ConsultantId);
                 if (existingConsultant == null)
                 {
@@ -282,7 +304,9 @@ namespace OceansApp.DataAccess.Repository
                     CreationDate = DateTime.UtcNow,
                     UserIdActionedBy = consultantAssignationData.UserCreatedBy,
                     ParticipatesInOnCalls = (bool)consultantAssignationData.ParticipatesInOnCalls,
-                    NumHoursForHoliday = consultantAssignationData.NumHoursForHoliday == null ? 8 : (int)consultantAssignationData.NumHoursForHoliday
+                    NumHoursForHoliday = consultantAssignationData.NumHoursForHoliday == null ? 8 : (int)consultantAssignationData.NumHoursForHoliday,
+                    PrimaryReportTrackingToolName = consultantAssignationData.PrimaryReportTrackingToolName,
+                    SecondReportTrackingToolName = consultantAssignationData.SecondReportTrackingToolName
                 };
 
                 if (existingConsultantAssignation == null && (bool)consultantAssignationData.IsAssigningFirstTime)
@@ -328,7 +352,9 @@ namespace OceansApp.DataAccess.Repository
                         consultantAssignedHistoryToCreate.HolidaysMustBePaid != recentHistoryBeforeActionDate.HolidaysMustBePaid ||
                         consultantAssignedHistoryToCreate.IsDefaultProject != recentHistoryBeforeActionDate.IsDefaultProject ||
                         consultantAssignedHistoryToCreate.ParticipatesInOnCalls != recentHistoryBeforeActionDate.ParticipatesInOnCalls ||
-                        consultantAssignedHistoryToCreate.NumHoursForHoliday != recentHistoryBeforeActionDate.NumHoursForHoliday
+                        consultantAssignedHistoryToCreate.NumHoursForHoliday != recentHistoryBeforeActionDate.NumHoursForHoliday ||
+                        consultantAssignedHistoryToCreate.PrimaryReportTrackingToolName != recentHistoryBeforeActionDate.PrimaryReportTrackingToolName ||
+                        consultantAssignedHistoryToCreate.SecondReportTrackingToolName != recentHistoryBeforeActionDate.SecondReportTrackingToolName
                         )
                     {
                         await _db.PROJECTS_CONSULTANTS_ASSIGNED_HISTORY.AddAsync(consultantAssignedHistoryToCreate);

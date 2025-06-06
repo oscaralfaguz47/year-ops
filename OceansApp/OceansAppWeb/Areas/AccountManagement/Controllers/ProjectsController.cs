@@ -297,6 +297,10 @@ namespace OceansAppWeb.Areas.AccountManagement.Controllers
                 validateInputs.ValidateRequiredFieldBooleanType("ParticipatesInOnCalls", "Participates In On-Calls", consultantAssignationData.ParticipatesInOnCalls, ModelState);
                 validateInputs.ValidateRequiredFieldBooleanType("IsAssigningFirstTime", "IsAssigningFirstTime", consultantAssignationData.IsAssigningFirstTime, ModelState);
 
+                validateInputs.ValidateRequiredFieldBooleanType("NeedSecondReportTrackingTool", "NeedSecondReportTrackingTool", consultantAssignationData.NeedSecondReportTrackingTool, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("PrimaryReportTrackingToolName", "Our Client's Tracking tool Name", consultantAssignationData.PrimaryReportTrackingToolName, 30, ModelState);
+                validateInputs.ValidateNotRequiredAndStringLength("SecondReportTrackingToolName", "Second Tracking Tool Name", consultantAssignationData.SecondReportTrackingToolName, 30, ModelState);
+
                 if (ModelState.IsValid)
                 {
                     string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

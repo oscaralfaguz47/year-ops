@@ -1,4 +1,6 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace OceansApp.Models.ViewModels.Projects
 {
     public class CreateUpdateProjectConsultantHistoryVM
@@ -23,5 +25,8 @@ namespace OceansApp.Models.ViewModels.Projects
         public string? UserCreatedBy { get; set; }
         public bool? ParticipatesInOnCalls { get; set; }
         public int? NumHoursForHoliday { get; set; }
+        public string? PrimaryReportTrackingToolName { get; set; }
+        public string? SecondReportTrackingToolName { get; set; }
+        public bool? NeedSecondReportTrackingTool { get; set; }
     }
 }

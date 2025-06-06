@@ -282,7 +282,7 @@ async function displayAddUpdateConsultant(modalId, id) {
                 } else {
                     secondReportCheckBox.checked = true;
                 }
-
+                validateDisplayOfSecondReport(secondReportCheckBox);
                 showModal(modalId);
             })
             .finally(() => {
@@ -406,7 +406,8 @@ async function addConsultantToProject(modalId) {
             participatesInOnCalls: Boolean(participatesInOnCallsCheckboxCUCP.checked),
             NumHoursForHoliday: numHoursForHolidayInputCUCP.value === '' || numHoursForHolidayInputCUCP.value === 'null' ? null : numHoursForHolidayInputCUCP.value,
             PrimaryReportTrackingToolName: primaryReportTrackingToolNameInputCUCP.value === '' ? null : primaryReportTrackingToolNameInputCUCP.value,
-            SecondReportTrackingToolName: secondReportTrackingToolNameInputCUCP.value === '' ? null : secondReportTrackingToolNameInputCUCP.value
+            SecondReportTrackingToolName: secondReportTrackingToolNameInputCUCP.value === '' || !secondReportCheckBox.checked ? null : secondReportTrackingToolNameInputCUCP.value,
+            NeedSecondReportTrackingTool: Boolean(secondReportCheckBox.checked)
         };
 
         try {

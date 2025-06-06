@@ -24,5 +24,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public DateTime ActionDate { get; set; }
         public bool ParticipatesInOnCalls { get; set; }
         public int NumHoursForHoliday { get; set; }
+        public string? PrimaryReportTrackingToolName { get; set; }
+        public string? SecondReportTrackingToolName { get; set; }
     }
 }
