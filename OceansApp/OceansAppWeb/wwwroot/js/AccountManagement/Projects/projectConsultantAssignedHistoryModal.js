@@ -2,7 +2,6 @@
 async function getProjectConsultantHistory(projectConsultantAssignedId, modalId) {
     displaySpinner();
     await getProjectConsultantHistoryHttps(projectConsultantAssignedId).then((data) => {
-        console.log(data);
         displayFirstRecord(data.historyList[0]);
         displayChanges(data.historyList);
 
@@ -10,7 +9,6 @@ async function getProjectConsultantHistory(projectConsultantAssignedId, modalId)
         showModal(modalId);
     });
 }
-// Function to display the first record
 
 // Custom headers mapping
 const customHeaders = {
@@ -29,135 +27,126 @@ const customHeaders = {
     "holidaysMustBePaid": "Holidays Must Be Paid",
     "isActive": "Is Active",
     "isDefaultProject": "Is Default Project",
-    "userActionedBy": "Assigned By"
+    "userActionedBy": "Assigned By",
+    "numHoursForHoliday" : "Num Hours for Holidays",
+    "primaryReportTrackingToolName": "Primary Tracking Tool",
+    "secondReportTrackingToolName": "Second Tracking Tool"
 };
-// Function to display the first record
+
+// Helper to render values with special formatting
+function renderCellValue(key, value) {
+    if (value === true) return `<img src="/icons/Shared/check.svg" alt="Yes">`;
+    if (value === false) return `<img src="/icons/Shared/fail.svg" alt="No">`;
+    if (value === null) return 'Nothing';
+
+    // Fields that should NOT have a dollar sign
+    const plainNumberFields = ['numHoursForHoliday', 'monthlyClientRateNumDays'];
+    if (Number.isFinite(value)) {
+        return plainNumberFields.includes(key)
+            ? `${value}`
+            : `$${new Intl.NumberFormat().format(value)}`;
+    }
+
+    return value;
+}
+
+// Display first record in table
 function displayFirstRecord(record) {
     const header = getElementById('first-record-header');
-    header.innerHTML = `<label>
-    <span class="action-date-span"><strong>Action Date:</strong> ${formatDateMmDdYyyy(record.actionDate)}</span> |
-    <strong>Actioned by:</strong> ${record.userActionedBy} |
-    <strong>Registration Date:</strong> ${formatUtcToLocalMmDdYyyyTime(record.creationDate)}
-    </label>`;
+    header.innerHTML = `
+        <label>
+            <span class="action-date-span"><strong>Action Date:</strong> ${formatDateMmDdYyyy(record.actionDate)}</span> |
+            <strong>Actioned by:</strong> ${record.userActionedBy} |
+            <strong>Registration Date:</strong> ${formatUtcToLocalMmDdYyyyTime(record.creationDate)}
+        </label>`;
 
     const table = getElementById('first-record-table');
     table.innerHTML = '';
+
     const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
     const headerRow = document.createElement('tr');
+    const dataRow = document.createElement('tr');
 
     Object.keys(record).forEach(key => {
-        if (!['id', 'actionDate', 'creationDate', 'userActionedBy'].includes(key) && record[key] !== null && record[key] !== 0) {
-            if (key === 'partnerPaysBenefits' && record.partnerName === null) {
-                return; // Skip adding this column
-            }
-            if (key === 'isMonthlySalaryCalculatedPerHour' && record.monthlySalary === 0) {
-                return; // Skip adding this column
-            }
+        const value = record[key];
+        if (
+            !['id', 'actionDate', 'creationDate', 'userActionedBy'].includes(key) &&
+            value !== null && value !== 0
+        ) {
+            if (key === 'partnerPaysBenefits' && record.partnerName === null) return;
+            if (key === 'isMonthlySalaryCalculatedPerHour' && record.monthlySalary === 0) return;
+
             const th = document.createElement('th');
             th.textContent = customHeaders[key] || key;
             headerRow.appendChild(th);
-        }
-    });
 
-    thead.appendChild(headerRow);
-    const dataRow = document.createElement('tr');
-    Object.keys(record).forEach(key => {
-        if (!['id', 'actionDate', 'creationDate', 'userActionedBy'].includes(key) && record[key] !== null && record[key] !== 0) {
-            if (key === 'partnerPaysBenefits' && record.partnerName === null) {
-                return; // Skip adding this column
-            }
-            if (key === 'isMonthlySalaryCalculatedPerHour' && record.monthlySalary === 0) {
-                return; // Skip adding this column
-            }
             const td = document.createElement('td');
-            td.innerHTML = record[key] !== null
-                ? (record[key] === true
-                    ? `<img src="/icons/Shared/check.svg">`
-                    : (record[key] === false
-                        ? `<img src="/icons/Shared/fail.svg">`
-                        : (Number.isFinite(record[key])
-                            ? `$${new Intl.NumberFormat().format(record[key])}`
-                            : record[key])))
-                : 'NULL';
-
+            td.innerHTML = renderCellValue(key, value);
             dataRow.appendChild(td);
         }
     });
 
+    thead.appendChild(headerRow);
     tbody.appendChild(dataRow);
     table.appendChild(thead);
     table.appendChild(tbody);
 }
 
-// Function to display changes
-
+// Display changes between records
 function displayChanges(data) {
     const changesSection = getElementById('changes-section');
     changesSection.innerHTML = '';
+
     const keysToIgnore = ['id', 'actionDate', 'userActionedBy', 'creationDate'];
     let previousRecord = data[0];
 
     for (let i = 1; i < data.length; i++) {
         const currentRecord = data[i];
+
         const recordHeader = document.createElement('div');
         recordHeader.classList.add('record-header');
-        recordHeader.innerHTML = `<label>
-        <span class="action-date-span"><strong>Action Date:</strong> ${formatDateMmDdYyyy(currentRecord.actionDate)}</span> | 
-        <strong>Actioned by:</strong> ${currentRecord.userActionedBy} | 
-        <strong>Registration Date:</strong> ${formatUtcToLocalMmDdYyyyTime(currentRecord.creationDate)}
-        </label>`;
+        recordHeader.innerHTML = `
+            <label>
+                <span class="action-date-span"><strong>Action Date:</strong> ${formatDateMmDdYyyy(currentRecord.actionDate)}</span> |
+                <strong>Actioned by:</strong> ${currentRecord.userActionedBy} |
+                <strong>Registration Date:</strong> ${formatUtcToLocalMmDdYyyyTime(currentRecord.creationDate)}
+            </label>`;
         changesSection.appendChild(recordHeader);
 
         const table = document.createElement('table');
         const thead = document.createElement('thead');
         const tbody = document.createElement('tbody');
+
         const headerRow = document.createElement('tr');
-
-        const columnHeader = document.createElement('th');
-        columnHeader.textContent = 'Updated Field';
-        const oldValueHeader = document.createElement('th');
-        oldValueHeader.textContent = 'Old Value';
-        const newValueHeader = document.createElement('th');
-        newValueHeader.textContent = 'New Value';
-
-        headerRow.appendChild(columnHeader);
-        headerRow.appendChild(oldValueHeader);
-        headerRow.appendChild(newValueHeader);
+        ['Updated Field', 'Old Value', 'New Value'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
         thead.appendChild(headerRow);
 
         let hasChanges = false;
 
         Object.keys(currentRecord).forEach(key => {
-            if (!keysToIgnore.includes(key) && currentRecord[key] !== previousRecord[key]) {
+            const currentValue = currentRecord[key];
+            const previousValue = previousRecord[key];
+
+            if (!keysToIgnore.includes(key) && currentValue !== previousValue) {
                 hasChanges = true;
+
                 const row = document.createElement('tr');
+
                 const columnCell = document.createElement('td');
+                columnCell.innerHTML = customHeaders[key] || key;
+
                 const oldValueCell = document.createElement('td');
                 oldValueCell.className = 'old-value-cell';
+                oldValueCell.innerHTML = renderCellValue(key, previousValue);
+
                 const newValueCell = document.createElement('td');
                 newValueCell.className = 'new-value-cell';
-
-                columnCell.innerHTML = customHeaders[key] || key;
-                oldValueCell.innerHTML = previousRecord[key] !== null
-                    ? (previousRecord[key] === true
-                        ? `<img src="/icons/Shared/check.svg">`
-                        : (previousRecord[key] === false
-                            ? `<img src="/icons/Shared/fail.svg">`
-                            : (Number.isFinite(previousRecord[key])
-                                ? `$${new Intl.NumberFormat().format(previousRecord[key])}`
-                                : previousRecord[key])))
-                    : 'No Partner';
-
-                newValueCell.innerHTML = currentRecord[key] !== null
-                    ? (currentRecord[key] === true
-                        ? `<img src="/icons/Shared/check.svg">`
-                        : (currentRecord[key] === false
-                            ? `<img src="/icons/Shared/fail.svg">`
-                            : (Number.isFinite(currentRecord[key])
-                                ? `$${new Intl.NumberFormat().format(currentRecord[key])}`
-                                : currentRecord[key])))
-                    : 'No Partner';
+                newValueCell.innerHTML = renderCellValue(key, currentValue);
 
                 row.appendChild(columnCell);
                 row.appendChild(oldValueCell);
@@ -174,10 +163,12 @@ function displayChanges(data) {
 
         previousRecord = currentRecord;
     }
+
     if (data.length === 1) {
-        changesSection.innerHTML = `<label class="no-changes-label">There are no change movements for this consultant.</label>`
+        changesSection.innerHTML = `<label class="no-changes-label">There are no change movements for this consultant.</label>`;
     }
 }
+
 async function getProjectConsultantHistoryHttps(projectConsultantAssignedId) {
     var url = "/AccountManagement/Projects/GetProjectConsultantAssignedHistoryById?projectConsultantAssignedId="
         + encodeURIComponent(projectConsultantAssignedId);

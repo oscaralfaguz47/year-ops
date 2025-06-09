@@ -9,5 +9,7 @@ namespace OceansApp.Models.ViewModels.ProjectConsultantAssigned
         public string UserCategory { get; set; }
         public bool ProjectIsActiveInThePeriod { get; set; }
         public bool ProjectIsBillable { get; set; }
+        public string? PrimaryReportTrackingToolName { get; set; }
+        public string? SecondReportTrackingToolName { get; set; }
     }
 }

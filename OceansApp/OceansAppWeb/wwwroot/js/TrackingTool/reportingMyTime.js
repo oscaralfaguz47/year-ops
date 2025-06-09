@@ -21,6 +21,8 @@ let isAdministrative = false;
 const noHoursSection = getElementById('add-remove-pr-in-period');
 let projectIsActiveInThePeriod = false;
 let projectIsBillable = false;
+let primaryTrackingToolName = null;
+let secondTrackingToolName = null;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -140,10 +142,13 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         noHoursError.innerHTML = '';
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
+        console.log(consultantStatusresponse);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
         projectIsBillable = statusInfo.projectIsBillable;
         isAdministrative = statusInfo.userCategory === 'Administrative' ? true : false;
         isActiveInThePeriod = statusInfo.isActive;
+        primaryTrackingToolName = statusInfo.primaryReportTrackingToolName;
+        secondTrackingToolName = statusInfo.secondReportTrackingToolName;
 
         participatesInOnCalls = statusInfo.participatesInOnCalls;
         contentBox.style.display = 'block';

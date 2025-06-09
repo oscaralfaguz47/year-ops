@@ -1489,6 +1489,10 @@ namespace OceansApp.DataAccess.Data
                 .HasColumnType("VARCHAR(255)");
                 entity.Property(c => c.ContentType)
                 .HasColumnType("VARCHAR(255)");
+                entity.Property(c => c.PrimaryReportTrackingToolName)
+                .HasColumnType("varchar(30)");
+                entity.Property(c => c.SecondReportTrackingToolName)
+                .HasColumnType("varchar(30)");
             });
 
             // REPORTING MY TIME MOVEMENT SUBMISSIONS

@@ -28,6 +28,11 @@ namespace OceansApp.Models.Models
 
         [Required]
         public DateTime CreationDate { get; set; }
+        [MaxLength(30)]
+        public string? PrimaryReportTrackingToolName { get; set; }
+        [MaxLength(30)]
+        public string? SecondReportTrackingToolName { get; set; }
+
 
         [ValidateNever]
         public ReportingMyTimeMovement ReportingMyTimeMovement { get; set; } 

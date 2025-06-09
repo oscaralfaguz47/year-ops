@@ -1,4 +1,6 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace OceansApp.Models.ViewModels.Projects
 {
     public class GetProjectConsultantAssignedHistoryVM
@@ -23,5 +25,7 @@ namespace OceansApp.Models.ViewModels.Projects
         public DateTime CreationDate { get; set; }
         public bool ParticipatesInOnCalls { get; set; }
         public int NumHoursForHoliday { get; set; }
+        public string? PrimaryReportTrackingToolName { get; set; }
+        public string? SecondReportTrackingToolName { get; set; }
     }
 }

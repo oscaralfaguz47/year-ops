@@ -57,7 +57,9 @@ namespace OceansApp.DataAccess.Repository
                                            PartnerPaysBenefits = h.PartnerPaysBenefits,
                                            UserIdActionedBy = h.UserIdActionedBy,
                                            ParticipatesInOnCalls = h.ParticipatesInOnCalls,
-                                           NumHoursForHoliday = h.NumHoursForHoliday
+                                           NumHoursForHoliday = h.NumHoursForHoliday,
+                                           PrimaryReportTrackingToolName = h.PrimaryReportTrackingToolName,
+                                           SecondReportTrackingToolName = h.SecondReportTrackingToolName
                                        }).FirstOrDefaultAsync(); 
             return currentHistory;
         }
