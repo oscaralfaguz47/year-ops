@@ -16,14 +16,14 @@ namespace OceansApp.DataAccess.Repository.IRepository
     params Expression<Func<ReportingMyTimeMovement, object>>[] includes);
         Task<List<GetProjectMovementsVM>> GetProjectMovementsAsync(int projectId, int consultId, DateTime startDate,
             DateTime endDate);
-        Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId);
+        Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId, string primarySecond, string trackingToolName);
         Task<MethodResponse> CreateTimeEntryClientNoTrackingTool(string userIdCreatedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> UpdateTimeEntryClientNoTrackingTool(string userActionedBy,
             CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> DeleteTimeEntryClientNoTrackingTool(int movementId);
-        Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId);
-        Task<int?> VerifyNumUploadedFilesPerMovementAsync(int movementId);
+        Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId, string primarySecond, string trackingToolName);
+        Task<int?> VerifyNumUploadedFilesPerMovementAsync(int movementId, string primarySecond, string trackingToolName);
         Task<MethodResponse> GetExistingMovement(string userIdCreatedBy, CreateUpdateMovementClientNoTrackingToolVM reportMovementData);
         Task<MethodResponse> DeleteBlobReport(string fileName);
 

@@ -71,7 +71,7 @@
     margin-right: 10px;
 }
 .upload-files-inputs-container{
-    display: flex;
+    display: block;
 }
 .file-upload-wrapper {
     display: flex;

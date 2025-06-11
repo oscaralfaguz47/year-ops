@@ -232,7 +232,7 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
 
         [HttpPost("UploadFilesClientNoTrackingTool")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files, [FromForm] int movementId)
+        public async Task<IActionResult> UploadFilesClientNoTrackingTool([FromForm] List<IFormFile> files, [FromForm] int movementId, [FromForm] string primarySecond)
         {
             try
             {
@@ -241,16 +241,11 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 validateInputs.ValidateRequiredFieldIntType("MovementId", "MovementId", movementId, ModelState);
                 validateInputs.ValidateRequiredFiles("Reports", "Reports", files, ModelState);
                 validateInputs.ValidateValidFiles("Reports", files, ModelState);
+                validateInputs.ValidateRequiredAndStringLength("primarySecond", "PrimarySecondTrackingTool", primarySecond.Trim(), 7, ModelState);
 
-                int? numUploadedFilesInMovement = await _unitOfWork.ReportingMyTimeMovement.VerifyNumUploadedFilesPerMovementAsync(movementId);
-
-                if (numUploadedFilesInMovement == null)
+                if (primarySecond.Trim() != "primary" && primarySecond.Trim() != "second")
                 {
-                    return BadRequest(new { error = "Something went wrong getting the num of uploaded files.", messageType = "Exception Error" });
-                }
-                if (numUploadedFilesInMovement > 7)
-                {
-                    ModelState.AddModelError("Reports", "You can not upload more than 8 files.");
+                    return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"The PrimarySecond should be 'primary' or 'second'." } });
                 }
 
                 if (!ModelState.IsValid)
@@ -277,13 +272,53 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 {
                     return BadRequest(new { error = responseValidateSubmission.Message, messageType = responseValidateSubmission.MessageType });
                 }
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId);
+                var consultant = await _unitOfWork.ConsultantDetail.GetFirstOrDefaultAsync(x => x.UserId == userActionedBy);
 
-                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId.ToString(), 2800);
+                if (consultant == null)
+                {
+                    return BadRequest(new { error = "Consultant does not exist.", messageType = "Exception Error" });
+                }
+
+                var currentProjectConsultantHistory = await _unitOfWork.ProjectConsultantAssignedHistory.GetCurrentProjectConsultantHistoryAsync(consultant.ConsultantId, movement.ProjectId, movement.ActionDate);
+
+                if (currentProjectConsultantHistory == null)
+                {
+                    return BadRequest(new { error = "Consultant doesn't have a project history.", messageType = "Exception Error" });
+                }
+                string? trackingToolName = null;
+                if (primarySecond == "primary")
+                {
+                    trackingToolName = currentProjectConsultantHistory.PrimaryReportTrackingToolName;
+                }
+                else
+                {
+                    trackingToolName = currentProjectConsultantHistory.SecondReportTrackingToolName;
+                }
+
+                if (trackingToolName == null)
+                {
+                    return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"The project history does not contain a tracking tool name." } });
+                }
+
+                int? numUploadedFilesInMovement = await _unitOfWork.ReportingMyTimeMovement.VerifyNumUploadedFilesPerMovementAsync(movementId, primarySecond, trackingToolName);
+
+                if (numUploadedFilesInMovement == null)
+                {
+                    return BadRequest(new { error = "Something went wrong getting the num of uploaded files.", messageType = "Exception Error" });
+                }
+                if (numUploadedFilesInMovement > 7)
+                {
+                    return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"You cannot upload more than 8 files." } });
+                }
+
+                List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId, primarySecond, trackingToolName);
+
+                List<BlobUploadResult> uploadedBlobs = await _azureBlobRepository.Value.UploadFilesAsync(_containerId, filesToUpload, movementId.ToString() + "_" + primarySecond, 20000);
 
                 MethodResponse resultBlob = await _unitOfWork.ReportingMyTimeMovement.CreateReportingMyTimeMovementBlob(
-                uploadedBlobs, movementId);
+                uploadedBlobs, movementId, primarySecond, trackingToolName);
 
                 if (!resultBlob.Success)
                 {
@@ -356,6 +391,10 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 if (!resultExistingMovement.Success)
                 {
                     return BadRequest(new { error = resultExistingMovement.Message });
+                }
+                else
+                {
+                    result = resultExistingMovement;
                 }
 
                 //Create the element

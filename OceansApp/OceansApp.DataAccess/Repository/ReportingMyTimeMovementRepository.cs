@@ -99,12 +99,23 @@ namespace OceansApp.DataAccess.Repository
                 return MethodResponse.CreateFailureExceptionResponse(ex.Message);
             }
         }
-        public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId)
+        public async Task<MethodResponse> CreateReportingMyTimeMovementBlob(List<BlobUploadResult> uploadedBlobs, int movementId, string primarySecond, string trackingToolName)
         {
             await using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 var errorMessage = "";
                 string blobName = "";
+                string? primaryTrackingTool = null;
+                string? secondTrackingTool = null;
+
+                if (primarySecond == "primary")
+                {
+                    primaryTrackingTool = trackingToolName;
+                }
+                else
+                {
+                    secondTrackingTool = trackingToolName;
+                }
                 try
                 {
                     var objectList = new List<AzureUploadedFilesVM>();
@@ -121,7 +132,9 @@ namespace OceansApp.DataAccess.Repository
                                 BlobUrl = uploadedBlob.BlobUrl,
                                 Size = uploadedBlob.Size,
                                 ContentType = uploadedBlob.ContentType,
-                                CreationDate = uploadedBlob.UploadDate
+                                CreationDate = uploadedBlob.UploadDate,
+                                PrimaryReportTrackingToolName = primaryTrackingTool,
+                                SecondReportTrackingToolName = secondTrackingTool
                             };
                             _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.Add(blobToSave);
                             AzureUploadedFilesVM uploadedFile = new AzureUploadedFilesVM()
@@ -150,15 +163,28 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
         }
-        public async Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId)
+        public async Task<List<IFormFile>> VerifyIfUploadFile(List<IFormFile> files, int movementId, string primarySecond, string trackingToolName)
         {
             List<IFormFile> filesToUpload = new List<IFormFile>();
             CalculateContentHash calculateHash = new CalculateContentHash();
+
             foreach (var file in files)
             {
-                string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{movementId}_{file.FileName}";
-                var existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
-                && x.MovementId == movementId);
+                string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{movementId}_{primarySecond}_{file.FileName}";
+
+               ReportingMyTimeMovementBlob existingFile;
+
+                if (primarySecond == "primary")
+                {
+                    existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
+&& x.MovementId == movementId && x.PrimaryReportTrackingToolName == trackingToolName.Trim());
+                }
+                else
+                {
+                    existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
+&& x.MovementId == movementId && x.SecondReportTrackingToolName == trackingToolName.Trim());
+                }
+
                 if (existingFile == null)
                 {
                     filesToUpload.Add((IFormFile)file);
@@ -166,11 +192,18 @@ namespace OceansApp.DataAccess.Repository
             }
             return filesToUpload;
         }
-        public async Task<int?> VerifyNumUploadedFilesPerMovementAsync(int movementId)
+        public async Task<int?> VerifyNumUploadedFilesPerMovementAsync(int movementId, string primarySecond, string trackingToolName)
         {
             try
             {
-                return await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == movementId);
+                if (primarySecond == "primary") {
+                    return await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == movementId && x.PrimaryReportTrackingToolName == trackingToolName);
+                }
+                else
+                {
+                    return await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == movementId && x.SecondReportTrackingToolName == trackingToolName);
+                }
+
             }
             catch
             {

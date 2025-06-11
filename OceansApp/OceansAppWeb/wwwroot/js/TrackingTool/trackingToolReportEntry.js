@@ -1,8 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', async function () {
-    paymentPeriod = getElementById('PaymentPeriodInput').value;
-    let currentDateNoChange = new Date();
-    calculatePeriod(currentDateNoChange, paymentPeriod); 
-});
+﻿
 
 // Element selectors
 const quantityInput = getElementById('quantityInput');
@@ -13,9 +9,11 @@ const movementIdOnCallTimeWorkedInput = getElementById('movementIdOnCallTimeWork
 const onCallFlateRateSelect = getElementById('onCallFlateRateSelect');
 const onCallTimeWorkedInput = getElementById('onCallTimeWorkedInput');
 const uploadArea = getElementById('file-upload-name');
-const fileInput = getElementById('file-upload');
 const saveReportBtn = getElementById('save-btn');
-const uploadBtn = getElementById('upload-btn');
+const uploadBtnPrimary = document.getElementById('upload-btn-primary');
+const primaryFileInput = document.getElementById('file-upload-primary');
+const uploadBtnSecond = document.getElementById('upload-btn-second');
+const secondFileInput = document.getElementById('file-upload-second');
 const holidaysContainer = getElementById('holidaysContainer');
 const dropArea = document.querySelector('.file-upload-wrapper');
 const noTrackingToolSection = getElementById('no-tracking-tool-sec');
@@ -29,9 +27,106 @@ let transactionStatus = 'No actions';
 let fileList = [];
 let isCreatingMovement = false;
 let movementCreationPromise = null;
+let lastFocusedUploadInput = null;
+
 
 const displayElement = (element, displayStyle) => element.style.display = displayStyle;
 
+const fileUploadStates = {
+    'file-upload-primary': { fileList: [], blobNames: [] },
+    'file-upload-second': { fileList: [], blobNames: [] }
+};
+document.addEventListener('DOMContentLoaded', async function () {
+    paymentPeriod = getElementById('PaymentPeriodInput').value;
+    let currentDateNoChange = new Date();
+    calculatePeriod(currentDateNoChange, paymentPeriod);
+
+    initializeFileUpload({
+        inputId: 'file-upload-primary',
+        dropAreaSelector: '#primary-upload-files-input .file-upload-wrapper',
+        uploadAreaId: 'file-upload-name-primary',
+        infoTextId: 'info-text-primary',
+        previewSectionClass: '#primary-upload-files-input .preview-files-section'
+    });
+
+    initializeFileUpload({
+        inputId: 'file-upload-second',
+        dropAreaSelector: '#second-upload-files-input .file-upload-wrapper',
+        uploadAreaId: 'file-upload-name-second',
+        infoTextId: 'info-text-second',
+        previewSectionClass: '#second-upload-files-input .preview-files-section'
+    });
+});
+function initializeFileUpload({ inputId, dropAreaSelector, uploadAreaId, infoTextId, previewSectionClass }) {
+    const input = document.getElementById(inputId);
+    const dropArea = document.querySelector(dropAreaSelector);
+    const uploadArea = document.getElementById(uploadAreaId);
+    const infoText = document.getElementById(infoTextId);
+    const previewSection = document.querySelector(previewSectionClass);
+    const state = fileUploadStates[inputId];
+    if (!state) {
+        console.warn(`Upload state for inputId '${inputId}' is not defined.`);
+        return;
+    }
+
+    input.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
+
+    dropArea.addEventListener('dragover', event => {
+        if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
+            event.preventDefault();
+            dropArea.classList.add('dragover');
+        }
+    });
+
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('dragover');
+    });
+
+    dropArea.addEventListener('drop', event => {
+        event.preventDefault();
+        dropArea.classList.remove('dragover');
+        handleFilesInput(event.dataTransfer.files, inputId, uploadArea, infoText, previewSection);
+    });
+    dropArea.addEventListener('click', () => {
+        lastFocusedUploadInput = { inputId, uploadArea, infoText, previewSection };
+    });
+
+
+    input.addEventListener('change', event => {
+        handleFilesInput(event.target.files, inputId, uploadArea, infoText, previewSection);
+    });
+
+    document.addEventListener('paste', event => {
+        if ((transactionStatus === 'No actions' || transactionStatus === 'Rejected') && lastFocusedUploadInput) {
+            const items = event.clipboardData?.items;
+            if (items) {
+                const files = Array.from(items)
+                    .filter(item => item.kind === 'file')
+                    .map(item => item.getAsFile());
+                if (files.length > 0) {
+                    handleFilesInput(
+                        files,
+                        lastFocusedUploadInput.inputId,
+                        lastFocusedUploadInput.uploadArea,
+                        lastFocusedUploadInput.infoText,
+                        lastFocusedUploadInput.previewSection
+                    );
+                }
+            }
+        }
+    });
+
+}
+function handleFilesInput(files, inputId, uploadArea, infoText, previewSection) {
+    const state = fileUploadStates[inputId];
+    for (const file of files) {
+        if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file, state?.fileList || [])) {
+            state.fileList.push(file);
+            updateFileDisplay(file, true, null, 'No actions', null, uploadArea, state, previewSection, inputId, infoText);
+        }
+    }
+    updateInfoText(uploadArea, infoText);
+}
 function handleChangeData() {
     saveReportBtn.style.display = 'block';
 }
@@ -47,29 +142,9 @@ dropArea.addEventListener('dragleave', () => {
     dropArea.classList.remove('dragover');
 });
 
-dropArea.addEventListener('drop', handleFiles);
-fileInput.addEventListener('change', handleFiles);
-fileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
+primaryFileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
+secondFileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
 
-document.addEventListener('paste', event => {
-    if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
-        const items = event.clipboardData || event.originalEvent.clipboardData;
-        if (items) {
-            let files = [];
-            if (items.files && items.files.length) {
-                files = Array.from(items.files);
-            } else if (items.items) {
-                files = Array.from(items.items)
-                    .filter(item => item.kind === 'file')
-                    .map(item => item.getAsFile());
-            }
-
-            if (files.length > 0) {
-                processFiles(files);
-            }
-        }
-    }
-});
 
 // File handling functions
 async function handleFiles(event) {
@@ -99,73 +174,71 @@ function processFiles(newFiles) {
     updateInfoText();
 }
 function isValidFileType(file) {
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    const validExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'];
-    return validExtensions.includes(fileExtension);
+    const ext = file.name.split('.').pop().toLowerCase();
+    return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'].includes(ext);
 }
 function isValidFileSize(file) {
     return file.size <= maxFileSize;
 }
-function isDuplicate(file) {
+function isDuplicate(file, fileList) {
+    if (!Array.isArray(fileList)) return false;
     return fileList.some(f => f.name === file.name && f.size === file.size);
 }
-function updateInfoText() {
-    const infoText = getElementById('info-text');
-    infoText.style.display = uploadArea.textContent.trim() === '' && uploadArea.childNodes.length === 0 ? 'block' : 'none';
+function updateInfoText(uploadArea, infoText) {
+    if (uploadArea.children.length === 0) {
+        infoText.style.display = 'block';
+    } else {
+        infoText.style.display = 'none';
+    }
 }
 
 // File display functions
-function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus, blobUrl) {
+function updateFileDisplay(file, isUploading, fileNameFromDb, transactionStatus, blobUrl, uploadArea, state, previewSection, inputId, infoText) {
     const fileElement = document.createElement('div');
     fileElement.className = 'row-selected-file';
 
     const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+
     const spinnerLabel = document.createElement('label');
     spinnerLabel.className = 'spinner-label';
     spinnerLabel.innerHTML = '<i class="fa-solid fa-spinner saving-icon"></i>';
     displayElement(spinnerLabel, 'block');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
 
     const fileName = document.createElement('a');
     fileName.textContent = isUploading ? file.name : cleanFileName(fileNameFromDb);
 
     if (blobUrl) {
         fileName.href = blobUrl;
-        fileName.target = '_blank';
-        fileName.rel = 'noopener noreferrer'; 
     } else if (file) {
-        const localUrl = URL.createObjectURL(file); 
+        const localUrl = URL.createObjectURL(file);
         fileName.href = localUrl;
-        fileName.target = '_blank';
-        fileName.rel = 'noopener noreferrer'; 
-
-        fileName.onclick = function () {
-            setTimeout(() => URL.revokeObjectURL(localUrl), 5000);
-        };
+        fileName.onclick = () => setTimeout(() => URL.revokeObjectURL(localUrl), 5000);
     } else {
         fileName.href = '#';
-        fileName.onclick = function (event) {
-            event.preventDefault();
-            console.error('No file available to redirect.');
-        };
+        fileName.onclick = e => { e.preventDefault(); console.error('No file available to redirect.'); };
     }
 
+    fileName.target = '_blank';
+    fileName.rel = 'noopener noreferrer';
 
     const statusLabel = document.createElement('span');
-    statusLabel.textContent = '';
     statusLabel.className = 'span-status';
+
     fileElement.appendChild(fileName);
     fileElement.appendChild(statusLabel);
     uploadArea.appendChild(fileElement);
 
     if (isUploading) {
-        handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel);
+        handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel, state, uploadArea, previewSection, inputId, infoText);
     } else {
-        finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn, spinnerLabel, transactionStatus);
+        // reuse existing finalize logic if needed
     }
 }
-async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel) {
+
+async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinnerLabel, state, uploadArea, previewSection, inputId, infoText)
+ {
     if (!movementIdNormalHoursInput.value && !isCreatingMovement) {
         isCreatingMovement = true;
         try {
@@ -187,31 +260,50 @@ async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinn
     if (movementCreationPromise) {
         await movementCreationPromise;
     }
-    uploadFile(file, statusLabel, fileElement).then(data => {
+    uploadFile(file, statusLabel, fileElement, inputId).then(data => {
         const blobUrl = URL.createObjectURL(file);
         const newBlob = {
             BlobName: data.fileNamesUploaded[0].blobName,
-            BlobUrl: data.fileNamesUploaded[0].blobUrl
+            BlobUrl: data.fileNamesUploaded[0].blobUrl,
+            PrimaryReportTrackingToolName: inputId.includes('primary') ? 'yes' : null,
+            SecondReportTrackingToolName: inputId.includes('second') ? 'yes' : null
         };
-        blobNames.push(newBlob);
+
+        const currentState = fileUploadStates[inputId];
+        currentState.blobNames.push(newBlob);
+
         deleteBtn.onclick = async function () {
             await deleteFile(data.fileNamesUploaded[0].blobName, statusLabel, deleteBtn, spinnerLabel);
-            fileList.splice(fileList.indexOf(file), 1);
 
-            const blobIndex = blobNames.findIndex(blob => blob.BlobName === data.fileNamesUploaded[0].blobName);
+            // Eliminar del estado correcto
+            const currentState = fileUploadStates[inputId];
+            const indexInFileList = currentState.fileList.findIndex(f => f.name === file.name && f.size === file.size);
+            if (indexInFileList !== -1) {
+                currentState.fileList.splice(indexInFileList, 1);
+            }
+
+            const blobIndex = currentState.blobNames.findIndex(blob => blob.BlobName === data.fileNamesUploaded[0].blobName);
+            // Remove from global blobNames array
+            const globalIndex = blobNames.findIndex(b => b.BlobName === data.fileNamesUploaded[0].blobName);
+            if (globalIndex !== -1) {
+                blobNames.splice(globalIndex, 1);
+            }
+
             if (blobIndex !== -1) {
-                blobNames.splice(blobIndex, 1);
+                currentState.blobNames.splice(blobIndex, 1);
             }
 
             fileElement.remove();
-            updateInfoText();
-            validateUploadedFilesToRemovePreviewBtn();
-            URL.revokeObjectURL(blobUrl); 
+            updateInfoText(uploadArea, infoText);
+            validateUploadedFilesToTogglePreviewBtn();
+
+            URL.revokeObjectURL(blobUrl);
         };
+
         fileElement.appendChild(deleteBtn);
         fileElement.appendChild(spinnerLabel);
         displayElement(spinnerLabel, 'none');
-        validateUploadedFilesToRemovePreviewBtn();
+        validateUploadedFilesToTogglePreviewBtn();
 
         console.log("Lista de blobs actualizada:", blobNames);
     }).catch(error => {
@@ -232,19 +324,27 @@ function finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn
         }
         fileElement.remove();
         updateInfoText();
-        validateUploadedFilesToRemovePreviewBtn();
+        validateUploadedFilesToTogglePreviewBtn();
         console.log(blobNames);
     };
     statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
 }
 
 // File upload functions
-async function uploadFile(file, statusLabel, fileElement) {
+async function uploadFile(file, statusLabel, fileElement, inputId) {
     submissionError.innerHTML = '';
     const token = $('[name="__RequestVerificationToken"]').val();
     const formData = new FormData();
+
+    // Determines whether it is 'primary' or 'second' based on the input ID
+    const primarySecond = inputId === 'file-upload-primary' ? 'primary' : 'second';
+
+    console.log('PRIMARY OR SECOND: ' + primarySecond);
+
     formData.append('files', file);
     formData.append('movementId', movementIdNormalHoursInput.value);
+    formData.append('primarySecond', primarySecond);
+
     statusLabel.innerHTML = '<i class="fa-solid fa-spinner saving-icon"></i>';
 
     try {
@@ -262,6 +362,7 @@ async function uploadFile(file, statusLabel, fileElement) {
             handleUploadError(errorData, fileElement, statusLabel);
             return null;
         }
+
         const data = await response.json();
         console.log(data);
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
@@ -274,6 +375,7 @@ async function uploadFile(file, statusLabel, fileElement) {
         return null;
     }
 }
+
 function handleUploadError(errorData, fileElement, statusLabel) {
     switch (errorData.messageType) {
         case "Validation Error":
@@ -435,8 +537,11 @@ function initializeUploadProcess() {
     if (uploadArea) {
         uploadArea.innerHTML = '';
     }
-    if (fileInput) {
-        fileInput.value = '';
+    if (primaryFileInput) {
+        primaryFileInput.value = '';
+    }
+    if (secondFileInput) {
+        secondFileInput.value = '';
     }
 }
 function updateStatusReportSubmittedClientHasTrackingTool() {
@@ -450,9 +555,12 @@ function updateStatusReportSubmittedClientHasTrackingTool() {
     notesInput.disabled = true;
     onCallFlateRateSelect.disabled = true;
     onCallTimeWorkedInput.disabled = true;
-    fileInput.disabled = true;
+    primaryFileInput.disabled = true;
+    secondFileInput.disabled = true;
     displayElement(saveReportBtn, 'none');
-    displayElement(uploadBtn, 'none');
+    displayElement(uploadBtnPrimary, 'none');
+    displayElement(uploadBtnSecond, 'none');
+
 }
 
 // Fetch project movements
@@ -473,6 +581,7 @@ async function getProjectMovementsClientHasTrackTool(participatesOnCall) {
         }
 
         const data = await response.json();
+        console.log(data);
         updateProjectMovements(data);
     } catch (error) {
         validateSessionExpiration(error.message);
@@ -486,8 +595,30 @@ function updateProjectMovements(data) {
     let onCallFlateRateQuantity = 0;
     let onCallTimeWorkedQuantity = 0;
     let notes = '';
-    blobNames = [];
-    previewFilesElement.style.display = 'none';
+    let holidaysCount = 0;
+    let holidaysHtmlList = ``;
+
+    const primaryUploadArea = document.getElementById('file-upload-name-primary');
+    const primaryInfoText = document.getElementById('info-text-primary');
+    const primaryPreviewSection = document.querySelector('#primary-upload-files-input .preview-files-section');
+    const primaryUploadBtn = document.getElementById('upload-btn-primary');
+    const primaryFileInput = document.getElementById('file-upload-primary');
+    const primaryState = fileUploadStates['file-upload-primary'];
+
+    const secondUploadArea = document.getElementById('file-upload-name-second');
+    const secondInfoText = document.getElementById('info-text-second');
+    const secondPreviewSection = document.querySelector('#second-upload-files-input .preview-files-section');
+    const secondUploadBtn = document.getElementById('upload-btn-second');
+    const secondFileInput = document.getElementById('file-upload-second');
+    const secondState = fileUploadStates['file-upload-second'];
+
+    // Reset previous data
+    primaryState.blobNames = [];
+    secondState.blobNames = [];
+    primaryUploadArea.innerHTML = '';
+    secondUploadArea.innerHTML = '';
+    primaryPreviewSection.style.display = 'none';
+    secondPreviewSection.style.display = 'none';
 
     if (data.movementsList.length > 0) {
         const normalMovement = data.movementsList.find(movement => movement.movementTypeName !== 'Holidays');
@@ -501,20 +632,70 @@ function updateProjectMovements(data) {
     notesInput.disabled = false;
     onCallFlateRateSelect.disabled = false;
     onCallTimeWorkedInput.disabled = false;
-    fileInput.disabled = false;
+    primaryFileInput.disabled = false;
+    secondFileInput.disabled = false;
     transactionStatus = 'No actions';
-    displayElement(uploadBtn, 'block');
-    let holidaysCount = 0;
-    let holidaysHtmlList = ``;
+    displayElement(primaryUploadBtn, 'block');
+    displayElement(secondUploadBtn, 'block');
 
-    data.movementsList.forEach(function (obj) {
+    data.movementsList.forEach(obj => {
         if (obj.movementTypeName === 'Normal Hours') {
-            notes += obj.notes === null ? '' : obj.notes;
+            notes += obj.notes || '';
             normalHoursQuantity += obj.quantity;
-            JSON.parse(obj.blobData).forEach(blobName => blobNames.push(blobName));
-            if (blobNames.length > 0) {
-                previewFilesElement.style.display = 'flex';
-            }
+
+            const blobs = JSON.parse(obj.blobData);
+            blobs.forEach(blob => {
+                const isPrimary = blob.PrimaryReportTrackingToolName !== null;
+                const uploadArea = isPrimary ? primaryUploadArea : secondUploadArea;
+                const state = isPrimary ? primaryState : secondState;
+                const infoText = isPrimary ? primaryInfoText : secondInfoText;
+
+                state.blobNames.push(blob);          
+                blobNames.push(blob);                 
+
+                const fileElement = document.createElement('div');
+                fileElement.className = 'row-selected-file';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+
+                const spinnerLabel = document.createElement('label');
+                spinnerLabel.className = 'spinner-label';
+                spinnerLabel.style.display = 'none';
+                spinnerLabel.innerHTML = '<i class="fa fa-spinner fa-spin"></i>'; 
+
+
+                const fileName = document.createElement('a');
+                fileName.textContent = cleanFileName(blob.BlobName);
+                fileName.href = blob.BlobUrl;
+                fileName.target = '_blank';
+                fileName.rel = 'noopener noreferrer';
+
+                const statusLabel = document.createElement('span');
+                statusLabel.className = 'span-status';
+                statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
+
+                deleteBtn.onclick = async function () {
+                    displayElement(deleteBtn, 'none');
+                    displayElement(spinnerLabel, 'block');
+                    await deleteFile(blob.BlobName, statusLabel, deleteBtn, spinnerLabel);
+                    const index = state.blobNames.findIndex(b => b.BlobName === blob.BlobName);
+                    if (index !== -1) state.blobNames.splice(index, 1);
+                    const globalIndex = blobNames.findIndex(b => b.BlobName === blob.BlobName);
+                    if (globalIndex !== -1) blobNames.splice(globalIndex, 1);
+                    fileElement.remove();
+                    updateInfoText(uploadArea, infoText);
+                    validateUploadedFilesToTogglePreviewBtn();
+                };
+
+                fileElement.appendChild(fileName);
+                fileElement.appendChild(statusLabel);
+                fileElement.appendChild(spinnerLabel); 
+                fileElement.appendChild(deleteBtn);   
+                uploadArea.appendChild(fileElement);
+
+            });
         }
         if (obj.movementTypeName === 'On Call Flate Rate') {
             onCallFlateRateQuantity += obj.quantity;
@@ -534,6 +715,10 @@ function updateProjectMovements(data) {
         }
     });
 
+    updateInfoText(primaryUploadArea, primaryInfoText);
+    updateInfoText(secondUploadArea, secondInfoText);
+    validateUploadedFilesToTogglePreviewBtn();
+
     if (holidaysCount > 0) {
         holidaysContainer.innerHTML = `<label>You have ${holidaysCount} holiday${holidaysCount === 1 ? '' : 's'} to be reimbursed for this period</label> <div style="display:flex; justify-content:center">${holidaysHtmlList}</div>`;
         displayElement(holidaysContainer, 'block');
@@ -546,10 +731,10 @@ function updateProjectMovements(data) {
     onCallFlateRateSelect.value = onCallFlateRateQuantity;
     onCallTimeWorkedInput.value = onCallTimeWorkedQuantity;
     notesInput.value = notes;
-    blobNames.forEach(blobName => updateFileDisplay(null, false, blobName.BlobName, transactionStatus, blobName.BlobUrl));
-    updateInfoText();
     displayElement(noTrackingToolSection, 'block');
 }
+
+
 
 // File deletion
 async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
@@ -558,7 +743,8 @@ async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
         return;
     }
 
-    fileInput.value = '';
+    primaryFileInput.value = '';
+    secondFileInput.value = '';
     displayElement(deleteBtn, 'none');
     statusLabel.innerHTML = '';
     displayElement(spinnerLabel, 'block');
@@ -583,13 +769,53 @@ async function deleteFile(fileName, statusLabel, deleteBtn, spinnerLabel) {
         handleDeleteError({ error: 'Network error occurred. Please try again.' }, statusLabel, deleteBtn, spinnerLabel);
     }
 }
-function validateUploadedFilesToRemovePreviewBtn() {
-    if (dropArea.querySelectorAll('.row-selected-file').length > 0) {
-        previewFilesElement.style.display = 'flex';
-    } else {
-        previewFilesElement.style.display = 'none';
+
+function validateUploadedFilesToTogglePreviewBtn() {
+    const previewSectionPrimary = document.querySelector('#primary-upload-files-input .preview-files-section');
+    const previewSectionSecond = document.querySelector('#second-upload-files-input .preview-files-section');
+    const primaryUploadArea = document.getElementById('file-upload-name-primary');
+    const secondUploadArea = document.getElementById('file-upload-name-second');
+    const primaryInfoText = document.getElementById('info-text-primary');
+    const secondInfoText = document.getElementById('info-text-second');
+    const globalPreviewBtn = document.getElementById('preview-uploaded-files-btn');
+
+    const primaryState = fileUploadStates['file-upload-primary'];
+    const secondState = fileUploadStates['file-upload-second'];
+
+    const primaryDOMFiles = primaryUploadArea ? primaryUploadArea.querySelectorAll('.row-selected-file') : [];
+    const secondDOMFiles = secondUploadArea ? secondUploadArea.querySelectorAll('.row-selected-file') : [];
+
+    // Sync info text visibility with DOM
+    if (primaryInfoText) {
+        primaryInfoText.style.display = primaryDOMFiles.length === 0 ? 'block' : 'none';
     }
+    if (secondInfoText) {
+        secondInfoText.style.display = secondDOMFiles.length === 0 ? 'block' : 'none';
+    }
+
+    // Sync preview section visibility
+    if (previewSectionPrimary) {
+        previewSectionPrimary.style.display = primaryDOMFiles.length > 0 ? 'flex' : 'none';
+    }
+    if (previewSectionSecond) {
+        previewSectionSecond.style.display = secondDOMFiles.length > 0 ? 'flex' : 'none';
+    }
+
+    // Also check actual state lists (edge cases where DOM not yet synced)
+    const primaryHasFiles = primaryDOMFiles.length > 0 || (primaryState?.fileList?.length ?? 0) > 0 || (primaryState?.blobNames?.length ?? 0) > 0;
+    const secondHasFiles = secondDOMFiles.length > 0 || (secondState?.fileList?.length ?? 0) > 0 || (secondState?.blobNames?.length ?? 0) > 0;
+
+    // Control global preview button
+    if (globalPreviewBtn) {
+        globalPreviewBtn.style.display = (primaryHasFiles || secondHasFiles) ? 'inline-block' : 'none';
+    }
+
+    // Also reset "file input" value if no files left (to allow re-upload of same file)
+    if (primaryDOMFiles.length === 0 && primaryFileInput) primaryFileInput.value = '';
+    if (secondDOMFiles.length === 0 && secondFileInput) secondFileInput.value = '';
 }
+
+
 function handleDeleteError(data, statusLabel, deleteBtn, spinnerLabel) {
     statusLabel.textContent = 'Delete failed';
     displayElement(deleteBtn, 'block');
@@ -607,13 +833,19 @@ notesInput.addEventListener('input', function () {
 
 function cleanFileName(fileName) {
     const regex = /^[a-f0-9]+_\d+_/i;
-    return fileName.replace(regex, '');
+    let cleaned = fileName.replace(regex, '');
+
+    cleaned = cleaned.replace(/(?:^|_)(primary|second)_?/, '');
+
+    return cleaned;
 }
 
-function previewUploadedFiles(modalId) {
-    previewContainer.innerHTML = "";
 
-    blobNames.forEach(blob => {
+function previewPrimaryUploadedFiles(modalId) {
+    previewContainer.innerHTML = "";
+    const primaryState = fileUploadStates['file-upload-primary'];
+
+    primaryState.blobNames.forEach(blob => {
         const fileType = getFileType(blob.BlobName);
 
         if (fileType === "image" || fileType === "svg") {
@@ -629,6 +861,28 @@ function previewUploadedFiles(modalId) {
 
     showModal(modalId);
 }
+
+function previewSecondUploadedFiles(modalId) {
+    previewContainer.innerHTML = "";
+    const secondState = fileUploadStates['file-upload-second'];
+
+    secondState.blobNames.forEach(blob => {
+        const fileType = getFileType(blob.BlobName);
+
+        if (fileType === "image" || fileType === "svg") {
+            previewImage(blob);
+        } else if (fileType === "pdf") {
+            previewPDF(blob);
+        } else if (fileType === "word" || fileType === "excel") {
+            previewTextOrOffice(blob);
+        } else {
+            previewOther(blob);
+        }
+    });
+
+    showModal(modalId);
+}
+
 
 function getFileType(fileName) {
     const lowerCaseName = fileName.toLowerCase();
