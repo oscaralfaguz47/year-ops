@@ -779,35 +779,68 @@ function validateUploadedFilesToTogglePreviewBtn() {
     const primaryDOMFiles = primaryUploadArea ? primaryUploadArea.querySelectorAll('.row-selected-file') : [];
     const secondDOMFiles = secondUploadArea ? secondUploadArea.querySelectorAll('.row-selected-file') : [];
 
+    // Update state blobNames arrays based on current DOM content
+    primaryState.blobNames = Array.from(primaryDOMFiles).map(fileEl => {
+        const anchor = fileEl.querySelector('a');
+        const blobName = anchor ? anchor.textContent : '';
+        const blobUrl = anchor ? anchor.href : '';
+        return {
+            BlobName: blobName,
+            BlobUrl: blobUrl,
+            PrimaryReportTrackingToolName: 'yes',
+            SecondReportTrackingToolName: null
+        };
+    });
+
+    secondState.blobNames = Array.from(secondDOMFiles).map(fileEl => {
+        const anchor = fileEl.querySelector('a');
+        const blobName = anchor ? anchor.textContent : '';
+        const blobUrl = anchor ? anchor.href : '';
+        return {
+            BlobName: blobName,
+            BlobUrl: blobUrl,
+            PrimaryReportTrackingToolName: null,
+            SecondReportTrackingToolName: 'yes'
+        };
+    });
+
+    // Hide delete buttons if status is not editable
+    const deleteBtns = document.querySelectorAll('.row-selected-file .delete-btn');
+    deleteBtns.forEach(btn => {
+        btn.style.display = (transactionStatus === 'No actions' || transactionStatus === 'Rejected') ? 'block' : 'none';
+    });
+
     // Sync info text visibility with DOM
-    if (primaryInfoText) {
-        primaryInfoText.style.display = primaryDOMFiles.length === 0 ? 'block' : 'none';
+    if (primaryInfoText && primaryUploadArea) {
+        primaryInfoText.style.display = primaryUploadArea.children.length === 0 ? 'block' : 'none';
     }
-    if (secondInfoText) {
-        secondInfoText.style.display = secondDOMFiles.length === 0 ? 'block' : 'none';
+    if (secondInfoText && secondUploadArea) {
+        secondInfoText.style.display = secondUploadArea.children.length === 0 ? 'block' : 'none';
     }
 
     // Sync preview section visibility
     if (previewSectionPrimary) {
-        previewSectionPrimary.style.display = primaryDOMFiles.length > 0 ? 'flex' : 'none';
+        previewSectionPrimary.style.display = primaryUploadArea && primaryUploadArea.children.length > 0 ? 'flex' : 'none';
     }
     if (previewSectionSecond) {
-        previewSectionSecond.style.display = secondDOMFiles.length > 0 ? 'flex' : 'none';
+        previewSectionSecond.style.display = secondUploadArea && secondUploadArea.children.length > 0 ? 'flex' : 'none';
     }
 
     // Also check actual state lists (edge cases where DOM not yet synced)
-    const primaryHasFiles = primaryDOMFiles.length > 0 || (primaryState?.fileList?.length ?? 0) > 0 || (primaryState?.blobNames?.length ?? 0) > 0;
-    const secondHasFiles = secondDOMFiles.length > 0 || (secondState?.fileList?.length ?? 0) > 0 || (secondState?.blobNames?.length ?? 0) > 0;
+    const primaryHasFiles = (primaryUploadArea?.children.length ?? 0) > 0 || (primaryState?.fileList?.length ?? 0) > 0 || (primaryState?.blobNames?.length ?? 0) > 0;
+    const secondHasFiles = (secondUploadArea?.children.length ?? 0) > 0 || (secondState?.fileList?.length ?? 0) > 0 || (secondState?.blobNames?.length ?? 0) > 0;
 
     // Control global preview button
     if (globalPreviewBtn) {
         globalPreviewBtn.style.display = (primaryHasFiles || secondHasFiles) ? 'inline-block' : 'none';
     }
 
-    // Also reset "file input" value if no files left (to allow re-upload of same file)
-    if (primaryDOMFiles.length === 0 && primaryFileInput) primaryFileInput.value = '';
-    if (secondDOMFiles.length === 0 && secondFileInput) secondFileInput.value = '';
+    // Also reset file inputs if no files left to allow re-upload of same file
+    if (primaryUploadArea?.children.length === 0 && primaryFileInput) primaryFileInput.value = '';
+    if (secondUploadArea?.children.length === 0 && secondFileInput) secondFileInput.value = '';
 }
+
+
 
 
 function handleDeleteError(data, statusLabel, deleteBtn, spinnerLabel) {
