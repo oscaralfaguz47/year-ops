@@ -21,8 +21,6 @@ let isAdministrative = false;
 const noHoursSection = getElementById('add-remove-pr-in-period');
 let projectIsActiveInThePeriod = false;
 let projectIsBillable = false;
-let primaryTrackingToolName = null;
-let secondTrackingToolName = null;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -142,13 +140,10 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         noHoursError.innerHTML = '';
         initializeNavigation();
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
-        console.log(consultantStatusresponse);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
         projectIsBillable = statusInfo.projectIsBillable;
         isAdministrative = statusInfo.userCategory === 'Administrative' ? true : false;
         isActiveInThePeriod = statusInfo.isActive;
-        primaryTrackingToolName = statusInfo.primaryReportTrackingToolName;
-        secondTrackingToolName = statusInfo.secondReportTrackingToolName;
 
         participatesInOnCalls = statusInfo.participatesInOnCalls;
         contentBox.style.display = 'block';
@@ -212,6 +207,43 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                 buttons.forEach(btn => {
                     if (btn) btn.disabled = false;
                 });
+            }
+            const primaryInputFileSection = getElementById('primary-upload-files-input');
+            const secondInputFileSection = getElementById('second-upload-files-input');
+            const uploadIcon = `<i class="fa fa-cloud-upload"></i>`;
+            if (primaryInputFileSection) {
+                const primaryTrackingToolName = statusInfo.primaryReportTrackingToolName.trim();
+                const primaryfileTitle = primaryInputFileSection.querySelector('.file-input-title');
+                primaryfileTitle.innerHTML = `<span>${primaryTrackingToolName}'s Hours Report</span> 
+                        <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info tooltip-target"></i>
+                            <div class="tooltip-content">
+                                <div class="tooltip-arrow"></div>
+                                Please export your timesheet report from the '${primaryTrackingToolName}' tracking tool and import it here.
+                            </div>
+                        </div>`;
+                const uploadBtn = primaryInputFileSection.querySelector('.file-upload-label');
+                uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
+            }
+            if (secondInputFileSection) {
+                if (statusInfo.secondReportTrackingToolName !== null) {
+                    const secondTrackingToolName = statusInfo.secondReportTrackingToolName.trim();
+                    const secondfileTitle = secondInputFileSection.querySelector('.file-input-title');
+                    secondfileTitle.innerHTML = `<span>${secondTrackingToolName}'s Hours Report</span>
+                    <div class="tooltip-container">
+                            <i class="fa-solid fa-circle-info tooltip-target"></i>
+                            <div class="tooltip-content">
+                                <div class="tooltip-arrow"></div>
+                                Please export your timesheet report from the '${secondTrackingToolName}' tracking tool and import it here.
+                            </div>
+                        </div>`;
+                    const uploadBtn = secondInputFileSection.querySelector('.file-upload-label');
+                    uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
+                    secondInputFileSection.style.display = 'block';
+                } else {
+                    secondInputFileSection.style.display = 'none';
+                }
+
             }
         } else {
             if (statusInfo.isActive && statusInfo.accessToTrackingTool && statusInfo.projectIsActiveInThePeriod) {

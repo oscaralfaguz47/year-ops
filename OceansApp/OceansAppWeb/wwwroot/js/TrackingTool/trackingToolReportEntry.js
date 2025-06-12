@@ -305,7 +305,6 @@ async function handleFileUpload(file, statusLabel, fileElement, deleteBtn, spinn
         displayElement(spinnerLabel, 'none');
         validateUploadedFilesToTogglePreviewBtn();
 
-        console.log("Lista de blobs actualizada:", blobNames);
     }).catch(error => {
         console.error("Error uploading the file:", error);
     });
@@ -325,7 +324,6 @@ function finalizeFileDisplay(fileNameFromDb, fileElement, statusLabel, deleteBtn
         fileElement.remove();
         updateInfoText();
         validateUploadedFilesToTogglePreviewBtn();
-        console.log(blobNames);
     };
     statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
 }
@@ -338,8 +336,6 @@ async function uploadFile(file, statusLabel, fileElement, inputId) {
 
     // Determines whether it is 'primary' or 'second' based on the input ID
     const primarySecond = inputId === 'file-upload-primary' ? 'primary' : 'second';
-
-    console.log('PRIMARY OR SECOND: ' + primarySecond);
 
     formData.append('files', file);
     formData.append('movementId', movementIdNormalHoursInput.value);
@@ -364,7 +360,6 @@ async function uploadFile(file, statusLabel, fileElement, inputId) {
         }
 
         const data = await response.json();
-        console.log(data);
         statusLabel.innerHTML = '<i class="fa-solid fa-check uploaded-check-icon green-label"></i>';
         return data;
     } catch (error) {
@@ -581,7 +576,6 @@ async function getProjectMovementsClientHasTrackTool(participatesOnCall) {
         }
 
         const data = await response.json();
-        console.log(data);
         updateProjectMovements(data);
     } catch (error) {
         validateSessionExpiration(error.message);

@@ -2,32 +2,25 @@
 <link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css?v=@DateTime.Now.Ticks" />
 
 <div id="no-tracking-tool-sec">
-    <div class="row mt-3">
+    <div class="mt-3 no-tracking-tool-row">
         <input type="hidden" id="movementIdNormalHoursInput" />
-        <div class="col-md-6">
-           <div class="upload-files-inputs-container">
+        <div class="no-tracking-tool-col">
+            <div class="upload-files-inputs-container">
                 <div class="file-upload-container" id="primary-upload-files-input">
                     <div class="file-upload-wrapper">
-                        <span>
-                            Dragon Spears  <div class="tooltip-container ">
-                                <i class="fa-solid fa-circle-info tooltip-target"></i>
-                                <div class="tooltip-content">
-                                    <div class="tooltip-arrow"></div>
-                                    Upload the hours report from the Dragons Spears tracking tool, Ex: Harvest.
-                                </div>
-                            </div>
+                        <span class="file-input-title">
                         </span>
                         <input type="file" name="file-upload" id="file-upload-primary" class="file-upload-input" multiple hidden />
                         <label id="upload-btn-primary" for="file-upload-primary" class="file-upload-label">
-                            <i class="fa fa-cloud-upload"></i> Upload your report
+                            <i class="fa fa-cloud-upload"></i>
                         </label>
                         <div class="uploaded-files-section">
                             <div>
                                 <span id="file-upload-name-primary" class="file-upload-name"></span>
-                                <p class="file-upload-instructions" id="info-text-primary">
+                                <span class="file-upload-instructions" id="info-text-primary">
                                     <strong>No files selected...</strong><br />
                                     <span>Drag and Drop, Select files or Copy and Paste screenshots here...</span>
-                                </p>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -43,26 +36,19 @@
 
                 <div class="file-upload-container" id="second-upload-files-input">
                     <div class="file-upload-wrapper">
-                        <span>
-                            Dragon Spear's Client <div class="tooltip-container ">
-                                <i class="fa-solid fa-circle-info tooltip-target"></i>
-                                <div class="tooltip-content">
-                                    <div class="tooltip-arrow"></div>
-                                    Upload the hours report from the Dragons Spears's client tracking tool.
-                                </div>
-                            </div>
+                        <span class="file-input-title">
                         </span>
                         <input type="file" name="file-upload" id="file-upload-second" class="file-upload-input" multiple hidden />
                         <label id="upload-btn-second" for="file-upload-second" class="file-upload-label">
-                            <i class="fa fa-cloud-upload"></i> Upload your report
+                            <i class="fa fa-cloud-upload"></i>
                         </label>
                         <div class="uploaded-files-section">
                             <div>
                                 <span id="file-upload-name-second" class="file-upload-name"></span>
-                                <p class="file-upload-instructions" id="info-text-second">
+                                <span class="file-upload-instructions" id="info-text-second">
                                     <strong>No files selected...</strong><br />
                                     <span>Drag and Drop, Select files or Copy and Paste screenshots here...</span>
-                                </p>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -75,10 +61,10 @@
                         </button>
                     </div>
                 </div>
-           </div>
+            </div>
         </div>
 
-        <div class="col-md-6 report-input-cont">
+        <div class="no-tracking-tool-col report-input-cont">
             <div>
                 <div id="holidaysContainer" class="fields-backg">
                 </div>
@@ -86,7 +72,7 @@
                     <div class="col-7">
                         <label>Total Regular Hours <span class="red-label">*</span></label>
 
-                        <div class="tooltip-container ">
+                        <div class="tooltip-container">
                             <i class="fa-solid fa-circle-info tooltip-target"></i>
                             <div class="tooltip-content">
                                 <div class="tooltip-arrow"></div>
@@ -143,7 +129,7 @@
 </div>
 
 
-<partial name="_TrackingToolReportPreviewUploadedFilesPartialView" /> 
+<partial name="_TrackingToolReportPreviewUploadedFilesPartialView" />
 
 <script src="~/js/TrackingTool/trackingToolReportEntry.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/inputValidations.js?v=@DateTime.Now.Ticks"></script>
