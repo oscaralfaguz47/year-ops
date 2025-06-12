@@ -11,9 +11,11 @@ namespace OceansApp.DataAccess.Repository
     public class ReportingMyTimeMovementSubmissionRepository : Repository<ReportingMyTimeMovementSubmission>, IReportingMyTimeMovementSubmissionRepository
     {
         private ApplicationDbContext _db;
-        public ReportingMyTimeMovementSubmissionRepository(ApplicationDbContext db) : base(db)
+        private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
+        public ReportingMyTimeMovementSubmissionRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
         {
             _db = db;
+            _projectConsultantAssignedHistoryRepository = unitOfWork.ProjectConsultantAssignedHistory;
         }
 
         public async Task<MethodResponse> CreateSubmission(string userIdCreatedBy, CreateSubmissionVM submissionData)
@@ -60,10 +62,29 @@ namespace OceansApp.DataAccess.Repository
                         {
                             return MethodResponse.CreateFailureValidationResponse("Enter and save your worked hours to submit the report.", "Hours");
                         }
-                        int uploadedBlobs = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId);
-                        if (uploadedBlobs == 0)
+                        //File validations
+                        var currentProjectConsultantHistory = await _projectConsultantAssignedHistoryRepository.GetCurrentProjectConsultantHistoryAsync(currentUser.ConsultantId, submissionData.ProjectId, submissionData.EndPeriodDate);
+                        if (currentProjectConsultantHistory == null)
                         {
-                            return MethodResponse.CreateFailureValidationResponse("You must upload at least one file to submit the report.", "Report");
+                            return MethodResponse.CreateFailureNotFoundResponse("The consultant doesn't have a project history.");
+                        }
+
+                        int uploadedBlobsPrimaryTrackingTool = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId && 
+                        x.PrimaryReportTrackingToolName.Trim() == currentProjectConsultantHistory.PrimaryReportTrackingToolName.Trim());
+                        if (uploadedBlobsPrimaryTrackingTool == 0)
+                        {
+                            return MethodResponse.CreateFailureValidationResponse($"At least one file from <strong>'{currentProjectConsultantHistory.PrimaryReportTrackingToolName.Trim()}'</strong> is required to submit.", "Report");
+                        }
+                        //Second file validations
+
+                        if (currentProjectConsultantHistory.SecondReportTrackingToolName != null)
+                        {
+                            int uploadedBlobsSecondTrackingTool = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId && 
+                            x.SecondReportTrackingToolName.Trim() == currentProjectConsultantHistory.SecondReportTrackingToolName.Trim());
+                            if (uploadedBlobsSecondTrackingTool == 0)
+                            {
+                                return MethodResponse.CreateFailureValidationResponse($"At least one file from <strong>'{currentProjectConsultantHistory.SecondReportTrackingToolName.Trim()}'</strong> is required to submit.", "Report");
+                            }
                         }
                     }
 
@@ -75,12 +96,12 @@ namespace OceansApp.DataAccess.Repository
 
                     var movements = await _db.REPORTING_MY_TIME_MOVEMENTS.Where(x => x.ProjectId == project.ProjectId &&
                     x.ConsultantId == currentUser.ConsultantId && (x.ActionDate.Date >= submissionData.StartPeriodDate.Date &&
-                    x.ActionDate.Date <= submissionData.EndPeriodDate.Date) && (x.TransactionStatus.Name == "No actions" 
+                    x.ActionDate.Date <= submissionData.EndPeriodDate.Date) && (x.TransactionStatus.Name == "No actions"
                     || x.TransactionStatus.Name == "Rejected"))
                         .Include(x => x.TransactionStatus).ToListAsync();
 
-                    var existingSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.Include(x => x.TransactionStatus).FirstOrDefaultAsync(x => 
-                    x.ConsultantId == currentUser.ConsultantId && x.ProjectId == submissionData.ProjectId && x.StartPeriodDate.Date == submissionData.StartPeriodDate.Date 
+                    var existingSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.Include(x => x.TransactionStatus).FirstOrDefaultAsync(x =>
+                    x.ConsultantId == currentUser.ConsultantId && x.ProjectId == submissionData.ProjectId && x.StartPeriodDate.Date == submissionData.StartPeriodDate.Date
                     && x.EndPeriodDate.Date == submissionData.EndPeriodDate.Date);
 
                     if (existingSubmission == null)
@@ -138,23 +159,23 @@ namespace OceansApp.DataAccess.Repository
         public async Task<List<LastTimesheetSubmittedVM>> GetLastTimesheetSubmittedAsync(int consultantId)
         {
             var result = (from su in _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS
-                         join p in _db.PROJECTS on su.ProjectId equals p.ProjectId
-                         join ts in _db.TRANSACTION_STATUSES on su.TransactionStatusId equals ts.TransactionStatusId
-                         where su.ConsultantId == consultantId
-                         orderby su.SubmissionDate descending
-                         select new LastTimesheetSubmittedVM
-                         {
-                             StartDate = su.StartPeriodDate,
-                             EndDate = su.EndPeriodDate,
-                             ProjectName = p.Name,
-                             Status = ts.Name,
-                             TotalHours = _db.REPORTING_MY_TIME_MOVEMENTS
-                                            .Where(rmtm => rmtm.ProjectId == su.ProjectId
-                                                        && rmtm.ConsultantId == su.ConsultantId
-                                                        && rmtm.ActionDate >= su.StartPeriodDate
-                                                        && rmtm.ActionDate <= su.EndPeriodDate)
-                                            .Sum(rmtm => (decimal?)rmtm.Quantity) ?? 0
-                         })
+                          join p in _db.PROJECTS on su.ProjectId equals p.ProjectId
+                          join ts in _db.TRANSACTION_STATUSES on su.TransactionStatusId equals ts.TransactionStatusId
+                          where su.ConsultantId == consultantId
+                          orderby su.SubmissionDate descending
+                          select new LastTimesheetSubmittedVM
+                          {
+                              StartDate = su.StartPeriodDate,
+                              EndDate = su.EndPeriodDate,
+                              ProjectName = p.Name,
+                              Status = ts.Name,
+                              TotalHours = _db.REPORTING_MY_TIME_MOVEMENTS
+                                             .Where(rmtm => rmtm.ProjectId == su.ProjectId
+                                                         && rmtm.ConsultantId == su.ConsultantId
+                                                         && rmtm.ActionDate >= su.StartPeriodDate
+                                                         && rmtm.ActionDate <= su.EndPeriodDate)
+                                             .Sum(rmtm => (decimal?)rmtm.Quantity) ?? 0
+                          })
              .Take(10)
              .ToList();
 

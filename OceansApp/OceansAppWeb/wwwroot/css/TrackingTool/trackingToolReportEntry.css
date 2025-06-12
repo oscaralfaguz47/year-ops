@@ -76,11 +76,21 @@
         text-overflow: ellipsis;
         white-space: nowrap; 
     }
-
+#info-message-second-input {
+    font-size: 0.9rem;
+    margin-top: 12px;
+    text-align: center;
+    color: #d70b00;
+    max-width: 450px;
+}
+#info-message-second-input strong {
+    color: #d70b00;
+    font-weight: 900 !important;
+}
 .span-status {
-    order: 2; 
-    flex-grow: 0; 
-    flex-shrink: 0; 
+    order: 2;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 .row-selected-file a {
     text-align: left;

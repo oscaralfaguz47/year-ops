@@ -85,7 +85,7 @@ namespace OceansApp.DataAccess.Repository
             ProjectConsultantPendingSubmission = new ProjectConsultantPendingSubmissionRepository(_db, _telemetryClient);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db, this);
-            ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db);
+            ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db, this);
             ReportingMyTimeMovementType = new ReportingMyTimeMovementTypeRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
             DocumentsCCNotification = new DocumentsCCNotificationRepository(_db);
