@@ -239,7 +239,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                         </div>`;
                     const uploadBtn = secondInputFileSection.querySelector('.file-upload-label');
                     uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
-                    secondInputFileSection.style.display = 'block';
+                    secondInputFileSection.style.display = 'flex';
                     getElementById('info-message-second-input').innerHTML = `* Ensure <strong>'${statusInfo.primaryReportTrackingToolName.trim()}'</strong> and <strong>'${secondTrackingToolName}'</strong> 
                     hours are consistent to prevent discrepancies with the client.`;
                 } else {

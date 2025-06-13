@@ -20,9 +20,11 @@ namespace OceansApp.DataAccess.Repository
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
         private readonly Lazy<QueueClient> _queueClient;
+        private readonly IHourReportValidationServiceRepository _hourReportValidationServiceRepository;
+
         public UnitOfWork(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IMemoryCache cache, 
             IProjectConsultantAssignedHistoryRepository projectConsultantAssignedHistoryRepository, TelemetryClient telemetryClient,
-            HttpClient httpClient, IConfiguration config, Lazy<QueueClient> queueClient)
+            HttpClient httpClient, IConfiguration config, Lazy<QueueClient> queueClient, IHourReportValidationServiceRepository hourReportValidationServiceRepository)
         {
             ProjectConsultantAssignedHistory = projectConsultantAssignedHistoryRepository;
             _telemetryClient = telemetryClient;
@@ -69,6 +71,7 @@ namespace OceansApp.DataAccess.Repository
             CostCenterAccountingAccount = new CostCenterAccountingAccountRepository(_db);
             DocumentCCSubtype = new DocumentCCSubtypeRepository(_db);
             DocumentType = new DocumentTypeRepository(_db);
+            _hourReportValidationServiceRepository = hourReportValidationServiceRepository;
             Interview = new InterviewRepository(_db, this);
             ImageBlob = new ImageBlobRepository(_db);
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
@@ -85,7 +88,7 @@ namespace OceansApp.DataAccess.Repository
             ProjectConsultantPendingSubmission = new ProjectConsultantPendingSubmissionRepository(_db, _telemetryClient);
             ProjectUserSelected = new ProjectUserSelectedRepository(_db);
             ReportingMyTimeMovement = new ReportingMyTimeMovementRepository(_db, this);
-            ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db, this);
+            ReportingMyTimeMovementSubmission = new ReportingMyTimeMovementSubmissionRepository(_db, this, _hourReportValidationServiceRepository);
             ReportingMyTimeMovementType = new ReportingMyTimeMovementTypeRepository(_db);
             DocumentCC = new DocumentCCRepository(_db);
             DocumentsCCNotification = new DocumentsCCNotificationRepository(_db);

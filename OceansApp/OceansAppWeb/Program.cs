@@ -16,6 +16,8 @@ using OceansApp.DataAccess;
 using Azure.Identity;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using OceansApp.Models.ViewModels.OpenAI;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,7 +96,7 @@ try
     }
     else
     {
-        // Producción sí usa App Configuration
+        // Production if use App Configuration
         connectionString = builder.Configuration["DbConnectionString"];
         logger.LogInformation("Using connection string from Azure App Configuration.");
     }
@@ -123,6 +125,19 @@ try
 
     //Configure Authorization Policies
     AuthorizationConfig.ConfigurePolicies(builder.Services);
+
+    // Configuring azureFormRecognizer - OCR
+    builder.Services.AddSingleton<IOcrServiceRepository>(provider =>
+    {
+        var cfg = provider.GetRequiredService<IConfiguration>();
+        var endpoint = cfg["AzureFormRecognizer:Endpoint"];
+        var key = cfg["AzureFormRecognizer:Key"];
+        return new OcrServiceRepository(endpoint, key);
+    });
+    //OpenAI
+    builder.Services.AddScoped<IOpenAIRepository, OpenAIRepository>();
+    //Reports validation
+    builder.Services.AddScoped<IHourReportValidationServiceRepository, HourReportValidationServiceRepository>();
 
     // Scoped services
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

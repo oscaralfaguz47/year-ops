@@ -12,10 +12,12 @@ namespace OceansApp.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
-        public ReportingMyTimeMovementSubmissionRepository(ApplicationDbContext db, IUnitOfWork unitOfWork) : base(db)
+        private readonly IHourReportValidationServiceRepository _hourReportValidationServiceRepository;
+        public ReportingMyTimeMovementSubmissionRepository(ApplicationDbContext db, IUnitOfWork unitOfWork, IHourReportValidationServiceRepository hourReportValidationServiceRepository) : base(db)
         {
             _db = db;
             _projectConsultantAssignedHistoryRepository = unitOfWork.ProjectConsultantAssignedHistory;
+            _hourReportValidationServiceRepository = hourReportValidationServiceRepository;
         }
 
         public async Task<MethodResponse> CreateSubmission(string userIdCreatedBy, CreateSubmissionVM submissionData)
@@ -85,6 +87,23 @@ namespace OceansApp.DataAccess.Repository
                             {
                                 return MethodResponse.CreateFailureValidationResponse($"At least one file from <strong>'{currentProjectConsultantHistory.SecondReportTrackingToolName.Trim()}'</strong> is required to submit.", "Report");
                             }
+
+                            //Validate with AI
+                            if (!string.IsNullOrWhiteSpace(currentProjectConsultantHistory.PrimaryReportTrackingToolName) &&
+    !string.IsNullOrWhiteSpace(currentProjectConsultantHistory.SecondReportTrackingToolName))
+                            {
+                                var (isValid, message) = await _hourReportValidationServiceRepository.ValidateMatchingReportsAsync(
+                                    movement.MovementId,
+                                    currentProjectConsultantHistory.PrimaryReportTrackingToolName,
+                                    currentProjectConsultantHistory.SecondReportTrackingToolName
+                                );
+
+                                if (!isValid)
+                                {
+                                    return MethodResponse.CreateFailureValidationResponse(message, "Report");
+                                }
+                            }
+
                         }
                     }
 

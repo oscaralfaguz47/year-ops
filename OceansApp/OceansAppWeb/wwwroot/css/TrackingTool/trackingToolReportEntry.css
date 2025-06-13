@@ -29,7 +29,7 @@
 }
 
 .file-upload-container {
-    display: block;
+    display: flex;
     justify-content: center;
     margin: 4px 4px 6px;
     position: relative;
@@ -84,7 +84,6 @@
     max-width: 450px;
 }
 #info-message-second-input strong {
-    color: #d70b00;
     font-weight: 900 !important;
 }
 .span-status {
