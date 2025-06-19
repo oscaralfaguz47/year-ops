@@ -1,0 +1,298 @@
+﻿@using OceansApp.Models.ViewModels.Components
+@model RobotTypingModalVM
+
+<div class="modal-overlay" id="typingModal">
+    <div class="modal">
+       <div>
+            <div class="robot-img-cont">
+                <img src="https://i.pinimg.com/originals/4b/cb/1f/4bcb1fb72d1d08efa44efa5ceb712ec7.gif" />
+            </div>
+           <div style="display:flex; justify-content:center; width:100%">
+                <div class="typing-container" id="typingText">
+                    <span id="typingContent"></span><span class="cursor">|</span>
+                </div>
+           </div>
+            <div id="typingActions" class="typing-actions" style="display: none;">
+                <p class="robot-message">
+                    🤖 <strong>OpenAI</strong> can make mistakes. if you trust your reports, click on
+                    <button class="action-btn" onclick="submitReportAnyway()">Submit my report anyway</button>
+                    <br />
+                    Otherwise, click on
+                    <button class="action-btn primary" onclick="closeTypingModal()">Fix my reports</button> to make changes.
+                </p>
+            </div>
+
+       </div>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    .modal {
+        background: #1e293b;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 90%;
+        height: 90%;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .robot-img-cont {
+        display: flex;
+        justify-content:center;
+    }
+    .robot-img-cont img{
+        width: 230px;
+    }
+
+    .typing-container {
+        display: inline-block;
+        min-width: 10ch;
+        min-height: 1.4em;
+        overflow: hidden;
+        color: #f1f5f9;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.2rem;
+        background: rgba(255, 255, 255, 0.05);
+        outline: 1px dashed lime;
+        padding: 5px;
+    }
+
+    .cursor {
+        display: inline-block;
+        width: 1px;
+        color: #38bdf8;
+        animation: blink-caret 0.75s step-end infinite;
+    }
+    @@keyframes blink-caret {
+        0%, 100% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: transparent;
+        border: none;
+        color: #f1f5f9;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .typing-actions {
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+        color: #cbd5e1;
+        text-align: center;
+        animation: fade-in 0.4s ease-in-out;
+    }
+
+    .robot-message {
+        background: rgba(56, 189, 248, 0.1);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #38bdf8;
+        display: inline-block;
+        max-width: 100%;
+    }
+
+        .robot-message button {
+            margin-top: 0.5rem;
+        }
+
+    .action-btn {
+        background: #334155;
+        color: #f1f5f9;
+        border: 1px solid #38bdf8;
+        padding: 0.4rem 0.9rem;
+        margin: 0.4rem 0.3rem 0;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+        .action-btn:hover {
+            background: #475569;
+        }
+
+        .action-btn.primary {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+        }
+
+@@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+    let typingTimeouts = [];
+
+    function showTypingModal() {
+        const modal = document.getElementById("typingModal");
+        const content = document.getElementById("typingContent");
+        const actions = document.getElementById("typingActions");
+
+        if (!modal || !content) return;
+
+        clearAllTypingTimeouts();
+        modal.classList.add("active");
+
+        content.textContent = "";
+        actions.style.display = "none";
+
+        const mistakeText = "@Model.MistakeText".trim();
+        const finalText = "@Model.FinalText".trim();
+
+        let displayText = "";
+        let index = 0;
+
+        function typeMistake() {
+            if (!content) return;
+
+            if (index < mistakeText.length) {
+                displayText += mistakeText.charAt(index);
+                content.textContent = displayText;
+                index++;
+                typingTimeouts.push(setTimeout(typeMistake, 80));
+            } else {
+                typingTimeouts.push(setTimeout(() => {
+                    deleteMistake(displayText.length);
+                }, 300));
+            }
+        }
+
+        function deleteMistake(count) {
+            if (!content) return;
+
+            if (count > 0) {
+                displayText = displayText.slice(0, -1);
+                content.textContent = displayText;
+                typingTimeouts.push(setTimeout(() => deleteMistake(count - 1), 50));
+            } else {
+                index = 0;
+                displayText = "";
+                typeFinalText();
+            }
+        }
+
+        function typeFinalText() {
+            if (!content) return;
+
+            if (index < finalText.length) {
+                displayText += finalText.charAt(index);
+                content.textContent = displayText;
+                index++;
+                typingTimeouts.push(setTimeout(typeFinalText, 80));
+            }
+        }
+
+        typeMistake();
+    }
+
+    function updateTypingText(expectedText) {
+        const content = document.getElementById("typingContent");
+        const actions = document.getElementById("typingActions");
+
+        if (!content) return;
+
+        clearAllTypingTimeouts();
+        content.textContent = "";
+        actions.style.display = "none";
+
+        let current = "";
+        let index = 0;
+
+        const deleteSpeed = 4;
+        const typeSpeed = 10;
+
+        function deleteCurrentText(count) {
+            if (!content) return;
+
+            if (count > 0) {
+                current = current.slice(0, -1);
+                content.textContent = current;
+                typingTimeouts.push(setTimeout(() => deleteCurrentText(count - 1), deleteSpeed));
+            } else {
+                index = 0;
+                current = "";
+                typeExpectedText();
+            }
+        }
+
+        function typeExpectedText() {
+            if (!content) return;
+
+            if (index < expectedText.length) {
+                current += expectedText.charAt(index);
+                content.textContent = current;
+                index++;
+                typingTimeouts.push(setTimeout(typeExpectedText, typeSpeed));
+            }
+
+            if (index >= expectedText.length && actions) {
+                actions.style.display = "block";
+            }
+        }
+
+        deleteCurrentText(content.textContent.length);
+    }
+
+    function closeTypingModal() {
+        const modal = document.getElementById("typingModal");
+        const content = document.getElementById("typingContent");
+        const actions = document.getElementById("typingActions");
+
+        if (modal) modal.classList.remove("active");
+        clearAllTypingTimeouts();
+        if (content) content.textContent = "";
+        if (actions) actions.style.display = "none";
+    }
+
+    function clearAllTypingTimeouts() {
+        for (const timeout of typingTimeouts) {
+            clearTimeout(timeout);
+        }
+        typingTimeouts = [];
+    }
+
+    function submitReportAnyway() {
+        alert("✅ Report submitted!");
+        closeTypingModal();
+    }
+</script>

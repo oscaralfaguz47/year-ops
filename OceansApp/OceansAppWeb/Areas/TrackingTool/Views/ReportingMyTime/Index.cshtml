@@ -1,4 +1,5 @@
-﻿@using OceansApp.Models.ViewModels.ProjectConsultantAssigned
+﻿@using OceansApp.Models.ViewModels.Components
+@using OceansApp.Models.ViewModels.ProjectConsultantAssigned
 @model GetConsultantSelectedProjectInfoVM
 
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
@@ -8,6 +9,16 @@
 <link rel="stylesheet" href="~/css/Shared/Labels/transactionStatuses.css?v=@DateTime.Now.Ticks" />
 
 <div id="rmt-background">
+
+    @await Html.PartialAsync(
+            "~/Views/Shared/Components/GlobalComponents/_RobotWaitingModalPartialView.cshtml",
+            new RobotTypingModalVM
+    {
+        MistakeText = "Oceans",
+        FinalText = "OpenAI is reviewing your reports, wait..."
+    }
+            )
+
     <!-- Project Dropdown -->
     @if (Model.ProjectName != null)
     {
@@ -170,6 +181,9 @@
     }
 
 </div>
+
+
+
 
 <partial name="_TrackingToolTimeEntryAutofillModal" />
 

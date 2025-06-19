@@ -3,6 +3,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IOcrServiceRepository
     {
-        Task<string> ExtractTextFromFileAsync(string fileUrl);
+        Task<string> ExtractLayoutTextFromFileAsync(string fileUrl);
     }
 }

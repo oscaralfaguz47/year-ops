@@ -5,7 +5,6 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.DataFromSoftland;
-using SkiaSharp;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository

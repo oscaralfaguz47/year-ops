@@ -100,7 +100,7 @@ namespace OceansApp.DataAccess.Repository
 
                                 if (!isValid)
                                 {
-                                    return MethodResponse.CreateFailureValidationResponse(message, "Report");
+                                    return MethodResponse.CreateFailureValidationResponse(message, "OpenAI");
                                 }
                             }
 

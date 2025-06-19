@@ -21,6 +21,7 @@ let isAdministrative = false;
 const noHoursSection = getElementById('add-remove-pr-in-period');
 let projectIsActiveInThePeriod = false;
 let projectIsBillable = false;
+let secondTrackingToolRequired = false;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -142,6 +143,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
         const consultantStatusresponse = await getConsultantStatusInTheProject(dateFromInput.value, dateToInput.value);
         const statusInfo = consultantStatusresponse.consultantStatusInTheProject;
         projectIsBillable = statusInfo.projectIsBillable;
+        secondTrackingToolRequired = statusInfo.secondReportTrackingToolName === null ? false : true;
         isAdministrative = statusInfo.userCategory === 'Administrative' ? true : false;
         isActiveInThePeriod = statusInfo.isActive;
 
@@ -291,7 +293,11 @@ async function submitReportToBePaid() {
 
     try {
         noHoursError.innerHTML = '';
-        displaySpinner();
+        if (secondTrackingToolRequired) {
+            showTypingModal();
+        } else {
+            displaySpinner();
+        }
 
         const datesFromTo = getNormalizedDates(dateFromInput, dateToInput);
         let startDateData = datesFromTo.startDate;
@@ -321,13 +327,18 @@ async function submitReportToBePaid() {
                     const allErrors = Object.values(errorData.errors).reduce((acc, current) => {
                         return acc.concat(current);
                     }, []);
-                    if (errorData.errors.Report !== undefined || errorData.errors.Hours !== undefined) {
+                    if (errorData.errors.Hours !== undefined || errorData.errors.Report !== undefined) {
+                        closeTypingModal();
                         submissionError.style.display = 'block';
                         submissionError.innerHTML = `<span>${errorData.errors.Report}</span>`;
                     }
                     if (errorData.errors.Hours !== undefined) {
+                        closeTypingModal();
                         submissionError.style.display = 'block';
                         submissionError.innerHTML = `<span>${errorData.errors.Hours}</span>`;
+                    }
+                    if (errorData.errors.OpenAI !== undefined) {
+                        updateTypingText(errorData.errors.OpenAI[0]);
                     }
                     break;
                 case "Not Found":
@@ -336,7 +347,9 @@ async function submitReportToBePaid() {
                 default:
                     displayToasterError('An unexpected error occurred: ' + errorData.error);
             }
-            hideSpinner();
+            if (!secondTrackingToolRequired) {
+                hideSpinner();
+            }
             return null;
         }
 
@@ -352,6 +365,9 @@ async function submitReportToBePaid() {
 
         submissionError.innerHTML = '';
         hideSpinner();
+        if (secondTrackingToolRequired) {
+            closeTypingModal();
+        }
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);
@@ -465,3 +481,5 @@ async function noHoursToReportInPeriod(projectId) {
         return null;
     }
 }
+
+

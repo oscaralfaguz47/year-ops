@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -32,29 +34,28 @@ namespace OceansApp.DataAccess.Repository
             if (!primaryUrls.Any() || !secondUrls.Any())
                 return (false, "One or both report sources are missing for validation.");
 
-            var primaryTextTasks = primaryUrls.Select(url => _ocrService.ExtractTextFromFileAsync(url));
-            var secondTextTasks = secondUrls.Select(url => _ocrService.ExtractTextFromFileAsync(url));
+            var primaryTexts = await Task.WhenAll(primaryUrls.Select(_ocrService.ExtractLayoutTextFromFileAsync));
+            var secondTexts = await Task.WhenAll(secondUrls.Select(_ocrService.ExtractLayoutTextFromFileAsync));
 
-            var primaryTexts = await Task.WhenAll(primaryTextTasks);
-            var secondTexts = await Task.WhenAll(secondTextTasks);
+            var formattedPrimary = string.Join("\n---\n", primaryTexts);
+            var formattedSecond = string.Join("\n---\n", secondTexts);
 
-            // Concatenate all extracted texts
-            var combinedPrimaryText = string.Join("\n\n", primaryTexts);
-            var combinedSecondText = string.Join("\n\n", secondTexts);
+            Console.WriteLine("🟩 Primary Text:\n" + formattedPrimary);
+            Console.WriteLine("🟦 Second Text:\n" + formattedSecond);
 
-            // Send combined text to OpenAI
-            var result = await _openAI.CompareReportsAsync(combinedPrimaryText, combinedSecondText);
+            var result = await _openAI.CompareReportsAsync(formattedPrimary, formattedSecond, primaryToolName, secondToolName);
+            var trimmed = result.Trim().Trim('"');
 
-
-            if (result.Contains("match", StringComparison.OrdinalIgnoreCase) &&
-                !result.Contains("difference", StringComparison.OrdinalIgnoreCase))
-            {
-                return (true, "The uploaded reports appear to match.");
-            }
-            else
-            {
-                return (false, $"Mismatch detected between reports: {result}");
-            }
+            bool isMatch = trimmed.Contains("Reports match.", StringComparison.OrdinalIgnoreCase);
+            return (isMatch, isMatch ? "The uploaded reports appear to match." : $"{trimmed}");
         }
+
+
     }
+
+
+
+
+
+
 }

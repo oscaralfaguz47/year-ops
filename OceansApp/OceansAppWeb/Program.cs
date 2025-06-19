@@ -16,8 +16,6 @@ using OceansApp.DataAccess;
 using Azure.Identity;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
-using OceansApp.Models.ViewModels.OpenAI;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
