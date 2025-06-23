@@ -214,7 +214,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
             const primaryInputFileSection = getElementById('primary-upload-files-input');
             const secondInputFileSection = getElementById('second-upload-files-input');
             const uploadIcon = `<i class="fa fa-cloud-upload"></i>`;
-            if (primaryInputFileSection) {
+            if (primaryInputFileSection && projectIsActiveInThePeriod) {
                 const primaryTrackingToolName = statusInfo.primaryReportTrackingToolName.trim();
                 const primaryfileTitle = primaryInputFileSection.querySelector('.file-input-title');
                 primaryfileTitle.innerHTML = `<span>${primaryTrackingToolName}'s Hours Report</span> 
@@ -228,7 +228,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                 const uploadBtn = primaryInputFileSection.querySelector('.file-upload-label');
                 uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
             }
-            if (secondInputFileSection) {
+            if (secondInputFileSection && projectIsActiveInThePeriod) {
                 const infoMessageSecondInput = getElementById('info-message-second-input');
                 if (statusInfo.secondReportTrackingToolName !== null) {
                     const secondTrackingToolName = statusInfo.secondReportTrackingToolName.trim();
