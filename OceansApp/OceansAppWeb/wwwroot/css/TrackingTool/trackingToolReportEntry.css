@@ -78,10 +78,9 @@
     }
 #info-message-second-input {
     font-size: 0.9rem;
-    margin-top: 12px;
+    margin-top: 20px;
     text-align: center;
-    color: #d70b00;
-    max-width: 450px;
+    color: gray;
 }
 #info-message-second-input strong {
     font-weight: 900 !important;

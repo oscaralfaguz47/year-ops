@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -39,9 +37,6 @@ namespace OceansApp.DataAccess.Repository
 
             var formattedPrimary = string.Join("\n---\n", primaryTexts);
             var formattedSecond = string.Join("\n---\n", secondTexts);
-
-            Console.WriteLine("🟩 Primary Text:\n" + formattedPrimary);
-            Console.WriteLine("🟦 Second Text:\n" + formattedSecond);
 
             var result = await _openAI.CompareReportsAsync(formattedPrimary, formattedSecond, primaryToolName, secondToolName);
             var trimmed = result.Trim().Trim('"');

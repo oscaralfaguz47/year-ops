@@ -22,6 +22,7 @@ const noHoursSection = getElementById('add-remove-pr-in-period');
 let projectIsActiveInThePeriod = false;
 let projectIsBillable = false;
 let secondTrackingToolRequired = false;
+let confirmSubmitWithDifferences = false;
 async function fillProjectsDropdown(dropdownList) {
     dropdownList.innerHTML = `<li class="spinner-cont"><div class="spinner"></div></li>`;
     dropdownList.style.display = 'block';
@@ -228,6 +229,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                 uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
             }
             if (secondInputFileSection) {
+                const infoMessageSecondInput = getElementById('info-message-second-input');
                 if (statusInfo.secondReportTrackingToolName !== null) {
                     const secondTrackingToolName = statusInfo.secondReportTrackingToolName.trim();
                     const secondfileTitle = secondInputFileSection.querySelector('.file-input-title');
@@ -242,10 +244,12 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                     const uploadBtn = secondInputFileSection.querySelector('.file-upload-label');
                     uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
                     secondInputFileSection.style.display = 'flex';
-                    getElementById('info-message-second-input').innerHTML = `* Ensure <strong>'${statusInfo.primaryReportTrackingToolName.trim()}'</strong> and <strong>'${secondTrackingToolName}'</strong> 
+                    infoMessageSecondInput.innerHTML = `* Ensure <strong>'${statusInfo.primaryReportTrackingToolName.trim()}'</strong> and <strong>'${secondTrackingToolName}'</strong> 
                     hours are consistent to prevent discrepancies with the client.`;
+                    infoMessageSecondInput.style.display = 'block';
                 } else {
                     secondInputFileSection.style.display = 'none';
+                    infoMessageSecondInput.style.display = 'none';
                 }
 
             }
@@ -293,7 +297,7 @@ async function submitReportToBePaid() {
 
     try {
         noHoursError.innerHTML = '';
-        if (secondTrackingToolRequired) {
+        if (secondTrackingToolRequired && !confirmSubmitWithDifferences) {
             showTypingModal();
         } else {
             displaySpinner();
@@ -306,7 +310,8 @@ async function submitReportToBePaid() {
         var data = {
             ProjectId: Number(projectIdInput.value),
             StartPeriodDate: startDateData,
-            EndPeriodDate: endDateData
+            EndPeriodDate: endDateData,
+            ConfirmSubmitWithDifferences: confirmSubmitWithDifferences
         };
 
         var token = $('[name="__RequestVerificationToken"]').val();
@@ -343,9 +348,15 @@ async function submitReportToBePaid() {
                     break;
                 case "Not Found":
                     displayToasterError(errorData.detail);
+                    if (secondTrackingToolRequired) {
+                        closeTypingModal();
+                    }
                     break;
                 default:
                     displayToasterError('An unexpected error occurred: ' + errorData.error);
+                    if (secondTrackingToolRequired) {
+                        closeTypingModal();
+                    }
             }
             if (!secondTrackingToolRequired) {
                 hideSpinner();
@@ -374,6 +385,9 @@ async function submitReportToBePaid() {
         console.error('Network or fetch error:', err);
         displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
         hideSpinner();
+        if (secondTrackingToolRequired) {
+            closeTypingModal();
+        }
         return null;
     }
 }

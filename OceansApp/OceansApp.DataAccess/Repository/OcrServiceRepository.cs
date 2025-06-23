@@ -21,7 +21,7 @@ namespace OceansApp.DataAccess.Repository
 
             var sb = new StringBuilder();
 
-            // 👇 Extraer contenido general (fuera de tablas)
+            // Extract general content (outside tables)
             if (result.Paragraphs != null)
             {
                 foreach (var paragraph in result.Paragraphs)
@@ -36,7 +36,6 @@ namespace OceansApp.DataAccess.Repository
 
             sb.AppendLine();
 
-            // 👇 Extraer contenido de tablas (como ya lo hacías)
             foreach (var table in result.Tables)
             {
                 for (int rowIndex = 0; rowIndex < table.RowCount; rowIndex++)

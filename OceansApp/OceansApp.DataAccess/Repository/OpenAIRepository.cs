@@ -20,7 +20,7 @@ namespace OceansApp.DataAccess.Repository
             var prompt = $$"""
 You are a highly strict and detail-oriented validator of timesheet reports. Your task is to analyze and compare the total time and its distribution in two reports.
 
-🧠 IMPORTANT: You must verify both the **total reported hours** and the **distribution of those hours by day or date**. If **either the total OR the distribution differs**, it is considered a mismatch.
+🧠 IMPORTANT: You must verify the **total reported hours**. If **the total differs**, it is considered a mismatch.
 
 You MUST detect and interpret all the following formats:
 - Time formats like "8 h - 0 m", "4h 5m", or "3.5 hours".
@@ -32,10 +32,13 @@ You MUST detect and interpret all the following formats:
 - Reports separated by week or ranges (e.g., "06/01/2025 to 06/07/2025").
 
 📁 MULTIPLE REPORT BLOCKS:
-- Each report block is separated by `---`.
-- You must treat each block as an independent report.
-- Extract and sum the total hours and validate the reported **period** (e.g., date range like "01 - 15 Jun 2025").
-- Then, sum all hours across all blocks **for each tool**.
+- Each tool's report may contain **multiple independent report blocks** (e.g., multiple date ranges or biweekly reports).
+- These blocks are visually separated by `---`.
+- You must identify **all blocks** within Report A ({{primaryToolName}}) and Report B ({{secondToolName}}).
+- For each tool, **sum the total hours across ALL its blocks**, even if they cover different periods.
+- You must also verify if the combined **date ranges** are the same between both tools.
+- For example: "01 - 15 Jun 2025" and "16 - 30 Jun 2025" together form a single reporting period of June.
+- Make sure to review **every block** inside each report and sum all durations accurately before comparing.
 
 📅 VALIDATION RULES:
 1. If the total hours AND daily distributions match exactly → ✅ It's a match.

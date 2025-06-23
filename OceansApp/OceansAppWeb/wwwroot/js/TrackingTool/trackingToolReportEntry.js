@@ -69,7 +69,7 @@ function initializeFileUpload({ inputId, dropAreaSelector, uploadAreaId, infoTex
         return;
     }
 
-    input.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
+    input.setAttribute('accept', '.pdf, .jpg, .jpeg, .png');
 
     dropArea.addEventListener('dragover', event => {
         if (transactionStatus === 'No actions' || transactionStatus === 'Rejected') {
@@ -123,6 +123,8 @@ function handleFilesInput(files, inputId, uploadArea, infoText, previewSection) 
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file, state?.fileList || [])) {
             state.fileList.push(file);
             updateFileDisplay(file, true, null, 'No actions', null, uploadArea, state, previewSection, inputId, infoText);
+        } else {
+            alert('The file you are trying to upload is not valid.Only PDF, JPG, JPEG, and PNG formats are allowed.');
         }
     }
     updateInfoText(uploadArea, infoText);
@@ -142,8 +144,8 @@ dropArea.addEventListener('dragleave', () => {
     dropArea.classList.remove('dragover');
 });
 
-primaryFileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
-secondFileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png, .gif, .svg, .doc, .docx, .xls, .xlsx, .csv, .txt');
+primaryFileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png');
+secondFileInput.setAttribute('accept', '.pdf, .jpg, .jpeg, .png');
 
 
 // File handling functions
@@ -175,7 +177,7 @@ function processFiles(newFiles) {
 }
 function isValidFileType(file) {
     const ext = file.name.split('.').pop().toLowerCase();
-    return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'].includes(ext);
+    return ['pdf', 'jpg', 'jpeg', 'png'].includes(ext);
 }
 function isValidFileSize(file) {
     return file.size <= maxFileSize;

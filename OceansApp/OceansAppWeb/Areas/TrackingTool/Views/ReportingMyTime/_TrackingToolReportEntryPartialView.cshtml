@@ -1,5 +1,15 @@
-﻿@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@using OceansApp.Models.ViewModels.Components
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 <link rel="stylesheet" href="~/css/TrackingTool/trackingToolReportEntry.css?v=@DateTime.Now.Ticks" />
+
+@await Html.PartialAsync(
+                "~/Views/Shared/Components/GlobalComponents/_RobotWaitingModalPartialView.cshtml",
+                new RobotTypingModalVM
+            {
+                MistakeText = "Oceans",
+                FinalText = "OpenAI is reviewing reports for mismatches, please wait..."
+            }
+                )
 
 <div id="no-tracking-tool-sec">
     <div class="mt-3 no-tracking-tool-row">
@@ -60,9 +70,6 @@
                                     Preview Uploaded Files
                                 </button>
                             </div>
-                        </div>
-                        <div>
-                            <label id="info-message-second-input"></label>
                         </div>
                     </div>
                 </div>
@@ -126,6 +133,9 @@
                 </div>
                 <div class="save-report-cont">
                     <button id="save-btn" onclick="createUpdateTimeEntry()"><i class="fa-solid fa-floppy-disk"></i> Please save your changes</button>
+                </div>
+                <div>
+                    <label id="info-message-second-input"></label>
                 </div>
             </div>
         </div>

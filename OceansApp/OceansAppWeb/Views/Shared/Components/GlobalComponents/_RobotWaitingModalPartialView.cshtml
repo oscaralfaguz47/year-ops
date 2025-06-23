@@ -5,7 +5,7 @@
     <div class="modal">
        <div>
             <div class="robot-img-cont">
-                <img src="https://i.pinimg.com/originals/4b/cb/1f/4bcb1fb72d1d08efa44efa5ceb712ec7.gif" />
+                <img src="~/img/globalIcons/robot-gif.gif" />
             </div>
            <div style="display:flex; justify-content:center; width:100%">
                 <div class="typing-container" id="typingText">
@@ -282,6 +282,9 @@
         clearAllTypingTimeouts();
         if (content) content.textContent = "";
         if (actions) actions.style.display = "none";
+        if (confirmSubmitWithDifferences) {
+            confirmSubmitWithDifferences = false;
+        }
     }
 
     function clearAllTypingTimeouts() {
@@ -292,7 +295,7 @@
     }
 
     function submitReportAnyway() {
-        alert("✅ Report submitted!");
-        closeTypingModal();
+        confirmSubmitWithDifferences = true;
+        submitReportToBePaid();
     }
 </script>

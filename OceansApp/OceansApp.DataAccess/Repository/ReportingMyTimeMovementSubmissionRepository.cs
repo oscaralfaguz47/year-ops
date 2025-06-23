@@ -90,7 +90,8 @@ namespace OceansApp.DataAccess.Repository
 
                             //Validate with AI
                             if (!string.IsNullOrWhiteSpace(currentProjectConsultantHistory.PrimaryReportTrackingToolName) &&
-    !string.IsNullOrWhiteSpace(currentProjectConsultantHistory.SecondReportTrackingToolName))
+    !string.IsNullOrWhiteSpace(currentProjectConsultantHistory.SecondReportTrackingToolName) && (submissionData.ConfirmSubmitWithDifferences == false 
+    || submissionData.ConfirmSubmitWithDifferences == null))
                             {
                                 var (isValid, message) = await _hourReportValidationServiceRepository.ValidateMatchingReportsAsync(
                                     movement.MovementId,
