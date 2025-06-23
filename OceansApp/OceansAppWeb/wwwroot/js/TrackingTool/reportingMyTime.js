@@ -228,7 +228,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
                 const uploadBtn = primaryInputFileSection.querySelector('.file-upload-label');
                 uploadBtn.innerHTML = `${uploadIcon} Upload your report here`;
             }
-            if (secondInputFileSection && projectIsActiveInThePeriod) {
+            if (secondInputFileSection && projectIsActiveInThePeriod && statusInfo.isActive) {
                 const infoMessageSecondInput = getElementById('info-message-second-input');
                 if (statusInfo.secondReportTrackingToolName !== null) {
                     const secondTrackingToolName = statusInfo.secondReportTrackingToolName.trim();
@@ -254,7 +254,7 @@ async function navitateBetweenDates(startDate, endDate, buttons) {
 
             }
         } else {
-            if (statusInfo.isActive && statusInfo.accessToTrackingTool && statusInfo.projectIsActiveInThePeriod) {
+            if (statusInfo.isActive && statusInfo.accessToTrackingTool && statusInfo.projectIsActiveInThePeriod && statusInfo.isActive) {
                 totalHoursLabelEl.style.display = 'block';
 
                 if (typeof getTrackingToolProjectMovements === 'function') {
