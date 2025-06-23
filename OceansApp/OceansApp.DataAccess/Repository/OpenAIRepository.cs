@@ -35,10 +35,13 @@ You MUST detect and interpret all the following formats:
 - Each tool's report may contain **multiple independent report blocks** (e.g., multiple date ranges or biweekly reports).
 - These blocks are visually separated by `---`.
 - You must identify **all blocks** within Report A ({{primaryToolName}}) and Report B ({{secondToolName}}).
-- For each tool, **sum the total hours across ALL its blocks**, even if they cover different periods.
+- For each report, **sum the total hours across ALL its blocks**, even if they cover different periods.
 - You must also verify if the combined **date ranges** are the same between both tools.
 - For example: "01 - 15 Jun 2025" and "16 - 30 Jun 2025" together form a single reporting period of June.
 - Make sure to review **every block** inside each report and sum all durations accurately before comparing.
+- Please be carefull when you are getting the total hours reported in every report, you must validate everything 
+
+Please be very careful when reviewing all the hours reported in each report. You must validate how many hours are reported in each report and carefully and thoroughly validate whether there is actually a mismatch between the two reports. Please carefully validate whether there is actually a mismatch between them.
 
 📅 VALIDATION RULES:
 1. If the total hours AND daily distributions match exactly → ✅ It's a match.

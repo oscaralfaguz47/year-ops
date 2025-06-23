@@ -120,12 +120,21 @@ function initializeFileUpload({ inputId, dropAreaSelector, uploadAreaId, infoTex
 function handleFilesInput(files, inputId, uploadArea, infoText, previewSection) {
     const state = fileUploadStates[inputId];
     for (const file of files) {
+        const validType = isValidFileType(file);
+        const validSize = isValidFileSize(file);
+        const duplicate = isDuplicate(file, state?.fileList || []);
+
         if (isValidFileType(file) && isValidFileSize(file) && !isDuplicate(file, state?.fileList || [])) {
             state.fileList.push(file);
             updateFileDisplay(file, true, null, 'No actions', null, uploadArea, state, previewSection, inputId, infoText);
-        } else {
+        } 
+        if (!isValidFileType(file)) {
             alert('The file you are trying to upload is not valid.Only PDF, JPG, JPEG, and PNG formats are allowed.');
         }
+        if (!isValidFileSize(file)) {
+            alert('The file is too large. Maximum allowed size is 10 MB.');
+        }
+
     }
     updateInfoText(uploadArea, infoText);
 }
