@@ -96,7 +96,8 @@ namespace OceansApp.DataAccess.Repository
                                 var (isValid, message) = await _hourReportValidationServiceRepository.ValidateMatchingReportsAsync(
                                     movement.MovementId,
                                     currentProjectConsultantHistory.PrimaryReportTrackingToolName,
-                                    currentProjectConsultantHistory.SecondReportTrackingToolName
+                                    currentProjectConsultantHistory.SecondReportTrackingToolName,
+                                    submissionData.StartPeriodDate, submissionData.EndPeriodDate
                                 );
 
                                 if (!isValid)
