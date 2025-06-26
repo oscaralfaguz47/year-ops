@@ -17,6 +17,7 @@ using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using System.Globalization;
 using System.Reflection.Metadata;
 using System.Security.Claims;
 
@@ -946,13 +947,17 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                         string startDateFormated = startDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
                         string endDateFormated = endDateTime.ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture);
 
+                        string startDateFormattedYYYYMMDD = startDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        string endDateFormattedYYYYMMDD = endDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+
                         string periodString = $"{startDateFormated} - {endDateFormated}";
 
                         //Send emails
                         foreach (var projectConsultantData in groupedConsultants)
                         {
                             var emailToSend = PrepareEmailContentSubmissionReminder(projectConsultantData.ConsultantName,
-                                projectConsultantData.Email, projectConsultantData.Projects, periodString);
+                                projectConsultantData.Email, projectConsultantData.Projects, periodString, startDateFormattedYYYYMMDD, endDateFormattedYYYYMMDD);
                             try
                             {
                                 _telemetryClient.TrackTrace($"Sending email to {projectConsultantData.Email}");
@@ -986,9 +991,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
 
         //NO HTTP METHODS
         [ApiExplorerSettings(IgnoreApi = true)]
-        private SendEmailVM PrepareEmailContentSubmissionReminder(string consultantName, string consultantEmail, List<GetProjectNamesVM> projects, string period)
+        private SendEmailVM PrepareEmailContentSubmissionReminder(string consultantName, string consultantEmail, List<GetProjectNamesVM> projects, string period, string startDateFormatted, 
+            string endDateFormatted)
         {
-            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/TrackingTool/ReportingMyTime";
+            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/TrackingTool/ReportingMyTime?startDate={startDateFormatted}&endDate={endDateFormatted}";
             List<string> projectsStringList = new();
             foreach (var project in projects)
             {

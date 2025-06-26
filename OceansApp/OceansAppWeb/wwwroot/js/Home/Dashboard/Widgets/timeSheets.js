@@ -50,6 +50,37 @@ function getLastTimesheetsSubmitted() {
     })();
 }
 
+async function selectProject(projectId) {
+    try {
+        displaySpinner();
+        var token = $('[name="__RequestVerificationToken"]').val();
+        var formData = new FormData();
+        formData.append('projectId', projectId);
+
+        const response = await fetch("/AccountManagement/ProjectsConsultantsAssigned/SelectConsultantProject", {
+            method: 'POST',
+            headers: {
+                RequestVerificationToken: token
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!data.success){
+            displayToasterError(data.error);
+            console.error('There has been a problem with the fetch operation:', data.detail);
+        }
+    } catch (error) {
+        validateSessionExpiration(error.message);
+        console.error('Network or fetch error:', error);
+        displayToasterError('Failed to connect to the server. Please check your network connection and try again.');
+        return null;
+    } finally {
+        hideSpinner();
+    }
+}
+
 //Global
 document.addEventListener("DOMContentLoaded", function () {
     // Pending Timesheets
@@ -71,7 +102,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     goBtn.textContent = 'Go';
                     goBtn.title = 'Go to Timesheet';
                     goBtn.addEventListener('click', function () {
-                        window.location.href = timesheetsUrl;
+                        selectProject(obj.projectId).then(res => {
+                            window.location.href = `${timesheetsUrl}?startDate=${formatDateYyyyMmDd(startDateItem)}&endDate=${formatDateYyyyMmDd(endDateItem)}`;
+                        });
                     });
                     let formattedDates = `<span class="date-project"><span class="period"> ${getMonthName(startDateItem.getMonth()).slice(0, 3)} ${startDateItem.getDate()} - ${getMonthName(endDateItem.getMonth()).slice(0, 3)} ${endDateItem.getDate()}</span>`;
                     pendingTimesheetsRow.innerHTML = `<img src="/icons/Shared/circle-exclamation.svg">

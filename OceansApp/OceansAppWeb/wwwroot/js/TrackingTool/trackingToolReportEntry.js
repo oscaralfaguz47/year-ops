@@ -36,10 +36,32 @@ const fileUploadStates = {
     'file-upload-primary': { fileList: [], blobNames: [] },
     'file-upload-second': { fileList: [], blobNames: [] }
 };
+
 document.addEventListener('DOMContentLoaded', async function () {
-    paymentPeriod = getElementById('PaymentPeriodInput').value;
-    let currentDateNoChange = new Date();
-    calculatePeriod(currentDateNoChange, paymentPeriod);
+    const paymentPeriod = getElementById('PaymentPeriodInput').value;
+
+    initializeCurrentDateFromUrl();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDateParam = urlParams.get('startDate');
+    const endDateParam = urlParams.get('endDate');
+
+    let baseDate = new Date();
+    if (startDateParam) {
+        const parsed = parseLocalDate(startDateParam);
+        if (!isNaN(parsed)) baseDate = parsed;
+    }
+
+    const hasValidParams = startDateParam && endDateParam;
+
+    await calculatePeriod(
+        baseDate,
+        paymentPeriod,
+        undefined,
+        hasValidParams ? parseLocalDate(startDateParam) : null,
+        hasValidParams ? parseLocalDate(endDateParam) : null,
+        true
+    );
 
     initializeFileUpload({
         inputId: 'file-upload-primary',
@@ -57,6 +79,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         previewSectionClass: '#second-upload-files-input .preview-files-section'
     });
 });
+
+
 function initializeFileUpload({ inputId, dropAreaSelector, uploadAreaId, infoTextId, previewSectionClass }) {
     const input = document.getElementById(inputId);
     const dropArea = document.querySelector(dropAreaSelector);

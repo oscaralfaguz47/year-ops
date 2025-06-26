@@ -333,12 +333,16 @@ async function submitReportToBePaid() {
                         return acc.concat(current);
                     }, []);
                     if (errorData.errors.Hours !== undefined || errorData.errors.Report !== undefined) {
-                        closeTypingModal();
+                        if (secondTrackingToolRequired) {
+                            closeTypingModal();
+                        }
                         submissionError.style.display = 'block';
                         submissionError.innerHTML = `<span>${errorData.errors.Report}</span>`;
                     }
                     if (errorData.errors.Hours !== undefined) {
-                        closeTypingModal();
+                        if (secondTrackingToolRequired) {
+                            closeTypingModal();
+                        }
                         submissionError.style.display = 'block';
                         submissionError.innerHTML = `<span>${errorData.errors.Hours}</span>`;
                     }

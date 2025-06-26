@@ -121,3 +121,15 @@ function convertNormalizedDate(dateInputEl) {
 
     return { normalizedDate: dateData };
 }
+// Helper to avoid UTC misinterpretation of date strings like '2025-06-16'
+function parseLocalDate(yyyyMmDd) {
+    const [year, month, day] = yyyyMmDd.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function formatDateYyyyMmDd(date) {
+    let day = date.getDate().toString().padStart(2, '0');
+    let month = (date.getMonth() + 1).toString().padStart(2, '0');
+    let year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+}

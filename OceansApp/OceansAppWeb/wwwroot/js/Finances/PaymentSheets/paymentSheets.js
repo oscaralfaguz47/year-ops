@@ -6,11 +6,32 @@ let paymentStatusSelectFilters = null;
 let projectSelectFilters = null;
 let rightSidebarFiltersIsDiplayed = false;
 
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', async function () {
     setFinancesItemActive();
-    let currentDateNoChange = new Date();
     paymentPeriod = 1;
-    calculatePeriod(currentDateNoChange, paymentPeriod);
+
+    initializeCurrentDateFromUrl();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDateParam = urlParams.get('startDate');
+    const endDateParam = urlParams.get('endDate');
+
+    let baseDate = new Date();
+    if (startDateParam) {
+        const parsed = parseLocalDate(startDateParam);
+        if (!isNaN(parsed)) baseDate = parsed;
+    }
+
+    const hasValidParams = startDateParam && endDateParam;
+
+    await calculatePeriod(
+        baseDate,
+        paymentPeriod,
+        undefined,
+        hasValidParams ? parseLocalDate(startDateParam) : null,
+        hasValidParams ? parseLocalDate(endDateParam) : null,
+        true
+    );
 });
 
 function changePaymentPeriod() {

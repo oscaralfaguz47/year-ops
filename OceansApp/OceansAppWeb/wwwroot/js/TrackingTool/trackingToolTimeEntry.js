@@ -1,7 +1,28 @@
 ﻿document.addEventListener('DOMContentLoaded', async function () {
     paymentPeriod = getElementById('PaymentPeriodInput').value;
-    let currentDateNoChange = new Date();
-    calculatePeriod(currentDateNoChange, paymentPeriod);
+
+    initializeCurrentDateFromUrl();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDateParam = urlParams.get('startDate');
+    const endDateParam = urlParams.get('endDate');
+
+    let baseDate = new Date();
+    if (startDateParam) {
+        const parsed = parseLocalDate(startDateParam);
+        if (!isNaN(parsed)) baseDate = parsed;
+    }
+
+    const hasValidParams = startDateParam && endDateParam;
+
+    await calculatePeriod(
+        baseDate,
+        paymentPeriod,
+        undefined,
+        hasValidParams ? parseLocalDate(startDateParam) : null,
+        hasValidParams ? parseLocalDate(endDateParam) : null,
+        true 
+    );
 });
 
 const tackingToolSection = document.getElementById('tracking-tool-sec');
