@@ -86,7 +86,7 @@ try
 
     if (environment == "Development" || environment == "Test")
     {
-        // Intentar obtener desde variables de entorno
+        // Trying to get from environment variables
         connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
 
 
@@ -115,8 +115,6 @@ try
     // Register DatabaseService if needed
     builder.Services.AddTransient<DatabaseService>(provider =>
         new DatabaseService(connectionString));
-
-
 
     builder.Services.AddIdentity<IdentityUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
@@ -217,8 +215,6 @@ try
 
     });
 
-    // Background services
-    //builder.Services.AddHostedService<EveryOneDayServices>();
 
     builder.Services.AddMemoryCache();
     builder.Services.AddScoped<RequireTwoFactorEnabledAttribute>();
@@ -232,7 +228,6 @@ try
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
-        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
         app.UseHsts();
     }
 
