@@ -329,7 +329,7 @@ namespace OceansAppWeb.Controllers
                         StatusCode = StatusCodes.Status403Forbidden
                     };
                 }
-
+                //We are retrieving only users that belong to the Finances and People and Culture Area based on the cost center
                 var activeAdminUsers = await _unitOfWork.ApplicationUser.GetActiveUsersWhereCostCenter("50-01-00,10-02-04");
 
                 return Ok(new

@@ -235,7 +235,7 @@ namespace OceansApp.DataAccess.Repository
                 }
             }
 
-            // Si el usuario sigue activo, calcula el tiempo hasta el momento actual (UTC)
+            // If the user is still active, calculate the time up to the current moment (UTC)
             if (activationDate != null)
             {
                 AddExactActivePeriod(activationDate.Value, DateTime.UtcNow, ref totalYears, ref totalMonths, ref totalDays);
@@ -246,32 +246,31 @@ namespace OceansApp.DataAccess.Repository
 
         private void AddExactActivePeriod(DateTime start, DateTime end, ref int totalYears, ref int totalMonths, ref int totalDays)
         {
-            // Las fechas ya no tienen hora, trabajamos solo con "YYYY-MM-DD"
-            // Asegurarse de que solo las fechas se comparen
+            // Ensure that only dates are compared
             int years = 0, months = 0, days = 0;
 
-            // Calcular años completos
+            // Calculate full years
             while (start.AddYears(1) <= end)
             {
                 years++;
                 start = start.AddYears(1);
             }
 
-            // Calcular meses completos
+            // Calculate full months
             while (start.AddMonths(1) <= end)
             {
                 months++;
                 start = start.AddMonths(1);
             }
 
-            // Calcular los días restantes entre las dos fechas
+            // Calculate the remaining days between the two dates
             days = (end - start).Days;
 
             totalYears += years;
             totalMonths += months;
             totalDays += days;
 
-            // Si los días exceden los días en el mes de la fecha final
+            // If the days exceed the days in the month of the end date
             int daysInMonth = DateTime.DaysInMonth(start.Year, start.Month);
             if (totalDays >= daysInMonth)
             {
@@ -279,16 +278,13 @@ namespace OceansApp.DataAccess.Repository
                 totalDays %= daysInMonth;
             }
 
-            // Si los meses acumulados exceden 12, convertir a años
+            // If the accumulated months exceed 12, convert to years
             if (totalMonths >= 12)
             {
                 totalYears += totalMonths / 12;
                 totalMonths %= 12;
             }
         }
-
-
-
 
         public async Task<ImageBlob> VerifyIfUploadedFileAsync(IFormFile file, string entityId, string containerName, string entityType)
         {
