@@ -125,7 +125,9 @@ The main web project (frontend and backend).
 **| `FileStorageAccountKeyENV`     | Azure Storage account key. |**
 
 **| `TwoFactorAppNameENV`          | Application name displayed in authenticator apps for 2FA. |**
+
 **| `MasterUserEmailENV`           | The email for the Master user created by default (choose your email). |**
+
 **| `MasterUserPassENV`            | The password for the Master user created by default (The password must contain at least 8 characters, a lowercase letter, an uppercase letter, a number, and a special symbol). |**
 
 
