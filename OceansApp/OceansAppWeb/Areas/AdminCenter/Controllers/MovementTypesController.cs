@@ -27,7 +27,7 @@ namespace OceansAppWeb.Areas.AdminCenter.Controllers
             try
             {
                 List<GetDataForSelectVM> movementTypesList = new();
-                var movementTypes = await _unitOfWork.ReportingMyTimeMovementType.GetAllAsync(x => x.IsPayable == false || 
+                var movementTypes = await _unitOfWork.ReportingMyTimeMovementType.GetAllAsync(x => (x.IsPayable == false && x.Name.Contains("(Non-payable)")) || 
                 x.Name == "Normal Hours");
                 foreach (var movementType in movementTypes)
                 {
