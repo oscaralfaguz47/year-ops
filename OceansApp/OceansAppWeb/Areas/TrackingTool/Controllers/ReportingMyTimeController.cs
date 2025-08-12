@@ -308,9 +308,9 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 {
                     return BadRequest(new { error = "Something went wrong getting the num of uploaded files.", messageType = "Exception Error" });
                 }
-                if (numUploadedFilesInMovement > 7)
+                if (numUploadedFilesInMovement >= 20)
                 {
-                    return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"You cannot upload more than 8 files." } });
+                    return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"You cannot upload more than 20 files." } });
                 }
 
                 List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId, primarySecond, trackingToolName);

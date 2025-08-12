@@ -297,12 +297,12 @@ async function submitReportToBePaid() {
 
     try {
         noHoursError.innerHTML = '';
-        if (secondTrackingToolRequired && !confirmSubmitWithDifferences) {
-            showTypingModal();
-        } else {
-            displaySpinner();
-        }
-
+        //if (secondTrackingToolRequired && !confirmSubmitWithDifferences) {
+        //    showTypingModal();
+        //} else {
+        //    displaySpinner();
+        //}
+        displaySpinner();
         const datesFromTo = getNormalizedDates(dateFromInput, dateToInput);
         let startDateData = datesFromTo.startDate;
         let endDateData = datesFromTo.endDate;
@@ -362,9 +362,10 @@ async function submitReportToBePaid() {
                         closeTypingModal();
                     }
             }
-            if (!secondTrackingToolRequired) {
-                hideSpinner();
-            }
+            //if (!secondTrackingToolRequired) {
+            //    hideSpinner();
+            //}
+            hideSpinner();
             return null;
         }
 
@@ -380,9 +381,9 @@ async function submitReportToBePaid() {
 
         submissionError.innerHTML = '';
         hideSpinner();
-        if (secondTrackingToolRequired) {
-            closeTypingModal();
-        }
+        //if (secondTrackingToolRequired) {
+        //    closeTypingModal();
+        //}
         return dataFromApi;
     } catch (err) {
         validateSessionExpiration(err.message);

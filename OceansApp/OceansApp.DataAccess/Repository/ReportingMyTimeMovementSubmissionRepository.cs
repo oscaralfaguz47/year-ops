@@ -71,7 +71,7 @@ namespace OceansApp.DataAccess.Repository
                             return MethodResponse.CreateFailureNotFoundResponse("The consultant doesn't have a project history.");
                         }
 
-                        int uploadedBlobsPrimaryTrackingTool = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId && 
+                        int uploadedBlobsPrimaryTrackingTool = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId &&
                         x.PrimaryReportTrackingToolName.Trim() == currentProjectConsultantHistory.PrimaryReportTrackingToolName.Trim());
                         if (uploadedBlobsPrimaryTrackingTool == 0)
                         {
@@ -81,7 +81,7 @@ namespace OceansApp.DataAccess.Repository
 
                         if (currentProjectConsultantHistory.SecondReportTrackingToolName != null)
                         {
-                            int uploadedBlobsSecondTrackingTool = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId && 
+                            int uploadedBlobsSecondTrackingTool = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == blobMovement.MovementId &&
                             x.SecondReportTrackingToolName.Trim() == currentProjectConsultantHistory.SecondReportTrackingToolName.Trim());
                             if (uploadedBlobsSecondTrackingTool == 0)
                             {
@@ -89,22 +89,22 @@ namespace OceansApp.DataAccess.Repository
                             }
 
                             //Validate with AI
-                            if (!string.IsNullOrWhiteSpace(currentProjectConsultantHistory.PrimaryReportTrackingToolName) &&
-    !string.IsNullOrWhiteSpace(currentProjectConsultantHistory.SecondReportTrackingToolName) && (submissionData.ConfirmSubmitWithDifferences == false 
-    || submissionData.ConfirmSubmitWithDifferences == null))
-                            {
-                                var (isValid, message) = await _hourReportValidationServiceRepository.ValidateMatchingReportsAsync(
-                                    movement.MovementId,
-                                    currentProjectConsultantHistory.PrimaryReportTrackingToolName,
-                                    currentProjectConsultantHistory.SecondReportTrackingToolName,
-                                    submissionData.StartPeriodDate, submissionData.EndPeriodDate
-                                );
+                            //                        if (!string.IsNullOrWhiteSpace(currentProjectConsultantHistory.PrimaryReportTrackingToolName) &&
+                            //!string.IsNullOrWhiteSpace(currentProjectConsultantHistory.SecondReportTrackingToolName) && (submissionData.ConfirmSubmitWithDifferences == false 
+                            //|| submissionData.ConfirmSubmitWithDifferences == null))
+                            //                        {
+                            //                            var (isValid, message) = await _hourReportValidationServiceRepository.ValidateMatchingReportsAsync(
+                            //                                movement.MovementId,
+                            //                                currentProjectConsultantHistory.PrimaryReportTrackingToolName,
+                            //                                currentProjectConsultantHistory.SecondReportTrackingToolName,
+                            //                                submissionData.StartPeriodDate, submissionData.EndPeriodDate
+                            //                            );
 
-                                if (!isValid)
-                                {
-                                    return MethodResponse.CreateFailureValidationResponse(message, "OpenAI");
-                                }
-                            }
+                            //                            if (!isValid)
+                            //                            {
+                            //                                return MethodResponse.CreateFailureValidationResponse(message, "OpenAI");
+                            //                            }
+                            //                        }
 
                         }
                     }
