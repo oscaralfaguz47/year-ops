@@ -1,0 +1,37 @@
+@model List<OceansApp.Models.ViewModels.PeopleCulture.TeamMemberVm>
+
+
+<div class="pc-team card">
+    <div class="card-title">
+        <label class="subtitles">People &amp; Culture Team</label>
+    </div>
+    <div class="card-content">
+        <div class="rows-container">
+            @foreach (var m in Model)
+            {
+                <div class="row-el">
+                    <label class="determ-name">@m.Role</label>
+                    <div class="person-cont">
+                        <div class="profile-img-cont">
+                            <img
+                                src="@(string.IsNullOrWhiteSpace(m.PhotoUrl) ? "/icons/Shared/profile-user.svg" : m.PhotoUrl)"
+                                alt="@m.Name"/>
+                        </div>
+                        <div class="person-description">
+                            <label>@m.Name</label>
+                            <p>@m.Description</p>
+                            <div class="media-cont">
+                                <a href="mailto:@m.Email"><img title="@m.Email" alt="email"
+                                                               src="/icons/Shared/envelope-blue-oceans.svg"/></a>
+                                <a href="slack://open"><img title="Slack" alt="slack"
+                                                            src="/icons/Shared/slack-blueLight-oceans.svg"/></a>
+                                <a href="tel:@m.Phone"><img title="@m.Phone" alt="phone"
+                                                            src="/icons/Shared/phone-blueLight-oceans.svg"/></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

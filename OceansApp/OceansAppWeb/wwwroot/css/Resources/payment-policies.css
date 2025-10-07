@@ -1,0 +1,133 @@
+/* Container */
+.pc-doc {
+    background: #fff;
+    border: 1px solid #e8edf0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
+    color: #15262a;
+    line-height: 1.55;
+    max-width: 960px;
+    margin-inline: auto;
+}
+
+/* Header */
+.pc-doc__header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.pc-doc__header h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.pc-doc__year {
+    color: #00B3AE;
+    font-weight: 800;
+    background: #e8f7f6;
+    border: 1px solid #cdeceb;
+    border-radius: 999px;
+    padding: .2rem .6rem;
+    font-size: .9rem;
+}
+
+/* List & headings */
+.pc-doc__list {
+    counter-reset: pcsec;
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+}
+
+.pc-doc__list > li {
+    margin: 18px 0 8px;
+    padding: 14px 0 0;
+    border-top: 1px solid #edf1f4;
+}
+
+.pc-doc__list > li:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.pc-doc__list h2 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+}
+
+.pc-doc__list ul {
+    margin: 0 0 4px 1.1rem;
+}
+
+/* Cards for tax info */
+.pc-doc__grid {
+    display: grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 10px 0 2px;
+}
+
+@media (max-width: 720px) {
+    .pc-doc__grid {
+        grid-template-columns:1fr;
+    }
+}
+
+.pc-card {
+    background: #f9fbfc;
+    border: 1px solid #edf1f4;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.pc-card__title {
+    margin: 0 0 8px;
+    font-size: .95rem;
+    font-weight: 800;
+    color: #5a6a72;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+/* Key/Value list */
+.pc-kv {
+    margin: 0;
+}
+
+.pc-kv div {
+    display: grid;
+    grid-template-columns:140px 1fr;
+    gap: 10px;
+    padding: 6px 0;
+    border-top: 1px dashed #e6ecef;
+}
+
+.pc-kv div:first-child {
+    border-top: none;
+}
+
+.pc-kv dt {
+    font-weight: 700;
+    color: #6d7e86;
+}
+
+.pc-kv dd {
+    margin: 0;
+    color: #24363a;
+    font-weight: 600;
+}
+
+/* Links */
+.pc-doc a {
+    color: #00B3AE;
+    text-decoration: none;
+}
+
+.pc-doc a:hover {
+    text-decoration: underline;
+}
