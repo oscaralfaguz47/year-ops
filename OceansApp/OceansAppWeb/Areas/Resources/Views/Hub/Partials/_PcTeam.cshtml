@@ -1,14 +1,24 @@
 @model List<OceansApp.Models.ViewModels.PeopleCulture.TeamMemberVm>
 
-
 <div class="pc-team card">
     <div class="card-title">
-        <label class="subtitles">People &amp; Culture Team</label>
+        <label class="subtitles pc-title-clickable" role="button" data-bs-toggle="modal"
+               data-bs-target="#teamInfoModal">
+            People &amp; Culture Team
+            <svg class="pc-title-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+        </label>
     </div>
     <div class="card-content">
         <div class="rows-container">
             @foreach (var m in Model)
             {
+                var modalId = "memberModal_" + m.Name.Replace(" ", "_").Replace(".", "").Replace("á", "a").Replace("í", "i");
                 <div class="row-el">
                     <label class="determ-name">@m.Role</label>
                     <div class="person-cont">
@@ -18,8 +28,20 @@
                                 alt="@m.Name"/>
                         </div>
                         <div class="person-description">
-                            <label>@m.Name</label>
-                            <p>@m.Description</p>
+                            <label class="pc-name-clickable" role="button"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#@modalId"
+                                   title="View responsibilities">
+                                @m.Name
+                                <svg class="pc-name-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                            </label>
+                            <p class="pc-team-description">@m.Description</p>
                             <div class="media-cont">
                                 <a href="mailto:@m.Email"><img title="@m.Email" alt="email"
                                                                src="/icons/Shared/envelope-blue-oceans.svg"/></a>
@@ -31,7 +53,66 @@
                         </div>
                     </div>
                 </div>
+
+                @* Modal for individual member *@
+                <div class="modal fade" id="@modalId" tabindex="-1"
+                     aria-labelledby="@(modalId)Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content pc-modal-content">
+                            <div class="modal-header pc-modal-header">
+                                <h5 class="modal-title" id="@(modalId)Label">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img
+                                            src="@(string.IsNullOrWhiteSpace(m.PhotoUrl) ? "/icons/Shared/profile-user.svg" : m.PhotoUrl)"
+                                            alt="@m.Name" class="pc-modal-profile-img"/>
+                                        <div>
+                                            <div class="pc-modal-member-name">@m.Name</div>
+                                            <div class="pc-modal-member-role">@m.Role</div>
+                                        </div>
+                                    </div>
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body pc-modal-body">
+                                <h6 class="pc-responsibilities-title">Key Responsibilities:</h6>
+                                <ul class="pc-responsibilities-list">
+                                    @foreach (var responsibility in m.Responsibilities)
+                                    {
+                                        <li>@responsibility</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
+        </div>
+    </div>
+</div>
+
+@* Modal for team info *@
+<div class="modal fade" id="teamInfoModal" tabindex="-1" aria-labelledby="teamInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content pc-modal-content">
+            <div class="modal-header pc-modal-header">
+                <h5 class="modal-title" id="teamInfoModalLabel">People & Culture Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pc-modal-body">
+                <p class="pc-team-info-text">
+                    Our People & Culture team is dedicated to creating a positive work environment
+                    and supporting all consultants throughout their journey at Oceans.
+                </p>
+                <p class="pc-team-info-text">
+                    We handle everything from onboarding and benefits to engagement activities
+                    and compliance. Click on any team member's name to see their specific responsibilities.
+                </p>
+                <div class="pc-team-info-highlight">
+                    <strong>Our Mission:</strong> Foster a culture of growth, collaboration, and excellence
+                    while ensuring every team member has the support they need to thrive.
+                </div>
+            </div>
         </div>
     </div>
 </div>
