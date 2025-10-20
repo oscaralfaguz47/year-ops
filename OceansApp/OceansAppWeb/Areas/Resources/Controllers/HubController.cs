@@ -14,7 +14,7 @@ public class HubController(ICompositeViewEngine views) : Controller
     private static readonly List<ResourceItemVm> Policies =
     [
         new("payment-policy", "Payment Policy", "/icons/Resources/money-bill.svg",
-            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Payment%20Policies.pdf"),
+            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Oceans%20Code%20Payrroll%20Policies-2_compressed.pdf"),
         new("benefits-policy", "Benefits Policy", "/icons/Resources/star.svg",
             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Benefits%20Policy.pdf"),
         new("ethics-compliance", "Ethics & Compliance", "/icons/Resources/scale.svg",
@@ -51,6 +51,8 @@ public class HubController(ICompositeViewEngine views) : Controller
         new("Glassdoor", "Reviews", "/icons/Resources/link.svg", "/icons/Resources/glassdoor.webp",
             "https://www.glassdoor.com/surveys/employer/create?i=5073834&j=true&y=&c=PAGE_INFOSITE_BOTTOM&rt=/Overview/Working-at-Oceans-Code-Experts-EI_IE5073834.11,30.htm"),
         new("Oceans", "Website", "/icons/Resources/link.svg", "/icons/Resources/A.webp", "https://oceanscode.com"),
+        new("Ripple", "by Oceans", "/icons/Resources/file.svg", "/img/ripple-logo-simple.webp",
+            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/One%20Pager%20Tracking%20Tool_compressed.pdf"),
         new("Benefit", "Reimbursement", "/icons/Resources/link.svg", "/icons/Resources/refund.svg",
             "https://app.fillout.com/t/9QGFtqwy6yus")
     ];
