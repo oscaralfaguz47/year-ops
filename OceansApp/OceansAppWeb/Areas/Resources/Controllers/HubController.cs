@@ -61,7 +61,7 @@ public class HubController(ICompositeViewEngine views) : Controller
     private static readonly List<TeamMemberVm> Team =
     [
         new(
-            "People and Culture Associate",
+            "People & Culture Associate",
             "Valeria Mora Guillén",
             "Benefits, activities, voluntary time",
             "valeria.mora@oceanscode.com",
@@ -79,8 +79,8 @@ public class HubController(ICompositeViewEngine views) : Controller
             ]
         ),
         new(
-            "People and Culture Coordinator",
-            "Laura Paniagua",
+            "People & Culture Lead",
+            "Laura Paniagua Villegas",
             "Benefits, activities, voluntary time",
             "laura.paniagua@oceanscode.com",
             "+50684184923",
