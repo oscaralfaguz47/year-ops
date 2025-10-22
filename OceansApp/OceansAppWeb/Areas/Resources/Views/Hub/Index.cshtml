@@ -1,0 +1,119 @@
+@model OceansApp.Models.ViewModels.PeopleCulture.HubIndexVm
+
+@{
+    ViewData["Title"] = "P&C Resources Hub";
+}
+
+<link rel="stylesheet" href="~/css/Resources/hub.css?v@DateTime.UtcNow.Ticks"/>
+
+<div class="container py-4">
+    <h1 class="display-5">P&amp;C Resources <span style="color:#00B3AE;">Hub</span></h1>
+    <p class="text-muted mb-4">
+        Essential Oceans resources in one place—including company policies, benefits, training materials, learning
+        tools, and guides.
+    </p>
+
+    @* Categories Row *@
+    <div class="row g-4 mb-4 pc-sections">
+        <div class="col-12 col-lg-4">
+            <div class="pc-card shadow-sm">
+                <div class="pc-card-body">
+                    <h5 class="pc-card-title">Policies</h5>
+                    <ul class="pc-list">
+                        @foreach (var item in Model.Policies)
+                        {
+                            <li class="pc-list-item">
+                                <a class="pc-link" href="@item.TemplatePath" target="_blank" rel="noopener noreferrer">
+                                    <img class="pc-link-icon" src="@item.IconPath" alt="">
+                                    <span class="pc-link-text">@item.Title</span>
+                                    <svg class="pc-external-icon" xmlns="http://www.w3.org/2000/svg" width="14"
+                                         height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                    </svg>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="pc-card shadow-sm">
+                <div class="pc-card-body">
+                    <h5 class="pc-card-title">Personal Development</h5>
+                    <ul class="pc-list">
+                        @foreach (var item in Model.PersonalDevelopment)
+                        {
+                            <li class="pc-list-item">
+                                <a class="pc-link" href="@item.TemplatePath" target="_blank" rel="noopener noreferrer">
+                                    <img class="pc-link-icon" src="@item.IconPath" alt="">
+                                    <span class="pc-link-text">@item.Title</span>
+                                    <svg class="pc-external-icon" xmlns="http://www.w3.org/2000/svg" width="14"
+                                         height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                    </svg>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="pc-card shadow-sm">
+                <div class="pc-card-body">
+                    <h5 class="pc-card-title">Code Expert's Collection</h5>
+                    <ul class="pc-list">
+                        @foreach (var item in Model.Collection)
+                        {
+                            <li class="pc-list-item">
+                                <a class="pc-link" href="@item.TemplatePath" target="_blank" rel="noopener noreferrer">
+                                    <img class="pc-link-icon" src="@item.IconPath" alt="">
+                                    <span class="pc-link-text">@item.Title</span>
+                                    <svg class="pc-external-icon" xmlns="http://www.w3.org/2000/svg" width="14"
+                                         height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                    </svg>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Quick Guides Row *@
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            @await Html.PartialAsync("Partials/_QuickGudies", Model.QuickGuides)
+        </div>
+
+        <div class="col-12 col-lg-4">
+            @await Html.PartialAsync("Partials/_PcTeam", Model.Team)
+        </div>
+    </div>
+</div>
+
+<style>
+    .pc-external-icon {
+        margin-left: auto;
+        opacity: 0.5;
+        transition: opacity 0.2s ease;
+    }
+
+    .pc-link:hover .pc-external-icon {
+        opacity: 1;
+    }
+</style>

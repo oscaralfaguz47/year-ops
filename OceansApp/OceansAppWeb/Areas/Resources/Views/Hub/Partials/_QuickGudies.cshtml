@@ -1,0 +1,19 @@
+@model List<OceansApp.Models.ViewModels.PeopleCulture.QuickGuideVm>
+
+<h6 class="text-muted">QUICK GUIDES</h6>
+<div class="quick-guides">
+    @foreach (var q in Model)
+    {
+        <a class="quick-card" href="@q.TargetUrl" target="_blank" rel="noopener">
+            <div class="quick-card-inner">
+                <div class="quick-card-badge"><img src="@q.KindBadgeIcon" alt=""/></div>
+                <img src="@q.MainImage" alt="@($"{q.TitleLine1} {q.TitleLine2}")" class="quick-card-main"/>
+            </div>
+            <div class="quick-card-text">
+                <div class="quick-card-title">@q.TitleLine1</div>
+                <div class="quick-card-title">@q.TitleLine2</div>
+                <div class="quick-card-subtitle">LINK</div>
+            </div>
+        </a>
+    }
+</div>
