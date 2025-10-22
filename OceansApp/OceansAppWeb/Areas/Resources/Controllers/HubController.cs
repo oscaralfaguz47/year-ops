@@ -30,7 +30,7 @@ public class HubController(ICompositeViewEngine views) : Controller
         new("interviewers-training", "Interviewers Training", "/icons/Resources/presentation.svg",
             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Interviewers%20Training.pdf"),
         new("oceans-onboarding", "Oceans Onboarding", "/icons/Resources/rocket.svg",
-            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/2025%20Onboarding%20P&C.pdf")
+            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/2025%20Onboarding%20PPT-P&C%20-%20updated.pdf")
     ];
 
     private static readonly List<ResourceItemVm> Collection =
