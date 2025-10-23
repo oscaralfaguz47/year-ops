@@ -24,7 +24,20 @@ namespace OceansApp.DataAccess.Repository
         {
             _db = db;
         }
+        // Tracked queryable (use when you plan to update entities)
+        public IQueryable<ApplicationUser> Query()
+            => _db.Set<ApplicationUser>();
 
+        // Read-only queryable (better performance for reads)
+        public IQueryable<ApplicationUser> QueryAsNoTracking()
+            => _db.Set<ApplicationUser>().AsNoTracking();
+
+        // Simple fetch (no includes). Keep it minimal and predictable.
+        public async Task<ApplicationUser?> GetFirstOrDefaultAsync(
+            Expression<Func<ApplicationUser, bool>> filter,
+            CancellationToken cancellationToken = default)
+            => await _db.Set<ApplicationUser>()
+                        .FirstOrDefaultAsync(filter, cancellationToken);
         public async Task<ProfileVM> GetUserProfileDataAsync(string userId)
         {
             var result = await (from u in _db.AspNetUsers

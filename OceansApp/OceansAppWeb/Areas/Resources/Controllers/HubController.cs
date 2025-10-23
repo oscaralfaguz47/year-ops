@@ -1,15 +1,24 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.EntityFrameworkCore;
+using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.PeopleCulture;
+using System.Security.Claims;
 
 namespace OceansAppWeb.Areas.Resources.Controllers;
 
 [Area("Resources")]
 [Route("Resources/[controller]")]
 [Authorize]
-public class HubController(ICompositeViewEngine views) : Controller
+public class HubController: Controller
 {
+    private readonly IUnitOfWork _unitOfWork;
+
+    public HubController(IUnitOfWork unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
     // === Main Categories ===
     private static readonly List<ResourceItemVm> Policies =
     [
@@ -18,9 +27,9 @@ public class HubController(ICompositeViewEngine views) : Controller
         new("benefits-policy", "Benefits Policy", "/icons/Resources/star.svg",
             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Benefits%20Policy.pdf"),
         new("ethics-compliance", "Ethics & Compliance", "/icons/Resources/scale.svg",
-            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Compliance%20and%20Ethics%20Policy%20for%20Consultants.pdf")
-        // new("syntepro-onboarding", "Syntepro Onboarding", "/icons/Resources/building.svg",
-        //     "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Manual%20de%20inducci%C3%B3n%20Syntepro.pdf")
+            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Compliance%20and%20Ethics%20Policy%20for%20Consultants.pdf"),
+        new("syntepro-onboarding", "Syntepro Onboarding", "/icons/Resources/building.svg",
+             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Manual%20de%20inducci%C3%B3n%20Syntepro.pdf")
     ];
 
     private static readonly List<ResourceItemVm> PersonalDevelopment =
@@ -99,11 +108,35 @@ public class HubController(ICompositeViewEngine views) : Controller
     ];
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+            return Challenge();
+
+        var userInfo = await _unitOfWork.ApplicationUser
+            .QueryAsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new
+            {
+                u.Id,
+                CategoryName = u.ApplicationUserCategory.Name
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (userInfo is null)
+            return NotFound();
+
+        // Filter by Title
+        var filteredPolicies = userInfo.CategoryName.Equals("Consultant", StringComparison.OrdinalIgnoreCase)
+            ? Policies
+                .Where(p => !string.Equals(p.Title, "Syntepro Onboarding", StringComparison.OrdinalIgnoreCase))
+                .ToList()
+            : Policies.ToList();
+
         var vm = new HubIndexVm
         {
-            Policies = Policies,
+            Policies = filteredPolicies,
             PersonalDevelopment = PersonalDevelopment,
             Collection = Collection,
             QuickGuides = QuickGuides,

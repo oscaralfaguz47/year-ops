@@ -12,6 +12,12 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IApplicationUserRepository : IRepository<ApplicationUser> 
     {
+        IQueryable<ApplicationUser> Query();                 // tracked
+        IQueryable<ApplicationUser> QueryAsNoTracking();     // read-only
+        Task<ApplicationUser?> GetFirstOrDefaultAsync(
+            Expression<Func<ApplicationUser, bool>> filter,
+            CancellationToken cancellationToken = default);
+
         Task<ProfileVM> GetUserProfileDataAsync(string userId);
         Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate);
         Task<List<GetUserIdVM>> GetUsersWhereRoleId(string roleId);
