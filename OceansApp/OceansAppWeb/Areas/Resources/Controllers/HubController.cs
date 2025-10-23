@@ -18,9 +18,9 @@ public class HubController(ICompositeViewEngine views) : Controller
         new("benefits-policy", "Benefits Policy", "/icons/Resources/star.svg",
             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Benefits%20Policy.pdf"),
         new("ethics-compliance", "Ethics & Compliance", "/icons/Resources/scale.svg",
-            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Compliance%20and%20Ethics%20Policy%20for%20Consultants.pdf"),
-        new("syntepro-onboarding", "Syntepro Onboarding", "/icons/Resources/building.svg",
-            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Manual%20de%20inducci%C3%B3n%20Syntepro.pdf")
+            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Compliance%20and%20Ethics%20Policy%20for%20Consultants.pdf")
+        // new("syntepro-onboarding", "Syntepro Onboarding", "/icons/Resources/building.svg",
+        //     "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Manual%20de%20inducci%C3%B3n%20Syntepro.pdf")
     ];
 
     private static readonly List<ResourceItemVm> PersonalDevelopment =
