@@ -30,6 +30,7 @@ async function fillProjectsDropdown(dropdownList) {
     try {
         const response = await getProjectsWhereConsultantAssigned();
         const projects = response.projects;
+        const selectedProjectNameItem = getElementById('project-name');
 
         dropdownList.innerHTML = '';
         projects.forEach(project => {
@@ -40,6 +41,10 @@ async function fillProjectsDropdown(dropdownList) {
                 dropdownList.style.display = 'none';
                 selectProject(project.projectId);
             });
+
+            if (project.name === selectedProjectNameItem.textContent.trim()) {
+                listItem.className = 'project-name-selected';
+            }
             dropdownList.appendChild(listItem);
         });
     } catch (error) {
@@ -56,7 +61,7 @@ const contentBox = getElementById('content-box');
 document.addEventListener('DOMContentLoaded', async function () {
     setTimesheetItemActive();
     let dataLoaded = false;
-    const dropdownHeader = document.querySelector('.dropdown-header');
+    const dropdownHeader = this.getElementById('proj-drop-cont');
     const dropdownList = document.querySelector('.dropdown-list');
     paymentPeriod = getElementById('PaymentPeriodInput').value;
 

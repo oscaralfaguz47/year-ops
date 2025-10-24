@@ -36,7 +36,7 @@
                                 <div class="form-group">
                                     <input hidden asp-for="QRCodeUrl" />
                                     <label>Enter the Code displayed in your mobile application:</label>
-                                    <input type="text" placeholder="Code" class="form-control" asp-for="Code" />
+                                    <input type="text" placeholder="Code" class="form-control" asp-for="Code" autocomplete="off" />
                                     <span asp-validation-for="Code" class="text-danger"></span>
                                     <br />
                                 </div>
