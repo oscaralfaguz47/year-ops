@@ -20,6 +20,7 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         }
 
         const dataFromApi = await response.json();
+
         let submissionDetailsContainer = document.getElementById('submission-details-container');
         submissionDetailsContainer.innerHTML = '';
         let movementsDetailsArray = JSON.parse(dataFromApi.reportDetails.movements);
@@ -27,6 +28,16 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
         let endPeriodDateFromDb = new Date(dataFromApi.reportDetails.endPeriodDate);
         document.getElementById('review-for-approval-modal-title').innerHTML = `<span class="strong-label">${getMonthName(startPeriodDateFromDb.getMonth())} ${startPeriodDateFromDb.getDate()} - ${getMonthName(endPeriodDateFromDb.getMonth())} ${endPeriodDateFromDb.getDate()}, <span style="color:var(--clr-grayDark)">${startPeriodDateFromDb.getFullYear()}</span></span>`;
         let movementsBody = document.createElement('div');
+
+        const editMovementsValue = document.createElement('div');
+        const editMovementsButton = document.createElement('button');
+        editMovementsButton.textContent = 'Edit Hours';
+        editMovementsButton.addEventListener('click', function () {
+            displayEditHoursValue(JSON.parse(dataFromApi.reportDetails.movements), dataFromApi.reportDetails.clientHasTrackingTool);
+        });
+        editMovementsValue.appendChild(editMovementsButton);
+
+        movementsBody.appendChild(editMovementsValue);
         movementsBody.className = 'movement-body';
         let headerInfo = document.createElement('div');
         let attachmentsSection = document.createElement('div');
@@ -159,6 +170,43 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
     }
 }
 
+function displayEditHoursValue(movements, clientHasTrackingTool) {
+    console.log(movements);
+    showModal('modal-edit-hours-value');
+    const hoursToEditContainer = getElementById('hours-to-edit-container');
+    hoursToEditContainer.innerHTML = '';
+
+    if (clientHasTrackingTool) {
+        movements.forEach(function (movement, index) {
+            if (movement.MovementTypeName !== 'Holidays') {
+                const movementLine = document.createElement('div');
+                movementLine.innerHTML = `<input type="hidden" value="${movement.MovementId}"/><span>${movement.MovementTypeName}</span><input placeholder="Enter the num of hours" type="number" value="${movement.Quantity}" />`;
+                hoursToEditContainer.appendChild(movementLine);
+            }
+        });
+    } else {
+        movements.forEach(function (movement, index) {
+            if (movement.MovementTypeName !== 'Holidays') {
+                const movementLine = document.createElement('div');
+                let li = document.createElement('li');
+                let actionDateReportedTime = movement.ActionDate.split('-');
+                let year = actionDateReportedTime[0];
+                let month = actionDateReportedTime[1] - 1;
+                let day = actionDateReportedTime[2];
+
+                let formattedActionDate = new Date(year, month, day).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+                movementLine.innerHTML = `<input type="hidden" value="${movement.MovementId}"/><span>${formattedActionDate}</span><input type="time" value="${movement.TimeFrom}" /><input type="time" value="${movement.TimeTo}" />`;
+                hoursToEditContainer.appendChild(movementLine);
+            }
+        });
+    }
+
+}
 function displayApproveRejectConfirmation(action, from, submissionId) {
     showModal('modal-approve-reject-submission');
     document.getElementById('action-input').value = action;
