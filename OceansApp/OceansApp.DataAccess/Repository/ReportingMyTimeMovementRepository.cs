@@ -6,6 +6,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
 using OceansApp.Models.ViewModels.ReportingMyTimeMovements;
@@ -172,7 +173,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{movementId}_{primarySecond}_{file.FileName}";
 
-               ReportingMyTimeMovementBlob existingFile;
+                ReportingMyTimeMovementBlob existingFile;
 
                 if (primarySecond == "primary")
                 {
@@ -196,7 +197,8 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                if (primarySecond == "primary") {
+                if (primarySecond == "primary")
+                {
                     return await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.CountAsync(x => x.MovementId == movementId && x.PrimaryReportTrackingToolName == trackingToolName);
                 }
                 else
@@ -336,6 +338,7 @@ namespace OceansApp.DataAccess.Repository
                     existingTimeMovement.Quantity = reportMovementData.Quantity == null ? 0 : (decimal)reportMovementData.Quantity;
                     existingTimeMovement.Notes = reportMovementData.Notes;
                     existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
+                    existingTimeMovement.UserIdLastUpdatedBy = userActionedBy;
 
                     await _db.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -728,6 +731,7 @@ namespace OceansApp.DataAccess.Repository
                     existingTimeMovement.Quantity = (decimal)totalQuantity;
                     existingTimeMovement.Notes = timeEntryData.Notes;
                     existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
+                    existingTimeMovement.UserIdLastUpdatedBy = userActionedBy;
                     existingTimeMovement.MovementTypeId = movementType.MovementTypeId;
                     existingTimeMovement.IsBillable = isBillable;
                     existingTimeMovement.NonBillableReason = nonBillableReason;
@@ -940,6 +944,75 @@ namespace OceansApp.DataAccess.Repository
             var movements = results.ToList();
 
             return movements;
+        }
+
+        // PAYMENT SHEETS
+        public async Task<MethodResponse> UpdateTimeFromPaymentSheets(string userActionedBy,
+          List<EditHoursFromPaymentSheetsVM> timeList)
+        {
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                foreach (var item in timeList)
+                {
+                    var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.Include(x => x.ReportingMyTimeMovementType)
+                        .FirstOrDefaultAsync(x => x.MovementId == item.MovementId);
+
+                    if (existingTimeMovement == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse($"The movementId: {item.MovementId} does not exist.");
+                    }
+
+                    try
+                    {
+                        if ((bool)item.Remove && existingTimeMovement.TimeFrom != null && existingTimeMovement.TimeTo != null)
+                        {
+                            _db.REPORTING_MY_TIME_MOVEMENTS.Remove(existingTimeMovement);
+                        }
+                        else
+                        {
+                            if (existingTimeMovement.TimeFrom == null && existingTimeMovement.TimeTo == null)
+                            {
+                                if (existingTimeMovement.ReportingMyTimeMovementType.Name != "Normal Hours" && item.Quantity <= 0)
+                                {
+                                    _db.REPORTING_MY_TIME_MOVEMENTS.Remove(existingTimeMovement);
+                                }
+                                if (existingTimeMovement.ReportingMyTimeMovementType.Name == "Normal Hours" && item.Quantity <= 0)
+                                {
+                                    return MethodResponse.CreateFailureValidationResponse("The Quantity of the Normal Hours must be greater than zero.");
+                                }
+
+                                if (existingTimeMovement.Quantity != item.Quantity && item.Quantity > 0)
+                                {
+                                    existingTimeMovement.Quantity = (decimal)item.Quantity;
+                                    existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
+                                    existingTimeMovement.UserIdLastUpdatedBy = userActionedBy;
+                                }
+                            }
+                            else
+                            {
+                                if (existingTimeMovement.TimeFrom != item.TimeFrom || existingTimeMovement.TimeTo != item.TimeTo)
+                                {
+                                    double totalQuantity = DateAndTimes.CalculateNumHours(item.TimeFrom, item.TimeTo);
+
+                                    existingTimeMovement.TimeFrom = item.TimeFrom;
+                                    existingTimeMovement.TimeTo = item.TimeTo;
+                                    existingTimeMovement.Quantity = (decimal)totalQuantity;
+                                    existingTimeMovement.LastUpdateDate = DateTime.UtcNow;
+                                    existingTimeMovement.UserIdLastUpdatedBy = userActionedBy;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                    }
+                }
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return MethodResponse.CreateSuccessResponse("Changes saved!");
+            }
         }
     }
 }

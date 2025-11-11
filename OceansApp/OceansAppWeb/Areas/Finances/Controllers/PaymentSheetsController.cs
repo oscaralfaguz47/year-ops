@@ -989,6 +989,70 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             }
         }
 
+        [HttpPost("EditHoursFromApprovals")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditHoursFromApprovals([FromBody] List<EditHoursFromPaymentSheetsVM> model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            foreach (var item in model)
+            {
+                validateInputs.ValidateRequiredFieldAnyValue("MovementId", "MovementId", item.MovementId, ModelState);
+
+                if (item.TimeFrom == null && item.TimeTo == null)
+                {
+                    validateInputs.ValidateRequiredFieldAnyValue("Quantity", "Quantity", item.Quantity, ModelState);
+                }
+
+                if (item.Quantity == null)
+                {
+                    validateInputs.ValidateRequiredFieldAnyValue("TimeFrom", "Time From", item.TimeFrom, ModelState);
+                    validateInputs.ValidateRequiredFieldAnyValue("TimeTo", "Time To", item.TimeTo, ModelState);
+                    validateInputs.ValidateRequiredFieldAnyValue("Remove", "Remove", item.Remove, ModelState);
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                }
+
+                var response = await _unitOfWork.ReportingMyTimeMovement.UpdateTimeFromPaymentSheets(userActionedBy, model);
+
+                if (response.Success)
+                {
+                    return Ok(new { success = true, message = response.Message });
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        MessageType = response.MessageType,
+                        errors = new[] { response.Message }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
         //NO HTTP METHODS
         [ApiExplorerSettings(IgnoreApi = true)]
         private SendEmailVM PrepareEmailContentSubmissionReminder(string consultantName, string consultantEmail, List<GetProjectNamesVM> projects, string period, string startDateFormatted, 

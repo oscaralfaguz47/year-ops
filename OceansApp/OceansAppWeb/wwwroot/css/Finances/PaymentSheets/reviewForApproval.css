@@ -81,8 +81,6 @@ h4{
 }
 
 .movement-body .movements-section .date-reported {
-    max-width: 200px;
-    min-width: 110px;
     font-weight: 900;
 }
 .movement-body .movements-section .time-reported {
@@ -167,4 +165,75 @@ h4{
     color: red;
     font-size: 17px;
     display: none;
+}
+
+/* EDIT HOURS */
+.edit-hours-container {
+   margin-top: 10px;
+   display: flex;
+   justify-content: right;
+}
+.edit-hours-container button{
+    border: none;
+    padding: 6px 10px;
+    display:flex; 
+    border-radius: 10px;
+    background-color: var(--clr-grayLight);
+}
+    .edit-hours-container button img {
+        margin-right: 5px;
+    }
+    .edit-hours-container button:hover {
+        background-color: var(--clr-grayDark);
+    }
+.undo-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgb(247, 176, 182);
+    background: #fef2f2;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    height: 34px;
+    min-width: 100px;
+    box-sizing: border-box;
+}
+
+    .undo-block:hover {
+        background: #fde8e8;
+    }
+
+.undo-message {
+    color: red;
+    font-weight: 500;
+    font-size: 0.75rem;
+    line-height: 1; 
+    margin: 0; 
+}
+
+.undo-action {
+    color: blue;
+    font-size: 0.7rem;
+    text-decoration: underline;
+    line-height: 1;
+    margin: 0;
+}
+.hours-line input {
+    padding: 2px 7px;
+    border: none;
+    background-color: var(--clr-grayLight);
+    color: #333333;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    font-size: 14px;
+    border-radius: 10px;
+}
+.hours-line .label-type{
+    width: 175px;
+    background-color: var(--clr-grayLight);
+    padding: 2px 6px;
+    border-radius: 10px;
 }
