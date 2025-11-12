@@ -34,6 +34,7 @@ namespace OceansApp.Models.Models
         public bool IsBillable { get; set; }
         [MaxLength(800)]
         public string? NonBillableReason { get; set; }
+        public string? UserIdLastUpdatedBy { get; set; }
 
 
 
@@ -45,5 +46,7 @@ namespace OceansApp.Models.Models
         public TransactionStatus TransactionStatus { get; set; }
         [ValidateNever]
         public ReportingMyTimeMovementType ReportingMyTimeMovementType { get; set; }
+        [ValidateNever]
+        public ApplicationUser UserUpdatedBy { get; set; }
     }
 }

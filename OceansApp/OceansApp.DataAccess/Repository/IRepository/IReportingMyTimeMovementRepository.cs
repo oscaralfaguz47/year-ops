@@ -2,6 +2,7 @@
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Models.ViewModels.ReportingMyTime;
 using OceansApp.Models.ViewModels.ReportingMyTime.Reports;
 using OceansApp.Models.ViewModels.ReportingMyTimeMovements;
@@ -50,5 +51,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
 
         Task<List<GetBillableHoursForBillingVM>> GetBillableHoursForBillingAsync(int clientId, DateTime startDate,
             DateTime endDate);
+        Task<MethodResponse> UpdateTimeFromPaymentSheets(string userActionedBy,
+          List<EditHoursFromPaymentSheetsVM> timeList);
     }
 }

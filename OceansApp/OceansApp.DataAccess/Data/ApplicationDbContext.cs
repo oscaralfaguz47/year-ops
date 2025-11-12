@@ -1443,6 +1443,7 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TransactionStatusId);
                 entity.HasIndex(e => e.MovementTypeId);
                 entity.HasIndex(e => e.IsBillable);
+                entity.HasIndex(e => e.UserIdLastUpdatedBy);
 
                 entity.HasKey(r => new { r.MovementId });
                 entity.HasOne(p => p.Project)
@@ -1473,6 +1474,11 @@ namespace OceansApp.DataAccess.Data
                 .IsRequired();
                 entity.Property(c => c.NonBillableReason)
                   .HasColumnType("varchar(800)");
+                entity.Property(c => c.UserIdLastUpdatedBy)
+                  .HasColumnType("nvarchar(450)");
+                entity.HasOne(t => t.UserUpdatedBy)
+               .WithMany()
+               .HasForeignKey(t => t.UserIdLastUpdatedBy);
             });
 
             // REPORTING MY TIME MOVEMENT BLOBS

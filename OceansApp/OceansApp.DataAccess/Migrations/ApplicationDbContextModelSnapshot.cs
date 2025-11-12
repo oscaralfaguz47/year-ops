@@ -3150,6 +3150,9 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<int>("TransactionStatusId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserIdLastUpdatedBy")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("MovementId");
 
                     b.HasIndex("ActionDate");
@@ -3165,6 +3168,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("Quantity");
 
                     b.HasIndex("TransactionStatusId");
+
+                    b.HasIndex("UserIdLastUpdatedBy");
 
                     b.HasIndex("ProjectId", "ConsultantId");
 
@@ -4753,6 +4758,10 @@ namespace OceansApp.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "UserUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UserIdLastUpdatedBy");
+
                     b.Navigation("ConsultantDetail");
 
                     b.Navigation("Project");
@@ -4760,6 +4769,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ReportingMyTimeMovementType");
 
                     b.Navigation("TransactionStatus");
+
+                    b.Navigation("UserUpdatedBy");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ReportingMyTimeMovementBlob", b =>
