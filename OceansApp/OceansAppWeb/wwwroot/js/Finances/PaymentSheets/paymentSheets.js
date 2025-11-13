@@ -142,7 +142,17 @@ async function getListOfResults(firstTime, filters) {
                     groupName++;
 
                     rows.push(`<tr class="hover-group-${groupName}">
-    <td class="first-cell" rowspan="1">${menuBtn}<div class="profile-img-cont"><img src="${obj.profileImage === null ? '/icons/shared/profile-user.svg' : obj.profileImage}"></div>${obj.consultantName}</td>
+    <td class="first-cell" rowspan="1">
+  <div class="consultant-container">
+    <div class="profile-img-cont">
+      <div>
+        <img src="${obj.profileImage === null ? '/icons/shared/profile-user.svg' : obj.profileImage}">
+      </div>
+      <div>${menuBtn}${obj.consultantName}</div>
+    </div>
+  </div>
+</td>
+
     <td class="first-cell" rowspan="1">${getStatusLabel(obj.paymentStatus)}</td>
     <td>${obj.projectName}</td>
     <td class="reported-hours">${hoursReportedInProject}</td>
