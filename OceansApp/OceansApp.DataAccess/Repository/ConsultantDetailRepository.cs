@@ -385,6 +385,17 @@ namespace OceansApp.DataAccess.Repository
 
 
         //PAYMENT SHEETS
+        private static DataTable ToProjectIdsTvp(IEnumerable<int>? ids)
+        {
+            var table = new DataTable();
+            table.Columns.Add("ConsultantProjectId", typeof(int));
+            if (ids != null)
+            {
+                foreach (var id in ids.Distinct())
+                    table.Rows.Add(id);
+            }
+            return table;
+        }
         public async Task<(List<PaymentSheetsGetAllWithFiltersVM> consultantsToPay, int totalCount)> GetAllConsultantsToPayWithFiltersAsync(
     PaymentSheetsPaginationFiltersVM filtersAndPagination)
         {
@@ -396,13 +407,17 @@ namespace OceansApp.DataAccess.Repository
                     await connection.OpenAsync();
                 }
 
+                var projectIds = filtersAndPagination.Filters.ProjectIds ?? new List<int>();
+
+                var tvp = ToProjectIdsTvp(projectIds);
+
                 var parameters = new DynamicParameters();
                 parameters.Add("@SearchText", filtersAndPagination.Filters.SearchText, DbType.String);
                 parameters.Add("@StartDate", filtersAndPagination.Filters.StartDate, DbType.Date);
                 parameters.Add("@EndDate", filtersAndPagination.Filters.EndDate, DbType.Date);
                 parameters.Add("@TransactionStatusName", filtersAndPagination.Filters.TransactionStatusName, DbType.String);
                 parameters.Add("@AccountsPayableStatusName", filtersAndPagination.Filters.AccountsPayableStatusName, DbType.String);
-                parameters.Add("@ProjectId", filtersAndPagination.Filters.ProjectId, DbType.Int32);
+                parameters.Add("@ProjectIds", tvp.AsTableValuedParameter("dbo.ConsultantProjectIdTableType"));
                 parameters.Add("@PaymentPeriod", filtersAndPagination.Filters.PaymentPeriod, DbType.Int32);
                 parameters.Add("@FieldToOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.FieldToOrder, DbType.String);
                 parameters.Add("@DirectionOrder", filtersAndPagination.PaginationWithoutFilters.OrderBy.DirectionOrder, DbType.String);

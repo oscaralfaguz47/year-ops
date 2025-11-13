@@ -215,7 +215,7 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
       white-space: nowrap;
     }
 
-    .btn {
+    .hours-line .btn {
       padding: 6px 10px;
       border: 1px solid #d0d0d0;
       background: #fafafa;
@@ -223,11 +223,11 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
       cursor: pointer;
       white-space: nowrap;        /* keep button text on one line */
     }
-    .btn:hover { background: #f0f0f0; }
-    .btn-danger { border-color: #f5c2c7; background: #f8d7da; }
-    .btn-danger:hover { background: #f5c2c7; }
-    .btn-secondary { border-color: #cfe2ff; background: #e7f1ff; }
-    .btn-secondary:hover { background: #cfe2ff; }
+    .hours-line .btn:hover { background: #f0f0f0; }
+    .hours-line .btn-danger { border-color: #f5c2c7; background: #f8d7da; }
+    .hours-line .btn-danger:hover { background: #f5c2c7; }
+    .hours-line .btn-secondary { border-color: #cfe2ff; background: #e7f1ff; }
+    .hours-line .btn-secondary:hover { background: #cfe2ff; }
 
     .delete-note {
       color: #b42318;             /* red-ish */
@@ -278,7 +278,6 @@ function displayEditHoursValue(movements, clientHasTrackingTool) {
     const saveBtn = document.getElementById('save-btn-edit-hours');
     saveBtn.onclick = async () => { await updateHoursFromApprovals(); };
 
-    console.log(movements);
     showModal('modal-edit-hours-value');
 
     const hoursToEditContainer = document.getElementById('hours-to-edit-container');
@@ -451,8 +450,6 @@ async function updateHoursFromApprovals() {
             });
         }
     });
-
-    console.log(JSON.stringify(payload));
 
     const confirmation = await Swal.fire({
         title: "Save Hours Changes",

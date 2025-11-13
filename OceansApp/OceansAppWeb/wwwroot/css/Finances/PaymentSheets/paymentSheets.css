@@ -8,7 +8,60 @@
     align-items:center;
     margin: 0 5px;
 }
-.first-cell{
+.consultant-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+    padding: 6px;
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+    border-radius: 15px;
+}
+.profile-img-cont {
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+}
+
+    .profile-img-cont img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        margin-right: 4px;
+        object-fit: cover;
+        display:block;
+    }
+
+.reported-hours img{
+    width: 13px;
+}
+.reported-hours .non-billable-span {
+    color: red;
+    margin-left: 2px;
+    font-size: 15px;
+    text-decoration: line-through;
+}
+.reported-hours .quantity-span {
+    font-weight: bold;
+    color: #2aa7ff;
+}
+.reported-hours .billable-span {
+    color: #21DA15;
+    font-size: 15px;
+}
+.reported-hours {
+    color: var(--clr-grayDark);
+}
+.reported-hours strong {
+    font-weight: 900;
+    color: #000;
+}
+.submission-dates strong{
+    font-weight: 900;
+}
+.first-cell {
     font-weight: bold;
 }
 .additional-filters {
@@ -70,6 +123,52 @@
 .remove-for-period-btn img {
     margin-right: 3px;
 }
+/* FILTERS */
+.multi-select {
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+}
+
+.multi-select-header {
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #000;
+}
+
+.multi-select-list {
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+    .multi-select-list label {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        cursor: pointer;
+        color: #000;
+        border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+    }
+
+        .multi-select-list label:hover {
+            background: var(--clr-grayLight);
+        }
+
+    .multi-select-list input[type="checkbox"] {
+        margin-right: 8px;
+    }
 /* MOBILE */
 @media only screen and (max-width: 630px) {
     .additional-filters {

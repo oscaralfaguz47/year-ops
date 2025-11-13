@@ -70,6 +70,7 @@ async function getListOfResults(firstTime, filters) {
             let rows = [];
             let startIndex = 0;
             let groupName = 0;
+
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionformattedDate = "Not submitted yet";
@@ -90,7 +91,7 @@ async function getListOfResults(firstTime, filters) {
                     lastSubmissionformattedDate = 'No Submission is needed';
                     submissionformattedDate = 'No Submission is needed';
                 }
-
+                let submissionLabel = `<div class="submission-dates"><span style="display:block;"><strong>Submitted On: </strong> ${submissionformattedDate}</span><span style="display:block;"><strong>Re-Submitted On: </strong> ${lastSubmissionformattedDate}</span></div>`;
                 if (obj.transactionStatusName === 'Waiting to be approved') {
                     actionsBtns = `<div class="action-btns-box status-actions"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
                 }
@@ -112,21 +113,50 @@ async function getListOfResults(firstTime, filters) {
                   </div>`;
                 }
 
+                let hoursReportedInProject = '';
+                try {
+                    const reported = Array.isArray(obj.hoursReported)
+                        ? obj.hoursReported
+                        : JSON.parse(obj.hoursReported || '[]');
+
+                    if (reported.length === 0) {
+                        hoursReportedInProject = `<label style="display:block; color:#999;">No hours reported</label>`;
+                    } else {
+                        reported.forEach(function (hrItem) {
+                            hoursReportedInProject += `<label style="display:block;">
+        <strong>${hrItem.MovementType.replace("(Non-payable)", "")}:</strong> <span class="quantity-span">${hrItem.Quantity}</span>, ${hrItem.IsBillable ? 'Billables <span class="billable-span">$</span>' : 'Non-billables<span class="non-billable-span">$</span>'}
+      </label>`;
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Invalid hoursReported payload for', obj, e);
+                }
+
                 if (obj.consultantName !== previousName) {
                     if (previousName !== null) {
                         rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
-                        // Aquí agregamos el rowspan a la nueva columna de paymentStatus
                         rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
                     }
                     startIndex = rows.length;
                     nameCount = 1;
                     groupName++;
+
                     rows.push(`<tr class="hover-group-${groupName}">
-    <td class="first-cell" rowspan="1">${menuBtn}${obj.consultantName}</td>
-    <td class="first-cell" rowspan="1">${getStatusLabel(obj.paymentStatus)}</td> <!-- Aplicar misma clase -->
+    <td class="first-cell" rowspan="1">
+  <div class="consultant-container">
+    <div class="profile-img-cont">
+      <div>
+        <img src="${obj.profileImage === null ? '/icons/shared/profile-user.svg' : obj.profileImage}">
+      </div>
+      <div>${menuBtn}${obj.consultantName}</div>
+    </div>
+  </div>
+</td>
+
+    <td class="first-cell" rowspan="1">${getStatusLabel(obj.paymentStatus)}</td>
     <td>${obj.projectName}</td>
-    <td>${lastSubmissionformattedDate}</td>
-    <td>${submissionformattedDate}</td>
+    <td class="reported-hours">${hoursReportedInProject}</td>
+            <td>${submissionLabel}</td>
     <td>${getStatusLabel(obj.transactionStatusName)}</td>
     <td>${actionsBtns}</td>
 </tr>`);
@@ -134,8 +164,8 @@ async function getListOfResults(firstTime, filters) {
                     nameCount++;
                     rows.push(`<tr class="hover-group-${groupName}">
     <td>${obj.projectName}</td>
-    <td>${lastSubmissionformattedDate}</td>
-    <td>${submissionformattedDate}</td>
+     <td class="reported-hours">${hoursReportedInProject}</td> 
+             <td>${submissionLabel}</td>
     <td>${getStatusLabel(obj.transactionStatusName)}</td>
     <td>${actionsBtns}</td>
 </tr>`);
@@ -144,7 +174,6 @@ async function getListOfResults(firstTime, filters) {
 
                 if (index === data.consultantsToPayList.length - 1) {
                     rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
-                    // Agregar rowspan final para paymentStatus
                     rows[startIndex] = rows[startIndex].replace('rowspan="1"', `rowspan="${nameCount}"`);
                 }
             });
@@ -341,7 +370,7 @@ async function sendSubmissionReminders() {
         EndDate: dateToInput.value.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
         PaymentPeriod: Number(paymentPeriodSelect.value)
     };
-    
+
     try {
         const response = await fetch('/Finances/PaymentSheets/SendSubmissionReminders', {
             method: 'POST',
@@ -425,11 +454,16 @@ async function displayMoreFiltersPaymentSheet() {
                     <option value="Waiting to be approved">Waiting to be approved</option>
                 </select>
             </div>
-            <div class="select-container">
-                <label>Project</label>
-                <select onchange="getListOfResults(false, true)" id="projectSelectFilters" class="form-select">
-                </select>
-            </div>
+           <div class="select-container">
+  <label>Projects</label>
+  <div class="multi-select" id="projectSelectFilters">
+    <div class="multi-select-header" onclick="toggleProjectList()">
+      <span id="projectSelectedText">All projects</span>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <div class="multi-select-list" id="projectCheckboxList" style="display:none;"></div>
+  </div>
+</div>
           </form>
         <div>`;
 
@@ -439,7 +473,7 @@ async function displayMoreFiltersPaymentSheet() {
 
         try {
             const data = await getActiveProjectsList();
-            populateSelect('projectSelectFilters', data.projects, 'All projects', null);
+            populateProjectCheckboxList(data.projects);
 
             openRightSidebar();
             rightSidebarFiltersIsDiplayed = true;
@@ -452,8 +486,57 @@ async function displayMoreFiltersPaymentSheet() {
     }
     openRightSidebar();
 }
+function populateProjectCheckboxList(projects) {
+    const listContainer = document.getElementById('projectCheckboxList');
+    listContainer.innerHTML = ''; // clear old items
+
+    if (!projects || projects.length === 0) {
+        listContainer.innerHTML = '<div style="padding:6px 10px;color:#999;">No projects found</div>';
+        return;
+    }
+
+    projects.forEach(project => {
+        const id = `projectChk_${project.value}`;
+        const label = document.createElement('label');
+        label.innerHTML = `
+      <input type="checkbox" value="${project.value}" onchange="handleProjectCheckboxChange()">
+      ${project.text}
+    `;
+        listContainer.appendChild(label);
+    });
+}
+function toggleProjectList() {
+    const list = document.getElementById('projectCheckboxList');
+    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+}
+
+function handleProjectCheckboxChange() {
+    const checkboxes = document.querySelectorAll('#projectCheckboxList input[type="checkbox"]');
+    const selected = Array.from(checkboxes)
+        .filter(chk => chk.checked)
+        .map(chk => chk.value);
+
+    const text = document.getElementById('projectSelectedText');
+    if (selected.length === 0) {
+        text.textContent = 'All projects';
+    } else if (selected.length === 1) {
+        const label = document.querySelector(`#projectCheckboxList input[value="${selected[0]}"]`).parentNode.textContent.trim();
+        text.textContent = label;
+    } else {
+        text.textContent = `${selected.length} selected`;
+    }
+
+    // ✅ Trigger your existing logic
+    getListOfResults(false, true);
+}
+function getSelectedProjects() {
+    return Array.from(document.querySelectorAll('#projectCheckboxList input[type="checkbox"]:checked'))
+        .map(chk => parseInt(chk.value));
+}
 function clearFilters(formId) {
     resetFormElements(formId);
+    const projectSelectedText = document.getElementById('projectSelectedText');
+    projectSelectedText.textContent = 'All projects';
     getListOfResults(false, true);
 }
 //Pagination and Filters
@@ -467,6 +550,9 @@ function recolectDataFromForm(filters, firstTime) {
         let startDateData = datesFromTo.startDate;
         let endDateData = datesFromTo.endDate;
 
+        const selectedProjectIds = getSelectedProjects();
+        const hasSelectedProjects = selectedProjectIds.length > 0;
+
         var filtersData = {
             SearchText: searchText,
             StartDate: startDateData,
@@ -474,7 +560,7 @@ function recolectDataFromForm(filters, firstTime) {
             PaymentPeriod: Number(paymentPeriodSelect.value),
             TransactionStatusName: statusSelectFilters === null ? null : statusSelectFilters.value === '' ? null : statusSelectFilters.value,
             AccountsPayableStatusName: paymentStatusSelectFilters === null ? null : paymentStatusSelectFilters.value === '' ? null : paymentStatusSelectFilters.value,
-            ProjectId: projectSelectFilters === null ? null : projectSelectFilters.value === '' ? null : Number(projectSelectFilters.value)
+            ProjectIds: hasSelectedProjects ? selectedProjectIds : null
         };
         var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
         var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
