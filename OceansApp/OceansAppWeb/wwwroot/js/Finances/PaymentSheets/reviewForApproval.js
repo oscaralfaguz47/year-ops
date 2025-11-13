@@ -127,7 +127,7 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
                 ul.appendChild(additionalNotes);
             }
             movementsBody.appendChild(ul);
-
+            console.log(firstNonHolidayMovement.Blobs);
             if (firstNonHolidayMovement.Blobs !== undefined) {
                 JSON.parse(firstNonHolidayMovement.Blobs).forEach(function (blob, index) {
                     let fileType = getFileType(getFileTypeFromUrl(blob.BlobUrl));
@@ -265,14 +265,6 @@ function diffHours(t1, t2) {
     return Math.round((delta / 60) * 100) / 100; // round to 2 decimals
 }
 
-/**
- * Your base, extended:
- * - clientHasTrackingTool === true  -> Quantity (sin Delete/Undo)
- * - clientHasTrackingTool === false -> TimeFrom/TimeTo + Delete/Undo + Remove flag + hours badge
- * - Save button logs payload:
- *   * true  -> [{ MovementId, Quantity }]
- *   * false -> [{ MovementId, TimeFrom, TimeTo, Remove }]
- */
 function displayEditHoursValue(movements, clientHasTrackingTool) {
     // Attach a single save handler
     const saveBtn = document.getElementById('save-btn-edit-hours');
