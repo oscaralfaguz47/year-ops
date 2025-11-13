@@ -70,14 +70,14 @@ async function getListOfResults(firstTime, filters) {
             let rows = [];
             let startIndex = 0;
             let groupName = 0;
-
+            
             data.consultantsToPayList.forEach(function (obj, index) {
                 let actionsBtns = '<div class="no-actions-div">No actions needed</div>';
                 var submissionformattedDate = "Not submitted yet";
                 let reviewForPaymentBtn = '';
                 let setAsAccountsPayableBtn = '';
                 let menuBtn = '';
-
+               
                 if (obj.submissionDate !== null) {
                     submissionformattedDate = formatUtcToLocalMmDdYyyyTime(obj.submissionDate);
                 }
@@ -113,6 +113,10 @@ async function getListOfResults(firstTime, filters) {
                   </div>`;
                 }
 
+                const attachments = Array.isArray(obj.reportAttachments)
+                    ? obj.reportAttachments
+                    : JSON.parse(obj.reportAttachments || '[]');
+
                 let hoursReportedInProject = '';
                 try {
                     const reported = Array.isArray(obj.hoursReported)
@@ -130,6 +134,12 @@ async function getListOfResults(firstTime, filters) {
                     }
                 } catch (e) {
                     console.warn('Invalid hoursReported payload for', obj, e);
+                }
+
+                if (attachments.length > 0) {
+                    hoursReportedInProject += `<label style="display:block;">
+        <strong>Attachments:</strong> <span class="quantity-span">${attachments.length}</span>, <a onclick='viewAttachments(${JSON.stringify(attachments).replace(/"/g, "&quot;")})'>View Report 🔍</a>
+      </label>`;
                 }
 
                 if (obj.consultantName !== previousName) {
@@ -154,7 +164,7 @@ async function getListOfResults(firstTime, filters) {
 </td>
 
     <td class="first-cell" rowspan="1">${getStatusLabel(obj.paymentStatus)}</td>
-    <td>${obj.projectName}</td>
+    <td class="project-name-col"><span>${obj.projectName}</span></td>
     <td class="reported-hours">${hoursReportedInProject}</td>
             <td>${submissionLabel}</td>
     <td>${getStatusLabel(obj.transactionStatusName)}</td>
@@ -163,7 +173,7 @@ async function getListOfResults(firstTime, filters) {
                 } else {
                     nameCount++;
                     rows.push(`<tr class="hover-group-${groupName}">
-    <td>${obj.projectName}</td>
+    <td class="project-name-col"><span>${obj.projectName}</span></td>
      <td class="reported-hours">${hoursReportedInProject}</td> 
              <td>${submissionLabel}</td>
     <td>${getStatusLabel(obj.transactionStatusName)}</td>
@@ -210,6 +220,55 @@ async function getListOfResults(firstTime, filters) {
         .finally(() => {
             hideSpinner();
         });
+}
+
+function viewAttachments(attachments) {
+    // 2. Order by TrackingToolName
+    attachments.sort((a, b) => {
+        const nameA = (a.TrackingToolName || '').toLowerCase();
+        const nameB = (b.TrackingToolName || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+
+    let attachmentsContainer = document.getElementById('attachments-container');
+    attachmentsContainer.className = 'attachments-container';
+
+    // 4. Group attachments by TrackingToolName
+    let groups = {};
+    attachments.forEach(att => {
+        let key = att.TrackingToolName || 'Unknown';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(att);
+    });
+
+    // 5. Render by groups
+    Object.keys(groups).forEach(trackingToolName => {
+        // === Title by tracking tool ===
+        let title = document.createElement('div');
+        title.className = 'attachment-group-title';
+        title.textContent = trackingToolName;
+        attachmentsContainer.appendChild(title);
+
+        groups[trackingToolName].forEach(blob => {
+            let fileType = getFileType(getFileTypeFromUrl(blob.BlobUrl));
+
+            if (fileType === 'image') {
+                let image = document.createElement('img');
+                image.src = blob.BlobUrl;
+                image.className = 'attachment-image';
+                attachmentsContainer.appendChild(image);
+            }
+
+            if (fileType === 'pdf') {
+                let pdf = document.createElement('iframe');
+                pdf.src = blob.BlobUrl;
+                pdf.width = '100%';
+                pdf.className = 'attachment-pdf';
+                attachmentsContainer.appendChild(pdf);
+            }
+        });
+    });
+    showModal('modal-view-attachments');
 }
 
 //Reject Approvement
@@ -587,7 +646,6 @@ function recolectDataFromForm(filters, firstTime) {
 function updatePagination(paginationData) {
     updatePaginationValues(paginationData);
 }
-
 function enterInSearch(event) {
     paginationSubmit(false, true);
 }

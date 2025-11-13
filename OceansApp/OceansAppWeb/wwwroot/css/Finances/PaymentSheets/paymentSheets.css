@@ -58,7 +58,30 @@
     font-weight: 900;
     color: #000;
 }
-.submission-dates strong{
+    .reported-hours a {
+        text-decoration: underline !important;
+        cursor: pointer;
+        color: blue !important;
+        margin-left: 3px;
+    }
+        .reported-hours a:hover {
+            box-shadow: 0 2px 3px var(--clr-blueLight);
+        }
+.project-name-col {
+    max-width: 230px !important;
+}
+    .project-name-col span {
+        display: inline-block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+        .project-name-col span:hover {
+            white-space: normal; 
+            cursor:pointer;
+        }
+.submission-dates strong {
     font-weight: 900;
 }
 .first-cell {
@@ -123,6 +146,31 @@
 .remove-for-period-btn img {
     margin-right: 3px;
 }
+/* ATTACHMENTS */
+.attachment-group-title {
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-weight: 900;
+    font-size: 22px;
+    color: #1f3a63;
+    border-bottom: 1px solid #d5dce2;
+    padding-bottom: 3px;
+    text-align: center;
+}
+
+.attachment-image {
+    width: 100%;
+    margin: 6px;
+    border-radius: 4px;
+}
+
+.attachment-pdf {
+    height: 400px;
+    margin: 6px 0;
+    border: 1px solid #ccc;
+}
+
+
 /* FILTERS */
 .multi-select {
     border: 1px solid #d0d0d0;
