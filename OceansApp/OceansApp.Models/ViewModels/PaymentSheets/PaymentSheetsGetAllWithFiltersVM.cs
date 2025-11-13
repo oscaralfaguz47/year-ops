@@ -14,5 +14,8 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public int NumApprovedSubmissions { get; set; }
         public int NumProjectsIsActive { get; set; }
         public string PaymentStatus { get; set; }
+        public string ReportAttachments { get; set; }
+        public string HoursReported { get; set; }
+        public string? ProfileImage { get; set; }
     }
 }
