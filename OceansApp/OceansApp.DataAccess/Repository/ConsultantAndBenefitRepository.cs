@@ -2,6 +2,8 @@
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
 using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
 
 namespace OceansApp.DataAccess.Repository
@@ -135,7 +137,7 @@ namespace OceansApp.DataAccess.Repository
             return (results, totalCount);
         }
 
-        public async Task<List<GetConsultantsAndBenefitsBalanceAmountVM>> GetConsultantsWithSavedBenefitsAsync()
+        private async Task<List<GetConsultantsAndBenefitsBalanceAmountVM>> GetConsultantsWithSavedBenefitsAsync()
         {
             // Load all benefits
             var benefits = _db.CONSULTANT_BENEFITS.AsQueryable();
@@ -155,7 +157,7 @@ namespace OceansApp.DataAccess.Repository
                      into cabJoin
                 from cab in cabJoin.DefaultIfEmpty()
 
-                where cab != null  
+                where cab != null
 
                 orderby (u.Name ?? "") + " " + (u.LastName ?? ""), b.Name
 
@@ -174,7 +176,63 @@ namespace OceansApp.DataAccess.Repository
             return results;
         }
 
+        public async Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy)
+        {
+            var existingConsultantsAndBenefits = await GetConsultantsWithSavedBenefitsAsync();
 
+            if (existingConsultantsAndBenefits.Any())
+            {
+                using (var transaction = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        foreach (var benefitElement in existingConsultantsAndBenefits)
+                        {
+                            var existingConsultantAndBenefit = await _db.CONSULTANTS_AND_BENEFITS.FirstOrDefaultAsync(x => x.Id == benefitElement.ConsultantAndBenefitId);
+
+                            if (existingConsultantAndBenefit == null)
+                                return MethodResponse.CreateFailureNotFoundResponse($"The Consultant and Benefit Id {benefitElement.ConsultantAndBenefitId} was not found.");
+
+                            var benefit = await _db.CONSULTANT_BENEFITS.FirstOrDefaultAsync(x => x.BenefitId == existingConsultantAndBenefit.BenefitId);
+                            if (benefit == null)
+                                return MethodResponse.CreateFailureNotFoundResponse($"The Benefit Id {existingConsultantAndBenefit.BenefitId} was not found.");
+
+                            //Save the history
+                            ConsultantAndBenefitHistory historyToCreate = new()
+                            {
+                                CreationDate = DateTime.UtcNow,
+                                UserCreatedById = userIdCreatedBy,
+                                ConsultantAndBenefitId = existingConsultantAndBenefit.Id,
+                                OldValue = existingConsultantAndBenefit.BalanceAmount,
+                                NewValue = benefit.Amount,
+                                Notes = "Renewed annual benefit"
+                            };
+                            await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
+
+                            //Reset the Balance Amount
+                            existingConsultantAndBenefit.BalanceAmount = benefit.Amount;
+                        }
+                        await _db.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+                        return new MethodResponse
+                        {
+                            Success = true,
+                            Message = $"{existingConsultantsAndBenefits.Count} registers were reset successfully."
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        return new MethodResponse { MessageType = "Exception Error", Success = false, Message = ex.Message };
+                    }
+                }
+            }
+            else
+            {
+                return MethodResponse.CreateSuccessResponse("No updates were executed, all balances are already reset.");
+            }
+        }
 
 
     }
