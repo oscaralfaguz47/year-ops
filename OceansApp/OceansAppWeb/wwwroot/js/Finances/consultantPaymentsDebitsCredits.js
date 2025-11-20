@@ -58,8 +58,8 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.costCenterName}</td>
                   <td>${obj.accountingAccountName}</td>
                   <td>${obj.quantity}</td>
-                  <td>$${obj.amount}</td>
-                  <td>$${(obj.quantity * obj.amount)}</td>
+                  <td>$${obj.amount.toLocaleString('en-US')}</td>
+                  <td>$${(obj.quantity * obj.amount).toLocaleString('en-US') }</td>
                   <td>${actionformattedDate}</td>
                   <td><span class="cel-status">${obj.transactionTypeName === 'Credit' ? '<i class="bi bi-plus green-label"></i>' : '<i class="bi bi-dash red-label"></i>'} ${obj.transactionTypeName}</span></td>
                   <td>${getStatusLabel(obj.transactionStatusName)}</td>

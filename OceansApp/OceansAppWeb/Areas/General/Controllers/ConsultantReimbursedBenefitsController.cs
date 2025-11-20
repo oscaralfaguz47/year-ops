@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
+using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Security.Claims;
 
@@ -243,6 +244,74 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { error = $"There was an error in the server, the benefit reimbursement could not be rejected.", result = "ErrorDeleting", detail = ex.Message });
+            }
+        }
+
+        [HttpGet("GetConsultantsAndBenefitsBalanceList")]
+        public async Task<IActionResult> GetConsultantsAndBenefitsBalanceList(string model)
+        {
+            try
+            {
+                if (model != "{}")
+                {
+                    JObject jsonToValidate = JObject.Parse(model);
+                    if (jsonToValidate["Filters"] == null || jsonToValidate["PaginationWithoutFilters"] == null)
+                    {
+                        return BadRequest(new { errors = new[] { "You should pass a valid Json like: {Filters: null, PaginationWithoutFilters:null}" }, result = "errorGet", detail = "The json is invalid." });
+                    }
+                    else
+                    {
+                        if (jsonToValidate["Filters"] != null)
+                        {
+                            ValidateInputs validateInputs = new();
+                            //Validate Filter inputs
+                            validateInputs.ValidateNotRequiredAndStringLength("SearchText", "Search Text", jsonToValidate["Filters"]["SearchText"].ToString(), 100, ModelState);
+
+                            if (!ModelState.IsValid)
+                            {
+                                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                              .Select(e => e.ErrorMessage)
+                                                              .ToList();
+                                return BadRequest(new { MessageType = "Validation Error", message = "Validation Error", result = "error", errors = errors, detail = "Parameters for filters are not correct." });
+                            }
+                        }
+                    }
+                }
+
+                ConsultantsAndBenefitsBalancePaginationFiltersVM consultantsAndBenefitsBalancePaginationFilters = System.Text.Json.JsonSerializer.Deserialize<ConsultantsAndBenefitsBalancePaginationFiltersVM>(model);
+
+                ConsultantsAndBenefitsBalancePaginationFiltersVM paginationFilters = new();
+                paginationFilters.Filters = new ConsultantsAndBenefitsBalanceFiltersGetAllVM();
+
+                int numAppliedFilters = 0;
+                if (consultantsAndBenefitsBalancePaginationFilters.Filters != null)
+                {
+                    foreach (var prop in consultantsAndBenefitsBalancePaginationFilters.Filters.GetType().GetProperties())
+                    {
+                        var value = prop.GetValue(consultantsAndBenefitsBalancePaginationFilters.Filters, null);
+                        if (value is not null and not "")
+                        {
+                            numAppliedFilters++;
+                        }
+                    }
+                }
+                var setPagination = new PaginationFiltersBehavior();
+                paginationFilters.PaginationWithoutFilters = setPagination.SetPagination(consultantsAndBenefitsBalancePaginationFilters.PaginationWithoutFilters, numAppliedFilters);
+
+                if (numAppliedFilters > 0)
+                {
+                    paginationFilters.Filters = consultantsAndBenefitsBalancePaginationFilters.Filters;
+                }
+
+                var totalResults = await _unitOfWork.ConsultantAndBenefit.GetConsultantsAndBenefitsBalanceAsync(paginationFilters);
+                paginationFilters.PaginationWithoutFilters.Pagination.TotalResults = totalResults.totalCount;
+
+                var data = new { ResultsList = totalResults.results, PaginationFilters = paginationFilters };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { errors = new[] { $"There was an error fetching the list of Consultants Benefits Balance." }, success = false, result = "errorGet", detail = ex.Message });
             }
         }
 

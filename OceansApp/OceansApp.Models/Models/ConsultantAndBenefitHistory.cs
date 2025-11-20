@@ -20,6 +20,8 @@ namespace OceansApp.Models.Models
         [Required]
         public decimal NewValue { get; set; }
         public int? ReimbursedBenefitId { get; set; }
+        [MaxLength(100)]
+        public string? Notes { get; set; }
 
         [ValidateNever]
         public ConsultantAndBenefit ConsultantAndBenefit { get; set; }

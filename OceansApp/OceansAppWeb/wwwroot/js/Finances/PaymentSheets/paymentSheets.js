@@ -232,7 +232,7 @@ function viewAttachments(attachments) {
 
     let attachmentsContainer = document.getElementById('attachments-container');
     attachmentsContainer.className = 'attachments-container';
-
+    attachmentsContainer.innerHTML = '';
     // 4. Group attachments by TrackingToolName
     let groups = {};
     attachments.forEach(att => {
@@ -585,7 +585,7 @@ function handleProjectCheckboxChange() {
         text.textContent = `${selected.length} selected`;
     }
 
-    // ✅ Trigger your existing logic
+    // Trigger your existing logic
     getListOfResults(false, true);
 }
 function getSelectedProjects() {
