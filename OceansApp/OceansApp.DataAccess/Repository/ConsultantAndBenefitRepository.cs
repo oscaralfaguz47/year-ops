@@ -3,7 +3,6 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
-using OceansApp.Models.ViewModels.ConsultantReimbursedBenefits;
 using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
 
 namespace OceansApp.DataAccess.Repository
@@ -186,6 +185,7 @@ namespace OceansApp.DataAccess.Repository
                 {
                     try
                     {
+                        int count = 0;
                         foreach (var benefitElement in existingConsultantsAndBenefits)
                         {
                             var existingConsultantAndBenefit = await _db.CONSULTANTS_AND_BENEFITS.FirstOrDefaultAsync(x => x.Id == benefitElement.ConsultantAndBenefitId);
@@ -197,20 +197,24 @@ namespace OceansApp.DataAccess.Repository
                             if (benefit == null)
                                 return MethodResponse.CreateFailureNotFoundResponse($"The Benefit Id {existingConsultantAndBenefit.BenefitId} was not found.");
 
-                            //Save the history
-                            ConsultantAndBenefitHistory historyToCreate = new()
+                            if (existingConsultantAndBenefit.BalanceAmount != benefit.Amount)
                             {
-                                CreationDate = DateTime.UtcNow,
-                                UserCreatedById = userIdCreatedBy,
-                                ConsultantAndBenefitId = existingConsultantAndBenefit.Id,
-                                OldValue = existingConsultantAndBenefit.BalanceAmount,
-                                NewValue = benefit.Amount,
-                                Notes = "Renewed annual benefit"
-                            };
-                            await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
+                                //Save the history
+                                ConsultantAndBenefitHistory historyToCreate = new()
+                                {
+                                    CreationDate = DateTime.UtcNow,
+                                    UserCreatedById = userIdCreatedBy,
+                                    ConsultantAndBenefitId = existingConsultantAndBenefit.Id,
+                                    OldValue = existingConsultantAndBenefit.BalanceAmount,
+                                    NewValue = benefit.Amount,
+                                    Notes = "Renewed annual benefit"
+                                };
+                                await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
 
-                            //Reset the Balance Amount
-                            existingConsultantAndBenefit.BalanceAmount = benefit.Amount;
+                                //Reset the Balance Amount
+                                existingConsultantAndBenefit.BalanceAmount = benefit.Amount;
+                                count++;
+                            }
                         }
                         await _db.SaveChangesAsync();
 
@@ -218,7 +222,7 @@ namespace OceansApp.DataAccess.Repository
                         return new MethodResponse
                         {
                             Success = true,
-                            Message = $"{existingConsultantsAndBenefits.Count} registers were reset successfully."
+                            Message = $"{(count == 0 ? "No updates were executed, all balances are already reset." : count + " registers were reset successfully.")}"
                         };
                     }
                     catch (Exception ex)

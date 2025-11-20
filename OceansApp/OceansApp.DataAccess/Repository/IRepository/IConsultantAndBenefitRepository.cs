@@ -1,4 +1,5 @@
 ﻿using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
 
 namespace OceansApp.DataAccess.Repository.IRepository
@@ -9,5 +10,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<decimal?> GetBenefitBalanceAmountByConsultantAsync(int consultantId, string benefitName);
         Task<(List<GetConsultantsAndBenefitsBalanceAmountVM> results, int totalCount)> GetConsultantsAndBenefitsBalanceAsync(
             ConsultantsAndBenefitsBalancePaginationFiltersVM paginationFilters);
+        Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy);
     }
 }
