@@ -178,7 +178,7 @@ namespace OceansAppWeb.Areas.General.Controllers
                                     errors = new[] { res.Message }
                                 });
                             }
-                            
+
                         }
                     }
                     return Ok(new
@@ -312,6 +312,79 @@ namespace OceansAppWeb.Areas.General.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { errors = new[] { $"There was an error fetching the list of Consultants Benefits Balance." }, success = false, result = "errorGet", detail = ex.Message });
+            }
+        }
+
+        [HttpGet("GetDataToResetAllBenefits")]
+        public async Task<IActionResult> GetDataToResetAllBenefits()
+        {
+            try
+            {
+                string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                var applicationUser = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(x => x.Id == userActionedBy);
+
+                var data = new { CurrentUser = applicationUser.Name };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { errors = new[] { $"There was an error fetching the data." }, success = false, result = "errorGet", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("ResetAllConsultantsBenefitsBalance")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetAllConsultantsBenefitsBalance([FromForm] string? description, [FromForm] int? year)
+        {
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredAndStringLength("Description", "Description", description, 100, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("YearToReset", "New Year To Reset", year, ModelState);
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var res = await _unitOfWork.ConsultantAndBenefit.ResetAllConsultantsAndBenefitsBalanceAsync(userActionedBy, description, (int)year);
+                    if (res.Success)
+                    {
+                        return Ok(new { success = true, message = res.Message });
+                    }
+                    else
+                    {
+                        if (res.MessageType != "Validation Error")
+                        {
+                            return BadRequest(new { error = res.Message, MessageType = res.MessageType });
+                        }
+                        else
+                        {
+                            return BadRequest(new
+                            {
+                                MessageType = res.MessageType,
+                                errors = new[] { res.Message }
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { error = $"There was an error in the server, no changes were applied.", detail = ex.Message });
+                }
+            }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new
+                {
+                    MessageType = "Validation Error",
+                    message = "Validation Error",
+                    result = "error",
+                    errors = errors
+                });
             }
         }
 

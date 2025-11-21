@@ -22,7 +22,7 @@
                                 <i class="bi bi-search placeholder-image"></i>
                             </div>
                             <div class="action-btns-container">
-
+                                <button title="Reset all consultants balance" onclick="displayConfirmationToResetBalance()">🔄 Reset All Balances</button>
                             </div>
                         </div>
                     </div>
@@ -59,5 +59,74 @@
     <partial name="_SidebarRightPartial" />
 </div>
 
+<div id="modal-confirm-reset" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container">
+                    <button id="close-payment-modal-x-btn"
+                            onclick="hideModal('modal-confirm-reset')">
+                        x
+                    </button>
+                </div>
+
+                <h2>Confirm Reset All Benefits Balance</h2>
+
+                <div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Please enter a description of this reset <span class="required-asterisk">*</span></label>
+                            <input type="text" class="form-control" id="description-confirm-reset" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="CostCenterSelect">New Year To Reset<span class="required-asterisk">*</span></label>
+                            <div class="custom-select">
+                                <span class="arrow-down"></span>
+                                <select class="form-select" id="new-year" name="new-year">
+                                    <option value="">-Select a Year-</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2031</option>
+                                    <option value="2032">2032</option>
+                                    <option value="2033">2033</option>
+                                    <option value="2034">2034</option>
+                                    <option value="2035">2035</option>
+                                    <option value="2036">2036</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reset-alert-message">
+                </div>
+
+                <div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Please enter the word <strong>"RESET"</strong> just to confirm that you are agree to reset all balance. <span class="required-asterisk">*</span></label>
+                            <input autocomplete="off" type="text" class="form-control" id="word-confirm-reset" />
+                            <span id="word-val-message" class="red-label"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-confirm-reset')" class="cancel-btn">
+                        Cancel
+                    </button>
+                    <button onclick="resetAllConsultantsBalance()" class="btn-primary-submit">
+                        Reset All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="~/js/General/ConsultantsAndBenefitsBalance/consultantsAndBenefitsBalance.js?v=@DateTime.Now.Ticks"></script>

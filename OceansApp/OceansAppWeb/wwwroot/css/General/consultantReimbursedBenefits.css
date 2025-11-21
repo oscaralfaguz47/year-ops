@@ -25,3 +25,8 @@
         width: 95% !important;
     }
 }
+
+#modal-confirm-reset .action-btns-box{
+    margin-top: 20px;
+    text-align:center;
+}

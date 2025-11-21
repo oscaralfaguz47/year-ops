@@ -4,6 +4,7 @@ using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
+using System.Text.Json;
 
 namespace OceansApp.DataAccess.Repository
 {
@@ -136,7 +137,7 @@ namespace OceansApp.DataAccess.Repository
             return (results, totalCount);
         }
 
-        private async Task<List<GetConsultantsAndBenefitsBalanceAmountVM>> GetConsultantsWithSavedBenefitsAsync()
+        public async Task<List<GetConsultantsAndBenefitsBalanceAmountVM>> GetConsultantsWithSavedBenefitsAsync()
         {
             // Load all benefits
             var benefits = _db.CONSULTANT_BENEFITS.AsQueryable();
@@ -175,8 +176,13 @@ namespace OceansApp.DataAccess.Repository
             return results;
         }
 
-        public async Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy)
+        public async Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy, string description, int year)
         {
+            var existingReset = await _db.CONSULTANT_BENEFITS_RESETS.FirstOrDefaultAsync(x => x.YearToReset == year);
+            if (existingReset != null)
+            {
+                return MethodResponse.CreateFailureValidationResponse($"A reset has already been implemented for the year {year}. You cannot apply more than 1 to the same year.");
+            }
             var existingConsultantsAndBenefits = await GetConsultantsWithSavedBenefitsAsync();
 
             if (existingConsultantsAndBenefits.Any())
@@ -186,6 +192,7 @@ namespace OceansApp.DataAccess.Repository
                     try
                     {
                         int count = 0;
+                        List<int> consultantAndBenefitIds = new();
                         foreach (var benefitElement in existingConsultantsAndBenefits)
                         {
                             var existingConsultantAndBenefit = await _db.CONSULTANTS_AND_BENEFITS.FirstOrDefaultAsync(x => x.Id == benefitElement.ConsultantAndBenefitId);
@@ -207,15 +214,46 @@ namespace OceansApp.DataAccess.Repository
                                     ConsultantAndBenefitId = existingConsultantAndBenefit.Id,
                                     OldValue = existingConsultantAndBenefit.BalanceAmount,
                                     NewValue = benefit.Amount,
-                                    Notes = "Renewed annual benefit"
+                                    Notes = $"Renewed annual benefit for ({year})"
                                 };
                                 await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
 
                                 //Reset the Balance Amount
                                 existingConsultantAndBenefit.BalanceAmount = benefit.Amount;
+
+                                // Add Id to the list of reset records
+                                if (benefitElement.ConsultantAndBenefitId.HasValue)
+                                {
+                                    consultantAndBenefitIds.Add(benefitElement.ConsultantAndBenefitId.Value);
+                                }
+
                                 count++;
                             }
                         }
+                        // Create the Consultant Benefit Reset record only if something was updated
+                        if (count > 0)
+                        {
+                            // Build the JSON: { "ConsultantAndBenefitIds": [1,3,8,58] }
+                            var resetValuesObject = new
+                            {
+                                ConsultantAndBenefitIds = consultantAndBenefitIds
+                            };
+
+                            string arrayResetValuesJson = JsonSerializer.Serialize(resetValuesObject);
+
+                            ConsultantBenefitReset benefitResetToCreate = new()
+                            {
+                                UserIdCreatedBy = userIdCreatedBy,
+                                ResetDate = DateTime.UtcNow,
+                                Description = description,
+                                ArrayResetValues = arrayResetValuesJson,
+                                YearToReset = year
+                            };
+
+                            // Asegúrate que estás agregando el reset a su DbSet correcto
+                            await _db.CONSULTANT_BENEFITS_RESETS.AddAsync(benefitResetToCreate);
+                        }
+
                         await _db.SaveChangesAsync();
 
                         await transaction.CommitAsync();

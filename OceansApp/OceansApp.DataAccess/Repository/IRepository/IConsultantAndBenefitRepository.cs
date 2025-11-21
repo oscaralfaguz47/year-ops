@@ -10,6 +10,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<decimal?> GetBenefitBalanceAmountByConsultantAsync(int consultantId, string benefitName);
         Task<(List<GetConsultantsAndBenefitsBalanceAmountVM> results, int totalCount)> GetConsultantsAndBenefitsBalanceAsync(
             ConsultantsAndBenefitsBalancePaginationFiltersVM paginationFilters);
-        Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy);
+        Task<List<GetConsultantsAndBenefitsBalanceAmountVM>> GetConsultantsWithSavedBenefitsAsync();
+        Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy, string description, int year);
     }
 }
