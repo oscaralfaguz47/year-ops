@@ -9,13 +9,28 @@ namespace OceansApp.Utility.SharedMethods.InputValidations
     public class ValidateInputs
     {
 
-        public void ValidateRequiredAndStringLength(string field, string fieldName, string stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
+        public void ValidateRequiredAndStringLength(
+     string modelStateKey,
+     string displayName,
+     string? value,
+     int maxLength,
+     ModelStateDictionary modelState)
         {
-            if (string.IsNullOrEmpty(stringToValidate.Trim()) || stringToValidate.Trim().Length > maxCharacterNum)
+            string cleaned = value?.Trim() ?? string.Empty;
+
+            if (cleaned.Length == 0)
             {
-                modelState.AddModelError(field, $"The {fieldName} must be between 1 and {maxCharacterNum} characters.");
+                modelState.AddModelError(modelStateKey, $"{displayName} is required.");
+                return;
+            }
+
+            if (cleaned.Length > maxLength)
+            {
+                modelState.AddModelError(modelStateKey, $"{displayName} cannot exceed {maxLength} characters.");
             }
         }
+
+
 
         public void ValidateNotRequiredAndStringLength(string field, string fieldName, string? stringToValidate, int maxCharacterNum, ModelStateDictionary modelState)
         {

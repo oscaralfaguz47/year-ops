@@ -1,0 +1,169 @@
+﻿<div id="modal-consultants_benefits-balance" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container">
+                    <button id="close-payment-modal-x-btn"
+                            onclick="hideModal('modal-consultants_benefits-balance')">
+                        x
+                    </button>
+                </div>
+
+                <h2>Consultants And Benefits Balance</h2>
+
+                <div style="margin: 0 10px 0 10px; backgroundcolor: #fff;">
+                    <div class="principal-header-container">
+                        <div class="filters-container">
+                            @await Html.PartialAsync("_PaginationReusable")
+                        </div>
+                        <div class="table-header-actions">
+                            <div class="input-container">
+                                <input id="search-input-benefit-balance" onchange="enterInSearchConsultantsAndBenefitsBalance(event)" type="text" placeholder="Search" class="form-control">
+                                <i class="bi bi-search placeholder-image"></i>
+                            </div>
+                            <div class="action-btns-container">
+                                <button title="Reset all consultants balance to new year" onclick="displayConfirmationToResetBalance()">🔄 Reset All Balances</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="global-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Consultant Name
+                                    </th>
+                                    <th>
+                                        Benefit Name
+                                    </th>
+                                    <th>
+                                        Balance Amount
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <div class="no-results"></div>
+                    </div>
+                </div>
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-consultants_benefits-balance')" class="cancel-btn">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <partial name="_SidebarRightPartial" />
+</div>
+
+<div id="modal-confirm-reset" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container">
+                    <button id="close-payment-modal-x-btn"
+                            onclick="hideModal('modal-confirm-reset')">
+                        x
+                    </button>
+                </div>
+
+                <h2>Confirm Reset All Benefits Balance</h2>
+
+                <div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Please enter a description of this reset <span class="required-asterisk">*</span></label>
+                            <input type="text" class="form-control" id="description-confirm-reset" />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reset-alert-message">
+                </div>
+
+                <div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Please type <strong style="font-weight:900">"RESET"</strong> to confirm you are agree. <span class="required-asterisk">*</span></label>
+                            <input autocomplete="off" type="text" class="form-control" id="word-confirm-reset" />
+                            <span id="word-val-message" class="red-label"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-confirm-reset')" class="cancel-btn">
+                        Cancel
+                    </button>
+                    <button onclick="resetAllConsultantsBalance()" class="btn-primary-submit">
+                        Reset All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-benefits-history" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div>
+                <div class="close-btn-container">
+                    <button id="close-payment-modal-x-btn"
+                            onclick="hideModal('modal-benefits-history')">
+                        x
+                    </button>
+                </div>
+
+                <h2 id="benefit-history-title"></h2>
+
+                <div class="global-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>
+                                    Benefit Category
+                                </th>
+                                <th>
+                                    Amount Applied
+                                </th>
+                                <th>
+                                    Old Value
+                                </th>
+                                <th>
+                                    New Value
+                                </th>
+                                <th>
+                                    Reimbursement Detail
+                                </th>
+                                <th>
+                                    Reset Balance Notes
+                                </th>
+                                <th>
+                                    User Created By
+                                </th>
+                                <th>
+                                    Creation Date
+                                </th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <div class="no-results"></div>
+                </div>
+
+                <div class="action-btns-box">
+                    <button onclick="hideModal('modal-benefits-history')" class="cancel-btn">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/js/General/ConsultantsAndBenefitsBalance/consultantsAndBenefitsBalance.js?v=@DateTime.Now.Ticks"></script>

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OceansApp.DataAccess", "Oce
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OceansApp.Models", "OceansApp.Models\OceansApp.Models.csproj", "{F5CB6974-13D6-4F55-84DB-BB662BAEEEEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsApp", "AzureFunctionsApp\AzureFunctionsApp.csproj", "{2F863F5F-7985-4247-B0CB-1E47E27B277F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsApp", "AzureFunctionsApp\AzureFunctionsApp.csproj", "{2F863F5F-7985-4247-B0CB-1E47E27B277F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

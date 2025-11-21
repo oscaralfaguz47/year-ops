@@ -303,6 +303,23 @@ namespace OceansApp.DataAccess.Data
                 .OnDelete(DeleteBehavior.Restrict);
             });
 
+
+            // CONSULTANTS AND BENEFIT RESET
+            modelBuilder.Entity<ConsultantBenefitReset>(entity =>
+            {
+                // index
+                entity.HasIndex(e => new { e.UserIdCreatedBy });
+
+
+                entity.HasKey(c => new { c.Id });
+                entity.HasOne(cc => cc.ApplicationUserCreatedBy)
+                .WithMany()
+                .HasForeignKey(cc => cc.UserIdCreatedBy)
+                .IsRequired();
+                entity.Property(e => e.ArrayResetValues)
+                .HasColumnType("nvarchar(max)");
+            });
+
             // CONSULTANTS AND BENEFITS HISTORY
             modelBuilder.Entity<ConsultantAndBenefitHistory>(entity =>
             {
@@ -1600,6 +1617,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<ConsultantSeniority> CONSULTANT_SENIORITIS { get; set; }
         public DbSet<ConsultantBenefit> CONSULTANT_BENEFITS { get; set; }
         public DbSet<ConsultantAndBenefit> CONSULTANTS_AND_BENEFITS { get; set; }
+        public DbSet<ConsultantBenefitReset> CONSULTANT_BENEFITS_RESETS { get; set; }
         public DbSet<ConsultantAndBenefitHistory> CONSULTANTS_AND_BENEFITS_HISTORY { get; set; }
         public DbSet<ConsultantBenefitCompany> CONSULTANT_BENEFIT_COMPANIES { get; set; }
         public DbSet<ConsultantBenefitCategory> CONSULTANT_BENEFIT_CATEGORIES { get; set; }

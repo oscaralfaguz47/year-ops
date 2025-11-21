@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251120212137_addNotesColumnToConsultantAndBenefitHistoryTable")]
+    partial class addNotesColumnToConsultantAndBenefitHistoryTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1063,41 +1066,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.HasIndex("CostCenterId");
 
                     b.ToTable("CONSULTANT_BENEFIT_COMPANIES");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitReset", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ArrayResetValues")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("ResetDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserIdCreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("YearToReset")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserIdCreatedBy");
-
-                    b.ToTable("CONSULTANT_BENEFITS_RESETS");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>
@@ -3805,17 +3773,6 @@ namespace OceansApp.DataAccess.Migrations
                     b.Navigation("ConsultantBenefit");
 
                     b.Navigation("CostCenter");
-                });
-
-            modelBuilder.Entity("OceansApp.Models.Models.ConsultantBenefitReset", b =>
-                {
-                    b.HasOne("OceansApp.Models.Models.ApplicationUser", "ApplicationUserCreatedBy")
-                        .WithMany()
-                        .HasForeignKey("UserIdCreatedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApplicationUserCreatedBy");
                 });
 
             modelBuilder.Entity("OceansApp.Models.Models.ConsultantDetail", b =>

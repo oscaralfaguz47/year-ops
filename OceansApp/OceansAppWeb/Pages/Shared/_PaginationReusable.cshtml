@@ -1,0 +1,58 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+
+<div class="pagination-container">
+    <div>
+        <input type="hidden" class="total-results-input" value="0" />
+        <input type="hidden" class="is-last-page-input" value="0" />
+        <input type="hidden" class="page-size-changed-input" value="false" />
+        <!-- Local PageIndex for THIS paginator -->
+        <input type="hidden" class="page-index-input" value="1" />
+
+        <div class="block">
+            <label>Items per page</label>
+            <div>
+                <select class="form-select items-per-page-select"
+                        onchange="paginationButtonActions('firstPage', this); changePageSizeValue(this); paginationSubmit(false, false, this);">
+                </select>
+            </div>
+        </div>
+
+        <div class="block">
+            <!-- First page -->
+            <button class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttons"
+                    onclick="paginationButtonActions('firstPage', this); paginationSubmit(false, true, this);">
+                &laquo;&laquo;
+            </button>
+
+            <!-- Previous page -->
+            <button class="btn btn-sm btn-primary mr-1 pagination-button left-pag-buttons"
+                    onclick="paginationButtonActions('decrement', this); paginationSubmit(false, true, this);">
+                &laquo;
+            </button>
+
+            <label class="label-pag-info"></label>
+
+            <!-- Next page -->
+            <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttons"
+                    onclick="paginationButtonActions('increment', this); paginationSubmit(false, true, this);">
+                &raquo;
+            </button>
+
+            <!-- Last page -->
+            <button class="btn btn-sm btn-primary mr-1 pagination-button right-pag-buttons"
+                    onclick="paginationButtonActions('lastPage', this); paginationSubmit(false, true, this);">
+                &raquo;&raquo;
+            </button>
+
+            <label><strong class="label-total-results"></strong></label>
+        </div>
+    </div>
+
+    <!-- Sort settings (SCOPED to this paginator) -->
+    <input value="ANY" name="fieldToOrder" type="hidden" />
+    <input value="ANY" name="directionOrder" type="hidden" />
+</div>
+
+<script src="~/js/Shared/paginationReusable.js?v=@DateTime.Now.Ticks"></script>

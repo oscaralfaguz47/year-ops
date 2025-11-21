@@ -1,4 +1,7 @@
 ﻿using OceansApp.Models.Models;
+using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ConsultantAndBenefitHistory;
+using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
 
 namespace OceansApp.DataAccess.Repository.IRepository
 {
@@ -6,5 +9,10 @@ namespace OceansApp.DataAccess.Repository.IRepository
     {
         Task<ConsultantAndBenefit> CreateConsultantAndBenefitIfNotExists(int consultantId, ConsultantBenefit benefit);
         Task<decimal?> GetBenefitBalanceAmountByConsultantAsync(int consultantId, string benefitName);
+        Task<(List<GetConsultantsAndBenefitsBalanceAmountVM> results, int totalCount)> GetConsultantsAndBenefitsBalanceAsync(
+            ConsultantsAndBenefitsBalancePaginationFiltersVM paginationFilters);
+        Task<List<GetConsultantsAndBenefitsBalanceAmountVM>> GetConsultantsWithSavedBenefitsAsync();
+        Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy, string description);
+        Task<List<GetHistoryListVM>> GetConsultantsAndBenefitsHistoryAsync(int consultantAndBenefitId);
     }
 }

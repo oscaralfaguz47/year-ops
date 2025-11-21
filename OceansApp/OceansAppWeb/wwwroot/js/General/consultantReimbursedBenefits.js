@@ -4,17 +4,22 @@ let transactionStatusesArray = [];
 let transactionStatusSelectFilters = null;
 let benefitSelectFilters = null;
 
+const mainPaginationContainerSelector = '.principal-header-container .pagination-container';
+
 $(document).ready(function () {
     setGeneralItemActive();
     getListOfResults(true, false);
 });
 
-// -Get list
-async function getListOfResults(firstTime, filters) {
+// ===============================
+// Get list (main table)
+// ===============================
+async function getListOfResults(firstTime, fromFilters) {
     displaySpinner();
-    var formData = firstTime ? {} : recolectDataFromForm(filters);
-    var queryString = JSON.stringify(formData);
-    var url = "/General/ConsultantReimbursedBenefits/GetConsultantReimbursedBenefitsList?model=" + encodeURIComponent(queryString);
+
+    const formData = firstTime ? {} : recolectDataFromFormReimbursements(fromFilters);
+    const queryString = JSON.stringify(formData);
+    const url = "/General/ConsultantReimbursedBenefits/GetConsultantReimbursedBenefitsList?model=" + encodeURIComponent(queryString);
 
     fetch(url)
         .then(response => {
@@ -28,21 +33,24 @@ async function getListOfResults(firstTime, filters) {
             }
         })
         .then(data => {
-            var tbody = $(".global-table-container table tbody");
-            var tableRows = $(".global-table-container table");
-            var noResultsMessage = $(".no-results");
+            const tbody = $(".global-table-container table tbody");
+            const tableRows = $(".global-table-container table");
+            const noResultsMessage = $(".no-results");
+
             noResultsMessage.empty();
             tableRows.css("display", "block");
             tbody.empty();
+
             data.reimbursedBenefitsList.forEach(function (obj) {
-                var reimbursedDate = new Date(obj.dateToBeReimbursed);
-                var reimbursedformattedDate = ('0' + (reimbursedDate.getMonth() + 1)).slice(-2) + '/' +
+                const reimbursedDate = new Date(obj.dateToBeReimbursed);
+                const reimbursedformattedDate = ('0' + (reimbursedDate.getMonth() + 1)).slice(-2) + '/' +
                     ('0' + reimbursedDate.getDate()).slice(-2) + '/' +
                     reimbursedDate.getFullYear();
 
-                var rejectBtn = ``;
-                var editBtn = ``;
-                var menuBtn = `<i title="You are not able to edit it, it is status ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
+                let rejectBtn = ``;
+                let editBtn = ``;
+                let menuBtn = `<i title="You are not able to edit it, it is status ${obj.transactionStatusName}" style="cursor:pointer; color: var(--clr-blueLight);" class="bi bi-exclamation-circle"></i> `;
+
                 if (obj.transactionStatusName !== "Rejected" && obj.transactionStatusName === "Approved") {
                     rejectBtn = `<li onclick="rejectBenefitReimbursement(${obj.reimbursedBenefitId}, '${obj.consultantName}')""><i class="red-label bi bi-x-lg"></i> Reject</li>`;
                     editBtn = `<li onclick="displayUpdateCreateReimbursementModal('modal-update-create-reimbursement', ${obj.reimbursedBenefitId})""><i class="bi bi-pencil-square"></i> Edit</li>`;
@@ -55,7 +63,7 @@ async function getListOfResults(firstTime, filters) {
                               </div>`;
                 }
 
-                var row = `<tr class="hover-group">
+                const row = `<tr class="hover-group">
                   <td>
                       ${menuBtn}
                       ${obj.consultantName}
@@ -63,13 +71,13 @@ async function getListOfResults(firstTime, filters) {
                   <td>${obj.benefitName}</td>
                   <td>${obj.benefitCategoryName}</td>
                   <td>${obj.detail === null ? "" : obj.detail}</td>
-                  <td>$${obj.amountReimbursed}</td>
+                  <td>$${obj.amountReimbursed.toLocaleString('en-US')}</td>
                   <td>${reimbursedformattedDate}</td>
                   <td>${getStatusLabel(obj.transactionStatusName)}</td>
                   <td>${obj.userCreatedBy}</td>
                   <td>${formatUtcToLocalMmDdYyyyTime(obj.creationDate)}</td>
                   <td>${obj.userLastUpdatedBy === null ? "Not updated" : obj.userLastUpdatedBy}</td>
-                  <td>${obj.lastUpdateDate === null ? "Not updated" : formatUtcToLocalMmDdYyyyTime(obj.lastUpdateDate) }</td>
+                  <td>${obj.lastUpdateDate === null ? "Not updated" : formatUtcToLocalMmDdYyyyTime(obj.lastUpdateDate)}</td>
               </tr>`;
                 tbody.append(row);
             });
@@ -77,8 +85,9 @@ async function getListOfResults(firstTime, filters) {
             if (data.reimbursedBenefitsList.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
-            };
-            updatePagination(data.paginationFilters.paginationWithoutFilters.pagination);
+            }
+
+            updatePaginationReimbursements(data.paginationFilters.paginationWithoutFilters.pagination);
         })
         .catch(error => {
             validateSessionExpiration(error.message);
@@ -87,7 +96,60 @@ async function getListOfResults(firstTime, filters) {
             hideSpinner();
         });
 }
-//MORE FILTERS
+
+// ===============================
+// Pagination + filters (main)
+// ===============================
+function recolectDataFromFormReimbursements(fromFilters) {
+    const searchText = $('#search-input').val();
+
+    const filtersData = {
+        SearchText: searchText,
+        TransactionStatusId: transactionStatusSelectFilters === null ? null : transactionStatusSelectFilters.value === '' ? null : Number(transactionStatusSelectFilters.value),
+        BenefitId: benefitSelectFilters === null ? null : benefitSelectFilters.value === '' ? null : Number(benefitSelectFilters.value)
+    };
+
+    const paginationContainer = document.querySelector(mainPaginationContainerSelector);
+
+    const inputFieldToOrder = paginationContainer.querySelector('input[name="fieldToOrder"]');
+    const inputDirectionOrder = paginationContainer.querySelector('input[name="directionOrder"]');
+
+    const orderByData = {
+        FieldToOrder: inputFieldToOrder.value,
+        DirectionOrder: inputDirectionOrder.value
+    };
+
+    const paginationData = returnCurrentPaginationValues(paginationContainer);
+
+    const paginationWithoutFilters = {
+        Pagination: paginationData,
+        RequestFromFilters: fromFilters,
+        OrderBy: orderByData
+    };
+
+    return {
+        Filters: filtersData,
+        PaginationWithoutFilters: paginationWithoutFilters
+    };
+}
+
+function updatePaginationReimbursements(paginationData) {
+    updatePaginationValues(
+        paginationData,
+        document.querySelector(mainPaginationContainerSelector)
+    );
+}
+
+// Search input (main)
+function enterInSearchReimbursements(event) {
+    const container = document.querySelector(mainPaginationContainerSelector);
+    paginationSubmit(true, false, container);
+}
+
+
+// ===============================
+// MORE FILTERS (main)
+// ===============================
 async function displayMoreFiltersReimbursements() {
     if (!rightSidebarFiltersIsDiplayed) {
         displaySpinner();
@@ -100,12 +162,12 @@ async function displayMoreFiltersReimbursements() {
           <form id="filters-form">
            <div class="select-container">
              <label>Status</label>
-             <select onchange="paginationSubmit(false, true)" id="TransactionStatusIdFilters" class="form-select">
+             <select onchange="onChangeFiltersReimbursements()" id="TransactionStatusIdFilters" class="form-select">
              </select>
            </div>
            <div class="select-container">
              <label>Benefit</label>
-             <select onchange="paginationSubmit(false, true)" id="BenefitIdFilters" class="form-select">
+             <select onchange="onChangeFiltersReimbursements()" id="BenefitIdFilters" class="form-select">
              </select>
            </div>
           </form>
@@ -127,10 +189,39 @@ async function displayMoreFiltersReimbursements() {
     hideSpinner();
     openRightSidebar();
 }
+
+// Filters select onchange
+function onChangeFiltersReimbursements() {
+    const container = document.querySelector(mainPaginationContainerSelector);
+    paginationSubmit(true, false, container);
+}
 function clearFilters(formId) {
     resetFormElements(formId);
     getListOfResults(false, true);
 }
+
+
+// ===============================
+// Global hook for ALL paginators
+// ===============================
+
+window.handlePaginationSubmit = function (args) {
+    const ctx = args.paginationContext;
+    const container = ctx.container;
+
+    const isBenefitsModalPaginator = !!container.closest('#modal-consultants_benefits-balance');
+
+    if (isBenefitsModalPaginator) {
+        // Modal paginator
+        getListOfBenefitsBalance(false, args.reloadTable);
+    } else {
+        // Main paginator
+        getListOfResults(false, args.reloadTable);
+    }
+};
+
+
+
 
 // DELETE BENEFIT REIMBURSEMENT
 async function rejectBenefitReimbursement(benefitReimbursementId, consultantName) {
@@ -175,44 +266,4 @@ async function rejectBenefitReimbursement(benefitReimbursementId, consultantName
                 });
         }
     });
-}
-
-//Pagination and Filters
-function paginationSubmit(firstTime, filters) {
-    getListOfResults(firstTime, filters);
-}
-function recolectDataFromForm(filters) {
-    {
-        var searchText = $('#search-input').val();
-
-        var filtersData = {
-            SearchText: searchText,
-            TransactionStatusId: transactionStatusSelectFilters === null ? null : transactionStatusSelectFilters.value === '' ? null : Number(transactionStatusSelectFilters.value),
-            BenefitId: benefitSelectFilters === null ? null : benefitSelectFilters.value === '' ? null : Number(benefitSelectFilters.value)
-        };
-        var inputFieldToOrder = document.getElementsByName('fieldToOrder')[0];
-        var inputDirectionOrder = document.getElementsByName('directionOrder')[0];
-        var orderByData = {
-            FieldToOrder: inputFieldToOrder.value,
-            DirectionOrder: inputDirectionOrder.value
-        }
-        var paginationData = returnCurrentPaginationValues();
-        var paginationWithoutFilters = {
-            Pagination: paginationData,
-            RequestFromFilters: filters,
-            OrderBy: orderByData
-        }
-
-        return {
-            Filters: filtersData,
-            PaginationWithoutFilters: paginationWithoutFilters
-        };
-    }
-}
-function updatePagination(paginationData) {
-    updatePaginationValues(paginationData);
-}
-
-function enterInSearch(event) {
-    paginationSubmit(false, true);
 }
