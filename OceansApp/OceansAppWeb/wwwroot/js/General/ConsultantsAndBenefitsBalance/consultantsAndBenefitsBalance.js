@@ -292,6 +292,7 @@ async function getListOfBenefitHistory(consultantBenefitId, benefitName, consult
                 list.forEach(function (obj) {
                     const row = `<tr class="hover-group">
                   <td>${obj.benefitCategory === null ? 'THE BENEFIT WAS RESET 🔄' : obj.benefitCategory}</td>
+                   <td class="${obj.newValue - obj.oldValue > 0 ? 'green-label' : 'red-label'}">${obj.newValue - obj.oldValue > 0 ? '+$' : '-$'}${Math.abs(obj.newValue - obj.oldValue)}</td>
                   <td class="${obj.oldValue >= obj.newValue ? 'green-label' : 'red-label'}">$${obj.oldValue.toLocaleString('en-US')}</td>
                   <td class="${obj.oldValue >= obj.newValue ? 'red-label' : 'green-label'}">$${obj.newValue.toLocaleString('en-US')}</td>
                   <td>${obj.reimbursementDetail === null ? '' : obj.reimbursementDetail}</td>
