@@ -3,6 +3,7 @@ using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Components;
+using OceansApp.Models.ViewModels.ConsultantAndBenefitHistory;
 using OceansApp.Models.ViewModels.ConsultantsAndBenefits;
 using System.Text.Json;
 
@@ -176,12 +177,13 @@ namespace OceansApp.DataAccess.Repository
             return results;
         }
 
-        public async Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy, string description, int year)
+        public async Task<MethodResponse> ResetAllConsultantsAndBenefitsBalanceAsync(string userIdCreatedBy, string description)
         {
-            var existingReset = await _db.CONSULTANT_BENEFITS_RESETS.FirstOrDefaultAsync(x => x.YearToReset == year);
-            if (existingReset != null)
+            var currentYear = DateTime.UtcNow.Year;
+            var existingReset = await _db.CONSULTANT_BENEFITS_RESETS.FirstOrDefaultAsync(x => x.YearToReset == currentYear);
+            if (existingReset != null ||currentYear == 2025)
             {
-                return MethodResponse.CreateFailureValidationResponse($"A reset has already been implemented for the year {year}. You cannot apply more than 1 to the same year.");
+                return MethodResponse.CreateFailureValidationResponse($"A reset has already been implemented for the year {currentYear}. If you're trying to reset for {currentYear + 1}, you’ll need to wait until that year begins.");
             }
             var existingConsultantsAndBenefits = await GetConsultantsWithSavedBenefitsAsync();
 
@@ -214,7 +216,7 @@ namespace OceansApp.DataAccess.Repository
                                     ConsultantAndBenefitId = existingConsultantAndBenefit.Id,
                                     OldValue = existingConsultantAndBenefit.BalanceAmount,
                                     NewValue = benefit.Amount,
-                                    Notes = $"Renewed annual benefit for ({year})"
+                                    Notes = $"Renewed annual benefit for ({currentYear})"
                                 };
                                 await _db.CONSULTANTS_AND_BENEFITS_HISTORY.AddAsync(historyToCreate);
 
@@ -247,7 +249,7 @@ namespace OceansApp.DataAccess.Repository
                                 ResetDate = DateTime.UtcNow,
                                 Description = description,
                                 ArrayResetValues = arrayResetValuesJson,
-                                YearToReset = year
+                                YearToReset = currentYear
                             };
 
                             // Asegúrate que estás agregando el reset a su DbSet correcto
@@ -276,6 +278,39 @@ namespace OceansApp.DataAccess.Repository
             }
         }
 
+        public async Task<List<GetHistoryListVM>> GetConsultantsAndBenefitsHistoryAsync(int consultantAndBenefitId)
+        {
+            // Read-only query, so we use AsNoTracking for better performance
+            var query =
+                from h in _db.CONSULTANTS_AND_BENEFITS_HISTORY.AsNoTracking()
+                join cb in _db.CONSULTANTS_AND_BENEFITS
+                    on h.ConsultantAndBenefitId equals cb.Id
+                join u in _db.AspNetUsers
+                    on h.UserCreatedById equals u.Id
+                // LEFT JOIN CONSULTANT_REIMBURSED_BENEFITS
+                join rbTemp in _db.CONSULTANT_REIMBURSED_BENEFITS
+                    on h.ReimbursedBenefitId equals rbTemp.ReimbursedBenefitId into rbGroup
+                from rb in rbGroup.DefaultIfEmpty()
+                    // LEFT JOIN CONSULTANT_BENEFIT_CATEGORIES
+                join bcTemp in _db.CONSULTANT_BENEFIT_CATEGORIES
+                    on rb.BenefitCategoryId equals bcTemp.BenefitCategoryId into bcGroup
+                from bc in bcGroup.DefaultIfEmpty()
+                where h.ConsultantAndBenefitId == consultantAndBenefitId
+                orderby h.CreationDate
+                select new GetHistoryListVM
+                {
+                    // bc and rb can be null because of LEFT JOIN
+                    BenefitCategory = bc != null ? bc.Name : null,
+                    OldValue = h.OldValue,
+                    NewValue = h.NewValue,
+                    ReimbursementDetail = rb != null ? rb.Detail : null,
+                    Notes = h.Notes,
+                    UserCreatedBy = u.Name + " " + u.LastName,
+                    CreationDate = h.CreationDate
+                };
+
+            return await query.ToListAsync();
+        }
 
     }
 }

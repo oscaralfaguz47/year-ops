@@ -40,18 +40,72 @@ async function getListOfBenefitsBalance(firstTime, fromFilters) {
             noResultsMessage.empty();
             tableRows.css("display", "block");
             tbody.empty();
-            data.resultsList.forEach(function (obj) {
-                const row = `<tr class="hover-group">
-                    <td>${obj.consultantName} ${obj.isActive ? '<span style="color: var(--clr-blueLight);">(Active)</span>' : '<span style="color: red;">(Inactive)</span>'}</td>
-                    <td>${obj.benefitName} ($${obj.amountBase.toLocaleString('en-US')})</td>
-                    <td style="color:${Number(obj.balanceAmount) === 0 ? 'red' : 'var(--clr-blueLight)'}">${obj.isActive ? '$' + obj.balanceAmount.toLocaleString('en-US') : '$' + obj.balanceAmount.toLocaleString('en-US') + '<span style="color:red"> (Unusable)<span>'}</td>
-                </tr>`;
-                tbody.append(row);
-            });
+            const list = data.resultsList || [];
 
-            if (data.resultsList.length === 0) {
+            // If there are no results, show "NO RECORDS FOUND"
+            if (list.length === 0) {
                 noResultsMessage.text("NO RECORDS FOUND");
                 tableRows.css("display", "none");
+            } else {
+                // We assume the list is already sorted by consultantName
+                let i = 0;
+
+                while (i < list.length) {
+                    const current = list[i];
+                    const currentName = current.consultantName;
+                    const currentIsActive = current.isActive;
+
+                    // Calculate how many rows belong to this consultantName group
+                    let groupSize = 1;
+                    while (
+                        i + groupSize < list.length &&
+                        list[i + groupSize].consultantName === currentName
+                    ) {
+                        groupSize++;
+                    }
+
+                    // Build the rowspan cell content (consultant name + status)
+                    const consultantStatusHtml = currentIsActive
+                        ? `<span style="color: var(--clr-blueLight);">(Active)</span>`
+                        : `<span style="color: red;">(Inactive)</span>`;
+
+                    const consultantCellHtml =
+                        `${currentName} ${consultantStatusHtml}`;
+
+                    // Render all rows for this consultant
+                    for (let j = 0; j < groupSize; j++) {
+                        const item = list[i + j];
+
+                        const benefitText =
+                            `${item.benefitName} ($${Number(item.amountBase).toLocaleString('en-US')}) ${item.consultantAndBenefitId === null ? '' : `<a class="view-history-link" onclick="getListOfBenefitHistory(${item.consultantAndBenefitId}, '${item.benefitName}', '${currentName.split(" ")[0]}')" >👀 View History</a>`
+}`;
+
+                        const isZeroBalance = Number(item.balanceAmount) === 0;
+                        const balanceColor = isZeroBalance ? 'red' : 'var(--clr-blueLight)';
+
+                        const balanceContent = item.benefitName === 'Bonusly' ? '<span style="color:gray">No limit</span>' + (!item.isActive ? ' <span style="color:red">(Unusable)</span>' : '') : item.isActive
+                            ? '$' + Number(item.balanceAmount).toLocaleString('en-US')
+                            : '$' + Number(item.balanceAmount).toLocaleString('en-US') +
+                            ' <span style="color:red">(Unusable)</span>';
+
+                        let row = `<tr class="hover-group">`;
+
+                        // Only add the first column once per group, with rowspan
+                        if (j === 0) {
+                            row += `<td rowspan="${groupSize}">${consultantCellHtml}</td>`;
+                        }
+
+                        row += `
+                            <td>${benefitText}</td>
+                            <td style="color:${balanceColor}">${balanceContent}</td>
+                        </tr>`;
+
+                        tbody.append(row);
+                    }
+
+                    // Move to the next group
+                    i += groupSize;
+                }
             }
 
             updatePaginationBenefitsBalance(
@@ -134,10 +188,10 @@ function displayConfirmationToResetBalance() {
         })
         .then(data => {
             const alertMessage = getElementById('reset-alert-message');
-            alertMessage.innerHTML = `<label>${data.currentUser}, be careful!!!</label><label>By clicking on the "Reset All" button You will reset all consultant benefits to the balance configured for each benefit per year. </label>
+            alertMessage.innerHTML = `<label><strong>${data.currentUser.toUpperCase()}, BE CAREFUL!!! </strong><span>😳</span></label><label>By clicking <strong>“Reset All”</strong>, all consultant benefit balances will be reset to their configured yearly amounts.
+Before proceeding, make sure there are no pending or upcoming redemptions, as this action cannot be undone. </label>
                     <label>
-                        Please note that before resetting everything, you must be absolutely certain that no one will be making any further redemptions and that you have no
-                        outstanding redemptions to register in Ripple. This is because you will not be able to reverse the process, and all consultant benefit balances will be reset.`;
+                        Feel free to click “Reset All” only if you are 100% sure about this action.<span>😉</span></label>`;
             showModal('modal-confirm-reset');
         })
         .catch(error => {
@@ -152,10 +206,7 @@ async function resetAllConsultantsBalance() {
         displaySpinner();
         var token = $('[name="__RequestVerificationToken"]').val();
         var formData = new FormData();
-        const yearReset = document.getElementById('new-year');
-        console.log(yearReset.value);
         formData.append('description', descriptionConfirmReset.value);
-        formData.append('year', yearReset.value);
         fetch("/General/ConsultantReimbursedBenefits/ResetAllConsultantsBenefitsBalance"
             , {
                 method: 'POST',
@@ -204,4 +255,59 @@ async function resetAllConsultantsBalance() {
         validationMessageConfirm.style.display = 'block';
     }
 
+}
+
+async function getListOfBenefitHistory(consultantBenefitId, benefitName, consultantName) {
+    displaySpinner();
+    const modalTitle = getElementById('benefit-history-title');
+    modalTitle.textContent = `History '${benefitName}' for ${consultantName}`;
+    const url = "/General/ConsultantReimbursedBenefits/GetConsultantsAndBenefitsHistory?consultantAndBenefitId=" + encodeURIComponent(consultantBenefitId);
+
+    fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    displayToasterErrorArray(errorData.errors);
+                    throw new Error('The request to the server failed!. More details: ' + errorData.detail);
+                });
+            }
+        })
+        .then(data => {
+            const tbody = $("#modal-benefits-history .global-table-container table tbody");
+            const tableRows = $("#modal-benefits-history .global-table-container table");
+            const noResultsMessage = $("#modal-benefits-history .no-results");
+
+            noResultsMessage.empty();
+            tableRows.css("display", "block");
+            tbody.empty();
+            const list = data.historyList || [];
+
+            // If there are no results, show "NO RECORDS FOUND"
+            if (list.length === 0) {
+                noResultsMessage.text("NO RECORDS FOUND");
+                tableRows.css("display", "none");
+            } else {
+                list.forEach(function (obj) {
+                    const row = `<tr class="hover-group">
+                  <td>${obj.benefitCategory === null ? 'THE BENEFIT WAS RESET 🔄' : obj.benefitCategory}</td>
+                  <td class="${obj.oldValue >= obj.newValue ? 'green-label' : 'red-label'}">$${obj.oldValue.toLocaleString('en-US')}</td>
+                  <td class="${obj.oldValue >= obj.newValue ? 'red-label' : 'green-label'}">$${obj.newValue.toLocaleString('en-US')}</td>
+                  <td>${obj.reimbursementDetail === null ? '' : obj.reimbursementDetail}</td>
+                  <td>${obj.notes === null ? '' : obj.notes}</td>
+                  <td>${obj.userCreatedBy}</td>
+                  <td>${formatUtcToLocalMmDdYyyyTime(obj.creationDate)}</td>
+              </tr>`;
+                    tbody.append(row);
+                });
+            }
+            showModal('modal-benefits-history');
+        })
+        .catch(error => {
+            validateSessionExpiration(error.message);
+        })
+        .finally(() => {
+            hideSpinner();
+        });
 }

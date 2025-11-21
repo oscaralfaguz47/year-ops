@@ -335,19 +335,18 @@ namespace OceansAppWeb.Areas.General.Controllers
 
         [HttpPost("ResetAllConsultantsBenefitsBalance")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetAllConsultantsBenefitsBalance([FromForm] string? description, [FromForm] int? year)
+        public async Task<IActionResult> ResetAllConsultantsBenefitsBalance([FromForm] string? description)
         {
             ValidateInputs validateInputs = new();
 
             validateInputs.ValidateRequiredAndStringLength("Description", "Description", description, 100, ModelState);
-            validateInputs.ValidateRequiredFieldIntType("YearToReset", "New Year To Reset", year, ModelState);
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     string userActionedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    var res = await _unitOfWork.ConsultantAndBenefit.ResetAllConsultantsAndBenefitsBalanceAsync(userActionedBy, description, (int)year);
+                    var res = await _unitOfWork.ConsultantAndBenefit.ResetAllConsultantsAndBenefitsBalanceAsync(userActionedBy, description);
                     if (res.Success)
                     {
                         return Ok(new { success = true, message = res.Message });
@@ -388,5 +387,19 @@ namespace OceansAppWeb.Areas.General.Controllers
             }
         }
 
+        [HttpGet("GetConsultantsAndBenefitsHistory")]
+        public async Task<IActionResult> GetConsultantsAndBenefitsHistory(int consultantAndBenefitId)
+        {
+            try
+            {
+                var history = await _unitOfWork.ConsultantAndBenefit.GetConsultantsAndBenefitsHistoryAsync(consultantAndBenefitId);
+                var data = new { HistoryList = history };
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { errors = new[] { $"There was an error fetching the data." }, success = false, result = "errorGet", detail = ex.Message });
+            }
+        }
     }
 }
