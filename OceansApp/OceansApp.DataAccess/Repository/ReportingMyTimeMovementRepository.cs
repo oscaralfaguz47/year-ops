@@ -78,14 +78,14 @@ namespace OceansApp.DataAccess.Repository
         {
             try
             {
-                var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
                 if (currentUser == null)
                 {
                     return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
                 }
 
                 int? movementId = null;
-                var existingMovements = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ActionDate >= reportMovementData.StartActionDate
+                var existingMovements = await _db.REPORTING_MY_TIME_MOVEMENTS.AsNoTracking().FirstOrDefaultAsync(x => x.ActionDate >= reportMovementData.StartActionDate
                 && x.ActionDate <= reportMovementData.ActionDate && x.ProjectId == reportMovementData.ProjectId &&
                 x.ConsultantId == currentUser.ConsultantId && x.MovementTypeId == reportMovementData.MovementTypeId);
 
@@ -177,12 +177,12 @@ namespace OceansApp.DataAccess.Repository
 
                 if (primarySecond == "primary")
                 {
-                    existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
+                    existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.AsNoTracking().FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
 && x.MovementId == movementId && x.PrimaryReportTrackingToolName == trackingToolName.Trim());
                 }
                 else
                 {
-                    existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
+                    existingFile = await _db.REPORTING_MY_TIME_MOVEMENT_BLOBS.AsNoTracking().FirstOrDefaultAsync(x => x.BlobName == fileNameWithHass
 && x.MovementId == movementId && x.SecondReportTrackingToolName == trackingToolName.Trim());
                 }
 
@@ -222,13 +222,13 @@ namespace OceansApp.DataAccess.Repository
             {
                 try
                 {
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
                     if (currentUser == null)
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
                     }
 
-                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
+                    var transactionStatusNoActions = await _db.TRANSACTION_STATUSES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "No actions");
                     if (transactionStatusNoActions == null)
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'No actions' not found.");
@@ -246,18 +246,18 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
                     }
 
-                    var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == reportMovementData.ProjectId);
+                    var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == reportMovementData.ProjectId);
                     if (project == null || !project.ClientHasTrackingTool)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
                     }
 
-                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == reportMovementData.MovementType);
+                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == reportMovementData.MovementType);
                     if (movementType == null)
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Movement type not valid.");
                     }
-                    var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ActionDate == reportMovementData.ActionDate
+                    var existingTimeMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.AsNoTracking().FirstOrDefaultAsync(x => x.ActionDate == reportMovementData.ActionDate
                     && x.MovementTypeId == movementType.MovementTypeId && x.ProjectId == reportMovementData.ProjectId && x.ConsultantId == currentUser.ConsultantId);
                     if (existingTimeMovement != null)
                     {
@@ -322,7 +322,7 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The movement does not exist.");
                     }
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                     if (existingTimeMovement.ConsultantId != currentUser.ConsultantId || existingTimeMovement.ProjectId != reportMovementData.ProjectId)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
@@ -420,7 +420,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 try
                 {
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
                     if (currentUser == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Consultant not found.");
@@ -431,7 +431,7 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
                     }
 
-                    var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == timeEntryData.ProjectId);
+                    var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == timeEntryData.ProjectId);
                     if (project == null || project.ClientHasTrackingTool)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
@@ -444,7 +444,7 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse(responseValidateSubmission.Message);
                     }
 
-                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
+                    var transactionStatus = await _db.TRANSACTION_STATUSES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "No actions");
                     if (transactionStatus == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Transaction status 'No actions' not found.");
@@ -453,7 +453,7 @@ namespace OceansApp.DataAccess.Repository
 
                     if (timeEntryData.MovementTypeId == null)
                     {
-                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "Normal Hours");
                         if (movementType == null)
                         {
                             return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
@@ -461,7 +461,7 @@ namespace OceansApp.DataAccess.Repository
                     }
                     else
                     {
-                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
                         if (movementType == null)
                         {
                             return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
@@ -530,7 +530,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 try
                 {
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
                     if (currentUser == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Consultant not found.");
@@ -541,7 +541,7 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
                     }
 
-                    var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == timeEntryData.ProjectId);
+                    var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == timeEntryData.ProjectId);
                     if (project == null || project.ClientHasTrackingTool)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
@@ -554,7 +554,7 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse(responseValidateSubmission.Message);
                     }
 
-                    var transactionStatus = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "No actions");
+                    var transactionStatus = await _db.TRANSACTION_STATUSES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "No actions");
                     if (transactionStatus == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Transaction status 'No actions' not found.");
@@ -563,7 +563,7 @@ namespace OceansApp.DataAccess.Repository
 
                     if (timeEntryData.MovementTypeId == null)
                     {
-                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "Normal Hours");
                         if (movementType == null)
                         {
                             return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
@@ -571,7 +571,7 @@ namespace OceansApp.DataAccess.Repository
                     }
                     else
                     {
-                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
                         if (movementType == null)
                         {
                             return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
@@ -665,7 +665,7 @@ namespace OceansApp.DataAccess.Repository
                 return MethodResponse.CreateSuccessResponse("New time entry created!", result.IdCreatedElement);
             }
 
-            var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == existingTimeMovement.ProjectId);
+            var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == existingTimeMovement.ProjectId);
             if (project == null || project.ClientHasTrackingTool)
             {
                 return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
@@ -674,7 +674,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 try
                 {
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                     if (existingTimeMovement.ConsultantId != currentUser.ConsultantId || existingTimeMovement.ProjectId != timeEntryData.ProjectId)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
@@ -689,7 +689,7 @@ namespace OceansApp.DataAccess.Repository
                     ReportingMyTimeMovementType? movementType = null;
                     if (timeEntryData.MovementTypeId == null)
                     {
-                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "Normal Hours");
                         if (movementType == null)
                         {
                             return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
@@ -697,7 +697,7 @@ namespace OceansApp.DataAccess.Repository
                     }
                     else
                     {
-                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
+                        movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.MovementTypeId == timeEntryData.MovementTypeId);
                         if (movementType == null)
                         {
                             return MethodResponse.CreateFailureExceptionResponse("Movement type not valid.");
@@ -775,7 +775,7 @@ namespace OceansApp.DataAccess.Repository
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("The movement does not exist.");
                     }
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userActionedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userActionedBy);
                     if (existingTimeMovementToDelete.ConsultantId != currentUser.ConsultantId)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("The provided movement does not belong to the current user.");
