@@ -26,11 +26,17 @@
     }
 }
 
+.r-period label {
+    border-bottom: solid 2px rgb(1, 192, 183, 0.2);
+}
 .action-btns-box{
     margin-top: 20px;
     text-align:center;
 }
-#reset-alert-message{
+.r-period strong{
+    font-weight: 900;
+}
+#reset-alert-message {
     background-color: var(--clr-grayLight);
     border-radius: 10px;
     margin-top: 20px;

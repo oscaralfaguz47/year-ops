@@ -30,7 +30,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 try
                 {
-                    var currentUser = await _db.CONSULTANT_DETAILS.FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
+                    var currentUser = await _db.CONSULTANT_DETAILS.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userIdCreatedBy);
                     if (currentUser == null)
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
@@ -41,13 +41,13 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("The user is not assigned to the provided project.");
                     }
 
-                    var project = await _db.PROJECTS.FirstOrDefaultAsync(x => x.ProjectId == submissionData.ProjectId);
+                    var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == submissionData.ProjectId);
                     if (project == null)
                     {
                         return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
                     }
 
-                    var movement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
+                    var movement = await _db.REPORTING_MY_TIME_MOVEMENTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
                     x.ConsultantId == currentUser.ConsultantId && x.Quantity > 0 && (x.ActionDate.Date >= submissionData.StartPeriodDate.Date &&
                     x.ActionDate.Date <= submissionData.EndPeriodDate.Date));
 
@@ -57,7 +57,7 @@ namespace OceansApp.DataAccess.Repository
                     }
                     if (project.ClientHasTrackingTool)
                     {
-                        var blobMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
+                        var blobMovement = await _db.REPORTING_MY_TIME_MOVEMENTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == project.ProjectId &&
                     x.ConsultantId == currentUser.ConsultantId && (x.ActionDate.Date >= submissionData.StartPeriodDate.Date &&
                     x.ActionDate.Date <= submissionData.EndPeriodDate.Date));
                         if (blobMovement == null)
@@ -109,7 +109,7 @@ namespace OceansApp.DataAccess.Repository
                         }
                     }
 
-                    var transactionStatusWaitingToBeApproved = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(x => x.Name == "Waiting to be approved");
+                    var transactionStatusWaitingToBeApproved = await _db.TRANSACTION_STATUSES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "Waiting to be approved");
                     if (transactionStatusWaitingToBeApproved == null)
                     {
                         return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Waiting to be approved' not found.");
@@ -179,30 +179,39 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<List<LastTimesheetSubmittedVM>> GetLastTimesheetSubmittedAsync(int consultantId)
         {
-            var result = (from su in _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS
-                          join p in _db.PROJECTS on su.ProjectId equals p.ProjectId
-                          join ts in _db.TRANSACTION_STATUSES on su.TransactionStatusId equals ts.TransactionStatusId
-                          where su.ConsultantId == consultantId
-                          orderby su.SubmissionDate descending
-                          select new LastTimesheetSubmittedVM
-                          {
-                              StartDate = su.StartPeriodDate,
-                              EndDate = su.EndPeriodDate,
-                              ProjectName = p.Name,
-                              Status = ts.Name,
-                              TotalHours = _db.REPORTING_MY_TIME_MOVEMENTS
-                                             .Where(rmtm => rmtm.ProjectId == su.ProjectId
-                                                         && rmtm.ConsultantId == su.ConsultantId
-                                                         && rmtm.ActionDate >= su.StartPeriodDate
-                                                         && rmtm.ActionDate <= su.EndPeriodDate)
-                                             .Sum(rmtm => (decimal?)rmtm.Quantity) ?? 0
-                          })
-             .Take(10)
-             .ToList();
+            // Read-only query: we can safely use AsNoTracking to improve performance
+            var query = from su in _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AsNoTracking()
+                        join p in _db.PROJECTS.AsNoTracking()
+                            on su.ProjectId equals p.ProjectId
+                        join ts in _db.TRANSACTION_STATUSES.AsNoTracking()
+                            on su.TransactionStatusId equals ts.TransactionStatusId
+                        where su.ConsultantId == consultantId
+                        orderby su.SubmissionDate descending
+                        select new LastTimesheetSubmittedVM
+                        {
+                            StartDate = su.StartPeriodDate,
+                            EndDate = su.EndPeriodDate,
+                            ProjectName = p.Name,
+                            Status = ts.Name,
+                            // Correlated subquery to calculate total hours for the submission period
+                            TotalHours = _db.REPORTING_MY_TIME_MOVEMENTS
+                                           .AsNoTracking()
+                                           .Where(rmtm =>
+                                                  rmtm.ProjectId == su.ProjectId &&
+                                                  rmtm.ConsultantId == su.ConsultantId &&
+                                                  rmtm.ActionDate >= su.StartPeriodDate &&
+                                                  rmtm.ActionDate <= su.EndPeriodDate)
+                                           .Sum(rmtm => (decimal?)rmtm.Quantity) ?? 0m
+                        };
+
+            // Take only the last 10 submissions
+            var result = await query
+                .Take(10)
+                .ToListAsync();
 
             return result;
-
         }
+
 
     }
 }
