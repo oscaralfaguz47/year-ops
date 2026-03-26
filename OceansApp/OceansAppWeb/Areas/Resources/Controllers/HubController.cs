@@ -25,7 +25,7 @@ public class HubController: Controller
         new("payment-policy", "Payment Policy", "/icons/Resources/money-bill.svg",
             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Oceans%20Code%20Payrroll%20Policies-2_compressed.pdf"),
         new("benefits-policy", "Benefits Policy", "/icons/Resources/star.svg",
-            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Oceans%20Benefits%20and%20Perks%20Policies%20V2.pdf"),
+            "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Oceans%20Benefits%20and%20Perks%20Policies_2026%20.pdf"),
         new("ethics-compliance", "Ethics & Compliance", "/icons/Resources/scale.svg",
             "https://ripplepeopleandculture.blob.core.windows.net/pc-landing/Compliance%20and%20Ethics%20Policy%20for%20Consultants.pdf"),
         new("syntepro-onboarding", "Syntepro Onboarding", "/icons/Resources/building.svg",
