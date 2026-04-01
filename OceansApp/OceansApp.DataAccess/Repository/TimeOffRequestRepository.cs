@@ -91,7 +91,7 @@ namespace OceansApp.DataAccess.Repository
 
             var pagination = filtersAndPagination?.PaginationWithoutFilters?.Pagination;
             int page = pagination?.PageIndex ?? 1;
-            int pageSize = pagination?.PageSize ?? 10;
+            int pageSize = (pagination?.PageSize ?? 0) > 0 ? pagination.PageSize : 50;
 
             var requests = await query
                 .OrderByDescending(r => r.CreationDate)
@@ -153,7 +153,8 @@ namespace OceansApp.DataAccess.Repository
                 if (!string.IsNullOrEmpty(filters.SearchText))
                     query = query.Where(r =>
                         r.ConsultantDetail.ApplicationUser.Name.Contains(filters.SearchText) ||
-                        r.ConsultantDetail.ApplicationUser.LastName.Contains(filters.SearchText));
+                        r.ConsultantDetail.ApplicationUser.LastName.Contains(filters.SearchText) ||
+                        (r.ConsultantDetail.ApplicationUser.Name + " " + r.ConsultantDetail.ApplicationUser.LastName).Contains(filters.SearchText));
                 if (filters.ProjectId.HasValue)
                 {
                     var consultantsOnProject = await _db.PROJECTS_CONSULTANTS_ASSIGNED
@@ -168,7 +169,7 @@ namespace OceansApp.DataAccess.Repository
 
             var pagination = filtersAndPagination?.PaginationWithoutFilters?.Pagination;
             int page = pagination?.PageIndex ?? 1;
-            int pageSize = pagination?.PageSize ?? 10;
+            int pageSize = (pagination?.PageSize ?? 0) > 0 ? pagination.PageSize : 50;
 
             var requests = await query
                 .OrderByDescending(r => r.CreationDate)
