@@ -25,6 +25,8 @@ namespace OceansApp.DataAccess.Repository.IRepository
 
         Task<TimeOffWidgetVM> GetWidgetDataAsync(int consultantId);
 
+        Task<List<TimeOffRequestListVM>> GetTeamWidgetDataAsync(int managerConsultantId);
+
         Task<List<DateTime>> GetConsultantHolidayDatesAsync(int consultantId);
     }
 }

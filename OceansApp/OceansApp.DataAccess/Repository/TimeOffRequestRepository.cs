@@ -363,6 +363,50 @@ namespace OceansApp.DataAccess.Repository
             };
         }
 
+        public async Task<List<TimeOffRequestListVM>> GetTeamWidgetDataAsync(int managerConsultantId)
+        {
+            var managedProjectIds = await _db.PROJECTS
+                .Where(p => p.SuccessManagerId == managerConsultantId && p.IsActive)
+                .Select(p => p.ProjectId)
+                .ToListAsync();
+
+            var managedConsultantIds = await _db.PROJECTS_CONSULTANTS_ASSIGNED
+                .Where(pca => managedProjectIds.Contains(pca.ProjectId))
+                .Select(pca => pca.ConsultantId)
+                .Distinct()
+                .ToListAsync();
+
+            var statusPending = await _db.TRANSACTION_STATUSES
+                .FirstOrDefaultAsync(s => s.Name == "Waiting to be approved");
+            int pendingStatusId = statusPending?.TransactionStatusId ?? 0;
+
+            var requests = await _db.TIME_OFF_REQUESTS
+                .Include(r => r.ConsultantDetail).ThenInclude(c => c.ApplicationUser)
+                .Include(r => r.TransactionStatus)
+                .Where(r => managedConsultantIds.Contains(r.ConsultantId))
+                .OrderByDescending(r => r.TransactionStatusId == pendingStatusId ? 1 : 0)
+                .ThenByDescending(r => r.CreationDate)
+                .Take(5)
+                .Select(r => new TimeOffRequestListVM
+                {
+                    TimeOffRequestId = r.TimeOffRequestId,
+                    TimeOffType = r.TimeOffType,
+                    StartDate = r.StartDate,
+                    EndDate = r.EndDate,
+                    BusinessDays = r.BusinessDays,
+                    Status = r.TransactionStatus.Name,
+                    ConsultantName = r.ConsultantDetail.ApplicationUser.Name + " "
+                                   + r.ConsultantDetail.ApplicationUser.LastName,
+                    ConsultantId = r.ConsultantId,
+                    ActionDate = r.ActionDate,
+                    RejectionComment = r.RejectionComment,
+                    CreationDate = r.CreationDate
+                })
+                .ToListAsync();
+
+            return requests;
+        }
+
         public async Task<List<DateTime>> GetConsultantHolidayDatesAsync(int consultantId)
         {
             var consultant = await _db.CONSULTANT_DETAILS
@@ -442,7 +486,7 @@ namespace OceansApp.DataAccess.Repository
             try
             {
                 var confirmBody = emailTemplates.TimeOffRequestSubmittedBody(
-                    consultant.ApplicationUser.Name, request.TimeOffType, dateRange, request.BusinessDays);
+                    consultant.ApplicationUser.Name, GetTimeOffTypeLabel(request.TimeOffType), dateRange, request.BusinessDays);
                 var confirmEmail = new SendEmailVM
                 {
                     Subject = "TIME OFF REQUEST SUBMITTED - RIPPLE BY OCEANS",
@@ -464,7 +508,7 @@ namespace OceansApp.DataAccess.Repository
                 var approvalBody = emailTemplates.TimeOffApprovalRequestBody(
                     approvalUrl,
                     consultant.ApplicationUser.Name + " " + consultant.ApplicationUser.LastName,
-                    request.TimeOffType, dateRange, request.BusinessDays);
+                    GetTimeOffTypeLabel(request.TimeOffType), dateRange, request.BusinessDays);
                 var templateEmail = emailTemplates.EmailTemplate("TIME OFF REQUEST TO REVIEW", approvalBody);
 
                 foreach (var managerEmail in managerEmails)
@@ -520,7 +564,7 @@ namespace OceansApp.DataAccess.Repository
 
                 string buttonUrl = $"{baseUrl}/General/TimeOff";
                 var body = emailTemplates.TimeOffDecisionBody(
-                    buttonUrl, consultantName, request.TimeOffType, dateRange,
+                    buttonUrl, consultantName, GetTimeOffTypeLabel(request.TimeOffType), dateRange,
                     request.BusinessDays, status, managerName, request.RejectionComment);
 
                 string titlePrefix = status == "Approved"
@@ -538,6 +582,17 @@ namespace OceansApp.DataAccess.Repository
                 await _queueClient.Value.SendMessageAsync(StringsMethods.Base64Encode(msg));
             }
             catch (Exception) { }
+        }
+
+        private static string GetTimeOffTypeLabel(string timeOffType)
+        {
+            return timeOffType switch
+            {
+                "PTO" => "Paid Time Off",
+                "UPTO" => "Unpaid Time Off",
+                "VTO" => "Voluntary Time Off",
+                _ => timeOffType
+            };
         }
 
         private static string FormatDateRange(DateTime start, DateTime end)
