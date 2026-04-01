@@ -71,6 +71,20 @@ namespace OceansAppWeb.Areas.General.Controllers
             return Ok(new { holidayDates = holidays });
         }
 
+        [HttpGet("GetAllMyRequests")]
+        public async Task<IActionResult> GetAllMyRequests()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var consultant = await _unitOfWork.ConsultantDetail
+                .GetFirstOrDefaultAsync(c => c.UserId == userId);
+            if (consultant == null)
+                return BadRequest(new { error = "Consultant not found.", messageType = "Exception Error" });
+
+            var requests = await _unitOfWork.TimeOffRequest
+                .GetAllConsultantRequestsAsync(consultant.ConsultantId);
+            return Ok(new { requests = requests });
+        }
+
         [HttpGet("GetMyRequests")]
         public async Task<IActionResult> GetMyRequests(string model)
         {

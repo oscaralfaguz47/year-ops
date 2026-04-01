@@ -58,7 +58,8 @@ namespace OceansApp.DataAccess.Repository
             return await _db.TIME_OFF_REQUESTS
                 .Include(r => r.TransactionStatus)
                 .Where(r => r.ConsultantId == consultantId
-                    && r.EndDate >= monthStart && r.StartDate <= monthEnd)
+                    && r.EndDate >= monthStart && r.StartDate <= monthEnd
+                    && r.TransactionStatus.Name != "Rejected")
                 .Select(r => new TimeOffCalendarEntryVM
                 {
                     TimeOffRequestId = r.TimeOffRequestId,
@@ -405,6 +406,33 @@ namespace OceansApp.DataAccess.Repository
                 .ToListAsync();
 
             return requests;
+        }
+
+        public async Task<List<TimeOffRequestListVM>> GetAllConsultantRequestsAsync(int consultantId)
+        {
+            return await _db.TIME_OFF_REQUESTS
+                .Include(r => r.TransactionStatus)
+                .Include(r => r.ApplicationUserActioned)
+                .Where(r => r.ConsultantId == consultantId)
+                .OrderByDescending(r => r.CreationDate)
+                .Select(r => new TimeOffRequestListVM
+                {
+                    TimeOffRequestId = r.TimeOffRequestId,
+                    TimeOffType = r.TimeOffType,
+                    StartDate = r.StartDate,
+                    EndDate = r.EndDate,
+                    BusinessDays = r.BusinessDays,
+                    Status = r.TransactionStatus.Name,
+                    ConsultantName = "",
+                    ConsultantId = r.ConsultantId,
+                    ManagerName = r.ApplicationUserActioned != null
+                        ? r.ApplicationUserActioned.Name + " " + r.ApplicationUserActioned.LastName
+                        : null,
+                    ActionDate = r.ActionDate,
+                    RejectionComment = r.RejectionComment,
+                    CreationDate = r.CreationDate
+                })
+                .ToListAsync();
         }
 
         public async Task<List<DateTime>> GetConsultantHolidayDatesAsync(int consultantId)

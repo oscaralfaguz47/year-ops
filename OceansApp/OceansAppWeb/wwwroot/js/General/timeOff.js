@@ -53,6 +53,65 @@ async function loadInitialData() {
 
     // Reload calendar with entries
     await loadCalendarMonth();
+
+    // Load request history
+    loadRequestHistory();
+}
+
+const TYPE_LABELS = {
+    'PTO': 'Paid Time Off',
+    'UPTO': 'Unpaid Time Off',
+    'VTO': 'Voluntary Time Off'
+};
+
+const STATUS_LABELS = {
+    'Waiting to be approved': 'Pending',
+    'Approved': 'Approved',
+    'Rejected': 'Rejected'
+};
+
+async function loadRequestHistory() {
+    const container = document.getElementById('request-history-list');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/General/TimeOff/GetAllMyRequests');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (!data.requests || data.requests.length === 0) {
+            container.innerHTML = '<div class="history-empty">No time off requests yet.</div>';
+            return;
+        }
+
+        let html = '';
+        data.requests.forEach(r => {
+            const start = new Date(r.startDate);
+            const end = new Date(r.endDate);
+            const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const startOnly = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const isSameDay = start.toDateString() === end.toDateString();
+            const dateLabel = isSameDay ? startOnly : `${startStr} \u2013 ${endStr}`;
+
+            const typeLabel = TYPE_LABELS[r.timeOffType] || r.timeOffType;
+            const statusLabel = STATUS_LABELS[r.status] || r.status;
+            let statusClass = 'pending';
+            if (r.status === 'Approved') statusClass = 'approved';
+            else if (r.status === 'Rejected') statusClass = 'rejected';
+
+            html += `<div class="history-row">
+                <span class="history-type ${r.timeOffType}">${typeLabel}</span>
+                <span class="history-dates">${dateLabel}</span>
+                <span class="history-days">${r.businessDays} day${r.businessDays !== 1 ? 's' : ''}</span>
+                <span class="history-status ${statusClass}">${statusLabel}</span>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    } catch (e) {
+        console.error('Failed to load request history:', e);
+    }
 }
 
 function renderBalancesCard() {
