@@ -1,15 +1,15 @@
 // ── Time Off Dashboard Widget ──
 
-const timeOffWidgetCont = getElementById('timeOffWidgetCont');
-const timeOffFirstCardContent = timeOffWidgetCont.closest('.card-content');
+const timeOffWidgetCont = document.getElementById('timeOffWidgetCont');
+const timeOffWidgetCard = document.getElementById('timeOffWidgetCard');
 
-const TYPE_LABELS = {
+const TYPE_LABELS_W = {
     'PTO': 'Paid Time Off',
     'UPTO': 'Unpaid Time Off',
     'VTO': 'Voluntary Time Off'
 };
 
-const STATUS_LABELS = {
+const STATUS_LABELS_W = {
     'Waiting to be approved': 'Pending',
     'Approved': 'Approved',
     'Rejected': 'Rejected'
@@ -17,29 +17,24 @@ const STATUS_LABELS = {
 
 function getTimeOffWidgetData() {
     return (async () => {
-        timeOffFirstCardContent.style.justifyContent = 'center';
-        timeOffWidgetCont.innerHTML = loadingISpinner();
         const url = '/GetTimeOffWidgetData';
         try {
             const response = await fetch(url);
-            if (!response.ok) {
-                timeOffWidgetCont.innerHTML = cardErrorInfo('Error loading time off data!', 'getTimeOffWidgetData()');
-                const errorData = await response.json();
-                throw new Error(`The request to the server failed! More details: ${errorData.detail}`);
-            }
-            const data = await response.json();
-            return data;
+            if (!response.ok) return null;
+            return await response.json();
         } catch (error) {
-            validateSessionExpiration(error.message);
-            throw new Error(`Network error or unable to reach the server. More details: ${error.message}`);
+            return null;
         }
     })();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    if (!timeOffWidgetCont) return;
     getTimeOffWidgetData()
         .then(data => {
-            timeOffFirstCardContent.style.justifyContent = 'flex-start';
+            if (!data) return;
+
+            timeOffWidgetCard.style.display = '';
             let html = '';
 
             // Header with title and Request button
@@ -60,10 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     const isSameDay = start.toDateString() === end.toDateString();
                     const dateLabel = isSameDay ? startOnly : `${startStr} \u2013 ${endStr}`;
 
-                    const typeLabel = TYPE_LABELS[entry.timeOffType] || entry.timeOffType;
-                    const statusLabel = STATUS_LABELS[entry.status] || entry.status;
-                    const statusClass = entry.status === 'Approved' ? 'approved'
-                        : entry.status === 'Rejected' ? 'rejected' : 'pending';
+                    const typeLabel = TYPE_LABELS_W[entry.timeOffType] || entry.timeOffType;
+                    const statusLabel = STATUS_LABELS_W[entry.status] || entry.status;
+                    let statusClass = 'pending';
+                    if (entry.status === 'Approved') statusClass = 'approved';
+                    else if (entry.status === 'Rejected') statusClass = 'rejected';
 
                     html += `<div class="to-widget-row">
                         <span class="to-widget-type-badge ${entry.timeOffType}">${typeLabel}</span>
@@ -78,7 +74,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
             timeOffWidgetCont.innerHTML = html;
         })
-        .catch(error => {
-            console.error('Error loading time off widget:', error);
-        });
+        .catch(() => {});
 });
