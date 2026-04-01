@@ -75,6 +75,7 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 // PTO fields
                 document.getElementById('isPtoEligible').checked = data.consultantData.isEligibleForPaidTimeOff || false;
                 document.getElementById('annualPaidDays').value = data.consultantData.annualPaidTimeOffDays || '';
+                document.getElementById('initialPtoBalance').value = data.consultantData.initialPtoBalance || '';
                 togglePtoFields();
 
                 showModal(modalId);
@@ -100,7 +101,11 @@ function displayOtherConfigModal(modalId) {
 function togglePtoFields() {
     const isChecked = document.getElementById('isPtoEligible').checked;
     document.getElementById('pto-days-container').style.display = isChecked ? 'block' : 'none';
-    if (!isChecked) document.getElementById('annualPaidDays').value = '';
+    document.getElementById('pto-initial-balance-container').style.display = isChecked ? 'block' : 'none';
+    if (!isChecked) {
+        document.getElementById('annualPaidDays').value = '';
+        document.getElementById('initialPtoBalance').value = '';
+    }
 }
 
 //CreateUpdate Consultant METHOD
@@ -157,7 +162,8 @@ async function createUpdateConsultant(modalId) {
         WorkingModel: workingModelData,
         StartDate: startDateInput ? startDateInput.toString() : null,
         IsEligibleForPaidTimeOff: document.getElementById('isPtoEligible').checked,
-        AnnualPaidTimeOffDays: document.getElementById('annualPaidDays').value ? Number(document.getElementById('annualPaidDays').value) : null
+        AnnualPaidTimeOffDays: document.getElementById('annualPaidDays').value ? Number(document.getElementById('annualPaidDays').value) : null,
+        InitialPtoBalance: document.getElementById('initialPtoBalance').value ? Number(document.getElementById('initialPtoBalance').value) : null
     };
     console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {

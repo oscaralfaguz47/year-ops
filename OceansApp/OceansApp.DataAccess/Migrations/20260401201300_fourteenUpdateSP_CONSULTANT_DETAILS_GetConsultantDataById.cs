@@ -5,8 +5,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace OceansApp.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class thirteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById : Migration
+    public partial class fourteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             var sp = @"CREATE PROCEDURE SP_CONSULTANT_DETAILS_GetConsultantDataById
@@ -59,6 +60,7 @@ namespace OceansApp.DataAccess.Migrations
             migrationBuilder.Sql(sp);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             var spOriginal = @"CREATE PROCEDURE SP_CONSULTANT_DETAILS_GetConsultantDataById

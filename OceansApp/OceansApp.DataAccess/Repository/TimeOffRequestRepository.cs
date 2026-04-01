@@ -455,16 +455,15 @@ namespace OceansApp.DataAccess.Repository
         {
             var today = DateTime.UtcNow.Date;
             var startDate = consultant.StartDate.Date;
-            int yearsOfService = 0;
-            var anniversary = startDate;
+            int completedYears = 0;
 
-            while (anniversary <= today)
+            // Count completed full years (first accrual at first anniversary)
+            while (startDate.AddYears(completedYears + 1) <= today)
             {
-                yearsOfService++;
-                anniversary = startDate.AddYears(yearsOfService);
+                completedYears++;
             }
 
-            return yearsOfService * (consultant.AnnualPaidTimeOffDays ?? 0);
+            return (consultant.InitialPtoBalance ?? 0) + completedYears * (consultant.AnnualPaidTimeOffDays ?? 0);
         }
 
         private async Task<int> GetUsedDaysAsync(int consultantId, string timeOffType, int? calendarYear)
