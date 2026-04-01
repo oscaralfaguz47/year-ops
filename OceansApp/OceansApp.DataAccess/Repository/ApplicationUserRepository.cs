@@ -183,6 +183,14 @@ namespace OceansApp.DataAccess.Repository
 
 
                 }
+                //Time Off
+                if (userAndConsultant.UserCategoryName != "External User"
+                    && userClaims.IsAuthorizedForTimeOffRequest())
+                {
+                    WidgetVM timeOffW = new() { WidgetName = WidgetsCD.TimeOff };
+                    listToReturn.Add(timeOffW);
+                }
+
                 //General Consultant and Admin Team
                 if (userAndConsultant.UserCategoryName != "External User")
                 {

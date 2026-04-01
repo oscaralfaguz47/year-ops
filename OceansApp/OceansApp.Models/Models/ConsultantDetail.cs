@@ -39,6 +39,8 @@ namespace OceansApp.Models.Models
         [Required]
         public int WorkingModel { get; set; }
         public DateTime? OldConsultantSystemStartDate { get; set; }
+        public bool IsEligibleForPaidTimeOff { get; set; }
+        public int? AnnualPaidTimeOffDays { get; set; }
 
 
         [ValidateNever]

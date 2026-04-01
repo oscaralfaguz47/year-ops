@@ -6,6 +6,7 @@ using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using System.Security.Claims;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
 using OceansApp.Utility.ConstantData.Claims.TrackingTool;
+using OceansApp.Utility.ConstantData.Claims.TimeOff;
 
 namespace OceansApp.Utility.ConstantData.Claims
 {
@@ -51,8 +52,20 @@ namespace OceansApp.Utility.ConstantData.Claims
         //SPECIFIC
         public static bool IsAuthorizedForReportTimeInTrackingTool(this ClaimsPrincipal user)
         {
-            return user.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType 
+            return user.HasClaim(c => c.Type == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimType
             && c.Value == TrackingToolClaimsCD.Reporting_My_Time_Basic_Access_ClaimValue);
+        }
+
+        public static bool IsAuthorizedForTimeOffRequest(this ClaimsPrincipal user)
+        {
+            return user.HasClaim(c => c.Type == TimeOffClaimsCD.Time_Off_Request_ClaimType
+            && c.Value == TimeOffClaimsCD.Time_Off_Request_ClaimValue);
+        }
+
+        public static bool IsAuthorizedForTimeOffApprovals(this ClaimsPrincipal user)
+        {
+            return user.HasClaim(c => c.Type == TimeOffClaimsCD.Time_Off_Approvals_ClaimType
+            && c.Value == TimeOffClaimsCD.Time_Off_Approvals_ClaimValue);
         }
     }
 }

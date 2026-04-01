@@ -1,0 +1,64 @@
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/General/timeOff.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
+
+<div class="time-off-container">
+    <div class="time-off-main">
+        <div class="calendar-section">
+            <div class="card-header-row">
+                <button class="back-btn" onclick="history.back()">&#8592;</button>
+                <span class="card-title">Time Off Request</span>
+            </div>
+            <div class="cal-header">
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+                <span class="cal-month" id="cal-month-label"></span>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">&#8250;</button>
+            </div>
+            <div class="cal-grid" id="cal-grid">
+                <div class="cal-dh">Sun</div>
+                <div class="cal-dh">Mon</div>
+                <div class="cal-dh">Tue</div>
+                <div class="cal-dh">Wed</div>
+                <div class="cal-dh">Thu</div>
+                <div class="cal-dh">Fri</div>
+                <div class="cal-dh">Sat</div>
+            </div>
+            <div class="cal-legend">
+                <div class="legend-item"><span class="legend-dot pto"></span>Paid Time Off</div>
+                <div class="legend-item"><span class="legend-dot upto"></span>Unpaid Time Off</div>
+                <div class="legend-item"><span class="legend-dot vto"></span>Voluntary Time Off</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="time-off-sidebar">
+        <div class="sidebar-card">
+            <div class="s-card-title">
+                <div class="s-icon" style="background:#00BFA5">
+                    <i class="fa-regular fa-calendar-check"></i>
+                </div>
+                <span>Time Off Balances</span>
+            </div>
+            <div id="balances-container"></div>
+        </div>
+        <div class="sidebar-card">
+            <div class="s-card-title">
+                <div class="s-icon" style="background:#6366f1">
+                    <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <span>Policies</span>
+            </div>
+            <ul class="policy-list">
+                <li>Please submit time off requests at least two weeks in advance when possible.</li>
+                <li>Time off might be subject to client approval, your Success Manager will approve your request contingent upon review.</li>
+                <li>Unpaid time off is deducted from the respective payroll period.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<partial name="_TimeOffRequestModalPartialView" />
+
+<script src="~/js/General/timeOff.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>

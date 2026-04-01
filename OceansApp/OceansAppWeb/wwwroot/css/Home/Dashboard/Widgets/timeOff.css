@@ -1,0 +1,92 @@
+/* ── Time Off Dashboard Widget ── */
+#timeOffWidgetCont .widget-upcoming {
+    margin-bottom: 10px;
+}
+
+#timeOffWidgetCont .widget-upcoming-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+#timeOffWidgetCont .widget-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 12.5px;
+}
+
+#timeOffWidgetCont .widget-entry:last-child {
+    border-bottom: none;
+}
+
+#timeOffWidgetCont .widget-type-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+#timeOffWidgetCont .widget-type-dot.PTO { background: #00BFA5; }
+#timeOffWidgetCont .widget-type-dot.UPTO { background: #6366f1; }
+#timeOffWidgetCont .widget-type-dot.VTO { background: #f59e0b; }
+
+#timeOffWidgetCont .widget-entry-dates {
+    color: #374151;
+    font-weight: 500;
+    flex: 1;
+}
+
+#timeOffWidgetCont .widget-entry-type {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+}
+
+#timeOffWidgetCont .widget-entry-type.PTO { background: #e0f7f5; color: #00897B; }
+#timeOffWidgetCont .widget-entry-type.UPTO { background: #ede9fe; color: #6366f1; }
+#timeOffWidgetCont .widget-entry-type.VTO { background: #fef3c7; color: #92400e; }
+
+#timeOffWidgetCont .widget-pending {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #92400e;
+    font-weight: 500;
+}
+
+#timeOffWidgetCont .widget-pending-count {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+#timeOffWidgetCont .widget-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #00BFA5;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#timeOffWidgetCont .widget-link:hover {
+    text-decoration: underline;
+}
+
+#timeOffWidgetCont .widget-empty {
+    font-size: 12.5px;
+    color: #9ca3af;
+    padding: 8px 0;
+}

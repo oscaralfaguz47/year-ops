@@ -130,7 +130,9 @@ namespace OceansApp.DataAccess.Repository
                     PaymentPeriod = consultantData.PaymentPeriod,
                     ConsultantHolidayId = consultantData.ConsultantHolidayId,
                     WorkingModel = (int)consultantData.WorkingModel,
-                    StartDate = (DateTime)consultantData.StartDate
+                    StartDate = (DateTime)consultantData.StartDate,
+                    IsEligibleForPaidTimeOff = consultantData.IsEligibleForPaidTimeOff,
+                    AnnualPaidTimeOffDays = consultantData.AnnualPaidTimeOffDays
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -245,6 +247,8 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.ConsultantHolidayId = consultantData.ConsultantHolidayId;
                 existingConsultant.WorkingModel = (int)consultantData.WorkingModel;
                 existingConsultant.StartDate = (DateTime)consultantData.StartDate;
+                existingConsultant.IsEligibleForPaidTimeOff = consultantData.IsEligibleForPaidTimeOff;
+                existingConsultant.AnnualPaidTimeOffDays = consultantData.AnnualPaidTimeOffDays;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -320,6 +324,8 @@ namespace OceansApp.DataAccess.Repository
                         ConsultantHolidayName = consultant.ConsultantHolidayName,
                         WorkingModel = consultant.WorkingModel,
                         StartDate = consultant.StartDate,
+                        IsEligibleForPaidTimeOff = consultant.IsEligibleForPaidTimeOff,
+                        AnnualPaidTimeOffDays = consultant.AnnualPaidTimeOffDays,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }

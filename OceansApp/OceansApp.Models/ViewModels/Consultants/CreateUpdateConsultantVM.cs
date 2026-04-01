@@ -31,5 +31,7 @@ namespace OceansApp.Models.ViewModels.Consultants
         public int? WorkingModel { get; set; }
         public DateTime? StartDate { get; set; }
         public List<CreateUpdateConsultantsAndPositionsVM>? Positions { get; set; }
+        public bool IsEligibleForPaidTimeOff { get; set; }
+        public int? AnnualPaidTimeOffDays { get; set; }
     }
 }

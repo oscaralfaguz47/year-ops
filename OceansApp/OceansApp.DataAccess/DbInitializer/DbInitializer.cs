@@ -10,6 +10,7 @@ using OceansApp.Utility.ConstantData.Claims.General;
 using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
+using OceansApp.Utility.ConstantData.Claims.TimeOff;
 using OceansApp.Models.ViewModels.ConsultantPositions;
 
 namespace OceansApp.DataAccess.DbInitializer
@@ -1053,7 +1054,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new () { Name = "Dashboard" },
                     new () { Name = "My Account" },
                     new () { Name = "Account Management" },
-                    new () { Name = "Recruiting" }
+                    new () { Name = "Recruiting" },
+                    new () { Name = "Time Off" }
                 };
 
                 var existingAreas = (await _db.SYSTEM_AREAS
@@ -1106,7 +1108,10 @@ namespace OceansApp.DataAccess.DbInitializer
                     new() { SystemAreaId = AREA("Account Management"), Name = "Clients" },
                     new() { SystemAreaId = AREA("Account Management"), Name = "Projects" },
 
-                    new() { SystemAreaId = AREA("Recruiting"),         Name = "Interviews" }
+                    new() { SystemAreaId = AREA("Recruiting"),         Name = "Interviews" },
+
+                    new() { SystemAreaId = AREA("Time Off"),           Name = "Time Off Request" },
+                    new() { SystemAreaId = AREA("Time Off"),           Name = "Time Off Approvals" }
                 };
 
                 var existingSubAreas = (await _db.SYSTEM_SUB_AREAS
@@ -1305,6 +1310,22 @@ namespace OceansApp.DataAccess.DbInitializer
                     SystemSubAreaId = SUBAREA("Interviews")
                 });
 
+                // TIME OFF
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = TimeOffClaimsCD.Time_Off_Request_ClaimType,
+                    ClaimValue = TimeOffClaimsCD.Time_Off_Request_ClaimValue,
+                    Description = "Access to submit time off requests and view balances",
+                    SystemSubAreaId = SUBAREA("Time Off Request")
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = TimeOffClaimsCD.Time_Off_Approvals_ClaimType,
+                    ClaimValue = TimeOffClaimsCD.Time_Off_Approvals_ClaimValue,
+                    Description = "Access to approve or reject time off requests",
+                    SystemSubAreaId = SUBAREA("Time Off Approvals")
+                });
+
                 var existingSystemClaims = await _db.APPLICATION_SYSTEM_CLAIMS
                     .AsNoTracking()
                     .Select(x => new { x.ClaimType, x.ClaimValue })
@@ -1484,6 +1505,47 @@ namespace OceansApp.DataAccess.DbInitializer
                 {
                     await _db.RoleClaims.AddRangeAsync(roleClaimsToInsert);
                     await _db.SaveChangesAsync();
+                }
+
+                // Assign TimeOffRequest claim to Computer Consultant role
+                var consultantRole = await _roleManager.FindByNameAsync(SD.Role_User_Computer_Consultant);
+                if (consultantRole != null)
+                {
+                    var consultantRoleClaims = await _db.RoleClaims
+                        .AsNoTracking()
+                        .Where(rc => rc.RoleId == consultantRole.Id)
+                        .Select(rc => new { rc.ClaimType, rc.ClaimValue })
+                        .ToListAsync();
+                    var consultantRoleClaimKeys = consultantRoleClaims
+                        .Select(x => (x.ClaimType, x.ClaimValue))
+                        .ToHashSet();
+
+                    var consultantClaimsToAssign = new List<(string ClaimType, string ClaimValue)>
+                    {
+                        (TimeOffClaimsCD.Time_Off_Request_ClaimType, TimeOffClaimsCD.Time_Off_Request_ClaimValue)
+                    };
+
+                    var consultantClaimsToInsert = new List<ApplicationRoleClaim>();
+                    foreach (var claim in consultantClaimsToAssign)
+                    {
+                        if (!consultantRoleClaimKeys.Contains(claim))
+                        {
+                            consultantClaimsToInsert.Add(new ApplicationRoleClaim
+                            {
+                                RoleId = consultantRole.Id,
+                                ClaimType = claim.ClaimType,
+                                ClaimValue = claim.ClaimValue,
+                                CreatedBy = firstMasterUserId,
+                                CreationDate = DateTime.UtcNow
+                            });
+                        }
+                    }
+
+                    if (consultantClaimsToInsert.Any())
+                    {
+                        await _db.RoleClaims.AddRangeAsync(consultantClaimsToInsert);
+                        await _db.SaveChangesAsync();
+                    }
                 }
 
                 await transaction.CommitAsync();
