@@ -168,8 +168,8 @@
 /* Confirmed entries */
 .cal-day.conf-PTO { background: #e0f7f5; }
 .cal-day.conf-PTO .cal-day-num { background: #00BFA5; color: #fff; }
-.cal-day.conf-UPTO { background: #ede9fe; }
-.cal-day.conf-UPTO .cal-day-num { background: #6366f1; color: #fff; }
+.cal-day.conf-UPTO { background: #e0f7f7; }
+.cal-day.conf-UPTO .cal-day-num { background: #046e76; color: #fff; }
 .cal-day.conf-VTO { background: #fef3c7; }
 .cal-day.conf-VTO .cal-day-num { background: #f59e0b; color: #fff; }
 
@@ -204,7 +204,7 @@
 }
 
 .legend-dot.pto { background: #00BFA5; }
-.legend-dot.upto { background: #6366f1; }
+.legend-dot.upto { background: #046e76; }
 .legend-dot.vto { background: #f59e0b; }
 
 /* ── Sidebar Cards ── */
@@ -267,7 +267,7 @@
 }
 
 .bal-dot.pto { background: #00BFA5; }
-.bal-dot.upto { background: #6366f1; }
+.bal-dot.upto { background: #046e76; }
 .bal-dot.vto { background: #f59e0b; }
 
 .bal-val {
@@ -279,8 +279,8 @@
 .bal-unlimited {
     font-size: 10.5px;
     font-weight: 700;
-    color: #6366f1;
-    background: #ede9fe;
+    color: #046e76;
+    background: #e0f7f7;
     padding: 2px 8px;
     border-radius: 100px;
 }
@@ -371,7 +371,7 @@
 }
 
 #balance-display.pto { background: #e0f7f5; color: #00897B; }
-#balance-display.upto { background: #ede9fe; color: #6366f1; }
+#balance-display.upto { background: #e0f7f7; color: #046e76; }
 #balance-display.vto { background: #fef3c7; color: #92400e; }
 
 @media only screen and (max-width: 850px) {

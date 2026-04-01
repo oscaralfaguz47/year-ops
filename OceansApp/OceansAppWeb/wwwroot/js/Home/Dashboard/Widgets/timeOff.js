@@ -3,6 +3,18 @@
 const timeOffWidgetCont = getElementById('timeOffWidgetCont');
 const timeOffFirstCardContent = timeOffWidgetCont.closest('.card-content');
 
+const TYPE_LABELS = {
+    'PTO': 'Paid Time Off',
+    'UPTO': 'Unpaid Time Off',
+    'VTO': 'Voluntary Time Off'
+};
+
+const STATUS_LABELS = {
+    'Waiting to be approved': 'Pending',
+    'Approved': 'Approved',
+    'Rejected': 'Rejected'
+};
+
 function getTimeOffWidgetData() {
     return (async () => {
         timeOffFirstCardContent.style.justifyContent = 'center';
@@ -30,37 +42,39 @@ document.addEventListener('DOMContentLoaded', function () {
             timeOffFirstCardContent.style.justifyContent = 'flex-start';
             let html = '';
 
-            // Upcoming approved time off
+            // Header with title and Request button
+            html += `<div class="to-widget-header">
+                <span class="to-widget-title">Time off requests</span>
+                <a href="/General/TimeOff" class="to-widget-request-btn">Request</a>
+            </div>`;
+
+            // Request list
             if (data.widgetData.upcomingApproved && data.widgetData.upcomingApproved.length > 0) {
-                html += '<div class="widget-upcoming">';
-                html += '<div class="widget-upcoming-title">Upcoming Time Off</div>';
+                html += '<div class="to-widget-list">';
                 data.widgetData.upcomingApproved.forEach(entry => {
                     const start = new Date(entry.startDate);
                     const end = new Date(entry.endDate);
                     const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    const dateLabel = startStr === endStr ? startStr : `${startStr} - ${endStr}`;
-                    html += `<div class="widget-entry">
-                        <span class="widget-type-dot ${entry.timeOffType}"></span>
-                        <span class="widget-entry-dates">${dateLabel}</span>
-                        <span class="widget-entry-type ${entry.timeOffType}">${entry.timeOffType}</span>
+                    const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const startOnly = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const isSameDay = start.toDateString() === end.toDateString();
+                    const dateLabel = isSameDay ? startOnly : `${startStr} \u2013 ${endStr}`;
+
+                    const typeLabel = TYPE_LABELS[entry.timeOffType] || entry.timeOffType;
+                    const statusLabel = STATUS_LABELS[entry.status] || entry.status;
+                    const statusClass = entry.status === 'Approved' ? 'approved'
+                        : entry.status === 'Rejected' ? 'rejected' : 'pending';
+
+                    html += `<div class="to-widget-row">
+                        <span class="to-widget-type-badge ${entry.timeOffType}">${typeLabel}</span>
+                        <span class="to-widget-dates">${dateLabel}</span>
+                        <span class="to-widget-status ${statusClass}">${statusLabel}</span>
                     </div>`;
                 });
                 html += '</div>';
             } else {
-                html += '<div class="widget-empty">No upcoming time off scheduled.</div>';
+                html += '<div class="to-widget-empty">No time off requests yet.</div>';
             }
-
-            // Pending requests count
-            if (data.widgetData.pendingCount > 0) {
-                html += `<div class="widget-pending">
-                    <span class="widget-pending-count">${data.widgetData.pendingCount}</span>
-                    <span>request${data.widgetData.pendingCount > 1 ? 's' : ''} pending approval</span>
-                </div>`;
-            }
-
-            // Link to Time Off page
-            html += '<a class="widget-link" href="/General/TimeOff">View Time Off Requests &rarr;</a>';
 
             timeOffWidgetCont.innerHTML = html;
         })

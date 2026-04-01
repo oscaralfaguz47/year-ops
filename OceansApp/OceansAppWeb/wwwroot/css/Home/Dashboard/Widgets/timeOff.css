@@ -1,92 +1,118 @@
 /* ── Time Off Dashboard Widget ── */
-#timeOffWidgetCont .widget-upcoming {
-    margin-bottom: 10px;
+
+/* Header row: title + request button */
+.to-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-#timeOffWidgetCont .widget-upcoming-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: #9ca3af;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+.to-widget-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
-#timeOffWidgetCont .widget-entry {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid #f3f4f6;
-    font-size: 12.5px;
+.to-widget-request-btn {
+  display: inline-block;
+  background: var(--clr-blueLight);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 18px;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: background 0.15s;
 }
 
-#timeOffWidgetCont .widget-entry:last-child {
-    border-bottom: none;
+.to-widget-request-btn:hover {
+  background: var(--clr-blueLight);
+  color: #fff;
+  text-decoration: none;
 }
 
-#timeOffWidgetCont .widget-type-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
+/* Request list */
+.to-widget-list {
+  display: flex;
+  flex-direction: column;
 }
 
-#timeOffWidgetCont .widget-type-dot.PTO { background: #00BFA5; }
-#timeOffWidgetCont .widget-type-dot.UPTO { background: #6366f1; }
-#timeOffWidgetCont .widget-type-dot.VTO { background: #f59e0b; }
-
-#timeOffWidgetCont .widget-entry-dates {
-    color: #374151;
-    font-weight: 500;
-    flex: 1;
+.to-widget-row {
+  display: flex;
+  align-items: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
+  overflow: hidden;
 }
 
-#timeOffWidgetCont .widget-entry-type {
-    font-size: 10.5px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 100px;
+#timeOffWidgetCont {
+  overflow-x: hidden;
 }
 
-#timeOffWidgetCont .widget-entry-type.PTO { background: #e0f7f5; color: #00897B; }
-#timeOffWidgetCont .widget-entry-type.UPTO { background: #ede9fe; color: #6366f1; }
-#timeOffWidgetCont .widget-entry-type.VTO { background: #fef3c7; color: #92400e; }
-
-#timeOffWidgetCont .widget-pending {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    padding: 8px 12px;
-    background: #fef3c7;
-    border-radius: 8px;
-    font-size: 12.5px;
-    color: #92400e;
-    font-weight: 500;
+/* Type badge (left) */
+.to-widget-type-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 4px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-#timeOffWidgetCont .widget-pending-count {
-    font-weight: 700;
-    font-size: 16px;
+.to-widget-type-badge.PTO {
+  background: #e0f7f5;
+  color: #065f46;
 }
 
-#timeOffWidgetCont .widget-link {
-    display: inline-block;
-    margin-top: 12px;
-    font-size: 12px;
-    color: #00BFA5;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
+.to-widget-type-badge.UPTO {
+  background: #e0f7f7;
+  color: #046e76;
 }
 
-#timeOffWidgetCont .widget-link:hover {
-    text-decoration: underline;
+.to-widget-type-badge.VTO {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-#timeOffWidgetCont .widget-empty {
-    font-size: 12.5px;
-    color: #9ca3af;
-    padding: 8px 0;
+/* Date range (middle) */
+.to-widget-dates {
+  flex: 1;
+  font-size: 11px;
+  color: #374151;
+  padding-left: 8px;
+  min-width: 0;
+}
+
+/* Status badge (right) */
+.to-widget-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.to-widget-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.to-widget-status.approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.to-widget-status.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Empty state */
+.to-widget-empty {
+  font-size: 12.5px;
+  color: #9ca3af;
+  padding: 10px 0;
 }

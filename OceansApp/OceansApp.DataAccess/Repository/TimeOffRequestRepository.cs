@@ -332,20 +332,11 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<TimeOffWidgetVM> GetWidgetDataAsync(int consultantId)
         {
-            var statusApproved = await _db.TRANSACTION_STATUSES
-                .FirstOrDefaultAsync(s => s.Name == "Approved");
-            var statusPending = await _db.TRANSACTION_STATUSES
-                .FirstOrDefaultAsync(s => s.Name == "Waiting to be approved");
-
-            var today = DateTime.UtcNow.Date;
-
-            var upcoming = await _db.TIME_OFF_REQUESTS
+            var recentRequests = await _db.TIME_OFF_REQUESTS
                 .Include(r => r.TransactionStatus)
-                .Where(r => r.ConsultantId == consultantId
-                    && r.TransactionStatusId == statusApproved.TransactionStatusId
-                    && r.EndDate >= today)
-                .OrderBy(r => r.StartDate)
-                .Take(3)
+                .Where(r => r.ConsultantId == consultantId)
+                .OrderByDescending(r => r.CreationDate)
+                .Take(5)
                 .Select(r => new TimeOffCalendarEntryVM
                 {
                     TimeOffRequestId = r.TimeOffRequestId,
@@ -356,13 +347,18 @@ namespace OceansApp.DataAccess.Repository
                 })
                 .ToListAsync();
 
-            int pendingCount = await _db.TIME_OFF_REQUESTS
-                .CountAsync(r => r.ConsultantId == consultantId
-                    && r.TransactionStatusId == statusPending.TransactionStatusId);
+            var statusPending = await _db.TRANSACTION_STATUSES
+                .FirstOrDefaultAsync(s => s.Name == "Waiting to be approved");
+
+            int pendingCount = statusPending != null
+                ? await _db.TIME_OFF_REQUESTS
+                    .CountAsync(r => r.ConsultantId == consultantId
+                        && r.TransactionStatusId == statusPending.TransactionStatusId)
+                : 0;
 
             return new TimeOffWidgetVM
             {
-                UpcomingApproved = upcoming,
+                UpcomingApproved = recentRequests,
                 PendingCount = pendingCount
             };
         }
