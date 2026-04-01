@@ -5,7 +5,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 16px;
+  width: 100%;
 }
 
 .to-widget-title {
@@ -49,6 +51,7 @@
 
 #timeOffWidgetCont {
   overflow-x: hidden;
+  width: 100%;
 }
 
 /* Type badge (left) */
