@@ -72,6 +72,11 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 let startDateDateFormat = new Date(data.consultantData.startDate);
                 createUpdateForm.find('[name="startDate"]').val(startDateDateFormat.toISOString().split('T')[0]);
 
+                // PTO fields
+                document.getElementById('isPtoEligible').checked = data.consultantData.isEligibleForPaidTimeOff || false;
+                document.getElementById('annualPaidDays').value = data.consultantData.annualPaidTimeOffDays || '';
+                togglePtoFields();
+
                 showModal(modalId);
             })
             .catch(error => {
@@ -91,6 +96,11 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
 }
 function displayOtherConfigModal(modalId) {
     showModal(modalId);
+}
+function togglePtoFields() {
+    const isChecked = document.getElementById('isPtoEligible').checked;
+    document.getElementById('pto-days-container').style.display = isChecked ? 'block' : 'none';
+    if (!isChecked) document.getElementById('annualPaidDays').value = '';
 }
 
 //CreateUpdate Consultant METHOD
@@ -145,7 +155,9 @@ async function createUpdateConsultant(modalId) {
         UserRole: userRoleData,
         Positions: positionsData,
         WorkingModel: workingModelData,
-        StartDate: startDateInput ? startDateInput.toString() : null
+        StartDate: startDateInput ? startDateInput.toString() : null,
+        IsEligibleForPaidTimeOff: document.getElementById('isPtoEligible').checked,
+        AnnualPaidTimeOffDays: document.getElementById('annualPaidDays').value ? Number(document.getElementById('annualPaidDays').value) : null
     };
     console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {

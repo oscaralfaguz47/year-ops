@@ -111,8 +111,11 @@ namespace OceansApp.DataAccess.Repository
             {
                 List<WidgetVM> listToReturn = new();
 
-                //Access to Report time in tracking tool
-                if (userClaims.IsAuthorizedForReportTimeInTrackingTool() && userAndConsultant.UserCategoryName != "External User")
+                //Access to Report time in tracking tool or Time Off
+                if (userAndConsultant.UserCategoryName != "External User"
+                    && (userClaims.IsAuthorizedForReportTimeInTrackingTool()
+                        || userClaims.IsAuthorizedForTimeOffRequest()
+                        || userClaims.IsAuthorizedForTimeOffApprovals()))
                 {
                     WidgetVM timeSheetsW = new() { WidgetName = WidgetsCD.TimeSheets };
                     listToReturn.Add(timeSheetsW);
