@@ -4,5 +4,6 @@ namespace OceansApp.Models.ViewModels.TimeOff
     {
         public List<TimeOffCalendarEntryVM> UpcomingApproved { get; set; } = new();
         public int PendingCount { get; set; }
+        public int TotalCount { get; set; }
     }
 }

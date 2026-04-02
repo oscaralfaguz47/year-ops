@@ -50,7 +50,7 @@
 }
 
 #timeOffWidgetCont {
-  overflow-x: hidden;
+  overflow: hidden;
   width: 100%;
 }
 
@@ -111,6 +111,23 @@
 .to-widget-status.rejected {
   background: #fee2e2;
   color: #991b1b;
+}
+
+/* More link */
+.to-widget-more-link {
+  display: block;
+  text-align: center;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.to-widget-more-link:hover {
+  color: #374151;
+  text-decoration: underline;
 }
 
 /* Empty state */

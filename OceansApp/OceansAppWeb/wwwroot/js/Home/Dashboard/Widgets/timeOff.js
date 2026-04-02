@@ -68,6 +68,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>`;
                 });
                 html += '</div>';
+
+                if (data.widgetData.totalCount > 4) {
+                    html += '<a class="to-widget-more-link" href="/General/TimeOff">... more</a>';
+                }
             } else {
                 html += '<div class="to-widget-empty">No time off requests yet.</div>';
             }

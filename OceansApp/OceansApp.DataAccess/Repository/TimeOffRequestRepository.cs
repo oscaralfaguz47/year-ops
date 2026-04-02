@@ -38,14 +38,16 @@ namespace OceansApp.DataAccess.Repository
                 PtoAnnualAllowance = consultant.AnnualPaidTimeOffDays ?? 0
             };
 
+            int currentYear = DateTime.UtcNow.Year;
+
             if (consultant.IsEligibleForPaidTimeOff && consultant.AnnualPaidTimeOffDays.HasValue)
             {
-                int totalAccrued = CalculateTotalAccruedPtoDays(consultant);
-                int usedAndPending = await GetUsedDaysAsync(consultantId, "PTO", null);
-                result.PtoAvailable = totalAccrued - usedAndPending;
+                int annualDays = consultant.AnnualPaidTimeOffDays.Value;
+                int ptoAllowance = annualDays;
+                int ptoUsedAndPending = await GetUsedDaysAsync(consultantId, "PTO", currentYear);
+                result.PtoAvailable = ptoAllowance - ptoUsedAndPending;
             }
 
-            int currentYear = DateTime.UtcNow.Year;
             int vtoUsedAndPending = await GetUsedDaysAsync(consultantId, "VTO", currentYear);
             result.VtoAvailable = 1 - vtoUsedAndPending;
 
@@ -337,7 +339,7 @@ namespace OceansApp.DataAccess.Repository
                 .Include(r => r.TransactionStatus)
                 .Where(r => r.ConsultantId == consultantId)
                 .OrderByDescending(r => r.CreationDate)
-                .Take(5)
+                .Take(4)
                 .Select(r => new TimeOffCalendarEntryVM
                 {
                     TimeOffRequestId = r.TimeOffRequestId,
@@ -357,9 +359,13 @@ namespace OceansApp.DataAccess.Repository
                         && r.TransactionStatusId == statusPending.TransactionStatusId)
                 : 0;
 
+            int totalCount = await _db.TIME_OFF_REQUESTS
+                .CountAsync(r => r.ConsultantId == consultantId);
+
             return new TimeOffWidgetVM
             {
                 UpcomingApproved = recentRequests,
+                TotalCount = totalCount,
                 PendingCount = pendingCount
             };
         }
@@ -451,20 +457,6 @@ namespace OceansApp.DataAccess.Repository
 
         // ── Private helpers ──
 
-        private int CalculateTotalAccruedPtoDays(ConsultantDetail consultant)
-        {
-            var today = DateTime.UtcNow.Date;
-            var startDate = consultant.StartDate.Date;
-            int completedYears = 0;
-
-            // Count completed full years (first accrual at first anniversary)
-            while (startDate.AddYears(completedYears + 1) <= today)
-            {
-                completedYears++;
-            }
-
-            return (consultant.InitialPtoBalance ?? 0) + completedYears * (consultant.AnnualPaidTimeOffDays ?? 0);
-        }
 
         private async Task<int> GetUsedDaysAsync(int consultantId, string timeOffType, int? calendarYear)
         {
