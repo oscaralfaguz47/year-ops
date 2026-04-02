@@ -129,6 +129,13 @@
 
 #teamTimeOffWidgetCont {
     overflow-x: hidden;
+    width: 100%;
+}
+
+.team-to-header,
+.team-to-list,
+.team-to-row {
+    width: 100%;
 }
 
 /* Center modals vertically */
