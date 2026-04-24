@@ -198,6 +198,7 @@ try
     {
         options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
         options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
+        options.Limits.MaxRequestBodySize = 104857600L;
         options.AddServerHeader = false;
     });
     // CORS configuration

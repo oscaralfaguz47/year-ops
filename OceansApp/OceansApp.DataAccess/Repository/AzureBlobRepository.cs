@@ -9,15 +9,15 @@ using Azure;
 using Azure.Storage.Sas;
 using Azure.Storage;
 using OceansApp.Models.ViewModels.Components;
-using System.Text.RegularExpressions;
 
 namespace OceansApp.DataAccess.Repository
 {
-    public class AzureBlobRepository: IAzureBlobRepository
+    public class AzureBlobRepository : IAzureBlobRepository
     {
         private readonly BlobServiceClient _blobServiceClient;
         private readonly string _accountKey;
         private readonly IConfiguration _config;
+        private static readonly TimeSpan _uploadTimeout = TimeSpan.FromMinutes(3);
 
         public AzureBlobRepository(IConfiguration config)
         {
@@ -35,8 +35,8 @@ namespace OceansApp.DataAccess.Repository
             {
                 CalculateContentHash calculateHash = new CalculateContentHash();
                 string contentHash = await calculateHash.CalculateContentHashAsync(file);
-                string normalizedFileName = NormalizeFileName(file.FileName);
-                string uniqueFilename = $"{contentHash}{(elementId == null ? "": "_" + elementId)}_{normalizedFileName}";
+                string normalizedFileName = BlobFileNameHelper.NormalizeFileName(file.FileName);
+                string uniqueFilename = $"{contentHash}{(elementId == null ? "" : "_" + elementId)}_{normalizedFileName}";
                 var blobClient = containerClient.GetBlobClient(uniqueFilename);
 
                 var uploadResult = new BlobUploadResult
@@ -55,14 +55,40 @@ namespace OceansApp.DataAccess.Repository
                     using (var stream = file.OpenReadStream())
                     {
                         var blobHttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType };
-                        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders, 
-                            Conditions = new BlobRequestConditions { IfNoneMatch = new ETag("*") } });
 
-                        // Generate SAS for the blob
-                        string sasUrl = GenerateBlobSasUri(containerClient, uniqueFilename, validDays);
-                        uploadResult.BlobUrl = sasUrl;
-                        uploadResult.Success = true; // Confirm success after a successful upload
+                        bool blobExists = await blobClient.ExistsAsync();
+
+                        using var cts = new CancellationTokenSource(_uploadTimeout);
+
+                        if (blobExists)
+                        {
+                            string existingSasUrl = GenerateBlobSasUri(containerClient, uniqueFilename, validDays);
+                            uploadResult.BlobUrl = existingSasUrl;
+                            uploadResult.Success = true;
+                        }
+                        else
+                        {
+                            await blobClient.UploadAsync(stream, new BlobUploadOptions
+                            {
+                                HttpHeaders = blobHttpHeaders
+                            }, cts.Token);
+
+                            string sasUrl = GenerateBlobSasUri(containerClient, uniqueFilename, validDays);
+                            uploadResult.BlobUrl = sasUrl;
+                            uploadResult.Success = true;
+                        }
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    uploadResult.Success = false;
+                    uploadResult.ErrorMessage = "Upload timed out after 3 minutes. Please try again.";
+                }
+                catch (Azure.RequestFailedException ex) when (ex.ErrorCode == "BlobAlreadyExists")
+                {
+                    string existingSasUrl = GenerateBlobSasUri(containerClient, uniqueFilename, validDays);
+                    uploadResult.BlobUrl = existingSasUrl;
+                    uploadResult.Success = true;
                 }
                 catch (Exception ex)
                 {
@@ -70,30 +96,9 @@ namespace OceansApp.DataAccess.Repository
                     uploadResult.ErrorMessage = $"Error uploading file: {ex.Message}";
                 }
 
-                uploadResults.Add(uploadResult); // Add the result of the process
+                uploadResults.Add(uploadResult);
             }
             return uploadResults;
-        }
-
-        private string NormalizeFileName(string fileName)
-        {
-            // Get the file extension (e.g., ".png")
-            var fileExtension = Path.GetExtension(fileName);
-
-            // Get the file name without extension
-            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-
-            // Replace invalid characters with underscores
-            fileNameWithoutExtension = Regex.Replace(fileNameWithoutExtension, @"[^a-zA-Z0-9_\-]", "_");
-
-            // Limit the file name length to avoid overly long names (e.g., 100 characters max)
-            if (fileNameWithoutExtension.Length > 100)
-            {
-                fileNameWithoutExtension = fileNameWithoutExtension.Substring(0, 100);
-            }
-
-            // Rebuild the file name with the sanitized name and original extension
-            return $"{fileNameWithoutExtension}{fileExtension}";
         }
 
 
