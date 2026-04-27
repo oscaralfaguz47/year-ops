@@ -683,6 +683,8 @@ function updateProjectMovements(data) {
     secondUploadArea.innerHTML = '';
     primaryPreviewSection.style.display = 'none';
     secondPreviewSection.style.display = 'none';
+    holidaysContainer.style.display = 'none'; 
+    holidaysContainer.innerHTML = '';          
 
     if (data.movementsList.length > 0) {
         const normalMovement = data.movementsList.find(movement => movement.movementTypeName !== 'Holidays');
@@ -772,16 +774,17 @@ function updateProjectMovements(data) {
             const holidayDate = new Date(obj.actionDate);
             holidaysHtmlList += `<div data-tooltip="You will be paid ${obj.quantity} hours for this holiday, you don't need to report this." class="holiday-Item tooltip-target"><span class="holiday-name">${obj.notes}<i class="fa-solid fa-gift"></i></span><span>${getMonthName(holidayDate.getMonth())} ${holidayDate.getDate()}</span></div>`;
         } else {
-            transactionStatus = obj.transactionStatus;
-            if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
-                updateStatusReportSubmittedClientHasTrackingTool();
+            if (obj.transactionStatus && obj.transactionStatus !== 'No actions') {
+                transactionStatus = obj.transactionStatus;
+            } else if (transactionStatus === 'No actions') {
+                transactionStatus = obj.transactionStatus;
             }
         }
     });
 
-    updateInfoText(primaryUploadArea, primaryInfoText);
-    updateInfoText(secondUploadArea, secondInfoText);
-    validateUploadedFilesToTogglePreviewBtn();
+    if (transactionStatus !== 'No actions' && transactionStatus !== 'Rejected') {
+        updateStatusReportSubmittedClientHasTrackingTool();
+    }
 
     if (holidaysCount > 0) {
         holidaysContainer.innerHTML = `<label>You have ${holidaysCount} holiday${holidaysCount === 1 ? '' : 's'} to be reimbursed for this period</label> <div style="display:flex; justify-content:center">${holidaysHtmlList}</div>`;
@@ -790,6 +793,10 @@ function updateProjectMovements(data) {
     } else {
         holidaysContainer.style.display = 'none';
     }
+
+    updateInfoText(primaryUploadArea, primaryInfoText);
+    updateInfoText(secondUploadArea, secondInfoText);
+    validateUploadedFilesToTogglePreviewBtn();
 
     quantityInput.value = normalHoursQuantity;
     onCallFlateRateSelect.value = onCallFlateRateQuantity;
