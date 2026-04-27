@@ -1582,6 +1582,46 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TransactionTypeId);
             });
 
+            // TIME OFF REQUESTS
+            modelBuilder.Entity<TimeOffRequest>(entity =>
+            {
+                entity.HasKey(e => e.TimeOffRequestId);
+
+                entity.HasIndex(e => new { e.ConsultantId, e.TransactionStatusId, e.TimeOffType });
+                entity.HasIndex(e => new { e.ConsultantId, e.StartDate, e.EndDate });
+                entity.HasIndex(e => e.ConsultantId);
+                entity.HasIndex(e => e.TransactionStatusId);
+                entity.HasIndex(e => e.TimeOffType);
+                entity.HasIndex(e => e.UserCreatedBy);
+                entity.HasIndex(e => e.UserActionedBy);
+
+                entity.HasOne(e => e.ConsultantDetail)
+                    .WithMany()
+                    .HasForeignKey(e => e.ConsultantId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.TransactionStatus)
+                    .WithMany()
+                    .HasForeignKey(e => e.TransactionStatusId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.ApplicationUserCreated)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserCreatedBy)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.ApplicationUserActioned)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserActionedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.StartDate).HasColumnType("date").IsRequired();
+                entity.Property(e => e.EndDate).HasColumnType("date").IsRequired();
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1661,5 +1701,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<DocumentsCCNotification> DOCUMENTS_CC_NOTIFICATIONS { get; set; }
         public DbSet<SystemArea> SYSTEM_AREAS { get; set; }
         public DbSet<SystemSubArea> SYSTEM_SUB_AREAS { get; set; }
+        public DbSet<TimeOffRequest> TIME_OFF_REQUESTS { get; set; }
     }
 }

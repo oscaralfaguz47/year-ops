@@ -1,0 +1,157 @@
+/* ── Team Time Off Dashboard Widget ── */
+
+.team-to-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.team-to-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.team-to-manage-btn {
+    display: inline-block;
+    background: var(--clr-blueLight);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 18px;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+}
+
+.team-to-manage-btn:hover {
+    opacity: 0.85;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Request list */
+.team-to-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.team-to-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #f3f4f6;
+    gap: 8px;
+}
+
+.team-to-row:last-child {
+    border-bottom: none;
+}
+
+/* Consultant name */
+.team-to-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1f2937;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+/* Date range */
+.team-to-dates {
+    flex: 1;
+    font-size: 11.5px;
+    color: #6b7280;
+    min-width: 0;
+}
+
+/* Status badge */
+.team-to-status {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.team-to-status.pending { background: #fef3c7; color: #92400e; }
+.team-to-status.approved { background: #d1fae5; color: #065f46; }
+.team-to-status.rejected { background: #fee2e2; color: #991b1b; }
+
+/* Action buttons */
+.team-to-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.team-to-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    transition: opacity 0.15s;
+}
+
+.team-to-btn:hover {
+    opacity: 0.8;
+}
+
+.team-to-btn.reject-btn {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.team-to-btn.approve-btn {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Empty state */
+.team-to-empty {
+    font-size: 12.5px;
+    color: #9ca3af;
+    padding: 10px 0;
+}
+
+/* Remove card height limit */
+.card:has(#teamTimeOffWidgetCont) {
+    max-height: none;
+    overflow: visible;
+}
+
+#teamTimeOffWidgetCont {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.team-to-header,
+.team-to-list,
+.team-to-row {
+    width: 100%;
+}
+
+/* Center modals vertically */
+#modal-team-approve,
+#modal-team-reject {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+#modal-team-approve.global-modal[style*="block"],
+#modal-team-reject.global-modal[style*="block"] {
+    display: flex !important;
+}
+
+#modal-team-approve .global-modal-content,
+#modal-team-reject .global-modal-content {
+    margin: 0 auto;
+}

@@ -1,0 +1,138 @@
+/* ── Time Off Dashboard Widget ── */
+
+/* Header row: title + request button */
+.to-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.to-widget-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.to-widget-request-btn {
+  display: inline-block;
+  background: var(--clr-blueLight);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 18px;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.to-widget-request-btn:hover {
+  background: var(--clr-blueLight);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Request list */
+.to-widget-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.to-widget-row {
+  display: flex;
+  align-items: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
+  overflow: hidden;
+}
+
+#timeOffWidgetCont {
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Type badge (left) */
+.to-widget-type-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 4px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.to-widget-type-badge.PTO {
+  background: #e0f7f5;
+  color: #065f46;
+}
+
+.to-widget-type-badge.UPTO {
+  background: #e0f7f7;
+  color: #046e76;
+}
+
+.to-widget-type-badge.VTO {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Date range (middle) */
+.to-widget-dates {
+  flex: 1;
+  font-size: 11px;
+  color: #374151;
+  padding-left: 8px;
+  min-width: 0;
+}
+
+/* Status badge (right) */
+.to-widget-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.to-widget-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.to-widget-status.approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.to-widget-status.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* More link */
+.to-widget-more-link {
+  display: block;
+  text-align: center;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.to-widget-more-link:hover {
+  color: #374151;
+  text-decoration: underline;
+}
+
+/* Empty state */
+.to-widget-empty {
+  font-size: 12.5px;
+  color: #9ca3af;
+  padding: 10px 0;
+}

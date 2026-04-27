@@ -171,7 +171,9 @@ namespace OceansApp.DataAccess.Repository
 
             foreach (var file in files)
             {
-                string fileNameWithHass = $"{await calculateHash.CalculateContentHashAsync((IFormFile)file)}_{movementId}_{primarySecond}_{file.FileName}";
+                string hash = await calculateHash.CalculateContentHashAsync((IFormFile)file);
+                string normalizedFileName = BlobFileNameHelper.NormalizeFileName(file.FileName);
+                string fileNameWithHass = $"{hash}_{movementId}_{primarySecond}_{normalizedFileName}";
 
                 ReportingMyTimeMovementBlob existingFile;
 

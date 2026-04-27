@@ -66,6 +66,7 @@
         ISystemAreaRepository SystemArea { get; }
         ISystemSubAreaRepository SystemSubArea { get; }
         ITransactionStatusRepository TransactionStatus { get; }
+        ITimeOffRequestRepository TimeOffRequest { get; }
 
         Task SaveAsync();
         Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTranAsync();

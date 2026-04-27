@@ -20,7 +20,69 @@
             </div>
         </div>
     </div>
+    <div class="card" id="timeOffWidgetCard" style="display:none">
+        <div class="card-content">
+            <div id="timeOffWidgetCont">
+            </div>
+        </div>
+    </div>
+    <div class="card" id="teamTimeOffCard" style="display:none">
+        <div class="card-content">
+            <div id="teamTimeOffWidgetCont">
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/timeOff.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Home/Dashboard/Widgets/teamTimeOff.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+
+<!-- Approve confirmation modal -->
+<div id="modal-team-approve" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div class="close-btn-container">
+                <button onclick="hideModal('modal-team-approve')">x</button>
+            </div>
+            <h2>Approve Request?</h2>
+            <p id="team-approve-details"></p>
+            <div id="modal-btns-cont">
+                <a onclick="hideModal('modal-team-approve')" class="cancel-btn">Cancel</a>
+                <button onclick="teamConfirmApprove()" class="btn-primary-submit">
+                    <span>Approve</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject confirmation modal -->
+<div id="modal-team-reject" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div class="close-btn-container">
+                <button onclick="hideModal('modal-team-reject')">x</button>
+            </div>
+            <h2>Reject Request?</h2>
+            <p id="team-reject-details"></p>
+            <label>Rejection Comment <span class="required-asterisk">*</span></label>
+            <div class="input-container">
+                <textarea id="team-rejection-comment" rows="3"
+                    placeholder="Please explain why you are rejecting this request..."
+                    style="width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:13px;resize:vertical;font-family:inherit;"></textarea>
+            </div>
+            <div id="modal-btns-cont">
+                <a onclick="hideModal('modal-team-reject')" class="cancel-btn">Cancel</a>
+                <button onclick="teamConfirmReject()" class="btn-primary-submit" style="background:#ef4444;">
+                    <span>Reject</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="~/js/Home/Dashboard/Widgets/timeSheets.js?v=@DateTime.Now.Ticks"></script>
 <script src="~/js/Shared/Dates/datesMethods.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Home/Dashboard/Widgets/timeOff.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Home/Dashboard/Widgets/teamTimeOff.js?v=@DateTime.Now.Ticks"></script>

@@ -12,6 +12,7 @@ using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.Finances;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.Recruiting;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
+using OceansApp.Utility.ConstantData.Claims.TimeOff;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -360,6 +361,18 @@ namespace OceansApp.Utility.Configuration
             {
                 options.AddPolicy("AccessToReportingMyTimeMovementTypesListForSelect", policy =>
                     policy.RequireClaim(FinancesClaimsCD.Accounts_Receivable_ClaimType, FinancesClaimsCD.Accounts_Receivable_ClaimValue));
+            });
+
+            //TIME OFF
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToTimeOffRequest", policy =>
+                    policy.RequireClaim(TimeOffClaimsCD.Time_Off_Request_ClaimType, TimeOffClaimsCD.Time_Off_Request_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToTimeOffApprovals", policy =>
+                    policy.RequireClaim(TimeOffClaimsCD.Time_Off_Approvals_ClaimType, TimeOffClaimsCD.Time_Off_Approvals_ClaimValue));
             });
 
         }

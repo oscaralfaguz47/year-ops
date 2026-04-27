@@ -1,0 +1,48 @@
+<div id="modal-time-off-request" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div class="close-btn-container">
+                <button onclick="hideModal('modal-time-off-request')">x</button>
+            </div>
+            <h2 id="time-off-modal-title">New Time Off Request</h2>
+
+            <form id="form-time-off-request">
+                <label>Time Off Type <span class="required-asterisk">*</span></label>
+                <div class="custom-select">
+                    <select class="form-select" id="timeOffTypeSelect" name="timeOffType"
+                        onchange="onTimeOffTypeChange()">
+                        <option value="">Select type...</option>
+                        <option value="UPTO">Unpaid Time Off</option>
+                        <option value="VTO">Voluntary Time Off</option>
+                    </select>
+                </div>
+
+                <label>Start Date <span class="required-asterisk">*</span></label>
+                <div class="input-container">
+                    <input type="date" class="form-control" id="startDateInput" name="startDate"
+                        onchange="recalculateDays()" />
+                </div>
+
+                <label>End Date <span class="required-asterisk">*</span></label>
+                <div class="input-container">
+                    <input type="date" class="form-control" id="endDateInput" name="endDate"
+                        onchange="recalculateDays()" />
+                </div>
+
+                <label>Business Days</label>
+                <div class="input-container">
+                    <input type="text" class="form-control" id="businessDaysDisplay" readonly />
+                </div>
+
+                <div id="balance-display"></div>
+            </form>
+
+            <div id="modal-btns-cont">
+                <a onclick="hideModal('modal-time-off-request')" class="cancel-btn">Cancel</a>
+                <button onclick="submitTimeOffRequest()" class="btn-primary-submit">
+                    <span>Submit Request</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

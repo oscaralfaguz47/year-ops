@@ -308,9 +308,17 @@ namespace OceansAppWeb.Areas.TrackingTool.Controllers
                 {
                     return BadRequest(new { error = "Something went wrong getting the num of uploaded files.", messageType = "Exception Error" });
                 }
-                if (numUploadedFilesInMovement >= 20)
+                if ((numUploadedFilesInMovement + files.Count) > 20)
                 {
-                    return BadRequest(new { MessageType = "Validation Error", errors = new[] { $"You cannot upload more than 20 files." } });
+                    int availableSlots = 20 - (int)numUploadedFilesInMovement;
+                    return BadRequest(new
+                    {
+                        MessageType = "Validation Error",
+                        errors = new[]
+                    {
+        $"You cannot upload more than 20 files. You currently have {numUploadedFilesInMovement} file(s) uploaded and are trying to add {files.Count} more. You can only upload {(availableSlots <= 0 ? 0 : availableSlots)} more file(s)."
+    }
+                    });
                 }
 
                 List<IFormFile> filesToUpload = await _unitOfWork.ReportingMyTimeMovement.VerifyIfUploadFile(files, movementId, primarySecond, trackingToolName);

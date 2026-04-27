@@ -301,5 +301,107 @@ namespace OceansApp.Utility.NotificationTemplates
                    ";
         }
 
+        public string TimeOffRequestSubmittedBody(string consultantName, string timeOffType, string dateRange, int days)
+        {
+            return @"<div style=""text-align: center;"">
+                        <p>Hello " + consultantName + @",</p>
+                        <p>Your <strong>" + timeOffType + @"</strong> request for <strong>" + dateRange + @"</strong> (" + days + @" business day" + (days > 1 ? "s" : "") + @") has been submitted successfully.</p>
+                        <table role=""presentation"" width=""100%"" style=""background-color:#fef3c7; text-align:center; border-collapse:collapse;"">
+                            <tr>
+                                <td style=""padding:6px"">
+                                    <p style=""margin:0;""><strong>Status: Pending Approval</strong></p>
+                                </td>
+                            </tr>
+                        </table>
+                        <p>Your manager has been notified and will review your request.</p>
+                    </div>";
+        }
+
+        public string TimeOffApprovalRequestBody(string url, string consultantName, string timeOffType, string dateRange, int days)
+        {
+            return @"<div style=""text-align: center;"">
+                        <p>Hello,</p>
+                        <p>A time off request requires your approval.</p>
+                        <p><strong>" + consultantName + @"</strong> has requested <strong>" + timeOffType + @"</strong> for <strong>" + dateRange + @"</strong> (" + days + @" business day" + (days > 1 ? "s" : "") + @").</p>
+                    </div>
+                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                        <tr>
+                            <td align=""center"">
+                                <div style=""margin-top: 20px; margin-bottom: 20px;"">
+                                    <table role=""presentation"" cellspacing=""0"" cellpadding=""0"" border=""0"" style=""border-collapse: separate;"">
+                                        <tr>
+                                            <td style=""border-radius: 25px; background-color: #5bbb71; padding: 10px 40px;"" align=""center"">
+                                                <a href=""" + url + @""" style=""font-family: 'Montserrat', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; cursor: pointer; display: inline-block;"">
+                                                    Review Request
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <p>Please review and approve or reject this request at your earliest convenience.</p>";
+        }
+
+        public string TimeOffDecisionBody(string url, string consultantName, string timeOffType, string dateRange, int days, string status, string managerName, string? rejectionComment)
+        {
+            string statusColor = status == "Approved" ? "#5bbb71" : "#d70b00";
+            string submissionStatus = @"<span style=""color:" + statusColor + @"""><strong>" + status + @"</strong></span>";
+
+            string approvedMessage = @"
+                <table role=""presentation"" width=""100%"" style=""background-color:#5bbb71; color:#f5fcf5; font-weight:bold; text-align:center; border-collapse:collapse;"">
+                    <tr>
+                        <td style=""padding:6px"">
+                            <p>Your time off has been approved. Enjoy your time off!</p>
+                        </td>
+                    </tr>
+                </table>";
+
+            string rejectedMessage = @"
+                <p>Please see more details about why your time off request was rejected.</p>
+                <label><strong>Comment:</strong></label>
+                <table role=""presentation"" width=""100%"" style=""background-color:#e8b4b4; text-align:left; border-collapse:collapse;"">
+                    <tr>
+                        <td style=""padding:6px"">
+                            <p>" + (rejectionComment ?? "") + @"</p>
+                        </td>
+                    </tr>
+                </table>
+                <div style=""text-align:left;margin-top:4px;"">
+                    <label><strong>Rejected by: </strong>" + managerName + @"</label>
+                </div>";
+
+            string body = @"<div style=""text-align: center;"">
+                        <p>Hello " + consultantName + @",</p>
+                        <p>Your <strong>" + timeOffType + @"</strong> request for <strong>" + dateRange + @"</strong> (" + days + @" business day" + (days > 1 ? "s" : "") + @") was " + submissionStatus + @".</p>
+                        " + (status == "Approved" ? approvedMessage : rejectedMessage) + @"
+                    </div>";
+
+            if (status != "Approved")
+            {
+                body += @"
+                    <table cellspacing=""0"" cellpadding=""0"" width=""100%"">
+                        <tr>
+                            <td align=""center"">
+                                <div style=""margin-top: 20px; margin-bottom: 20px;"">
+                                    <table role=""presentation"" cellspacing=""0"" cellpadding=""0"" border=""0"" style=""border-collapse: separate;"">
+                                        <tr>
+                                            <td style=""border-radius: 25px; background-color: #5bbb71; padding: 10px 40px;"" align=""center"">
+                                                <a href=""" + url + @""" style=""font-family: 'Montserrat', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; cursor: pointer; display: inline-block;"">
+                                                    Submit a new request
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>";
+            }
+
+            return body;
+        }
+
     }
 }

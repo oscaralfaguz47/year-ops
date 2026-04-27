@@ -99,6 +99,52 @@ namespace OceansAppWeb.Controllers
             }
         }
 
+        [HttpGet("GetTimeOffWidgetData")]
+        public async Task<IActionResult> GetTimeOffWidgetData()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var consultant = await _unitOfWork.ConsultantDetail
+                    .GetFirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (consultant == null)
+                    return BadRequest(new { error = "Consultant not found." });
+
+                var widgetData = await _unitOfWork.TimeOffRequest
+                    .GetWidgetDataAsync(consultant.ConsultantId);
+
+                return Ok(new { widgetData = widgetData });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving time off data. Please report this issue." });
+            }
+        }
+
+        [HttpGet("GetTeamTimeOffWidgetData")]
+        public async Task<IActionResult> GetTeamTimeOffWidgetData()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var consultant = await _unitOfWork.ConsultantDetail
+                    .GetFirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (consultant == null)
+                    return BadRequest(new { error = "Consultant not found." });
+
+                var requests = await _unitOfWork.TimeOffRequest
+                    .GetTeamWidgetDataAsync(consultant.ConsultantId);
+
+                return Ok(new { requests = requests });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving team time off data. Please report this issue." });
+            }
+        }
+
         [HttpGet("GetBalanceProgramInfo")]
         public async Task<IActionResult> GetBalanceProgramInfo()
         {

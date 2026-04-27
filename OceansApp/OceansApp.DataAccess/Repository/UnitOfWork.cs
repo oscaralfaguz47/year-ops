@@ -100,6 +100,7 @@ namespace OceansApp.DataAccess.Repository
             SystemArea = new SystemAreaRepository(_db);
             SystemSubArea = new SystemSubAreaRepository(_db);
             TransactionStatus = new TransactionStatusRepository(_db);
+            TimeOffRequest = new TimeOffRequestRepository(_db, _config, _queueClient);
         }
         public IApplicationSystemClaimRepository ApplicationSystemClaim { get; private set; }
         public IAccountingAccountRepository AccountingAccounts { get; private set; }
@@ -165,6 +166,7 @@ namespace OceansApp.DataAccess.Repository
         public ISystemAreaRepository SystemArea { get; set; }
         public ISystemSubAreaRepository SystemSubArea { get; set; }
         public ITransactionStatusRepository TransactionStatus { get; set; }
+        public ITimeOffRequestRepository TimeOffRequest { get; set; }
 
         public async Task SaveAsync()
         {

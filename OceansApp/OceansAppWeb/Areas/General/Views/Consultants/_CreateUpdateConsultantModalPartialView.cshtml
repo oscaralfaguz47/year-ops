@@ -227,6 +227,23 @@
                            </div>
                         </div>
                     </div>
+                    <div class="row" style="margin-top: 15px;">
+                        <strong><label>Paid Time Off Configuration</label></strong>
+                        <div class="col-md-12">
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                                <input type="checkbox" id="isPtoEligible" name="isEligibleForPaidTimeOff"
+                                    onchange="togglePtoFields()" />
+                                <label for="isPtoEligible" style="margin:0; font-weight:400;">Is eligible for Paid Time Off?</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="pto-days-container" style="display:none; margin-top:10px;">
+                            <label>Annual Paid Days <span class="required-asterisk">*</span></label>
+                            <div>
+                                <input type="number" class="form-control" id="annualPaidDays"
+                                    name="annualPaidTimeOffDays" min="1" placeholder="e.g. 15" />
+                            </div>
+                        </div>
+                    </div>
                 </form>
 
                 <div id="modal-btns-cont" style="display:flex; justify-content:center;">
