@@ -42,8 +42,8 @@ namespace OceansApp.DataAccess.Repository
 
             if (consultant.IsEligibleForPaidTimeOff && consultant.AnnualPaidTimeOffDays.HasValue)
             {
-                int annualDays = consultant.AnnualPaidTimeOffDays.Value;
-                int ptoAllowance = annualDays;
+                decimal annualDays = consultant.AnnualPaidTimeOffDays.Value;
+                decimal ptoAllowance = annualDays;
                 int ptoUsedAndPending = await GetUsedDaysAsync(consultantId, "PTO", currentYear);
                 result.PtoAvailable = ptoAllowance - ptoUsedAndPending;
             }
