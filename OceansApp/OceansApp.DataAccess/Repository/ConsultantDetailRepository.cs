@@ -133,7 +133,8 @@ namespace OceansApp.DataAccess.Repository
                     StartDate = (DateTime)consultantData.StartDate,
                     IsEligibleForPaidTimeOff = consultantData.IsEligibleForPaidTimeOff,
                     AnnualPaidTimeOffDays = consultantData.AnnualPaidTimeOffDays,
-                    InitialPtoBalance = consultantData.InitialPtoBalance
+                    InitialPtoBalance = consultantData.InitialPtoBalance,
+                    InitialAdminPtoBalance = consultantData.InitialAdminPtoBalance
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -251,6 +252,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.IsEligibleForPaidTimeOff = consultantData.IsEligibleForPaidTimeOff;
                 existingConsultant.AnnualPaidTimeOffDays = consultantData.AnnualPaidTimeOffDays;
                 existingConsultant.InitialPtoBalance = consultantData.InitialPtoBalance;
+                existingConsultant.InitialAdminPtoBalance = consultantData.InitialAdminPtoBalance;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -329,6 +331,7 @@ namespace OceansApp.DataAccess.Repository
                         IsEligibleForPaidTimeOff = consultant.IsEligibleForPaidTimeOff,
                         AnnualPaidTimeOffDays = consultant.AnnualPaidTimeOffDays,
                         InitialPtoBalance = consultant.InitialPtoBalance,
+                        InitialAdminPtoBalance = consultant.InitialAdminPtoBalance,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }

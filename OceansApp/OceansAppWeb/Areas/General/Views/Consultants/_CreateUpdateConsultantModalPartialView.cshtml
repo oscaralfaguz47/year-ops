@@ -229,18 +229,32 @@
                     </div>
                     <div class="row" style="margin-top: 15px;">
                         <strong><label>Paid Time Off Configuration</label></strong>
-                        <div class="col-md-12">
-                            <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-                                <input type="checkbox" id="isPtoEligible" name="isEligibleForPaidTimeOff"
-                                    onchange="togglePtoFields()" />
-                                <label for="isPtoEligible" style="margin:0; font-weight:400;">Is eligible for Paid Time Off?</label>
+                        <!-- CONSULTANT PTO (non-administrative) -->
+                        <div id="consultant-pto-section">
+                            <div class="col-md-12">
+                                <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                                    <input type="checkbox" id="isPtoEligible" name="isEligibleForPaidTimeOff"
+                                        onchange="togglePtoFields()" />
+                                    <label for="isPtoEligible" style="margin:0; font-weight:400;">Is eligible for Paid Time Off?</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="pto-days-container" style="display:none; margin-top:10px;">
+                                <label>Annual Paid Days <span class="required-asterisk">*</span></label>
+                                <div>
+                                    <input type="number" class="form-control" id="annualPaidDays"
+                                        name="annualPaidTimeOffDays" min="0" step="any" placeholder="e.g. 15" />
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6" id="pto-days-container" style="display:none; margin-top:10px;">
-                            <label>Annual Paid Days <span class="required-asterisk">*</span></label>
-                            <div>
-                                <input type="number" class="form-control" id="annualPaidDays"
-                                    name="annualPaidTimeOffDays" min="0" step="any" placeholder="e.g. 15" />
+                        <!-- ADMIN PTO (administrative) -->
+                        <div id="admin-pto-section" style="display:none;">
+                            <div class="col-md-6" style="margin-top:6px;">
+                                <label>Initial Admin PTO Balance</label>
+                                <div>
+                                    <input type="number" step="0.01" class="form-control" id="initialAdminPtoBalance"
+                                        name="initialAdminPtoBalance" placeholder="e.g. 5" />
+                                </div>
+                                <small style="color:gray;">Current earned balance carried over for this admin. Leave blank for none.</small>
                             </div>
                         </div>
                     </div>

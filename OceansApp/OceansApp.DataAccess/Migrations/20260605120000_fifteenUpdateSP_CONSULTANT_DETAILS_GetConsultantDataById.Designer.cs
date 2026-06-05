@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OceansApp.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260605120000_fifteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById")]
+    partial class fifteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -426,9 +429,6 @@ namespace OceansApp.DataAccess.Migrations
 
                     b.Property<decimal>("AnnualPaidDays")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("EffectiveDate")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("AdminPtoConfigurationId");
 
@@ -1130,8 +1130,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal?>("AnnualPaidTimeOffDays")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int?>("AnnualPaidTimeOffDays")
+                        .HasColumnType("int");
 
                     b.Property<string>("CompanyId")
                         .HasMaxLength(8)

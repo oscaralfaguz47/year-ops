@@ -405,3 +405,6 @@ FodyWeavers.xsd
 
 # Ignore file deploy.yml
 .github/workflows/deploy.yml
+
+# Claude Code context file
+OceansApp/CLAUDE.md

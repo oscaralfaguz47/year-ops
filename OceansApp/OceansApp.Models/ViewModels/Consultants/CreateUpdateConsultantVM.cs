@@ -34,5 +34,6 @@ namespace OceansApp.Models.ViewModels.Consultants
         public bool IsEligibleForPaidTimeOff { get; set; }
         public decimal? AnnualPaidTimeOffDays { get; set; }
         public int? InitialPtoBalance { get; set; }
+        public decimal? InitialAdminPtoBalance { get; set; }
     }
 }

@@ -285,6 +285,26 @@
     border-radius: 100px;
 }
 
+/* Balance sub-rows (admin PTO breakdown) */
+.bal-sub-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0 3px 15px;
+}
+
+.bal-sub-label {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.bal-sub-val {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
 /* Policy list */
 .policy-list {
     list-style: none;
