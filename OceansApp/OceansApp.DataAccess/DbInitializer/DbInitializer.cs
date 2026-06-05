@@ -1349,6 +1349,17 @@ namespace OceansApp.DataAccess.DbInitializer
 
                 await _db.SaveChangesAsync();
 
+                // ----------------- ADMIN PTO CONFIGURATION -------------------
+
+                if (!await _db.ADMIN_PTO_CONFIGURATION.AnyAsync())
+                {
+                    await _db.ADMIN_PTO_CONFIGURATION.AddAsync(new AdminPtoConfiguration
+                    {
+                        AnnualPaidDays = 15
+                    });
+                    await _db.SaveChangesAsync();
+                }
+
                 // ----------------- USER ROLES --------------------------------
 
                 var rolesList = new List<IdentityRole>
