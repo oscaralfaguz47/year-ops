@@ -1702,5 +1702,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<SystemArea> SYSTEM_AREAS { get; set; }
         public DbSet<SystemSubArea> SYSTEM_SUB_AREAS { get; set; }
         public DbSet<TimeOffRequest> TIME_OFF_REQUESTS { get; set; }
+        public DbSet<AdminPtoConfiguration> ADMIN_PTO_CONFIGURATION { get; set; }
     }
 }

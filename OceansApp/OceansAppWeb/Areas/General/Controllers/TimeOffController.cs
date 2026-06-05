@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.ViewModels.TimeOff;
+using OceansApp.Utility;
 using OceansApp.Utility.SharedMethods.InputValidations;
 using OceansAppWeb;
 using System.Security.Claims;
@@ -52,8 +53,18 @@ namespace OceansAppWeb.Areas.General.Controllers
             if (consultant == null)
                 return BadRequest(new { error = "Consultant not found.", messageType = "Exception Error" });
 
-            var balances = await _unitOfWork.TimeOffRequest
-                .GetBalancesAsync(consultant.ConsultantId);
+            var user = await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(u => u.Id == userId);
+            var userCategory = user != null
+                ? await _unitOfWork.ApplicationUserCategory
+                    .GetFirstOrDefaultAsync(uc => uc.UserCategoryId == user.UserCategoryId)
+                : null;
+
+            bool isAdministrative = userCategory?.Name == SD.UserCategory_Administrative;
+
+            var balances = isAdministrative
+                ? await _unitOfWork.TimeOffRequest.GetAdminBalancesAsync(consultant.ConsultantId)
+                : await _unitOfWork.TimeOffRequest.GetBalancesAsync(consultant.ConsultantId);
+
             return Ok(new { balances = balances });
         }
 

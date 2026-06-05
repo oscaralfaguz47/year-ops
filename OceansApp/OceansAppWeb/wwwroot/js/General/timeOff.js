@@ -118,22 +118,45 @@ function renderBalancesCard() {
     const container = document.getElementById('balances-container');
     let html = '';
 
-    if (balances.isPtoEnabled) {
+    if (balances.isAdminPtoEnabled) {
+        const available = parseFloat(balances.adminPtoAvailable ?? 0).toFixed(2);
+        const accrued = parseFloat(balances.adminPtoAccruedToDate ?? 0).toFixed(2);
+        const used = parseFloat(balances.adminPtoUsed ?? 0).toFixed(2);
+        const monthly = parseFloat(balances.adminPtoMonthlyRate ?? 0).toFixed(2);
         html += `<div class="bal-row">
             <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
-            <div class="bal-val">${balances.ptoAvailable}d</div>
+            <div class="bal-val">${available}d</div>
+        </div>
+        <div class="bal-sub-row">
+            <span class="bal-sub-label">Accrued to date</span>
+            <span class="bal-sub-val">${accrued}d</span>
+        </div>
+        <div class="bal-sub-row">
+            <span class="bal-sub-label">Used / Pending</span>
+            <span class="bal-sub-val">${used}d</span>
+        </div>
+        <div class="bal-sub-row">
+            <span class="bal-sub-label">Monthly rate</span>
+            <span class="bal-sub-val">${monthly}d</span>
+        </div>`;
+    } else {
+        if (balances.isPtoEnabled) {
+            html += `<div class="bal-row">
+                <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
+                <div class="bal-val">${balances.ptoAvailable}d</div>
+            </div>`;
+        }
+
+        html += `<div class="bal-row">
+            <div class="bal-name"><span class="bal-dot upto"></span>Unpaid Time Off</div>
+            <div><span class="bal-unlimited">Unlimited</span></div>
+        </div>`;
+
+        html += `<div class="bal-row">
+            <div class="bal-name"><span class="bal-dot vto"></span>Voluntary Time Off</div>
+            <div class="bal-val">${balances.vtoAvailable}d</div>
         </div>`;
     }
-
-    html += `<div class="bal-row">
-        <div class="bal-name"><span class="bal-dot upto"></span>Unpaid Time Off</div>
-        <div><span class="bal-unlimited">Unlimited</span></div>
-    </div>`;
-
-    html += `<div class="bal-row">
-        <div class="bal-name"><span class="bal-dot vto"></span>Voluntary Time Off</div>
-        <div class="bal-val">${balances.vtoAvailable}d</div>
-    </div>`;
 
     container.innerHTML = html;
 }
@@ -302,15 +325,16 @@ function openRequestModal(startDate, endDate) {
     document.getElementById('balance-display').innerHTML = '';
     document.getElementById('balance-display').className = '';
 
-    // Add PTO option if eligible
+    // Add PTO option if eligible (consultant or admin)
     const select = document.getElementById('timeOffTypeSelect');
     const existingPto = select.querySelector('option[value="PTO"]');
-    if (balances.isPtoEnabled && !existingPto) {
+    const ptoEnabled = balances.isPtoEnabled || balances.isAdminPtoEnabled;
+    if (ptoEnabled && !existingPto) {
         const opt = document.createElement('option');
         opt.value = 'PTO';
         opt.textContent = 'Paid Time Off';
         select.insertBefore(opt, select.options[1]);
-    } else if (!balances.isPtoEnabled && existingPto) {
+    } else if (!ptoEnabled && existingPto) {
         existingPto.remove();
     }
 
@@ -324,7 +348,10 @@ function onTimeOffTypeChange() {
 
     if (type === 'PTO') {
         balDisplay.className = 'pto';
-        balDisplay.innerHTML = `Available: <strong>${balances.ptoAvailable} days</strong>`;
+        const available = balances.isAdminPtoEnabled
+            ? parseFloat(balances.adminPtoAvailable ?? 0).toFixed(2)
+            : balances.ptoAvailable;
+        balDisplay.innerHTML = `Available: <strong>${available} days</strong>`;
     } else if (type === 'VTO') {
         balDisplay.className = 'vto';
         balDisplay.innerHTML = `Available: <strong>${balances.vtoAvailable} day</strong>`;

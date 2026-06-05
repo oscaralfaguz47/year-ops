@@ -42,6 +42,7 @@ namespace OceansApp.Models.Models
         public bool IsEligibleForPaidTimeOff { get; set; }
         public decimal? AnnualPaidTimeOffDays { get; set; }
         public int? InitialPtoBalance { get; set; }
+        public decimal? InitialAdminPtoBalance { get; set; }
 
 
         [ValidateNever]
