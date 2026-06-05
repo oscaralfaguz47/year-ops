@@ -120,19 +120,41 @@ function renderBalancesCard() {
 
     if (balances.isAdminPtoEnabled) {
         const available = parseFloat(balances.adminPtoAvailable ?? 0).toFixed(2);
+        const initial = parseFloat(balances.adminPtoInitialBalance ?? 0);
         const accrued = parseFloat(balances.adminPtoAccruedToDate ?? 0).toFixed(2);
         const used = parseFloat(balances.adminPtoUsed ?? 0).toFixed(2);
         const monthly = parseFloat(balances.adminPtoMonthlyRate ?? 0).toFixed(2);
+
+        // Go-live date scopes the accrued/used rows so the missing pre-go-live
+        // usage (already folded into the carried-over balance) is self-evident.
+        let sinceLabel = 'to date';
+        if (balances.adminPtoEffectiveDate) {
+            const d = new Date(balances.adminPtoEffectiveDate);
+            if (!isNaN(d)) {
+                sinceLabel = `since ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            }
+        }
+
         html += `<div class="bal-row">
             <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
             <div class="bal-val">${available} days</div>
-        </div>
-        <div class="bal-sub-row">
-            <span class="bal-sub-label">Accrued to date</span>
+        </div>`;
+
+        // Carried-over balance only applies to users who had a balance at go-live;
+        // new hires accrue from zero, so the row is hidden when it's not relevant.
+        if (initial > 0) {
+            html += `<div class="bal-sub-row">
+            <span class="bal-sub-label">Carried over</span>
+            <span class="bal-sub-val">${initial.toFixed(2)} days</span>
+        </div>`;
+        }
+
+        html += `<div class="bal-sub-row">
+            <span class="bal-sub-label">Accrued ${sinceLabel}</span>
             <span class="bal-sub-val">${accrued} days</span>
         </div>
         <div class="bal-sub-row">
-            <span class="bal-sub-label">Used / Pending</span>
+            <span class="bal-sub-label">Used / Pending ${sinceLabel}</span>
             <span class="bal-sub-val">${used} days</span>
         </div>
         <div class="bal-sub-row">

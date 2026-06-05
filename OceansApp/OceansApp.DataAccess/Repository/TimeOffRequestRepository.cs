@@ -512,6 +512,8 @@ namespace OceansApp.DataAccess.Repository
             decimal initialBalance = consultant.InitialAdminPtoBalance ?? 0m;
             decimal used = await GetUsedDaysDecimalAsync(consultantId, "PTO", config.EffectiveDate);
 
+            result.AdminPtoInitialBalance = initialBalance;
+            result.AdminPtoEffectiveDate = config.EffectiveDate;
             result.AdminPtoAccruedToDate = accrued;
             result.AdminPtoUsed = used;
             result.AdminPtoAvailable = initialBalance + accrued - used;
