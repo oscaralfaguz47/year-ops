@@ -125,25 +125,25 @@ function renderBalancesCard() {
         const monthly = parseFloat(balances.adminPtoMonthlyRate ?? 0).toFixed(2);
         html += `<div class="bal-row">
             <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
-            <div class="bal-val">${available}d</div>
+            <div class="bal-val">${available} days</div>
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Accrued to date</span>
-            <span class="bal-sub-val">${accrued}d</span>
+            <span class="bal-sub-val">${accrued} days</span>
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Used / Pending</span>
-            <span class="bal-sub-val">${used}d</span>
+            <span class="bal-sub-val">${used} days</span>
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Monthly rate</span>
-            <span class="bal-sub-val">${monthly}d</span>
+            <span class="bal-sub-val">${monthly} days</span>
         </div>`;
     } else {
         if (balances.isPtoEnabled) {
             html += `<div class="bal-row">
                 <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
-                <div class="bal-val">${balances.ptoAvailable}d</div>
+                <div class="bal-val">${balances.ptoAvailable} days</div>
             </div>`;
         }
 
@@ -154,7 +154,7 @@ function renderBalancesCard() {
 
         html += `<div class="bal-row">
             <div class="bal-name"><span class="bal-dot vto"></span>Voluntary Time Off</div>
-            <div class="bal-val">${balances.vtoAvailable}d</div>
+            <div class="bal-val">${balances.vtoAvailable} days</div>
         </div>`;
     }
 

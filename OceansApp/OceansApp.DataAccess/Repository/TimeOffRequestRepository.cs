@@ -501,9 +501,16 @@ namespace OceansApp.DataAccess.Repository
             decimal monthlyRate = config.AnnualPaidDays / 12m;
             result.AdminPtoMonthlyRate = monthlyRate;
 
-            decimal accrued = CalculateAdminAccruedDays(consultant.StartDate, monthlyRate);
+            // Accrual and usage are both bounded to the configured go-live date so that
+            // tenure and time-off predating this system don't distort the balance. Any days
+            // earned before go-live are carried over explicitly via InitialAdminPtoBalance.
+            var accrualStart = consultant.StartDate > config.EffectiveDate
+                ? consultant.StartDate
+                : config.EffectiveDate;
+
+            decimal accrued = CalculateAdminAccruedDays(accrualStart, monthlyRate);
             decimal initialBalance = consultant.InitialAdminPtoBalance ?? 0m;
-            decimal used = await GetUsedDaysDecimalAsync(consultantId, "PTO", null);
+            decimal used = await GetUsedDaysDecimalAsync(consultantId, "PTO", config.EffectiveDate);
 
             result.AdminPtoAccruedToDate = accrued;
             result.AdminPtoUsed = used;
@@ -790,7 +797,7 @@ namespace OceansApp.DataAccess.Repository
             return new DateTime(nextYear, nextMonth, day);
         }
 
-        private async Task<decimal> GetUsedDaysDecimalAsync(int consultantId, string timeOffType, int? calendarYear)
+        private async Task<decimal> GetUsedDaysDecimalAsync(int consultantId, string timeOffType, DateTime? fromDate)
         {
             var statusApproved = await _db.TRANSACTION_STATUSES
                 .FirstOrDefaultAsync(s => s.Name == "Approved");
@@ -803,8 +810,8 @@ namespace OceansApp.DataAccess.Repository
                     && (r.TransactionStatusId == statusApproved.TransactionStatusId
                         || r.TransactionStatusId == statusPending.TransactionStatusId));
 
-            if (calendarYear.HasValue)
-                query = query.Where(r => r.StartDate.Year == calendarYear.Value);
+            if (fromDate.HasValue)
+                query = query.Where(r => r.StartDate >= fromDate.Value);
 
             return (decimal)await query.SumAsync(r => r.BusinessDays);
         }

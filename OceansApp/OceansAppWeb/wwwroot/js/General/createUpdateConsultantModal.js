@@ -75,6 +75,7 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 // PTO fields
                 document.getElementById('isPtoEligible').checked = data.consultantData.isEligibleForPaidTimeOff || false;
                 document.getElementById('annualPaidDays').value = data.consultantData.annualPaidTimeOffDays || '';
+                document.getElementById('initialAdminPtoBalance').value = data.consultantData.initialAdminPtoBalance ?? '';
                 togglePtoFields();
 
                 showModal(modalId);
@@ -101,6 +102,12 @@ function togglePtoFields() {
     const isChecked = document.getElementById('isPtoEligible').checked;
     document.getElementById('pto-days-container').style.display = isChecked ? 'block' : 'none';
     if (!isChecked) document.getElementById('annualPaidDays').value = '';
+}
+function toggleCategoryPtoSections(isAdministrative) {
+    const consultantSection = document.getElementById('consultant-pto-section');
+    const adminSection = document.getElementById('admin-pto-section');
+    if (consultantSection) consultantSection.style.display = isAdministrative ? 'none' : 'block';
+    if (adminSection) adminSection.style.display = isAdministrative ? 'block' : 'none';
 }
 
 //CreateUpdate Consultant METHOD
@@ -157,7 +164,8 @@ async function createUpdateConsultant(modalId) {
         WorkingModel: workingModelData,
         StartDate: startDateInput ? startDateInput.toString() : null,
         IsEligibleForPaidTimeOff: document.getElementById('isPtoEligible').checked,
-        AnnualPaidTimeOffDays: document.getElementById('annualPaidDays').value ? Number(document.getElementById('annualPaidDays').value) : null
+        AnnualPaidTimeOffDays: document.getElementById('annualPaidDays').value ? Number(document.getElementById('annualPaidDays').value) : null,
+        InitialAdminPtoBalance: document.getElementById('initialAdminPtoBalance').value !== '' ? Number(document.getElementById('initialAdminPtoBalance').value) : null
     };
     console.log(data);
     fetch('/General/Consultants/CreateUpdateConsultant', {
@@ -209,6 +217,7 @@ function selectCategory(selectedValue, selectedOptions, isEditingConsultant, use
         selectedOptionsArray = selectedOptions;
     }
     var isAdministrative = selectedValue === 'Administrative' ? true : false;
+    toggleCategoryPtoSections(isAdministrative);
     displaySpinner();
     getPositionsList(isAdministrative)
         .then(data => {
