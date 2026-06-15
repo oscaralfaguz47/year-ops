@@ -1,0 +1,9 @@
+{
+  "name": "oce-weekly-pulse-prototype",
+  "private": true,
+  "type": "module",
+  "description": "THROWAWAY logic prototype for OCE Weekly Pulse — delete once the model is validated.",
+  "scripts": {
+    "start": "node tui.js"
+  }
+}
