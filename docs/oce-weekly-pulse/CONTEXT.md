@@ -28,6 +28,9 @@ Consciously parked. The Issue stays on the Dashboard's open list but is excluded
 **Blocked** (To-Do state):
 Cannot proceed. The To-Do keeps surfacing in the Review — being blocked is what the meeting needs to clear. Blocked stays *loud*. Non-terminal.
 
+**Check-in** (Segue):
+A **Snapshot entity** — exactly **one per (Team, Week)**, owned by the Team Leader, with a single type (Win / Concern / Priority / Other) and a note. Upsert: re-saving overwrites; never duplicated. The Segue shows one card per Team in team order. Can be converted into an Issue.
+
 **Person**:
 An individual. A name for now; a Ripple user once integrated.
 
@@ -38,16 +41,16 @@ A group of Persons, with exactly one **Team Leader**. Owns its own KPIs, check-i
 The one Person who leads a Team.
 
 **Owner**:
-The Person accountable for a specific record — e.g., the owner of a KPI, an Issue, or a To-Do. Defaults to the Team Leader but can differ. This is a single concept; do not split it into "owner/leader" on records.
+The Person accountable for a specific record — e.g., the owner of a KPI, an Issue, or a To-Do. Defaults to the Team Leader but can differ, and may be a Person from a **different Team** than the record's `Team`. Grouping everywhere (Dashboard, Review, History) follows the record's **Team**, never the Owner's team. This is a single concept; do not split it into "owner/leader" on records.
 
 **KPI definition**:
-A recurring KPI set up once per Team (name, owner, weekly target). Configured in Settings. Minimum 2 per Team. Carries two independent flags: **active** (live vs retired) and **in meeting scope** (see below).
+A recurring KPI set up once per Team (name, owner, weekly target as **free text** — e.g. "≥ 95%", "< 2 days", "$50k"). Configured in Settings. Minimum 2 per Team. Carries two independent flags: **active** (live vs retired) and **in meeting scope** (see below).
 
 **Active** (KPI flag):
 Whether a KPI definition is **live** or **retired**. A retired (inactive) KPI stops expecting weekly results — it no longer prompts for input, doesn't count toward **Readiness**, and drops out of the Review — but its historical KPI results stay intact. Distinct from **In meeting scope**: a KPI can be live-but-out-of-scope (tracked, not discussed) or retired (not tracked at all).
 
 **KPI result**:
-A **Snapshot entity** — one Team's actual result for one KPI in one Week, with a manually chosen status (Green / Yellow / Red) and notes. Exactly one result per (KPI, Week): if it exists it is updated, never duplicated.
+A **Snapshot entity** — one Team's actual result (**free text**) for one KPI in one Week, with a manually chosen status (Green / Yellow / Red) and notes. No arithmetic comparison to target — status is judgment. Exactly one result per (KPI, Week): if it exists it is updated, never duplicated.
 
 **In meeting scope** (KPI flag):
 The "Include in Weekly Pulse Review" flag on a **KPI definition** — a *scope gate*. A KPI out of scope never appears in the Review regardless of status. Among in-scope KPIs, the surfacing rules decide emphasis (Red/Yellow/missing dominate; Green stays quiet).
