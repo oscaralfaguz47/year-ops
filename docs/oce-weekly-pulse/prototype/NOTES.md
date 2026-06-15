@@ -4,12 +4,21 @@
 
 ## Run
 
+**Browser (clickable):**
 ```
 cd docs/oce-weekly-pulse/prototype
-npm start          # or: node tui.js
+npm start          # or: node serve.js
+# open http://localhost:5179
 ```
+Four tabs — Dashboard / Review / History / Summary — over one dataset. "Advance week ▶" is the time machine; "Reset" reseeds. Action buttons sit inline on each item (state, pin, comment, convert, log). Text inputs use browser prompts.
 
-Line-based commands (type + Enter). `?`-style cheat-sheet is the footer. `seed` resets, `q` quits.
+**Terminal (same logic, keyboard-driven):**
+```
+npm run tui        # or: node tui.js
+```
+Line-based commands (type + Enter); cheat-sheet is the footer.
+
+Both shells import the **same `model.js`** — the browser and terminal are interchangeable views over one logic core.
 
 ## The question it answers
 
