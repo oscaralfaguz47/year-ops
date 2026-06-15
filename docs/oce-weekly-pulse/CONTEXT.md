@@ -38,7 +38,7 @@ An individual. A name for now; a Ripple user once integrated.
 A group of Persons, with exactly one **Team Leader**. Owns its own KPIs, check-ins, headlines, issues, and to-dos. Order in the roster is also the meeting order. Teams are flat; nesting is display-only grouping for now (no rollup, aggregation, or inheritance).
 
 **Team Leader**:
-The one Person who leads a Team.
+The one Person who leads a Team. A Team has exactly one Leader, but a Person may lead **more than one Team** (e.g. David Barrios leads both Sales and Marketing).
 
 **Owner**:
 The Person accountable for a specific record — e.g., the owner of a KPI, an Issue, or a To-Do. Defaults to the Team Leader but can differ, and may be a Person from a **different Team** than the record's `Team`. Grouping everywhere (Dashboard, Review, History) follows the record's **Team**, never the Owner's team. This is a single concept; do not split it into "owner/leader" on records.
