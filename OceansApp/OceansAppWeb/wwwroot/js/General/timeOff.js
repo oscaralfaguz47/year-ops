@@ -145,17 +145,17 @@ function renderBalancesCard() {
         if (initial > 0) {
             html += `<div class="bal-sub-row">
             <span class="bal-sub-label">Carried over</span>
-            <span class="bal-sub-val">${initial.toFixed(2)}</span>
+            <span class="bal-sub-val">${initial.toFixed(2)} days</span>
         </div>`;
         }
 
         html += `<div class="bal-sub-row">
             <span class="bal-sub-label">Accrued ${sinceLabel}</span>
-            <span class="bal-sub-val">${accrued}</span>
+            <span class="bal-sub-val">${accrued} days</span>
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Used / Pending ${sinceLabel}</span>
-            <span class="bal-sub-val">${used}</span>
+            <span class="bal-sub-val">${used} days</span>
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Monthly rate</span>
