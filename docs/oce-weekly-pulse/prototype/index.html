@@ -71,6 +71,7 @@
       <button data-action="lens" data-arg="dash">Dashboard</button>
       <button data-action="lens" data-arg="review">Review</button>
       <button data-action="lens" data-arg="history">History</button>
+      <button data-action="lens" data-arg="kpiHist">KPI History</button>
       <button data-action="lens" data-arg="summary">Summary</button>
     </nav>
   </header>
@@ -82,6 +83,8 @@
     let state = M.createSeedState();
     let tab = 'dash';
     let histWeek = 1;
+    let kpiHistSel = null;       // selected KPI id for the KPI History view
+    let kpiHistGran = 'quarter'; // month | quarter | year
 
     // ---------- tiny html helpers ----------
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -131,6 +134,7 @@
           const res = k.result ? `${statusBadge(k.result.status)} <span class="muted">${esc(k.result.actual)}</span>` : `<span class="muted">no result</span>`;
           return `<div class="chip">${esc(k.def.id)} ${esc(k.def.name)} <span class="muted">(${esc(k.def.target)})</span> ${flags} → ${res}
                   ${Aid('setResult', k.def.id, 'set', 'btn sm ghost')}
+                  ${Aid('editKpi', k.def.id, 'edit', 'btn sm ghost')}
                   ${Aid('toggleScope', k.def.id, 'scope', 'btn sm ghost')}
                   ${Aid('toggleActive', k.def.id, 'active', 'btn sm ghost')}</div>`;
         }).join('');
@@ -162,7 +166,7 @@
           <div class="row"><span class="label">Issues</span><span class="grow col">${issues}</span></div>
           <div class="row"><span class="label">To-dos</span><span class="grow col">${todos}</span></div>
           <div class="addbar">
-            ${Aid('addIssue', t.id, '+ issue')} ${Aid('addTodo', t.id, '+ to-do')} ${Aid('addHeadline', t.id, '+ headline')}
+            ${Aid('addKpi', t.id, '+ KPI')} ${Aid('addIssue', t.id, '+ issue')} ${Aid('addTodo', t.id, '+ to-do')} ${Aid('addHeadline', t.id, '+ headline')}
           </div>
         </section>`;
       }).join('');
@@ -174,7 +178,9 @@
       const hint = `<p class="hint">Meeting view — only what should be <b>walked through</b>. Deferred issues, Done to-dos, out-of-scope KPIs, and Green KPIs are deliberately hidden. Pinned items appear even when they normally wouldn't.</p>`;
       const cards = M.reviewSurfacing(state, state.currentWeek).map(row => {
         const loud = row.kpis.filter(k=>k.loud), quiet = row.kpis.filter(k=>!k.loud);
-        if (!loud.length && !quiet.length && !row.issues.length && !row.todos.length) return '';
+        if (!loud.length && !quiet.length && !row.issues.length && !row.todos.length && !row.headlines.length) return '';
+        const headlines = row.headlines.map(x => `<div class="item">${x.loud?'<span class="badge b-red">Risk</span>':'<span class="badge b-blue">Highlight</span>'} ${esc(x.entity.text)}
+            ${Aid('convHeadline', x.entity.id, '→ issue', 'btn sm ghost')}</div>`).join('') || '<span class="muted">—</span>';
         const kpis = loud.map(k => `<div class="item">${statusBadge(k.status)} <code>${esc(k.def.id)}</code> ${esc(k.def.name)}
             ${k.result?`<span class="muted">${esc(k.result.actual)}</span>`:'<span class="muted">missing</span>'}</div>`).join('')
           + (quiet.length?`<div class="item muted">quiet (Green): ${quiet.map(k=>esc(k.def.name)).join(', ')}</div>`:'');
@@ -186,6 +192,7 @@
             <span class="acts">${todoActions(x.entity, x.state)}</span></div>`).join('') || '<span class="muted">—</span>';
         return `<section class="team">
           <h2>${esc(row.team.name)} ${readyBadge(M.readiness(state, row.team.id, state.currentWeek))}</h2>
+          <div class="row"><span class="label">Headlines</span><span class="grow col">${headlines}</span></div>
           <div class="row"><span class="label">KPIs</span><span class="grow col">${kpis||'<span class="muted">—</span>'}</span></div>
           <div class="row"><span class="label">Issues</span><span class="grow col">${issues}</span></div>
           <div class="row"><span class="label">To-dos</span><span class="grow col">${todos}</span></div>
@@ -236,12 +243,38 @@
         </section>`;
     }
 
+    // ========================================================== KPI HISTORY
+    function renderKpiHistory() {
+      if (!kpiHistSel || !state.kpiDefs.find(k=>k.id===kpiHistSel)) kpiHistSel = (state.kpiDefs[0]||{}).id;
+      if (!kpiHistSel) return `<p class="hint">No KPIs defined yet.</p>`;
+      const granBtns = M.GRANULARITIES.map(g => A('kpiHistGran', g, cap(g), 'btn sm'+(g===kpiHistGran?'':' ghost'))).join(' ');
+      const picker = M.teamsInOrder(state).map(t => {
+        const defs = state.kpiDefs.filter(k=>k.teamId===t.id); if (!defs.length) return '';
+        const btns = defs.map(k => Aid('kpiHistSel', k.id, esc(k.name)+(k.active?'':' (retired)'), 'btn sm'+(k.id===kpiHistSel?'':' ghost'))).join(' ');
+        return `<div class="row"><span class="label">${esc(t.name)}</span><span class="grow col" style="flex-flow:row wrap;gap:4px">${btns}</span></div>`;
+      }).join('');
+      const h = M.kpiHistory(state, kpiHistSel, kpiHistGran);
+      const dot = (st) => `<span class="badge ${st==='Green'?'b-green':st==='Yellow'?'b-yellow':st==='Red'?'b-red':'b-dim'}" title="${st}">${st==='Green'?'●':st==='Yellow'?'●':st==='Red'?'●':'·'}</span>`;
+      const groups = h.groups.map(g => {
+        const strip = g.rows.map(r=>dot(r.status)).join('');
+        const rows = g.rows.map(r=>`<div class="item"><code>W${r.week}</code> <span class="muted">${esc(r.label.replace(/^Week \d+ /,''))}</span> ${statusBadge(r.status)} <span class="muted">${r.result?esc(r.result.actual):'—'}</span></div>`).join('');
+        const tally = `🟢 ${g.tally.Green}  🟡 ${g.tally.Yellow}  🔴 ${g.tally.Red}` + (g.tally.Missing?`  · ${g.tally.Missing} missing`:'');
+        return `<section class="team"><h3 class="sec">${esc(g.label)} <span class="grow"></span><span>${strip}</span></h3>
+          <div class="muted" style="margin:-2px 0 8px">${tally} <span style="opacity:.55">— status counts, not a value total</span></div>
+          ${rows}</section>`;
+      }).join('');
+      return `<p class="hint">One KPI's weekly results across time, grouped by <b>${esc(h.granularity)}</b>. A trend you read <b>by eye</b> — values are free text, so there is <b>no roll-up total</b>. Each Week sits in the period of its Monday.</p>
+        <section class="team"><div class="row"><span class="label">Group by</span><span class="grow">${granBtns}</span></div>${picker}</section>
+        <h2 style="margin:16px 0 6px">${esc(h.kpi.name)} <span class="muted" style="font-weight:400">· target ${esc(h.kpi.target)} · ${esc(teamName(h.kpi.teamId))}</span></h2>
+        ${groups}`;
+    }
+
     // ---------- render ----------
     function render() {
       document.getElementById('weekLabel').textContent = M.weekLabel(state.currentWeek);
       [...document.querySelectorAll('#tabs button')].forEach(b => b.classList.toggle('active', b.dataset.arg===tab));
       const app = document.getElementById('app');
-      app.innerHTML = tab==='dash'?renderDashboard():tab==='review'?renderReview():tab==='history'?renderHistory():renderSummary();
+      app.innerHTML = tab==='dash'?renderDashboard():tab==='review'?renderReview():tab==='history'?renderHistory():tab==='kpiHist'?renderKpiHistory():renderSummary();
     }
 
     // ---------- actions ----------
@@ -250,6 +283,8 @@
       try {
         switch (action) {
           case 'lens': tab = arg; if (tab==='history') histWeek = state.currentWeek; break;
+          case 'kpiHistSel': kpiHistSel = id; break;
+          case 'kpiHistGran': kpiHistGran = arg; break;
           case 'advance': M.advanceWeek(state); tab='dash'; break;
           case 'reseed': state = M.createSeedState(); tab='dash'; histWeek=1; break;
           case 'histPrev': if (histWeek>1) histWeek--; break;
@@ -262,8 +297,19 @@
             const note = prompt('Check-in note?'); if (note!=null) M.upsertCheckin(state, id, cap(ty), note); break; }
           case 'setResult': { const st = prompt('Status — Green / Yellow / Red?','Green'); if(!st) break;
             const ac = prompt('Actual (free text)?',''); if (ac!=null) M.setKpiResult(state, id, cap(st), ac); break; }
+          case 'addKpi': { const n = prompt('KPI name?'); if(!n) break;
+            const tg = prompt('Weekly target (free text, e.g. "≥ 95%", "< 2 days", "$50k")?',''); if (tg==null) break;
+            if (!confirm(`Create a new KPI "${n}" for this team?\n\nKPIs are structural — unlike issues, to-dos, or the weekly value, they're meant to change rarely.`)) break;
+            M.addKpiDef(state, id, n, tg); break; }
+          case 'editKpi': { const k = state.kpiDefs.find(x=>x.id===id); if(!k) break;
+            const n = prompt('KPI name?', k.name); if(n==null) break;
+            const tg = prompt('Weekly target (free text)?', k.target); if(tg==null) break;
+            if (!confirm(`Save changes to KPI "${k.name}"?\n\nEditing a KPI definition is a structural change — the weekly results are not affected.`)) break;
+            M.editKpiDef(state, id, { name: n, target: tg }); break; }
           case 'toggleScope': { const k = state.kpiDefs.find(x=>x.id===id); if(k) k.inScope=!k.inScope; break; }
-          case 'toggleActive': { const k = state.kpiDefs.find(x=>x.id===id); if(k) k.active=!k.active; break; }
+          case 'toggleActive': { const k = state.kpiDefs.find(x=>x.id===id); if(!k) break;
+            if (!confirm(`${k.active?'Retire':'Reactivate'} KPI "${k.name}"?\n\n${k.active?'It will stop expecting weekly results and drop out of the Review; its history stays intact.':'It will resume expecting weekly results.'}`)) break;
+            k.active=!k.active; break; }
           case 'issueState': M.setLivingState(state, id, arg); break;
           case 'todoState': M.setLivingState(state, id, arg); break;
           case 'pin': M.togglePin(state, id); break;

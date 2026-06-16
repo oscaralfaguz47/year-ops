@@ -18,9 +18,11 @@ const statusColor = (st) => (st === 'Green' ? G(st) : st === 'Yellow' ? Y(st) : 
 const readyColor = (r) => (r === 'Ready' ? G(r) : r === 'Not ready' ? Y(r) : D(r));
 
 let state = M.createSeedState();
-let lens = 'dash'; // dash | review | hist
+let lens = 'dash'; // dash | review | hist | khist
 let histWeek = 1;
 let focusTeam = 'T2'; // Sales — has the most contrasts seeded
+let khSel = 'K1'; // KPI History: selected KPI
+let khGran = 'quarter'; // KPI History: month | quarter | year
 let flash = '';
 
 const teamName = (id) => (M.teamById(state, id) || {}).name || id;
@@ -31,12 +33,12 @@ const focus = () => M.teamById(state, focusTeam);
 // ===========================================================================
 function header() {
   const wk = M.weekLabel(state.currentWeek);
-  const lensLabel = { dash: 'DASHBOARD (input)', review: 'WEEKLY PULSE REVIEW', hist: 'MEETING HISTORY' }[lens];
+  const lensLabel = { dash: 'DASHBOARD (input)', review: 'WEEKLY PULSE REVIEW', hist: 'MEETING HISTORY', khist: 'KPI HISTORY' }[lens];
   return (
     B(`OCE Weekly Pulse — ${lensLabel}`) +
     '\n' +
     D(`current ${wk}   ·   focus team: `) + C(focus().name) +
-    D(`   ·   lens [1]dash [2]review [3]history`) +
+    D(`   ·   lens [1]dash [2]review [3]history [4]kpi-history`) +
     '\n' + D('─'.repeat(78))
   );
 }
@@ -82,8 +84,10 @@ function renderReview() {
   for (const row of M.reviewSurfacing(state, state.currentWeek)) {
     const loudKpis = row.kpis.filter((k) => k.loud);
     const quietKpis = row.kpis.filter((k) => !k.loud);
-    if (!loudKpis.length && !quietKpis.length && !row.issues.length && !row.todos.length) continue;
+    if (!loudKpis.length && !quietKpis.length && !row.issues.length && !row.todos.length && !row.headlines.length) continue;
     out.push(B(row.team.name) + `   ${D('readiness:')} ${readyColor(M.readiness(state, row.team.id, state.currentWeek))}`);
+    for (const hl of row.headlines)
+      out.push('  ' + (hl.loud ? R('headline [Risk]') : D('headline [Highlight]')) + ` ${hl.entity.text}`);
     for (const k of loudKpis)
       out.push('  ' + statusColor(k.status) + ` ${k.def.id} ${k.def.name}` + (k.result ? ` — ${k.result.actual}` : D(' — missing')));
     if (quietKpis.length) out.push('  ' + D('quiet (Green): ' + quietKpis.map((k) => k.def.name).join(', ')));
@@ -123,6 +127,32 @@ function renderHistory() {
   return out.join('\n');
 }
 
+function statusDot(st) {
+  return st === 'Green' ? G('●') : st === 'Yellow' ? Y('●') : st === 'Red' ? R('●') : D('·');
+}
+function renderKpiHistory() {
+  if (!state.kpiDefs.find((k) => k.id === khSel)) khSel = (state.kpiDefs[0] || {}).id;
+  const k = state.kpiDefs.find((x) => x.id === khSel);
+  if (!k) return D('No KPIs defined.');
+  const h = M.kpiHistory(state, khSel, khGran);
+  const out = [
+    D(`One KPI's weekly results grouped by ${khGran} — read the trend by eye (no value roll-up).`),
+    D(`pick KPI: `) + B('kh <Kid>') + D('   ·   group by: ') + B('kh.g <month|quarter|year>'),
+    '',
+    B(`${k.id} ${k.name}`) + D(`  · target ${k.target} · ${teamName(k.teamId)}${k.active ? '' : ' · retired'}`),
+    '',
+  ];
+  for (const g of h.groups) {
+    const strip = g.rows.map((r) => statusDot(r.status)).join('');
+    out.push(B(g.label) + '  ' + strip + D(`   (🟢 ${g.tally.Green}  🟡 ${g.tally.Yellow}  🔴 ${g.tally.Red}${g.tally.Missing ? `  ·${g.tally.Missing} missing` : ''})`));
+    for (const r of g.rows)
+      out.push('  ' + D(`W${r.week}`.padEnd(4)) + statusColor(r.status).padEnd(16) + (r.result ? r.result.actual : D('—')));
+    out.push('');
+  }
+  out.push(D('Status counts are tallies of judgment colors — not an arithmetic total of the values.'));
+  return out.join('\n');
+}
+
 function eventLabel(ev) {
   if (ev.type === 'created') return `created (${ev.detail})`;
   if (ev.type === 'status') return `status → ${ev.detail}`;
@@ -142,15 +172,16 @@ function originTag(e) {
 }
 
 const FOOTER = [
-  D('VIEWS  ') + '1 dash  2 review  3 history  ' + B('w') + D(' next week') + '  ' + B('<')+ D('/') + B('>') + D(' hist week') + '  ' + B('t <Tid>') + D(' focus team'),
+  D('VIEWS  ') + '1 dash  2 review  3 history  4 kpi-history  ' + B('w') + D(' next week') + '  ' + B('<')+ D('/') + B('>') + D(' hist week') + '  ' + B('t <Tid>') + D(' focus team'),
   D('SNAP   ') + 'ci <Win|Concern|Priority|Other> <note>   res <Kid> <G|Y|R> <actual>   hl <Highlight|Risk> <text>',
+  D('KPI    ') + 'kpi <name> | <target>   kpie <Kid> <name> | <target>   kh <Kid>   kh.g <month|quarter|year>',
   D('LIVING ') + 'issue <title>   todo <title>   st <Iid|Did> <state>   cm <id> <text>   pin <id>   pri <Iid> <Low|Med|High|Critical>',
   D('CONV   ') + 'cv.ci <Cid>   cv.hl <Hid>   cv.td <Iid> [meeting]      OTHER  scope <Kid>  active <Kid>  summary  show <id>  seed  q',
 ].join('\n');
 
 function render() {
   process.stdout.write('\x1b[2J\x1b[H');
-  let body = lens === 'dash' ? renderDashboard() : lens === 'review' ? renderReview() : renderHistory();
+  let body = lens === 'dash' ? renderDashboard() : lens === 'review' ? renderReview() : lens === 'khist' ? renderKpiHistory() : renderHistory();
   console.log(header());
   console.log(body);
   console.log(D('─'.repeat(78)));
@@ -179,6 +210,9 @@ function dispatch(line) {
       case '1': lens = 'dash'; break;
       case '2': lens = 'review'; break;
       case '3': lens = 'hist'; histWeek = state.currentWeek; break;
+      case '4': lens = 'khist'; break;
+      case 'kh': { const id = arg(1); if (state.kpiDefs.find((k) => k.id === id)) { khSel = id; lens = 'khist'; flash = `KPI History → ${id}`; } else flash = `no KPI ${id}`; break; }
+      case 'kh.g': { const g = arg(1).toLowerCase(); if (M.GRANULARITIES.includes(g)) { khGran = g; lens = 'khist'; } else flash = 'usage: kh.g <month|quarter|year>'; break; }
       case 'w':
         M.advanceWeek(state);
         lens = 'dash';
@@ -200,6 +234,22 @@ function dispatch(line) {
       case 'res': {
         M.setKpiResult(state, arg(1), statusMap[arg(2).toLowerCase()], after2(rest, arg(1), arg(2)));
         flash = `KPI result set for ${arg(1)}`;
+        break;
+      }
+      case 'kpi': {
+        // kpi <name...> | <target>  — create a KPI definition (guarded in the browser UI)
+        const [name, target = ''] = rest.split('|').map((x) => x.trim());
+        if (!name) { flash = 'usage: kpi <name> | <target>'; break; }
+        const k = M.addKpiDef(state, focusTeam, name, target);
+        flash = `KPI ${k.id} added to ${focus().name} ${D('(structural — confirm-guarded in the UI)')}`;
+        break;
+      }
+      case 'kpie': {
+        // kpie <Kid> <name...> | <target>  — edit a KPI definition
+        const id = arg(1);
+        const [name, target = ''] = after(rest, id).split('|').map((x) => x.trim());
+        try { M.editKpiDef(state, id, { name, target }); flash = `KPI ${id} updated ${D('(structural — confirm-guarded in the UI)')}`; }
+        catch { flash = `no KPI ${id}`; }
         break;
       }
       case 'hl':

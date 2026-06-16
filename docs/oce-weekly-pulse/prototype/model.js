@@ -38,6 +38,48 @@ function weekLabel(n) {
   const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   return `Week ${n} (${fmt(mon)}–${fmt(sun)})`;
 }
+function weekMonday(n) {
+  const mon = new Date(BASE_MONDAY);
+  mon.setDate(mon.getDate() + 7 * (n - 1));
+  return mon;
+}
+
+// The KPI History grouping unit. A Week belongs to the period of its Monday
+// (CR time) — a Week that straddles a boundary is never split (see CONTEXT.md).
+export const GRANULARITIES = ['month', 'quarter', 'year'];
+export function periodOf(week, granularity) {
+  const d = weekMonday(week);
+  const y = d.getFullYear();
+  const m = d.getMonth(); // 0–11
+  if (granularity === 'year') return { key: `${y}`, label: `${y}` };
+  if (granularity === 'quarter') {
+    const q = Math.floor(m / 3) + 1;
+    return { key: `${y}-Q${q}`, label: `Q${q} ${y}` };
+  }
+  return { key: `${y}-${String(m + 1).padStart(2, '0')}`, label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) };
+}
+
+// KPI History: one KPI's weekly results across all Weeks, grouped by period.
+// Display only — NO arithmetic roll-up of the (free-text) values. The per-period
+// `tally` just counts statuses (judgment colors), to help read the trend by eye.
+export function kpiHistory(s, kpiId, granularity = 'quarter') {
+  const k = s.kpiDefs.find((x) => x.id === kpiId);
+  if (!k) throw new Error(`no kpi ${kpiId}`);
+  const groups = [];
+  const byKey = {};
+  for (let w = 1; w <= s.currentWeek; w++) {
+    const r = kpiResult(s, kpiId, w);
+    const status = r ? r.status : 'Missing';
+    const period = periodOf(w, granularity);
+    if (!byKey[period.key]) {
+      byKey[period.key] = { key: period.key, label: period.label, rows: [], tally: { Green: 0, Yellow: 0, Red: 0, Missing: 0 } };
+      groups.push(byKey[period.key]);
+    }
+    byKey[period.key].rows.push({ week: w, label: weekLabel(w), result: r || null, status });
+    byKey[period.key].tally[status] += 1;
+  }
+  return { kpi: k, granularity, groups };
+}
 
 // ===========================================================================
 // SELECTORS (pure) — these are the reusable core
@@ -108,11 +150,18 @@ export function dashboard(s) {
 }
 
 // --- Review surfacing: the guided meeting view ------------------------------
-// KPI:   in-scope gate; Red/Yellow/missing dominate, Green quiet.
-// Issue: union of (Open auto-surface) and (pinned). Deferred quiet unless pinned.
-// To-Do: every non-Done surfaces; Blocked is flagged loud.
+// KPI:      in-scope gate; Red/Yellow/missing dominate, Green quiet.
+// Issue:    union of (Open auto-surface) and (pinned). Deferred quiet unless pinned.
+// To-Do:    every non-Done surfaces; Blocked is flagged loud.
+// Headline: the week's news round — all of this week's headlines surface; Risk
+//           is flagged loud, Highlight stays quiet. (Snapshot: blank next week.)
 export function reviewSurfacing(s, week) {
   return teamsInOrder(s).map((team) => {
+    const headlines = headlinesFor(s, team.id, week).map((h) => ({
+      entity: h,
+      loud: h.type === 'Risk',
+    }));
+
     const kpis = inScopeKpis(s, team.id).map((k) => {
       const r = kpiResult(s, k.id, week);
       const status = r ? r.status : 'Missing';
@@ -133,7 +182,7 @@ export function reviewSurfacing(s, week) {
       .map((d) => ({ entity: d, state: stateAsOf(d, week), blocked: stateAsOf(d, week) === 'Blocked' }))
       .filter((x) => x.state !== 'Done');
 
-    return { team, kpis, issues, todos };
+    return { team, headlines, kpis, issues, todos };
   });
 }
 
@@ -232,6 +281,25 @@ export function upsertCheckin(s, teamId, type, note) {
   return c;
 }
 
+// Create a KPI definition (a structural change — the UI guards it with a
+// confirm; see "Guarded mutation" in CONTEXT.md). Owner defaults to the Team
+// Leader. New KPIs start live + in-scope so the Team can be taken to Readiness.
+export function addKpiDef(s, teamId, name, target, { active = true, inScope = true } = {}) {
+  const k = { id: nextId(s, 'kpi', 'K'), teamId, name, ownerId: teamById(s, teamId).leaderId, target, active, inScope };
+  s.kpiDefs.push(k);
+  return k;
+}
+
+// Edit a KPI definition's name and/or target (also a guarded structural change).
+// Only the definition fields are touched — never the weekly KPI results.
+export function editKpiDef(s, kpiId, { name, target } = {}) {
+  const k = s.kpiDefs.find((x) => x.id === kpiId);
+  if (!k) throw new Error(`no kpi ${kpiId}`);
+  if (name != null && name !== '') k.name = name;
+  if (target != null) k.target = target;
+  return k;
+}
+
 export function setKpiResult(s, kpiId, status, actual, notes = '') {
   let r = kpiResult(s, kpiId, s.currentWeek);
   if (r) {
@@ -246,7 +314,7 @@ export function setKpiResult(s, kpiId, status, actual, notes = '') {
 }
 
 export function addHeadline(s, teamId, type, text) {
-  const h = { id: nextId(s, 'headline', 'H'), teamId, week: s.currentWeek, type, text, pin: false };
+  const h = { id: nextId(s, 'headline', 'H'), teamId, week: s.currentWeek, type, text };
   s.headlines.push(h);
   return h;
 }
@@ -302,9 +370,10 @@ export function addComment(s, id, text) {
 }
 
 export function togglePin(s, id) {
-  // issues + headlines can be pinned (additive Review pin)
-  const e = livingById(s, id) || s.headlines.find((h) => h.id === id);
-  if (!e) throw new Error(`no pinnable entity ${id}`);
+  // Pin is an Issue-only override: it pulls a Deferred issue back into the
+  // Review. Headlines are not pinnable — they all surface in the news round.
+  const e = livingById(s, id);
+  if (!e || e.kind !== 'issue') throw new Error(`no pinnable issue ${id}`);
   e.pin = !e.pin;
   return e;
 }
@@ -396,7 +465,7 @@ export function createSeedState() {
   };
   // Sales: 2 in-scope; one reported (Green), one missing -> Not ready
   const salesPipeline = KPI(sales.id, 'Pipeline value', david.id, '$50k');
-  KPI(sales.id, 'Demos booked', eder.id, '≥ 10'); // owner Eder = cross-team owner, grouped under Sales
+  const demosBooked = KPI(sales.id, 'Demos booked', eder.id, '≥ 10'); // owner Eder = cross-team owner, grouped under Sales
   // Marketing: one in-scope + one tracked-only (out of scope) to show the scope gate
   const mql = KPI(marketing.id, 'MQLs', david.id, '≥ 40');
   KPI(marketing.id, 'Blog drafts (tracked only)', david.id, '≥ 2', { inScope: false });
@@ -405,29 +474,57 @@ export function createSeedState() {
   const opsBugs = KPI(ops.id, 'Escaped defects', pri.id, '< 3');
   // Leadership: a retired KPI (active=false) — present but doesn't gate readiness
   KPI(leadership.id, 'Cash runway (retired)', eder.id, '> 12mo', { active: false });
-  KPI(leadership.id, 'Company NPS', eder.id, '≥ 50');
+  const nps = KPI(leadership.id, 'Company NPS', eder.id, '≥ 50');
 
-  // Snapshots for Week 1
-  upsertCheckin(s, sales.id, 'Win', 'Closed the Acme deal');
-  upsertCheckin(s, ops.id, 'Concern', 'Two senior devs out sick');
-  setKpiResult(s, salesPipeline.id, 'Green', '$62k', 'Strong quarter');
-  // Demos booked deliberately left empty -> Sales is Not ready
-  setKpiResult(s, mql.id, 'Yellow', '34', 'Below target');
-  setKpiResult(s, opsUptime.id, 'Red', '88%', 'Two missed deadlines');
-  setKpiResult(s, opsBugs.id, 'Green', '1', '');
-  addHeadline(s, ops.id, 'Risk', 'Vendor SLA slipping, may affect Q3');
-  addHeadline(s, sales.id, 'Highlight', 'Hit 120% of pipeline goal');
-
-  // Living entities, originating in Week 1
+  // Living entities, originating in Week 1 (they persist to the current Week)
+  s.currentWeek = 1;
   const pricing = addIssue(s, sales.id, 'Pricing page confuses enterprise leads', 'High');
   const officeMove = addIssue(s, ops.id, 'Office move logistics', 'Med');
   setLivingState(s, officeMove.id, 'Deferred'); // quiet on Review, still on Dashboard
-  const lowPinned = addIssue(s, marketing.id, 'Rename the newsletter', 'Low');
-  togglePin(s, lowPinned.id); // Low priority but pinned -> pulled into Review
-
+  const parkedButPinned = addIssue(s, marketing.id, 'Rename the newsletter', 'Low');
+  setLivingState(s, parkedButPinned.id, 'Deferred'); // parked -> normally quiet on Review
+  togglePin(s, parkedButPinned.id); // ...but pinned, so it surfaces anyway (pin overrides Deferred)
   const legal = addTodo(s, sales.id, 'Get legal sign-off on new contract');
   setLivingState(s, legal.id, 'Blocked'); // loud, keeps surfacing
   addTodo(s, ops.id, 'Publish new on-call rota');
+
+  // --- A multi-Week KPI result history so KPI History has periods to show -----
+  // 14 Weeks span Jun–Sep 2025 → Q2 (June) + Q3 (Jul/Aug/Sep). The CURRENT Week
+  // is Week 14; its results reproduce the Week-1 readiness demo (some missing).
+  // Statuses are seed judgments (no arithmetic in the product — see CONTEXT.md).
+  const CUR = 14;
+  const series = {
+    [salesPipeline.id]: ['$41k', '$44k', '$48k', '$52k', '$55k', '$58k', '$54k', '$60k', '$63k', '$66k', '$61k', '$64k', '$68k', '$62k'],
+    [opsUptime.id]:     ['90%', '92%', '94%', '96%', '95%', '93%', '91%', '94%', '96%', '97%', '95%', '94%', '92%', '88%'],
+    [mql.id]:           ['31', '34', '38', '42', '45', '40', '37', '41', '44', '47', '43', '39', '36', '34'],
+    [opsBugs.id]:       ['4', '3', '2', '2', '1', '2', '3', '1', '0', '1', '2', '1', '2', '1'],
+    [demosBooked.id]:   ['7', '8', '9', '11', '12', '10', '9', '12', '13', '14', '11', '10', '12', null], // missing this Week
+    [nps.id]:           ['44', '46', '48', '51', '53', '50', '49', '52', '54', '56', '53', '51', '49', null], // missing this Week
+  };
+  const num = (v) => parseFloat(String(v).replace(/[^0-9.-]/g, ''));
+  const statusFns = {
+    [salesPipeline.id]: (v) => (num(v) >= 50 ? 'Green' : num(v) >= 45 ? 'Yellow' : 'Red'),
+    [opsUptime.id]: (v) => (num(v) >= 95 ? 'Green' : num(v) >= 93 ? 'Yellow' : 'Red'),
+    [mql.id]: (v) => (num(v) >= 40 ? 'Green' : num(v) >= 35 ? 'Yellow' : 'Red'),
+    [opsBugs.id]: (v) => (num(v) < 3 ? 'Green' : num(v) === 3 ? 'Yellow' : 'Red'),
+    [demosBooked.id]: (v) => (num(v) >= 10 ? 'Green' : num(v) >= 8 ? 'Yellow' : 'Red'),
+    [nps.id]: (v) => (num(v) >= 50 ? 'Green' : num(v) >= 45 ? 'Yellow' : 'Red'),
+  };
+  for (let w = 1; w <= CUR; w++) {
+    s.currentWeek = w;
+    if (!s.weeks.find((x) => x.n === w)) s.weeks.push({ n: w, label: weekLabel(w) });
+    for (const kid of Object.keys(series)) {
+      const v = series[kid][w - 1];
+      if (v != null) setKpiResult(s, kid, statusFns[kid](v), v);
+    }
+  }
+  s.currentWeek = CUR;
+
+  // Current-Week (Week 14) snapshots — the live Dashboard/Review demo
+  upsertCheckin(s, sales.id, 'Win', 'Closed the Acme deal');
+  upsertCheckin(s, ops.id, 'Concern', 'Two senior devs out sick');
+  addHeadline(s, ops.id, 'Risk', 'Vendor SLA slipping, may affect Q3');
+  addHeadline(s, sales.id, 'Highlight', 'Hit 120% of pipeline goal');
 
   return s;
 }
