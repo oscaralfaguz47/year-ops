@@ -175,7 +175,7 @@ const FOOTER = [
   D('VIEWS  ') + '1 dash  2 review  3 history  4 kpi-history  ' + B('w') + D(' next week') + '  ' + B('<')+ D('/') + B('>') + D(' hist week') + '  ' + B('t <Tid>') + D(' focus team'),
   D('SNAP   ') + 'ci <Win|Concern|Priority|Other> <note>   res <Kid> <G|Y|R> <actual>   hl <Highlight|Risk> <text>',
   D('KPI    ') + 'kpi <name> | <target>   kpie <Kid> <name> | <target>   kh <Kid>   kh.g <month|quarter|year>',
-  D('LIVING ') + 'issue <title>   todo <title>   st <Iid|Did> <state>   cm <id> <text>   pin <id>   pri <Iid> <Low|Med|High|Critical>',
+  D('LIVING ') + 'issue <title>   todo <title>   st <Iid|Did> <state>   cm <id> <text>   pin <Iid> (Deferred only)   pri <Iid> <Low|Med|High|Critical>',
   D('CONV   ') + 'cv.ci <Cid>   cv.hl <Hid>   cv.td <Iid> [meeting]      OTHER  scope <Kid>  active <Kid>  summary  show <id>  seed  q',
 ].join('\n');
 

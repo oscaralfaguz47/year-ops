@@ -370,10 +370,14 @@ export function addComment(s, id, text) {
 }
 
 export function togglePin(s, id) {
-  // Pin is an Issue-only override: it pulls a Deferred issue back into the
-  // Review. Headlines are not pinnable — they all surface in the news round.
+  // Pin is a Deferred-issue override: it un-parks a Deferred issue back into the
+  // Review. Open issues surface on their own and Solved ones are done, so pinning
+  // only does real work on a Deferred issue — that's the only state it's offered
+  // in. Headlines are not pinnable — they all surface in the news round.
   const e = livingById(s, id);
   if (!e || e.kind !== 'issue') throw new Error(`no pinnable issue ${id}`);
+  const st = stateAsOf(e, s.currentWeek);
+  if (st !== 'Deferred') throw new Error(`only Deferred issues are pinnable (${id} is ${st})`);
   e.pin = !e.pin;
   return e;
 }

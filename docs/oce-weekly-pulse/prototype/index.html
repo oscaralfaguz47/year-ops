@@ -114,7 +114,9 @@
     function issueActions(i, st) {
       const states = ['Open','Deferred','Solved'];
       const btns = states.map(s => AidArg('issueState', i.id, s, s, st===s)).join(' ');
-      return `${btns} ${Aid('pin', i.id, i.pin?'★ pinned':'☆ pin', 'btn sm'+(i.pin?'':' ghost'))} `
+      // Pin only un-parks a Deferred issue, so it's offered only in that state.
+      const pinBtn = st==='Deferred' ? Aid('pin', i.id, i.pin?'★ pinned':'☆ pin', 'btn sm'+(i.pin?'':' ghost')) : '';
+      return `${btns} ${pinBtn} `
            + `${Aid('comment', i.id, '💬', 'btn sm ghost')} ${Aid('convIssueTodo', i.id, '→ to-do', 'btn sm ghost')} `
            + `${Aid('setPriority', i.id, 'pri', 'btn sm ghost')} ${Aid('show', i.id, 'log', 'btn sm ghost')}`;
     }
