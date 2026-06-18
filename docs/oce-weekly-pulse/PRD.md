@@ -191,7 +191,13 @@ Headline surfaces ⇔ always                 (type == Risk ⇒ loud)
 
 The work is sliced into **three tracer-bullet phases**, each a complete, independently-testable path through every layer. Each phase is a GitHub **milestone** holding a tracking **epic** plus thin vertical-slice issues; an agent loop runs the slices of one phase at a time.
 
-**The phases are gated: the agent workflow stops at each phase boundary.** Only the **current** phase's slices carry the `ready-for-agent` label; the later phases are held with a `blocked` label (not ready). When a phase's slices are all merged and verified, flip the next phase's slices from `blocked` → `ready-for-agent` to release it. This is what makes the sandcastle run pause after each phase rather than building everything in one pass.
+**The phases are gated: the sandcastle build loop stops at each phase boundary.** Sandcastle works through a backlog file (`scripts/ralph/prd.<...>.json`), running the lowest-`priority` unfinished story until none remain — so the gate is **one backlog file per phase**:
+
+- `scripts/ralph/prd.weekly-pulse.phase1.json` — the 4 Phase 1 slices (#27–#30)
+- `scripts/ralph/prd.weekly-pulse.phase2.json` — the 6 Phase 2 slices (#31–#36)
+- `scripts/ralph/prd.weekly-pulse.phase3.json` — the 3 Phase 3 slices (#37–#39)
+
+All three target one shared branch (`sandcastle/weekly-pulse`); each story's `notes` reference its `GitHub issue #N`, which sandcastle closes on success. Run a phase with `SANDCASTLE_PRD=scripts/ralph/prd.weekly-pulse.phase1.json npm run sandcastle`; the loop builds those slices and **stops** (no more unfinished stories). Verify, then run the next phase's file. The GitHub `ready-for-agent` / `blocked` labels are a parallel human/tracker signal of the same gating — they don't drive sandcastle, the backlog files do.
 
 | Phase | Milestone / epic | Scope | Gate |
 |---|---|---|---|
