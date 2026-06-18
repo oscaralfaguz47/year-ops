@@ -185,5 +185,18 @@ Headline surfaces ⇔ always                 (type == Risk ⇒ loud)
 
 - The throwaway prototype (`docs/oce-weekly-pulse/prototype/`, browser + TUI over one `model.js`) validated the entire model end-to-end and is the behavioral reference. It should be deleted once this is built (per its own `NOTES.md`).
 - The CR-time week boundary is new to Ripple (its native cadence is biweekly pay periods). UTC-6 is year-round (no DST), which simplifies the Monday computation — but every call site must use the one shared `WeekStart` function, never ad-hoc date math.
-- Recommended build order (tracer-bullet): Week/Team/Person scaffolding + one snapshot (check-in) and one living entity (issue) end-to-end through the Area, then layer the remaining entities, the Review surfacing, the lenses (KPI History, Meeting History), and the Summary.
-- Before breaking this PRD into issues, run `/ponytail-review` to cut any speculative scope.
+- This PRD is built in **three gated phases** — see **Phases & rollout** below.
+
+## Phases & rollout
+
+The work is sliced into **three tracer-bullet phases**, each a complete, independently-testable path through every layer. Each phase is a GitHub **milestone** holding a tracking **epic** plus thin vertical-slice issues; an agent loop runs the slices of one phase at a time.
+
+**The phases are gated: the agent workflow stops at each phase boundary.** Only the **current** phase's slices carry the `ready-for-agent` label; the later phases are held with a `blocked` label (not ready). When a phase's slices are all merged and verified, flip the next phase's slices from `blocked` → `ready-for-agent` to release it. This is what makes the sandcastle run pause after each phase rather than building everything in one pass.
+
+| Phase | Milestone / epic | Scope | Gate |
+|---|---|---|---|
+| **1 — Spine** | epic #24 · slices #27–#30 | Area + auth + `Team` + `WeekStart`; one snapshot (Check-in) + one living entity (Issue) end-to-end; pin + issue surfacing; first xUnit project | **ready now** (`ready-for-agent`) |
+| **2 — Runnable meeting** | epic #25 · slices #31–#36 | KPIs (guarded) + Readiness, Headlines, To-Dos, Conversions, full surfacing, Settings | **held** (`blocked`) until Phase 1 done |
+| **3 — Lenses** | epic #26 · slices #37–#39 | Meeting History (`activeInWeek`), KPI History by Period, derived read-only Weekly Summary | **held** (`blocked`) until Phase 2 done |
+
+Within a phase, slices still have `Blocked by` ordering (e.g. the walking skeleton #27 unblocks the rest of Phase 1); the loop should take the unblocked slice first.
