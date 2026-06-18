@@ -159,7 +159,7 @@ function renderBalancesCard() {
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Monthly rate</span>
-            <span class="bal-sub-val">${monthly} days</span>
+            <span class="bal-sub-val">${monthly}</span>
         </div>`;
     } else {
         if (balances.isPtoEnabled) {
