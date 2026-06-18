@@ -5,11 +5,11 @@ A weekly operating dashboard for Oceans Code Experts. Teams add updates *during 
 ## Language
 
 **Week**:
-The Monday–Sunday operating period that organizes all activity, with boundaries in **Costa Rica time (UTC-6)**. The current Week is created/loaded lazily on first access after the Monday 00:00 CR rollover. Acts as a hard partition for snapshot data and as an origin stamp for living data.
-_Avoid_: "Meeting record", "L10", "session"
+The Monday–Sunday operating period that organizes all activity, with boundaries in **Costa Rica time (UTC-6, year-round — no DST)**. The current Week is created/loaded lazily on first access after the Monday 00:00 CR rollover. Acts as a hard partition for snapshot data and as an origin stamp for living data. In Ripple a Week is a **`WeekStart` value** (the Monday date, computed in CR time), **not its own table**: every **Snapshot entity** carries a `WeekStart` column and every **Living entity** stamps an `OriginWeekStart`. The "current Week" is `WeekStart(now)` — there is no row to create and no manual advance. Ripple has no prior week concept — its native cadence is biweekly pay periods — so the CR-time Monday boundary is new and must be computed consistently everywhere by one shared function (KPI History's **Period** grouping reuses the same authoritative Monday). Promote `Week` to a persisted entity only when it first earns an attribute of its own.
+_Avoid_: "Meeting record", "L10", "session"; deriving week boundaries ad hoc at each call site; biweekly/pay-period cadence
 
 **Snapshot entity**:
-A record that belongs to exactly one Week and is genuinely blank at the start of each new Week. Includes KPI results, check-ins, headlines/highlights, the weekly summary, and the meeting rating.
+A record that belongs to exactly one Week and is genuinely blank at the start of each new Week. The stored snapshots are KPI results, check-ins, and headlines/highlights. (The **Weekly Summary** is a *derived* read-only view over a Week's data, not a stored snapshot in v1; the meeting rating is deferred.)
 
 **Living entity**:
 A record created *in* a Week (stamped with its origin Week) that remains active and resurfaces in every subsequent Weekly Pulse Review until it reaches a terminal state. It is never re-created or copied forward — it persists. Issues and To-Dos are the living entities.
@@ -36,10 +36,14 @@ A **Snapshot entity** — a short piece of weekly news for a Team, of one type: 
 _Avoid_: treating a headline as living — it does not carry forward
 
 **Person**:
-An individual. A name for now; a Ripple user once integrated.
+An individual who can own or lead Weekly Pulse records. In Ripple, a Person **is an `ApplicationUser`** (the login identity — name, email, photo, auth), referenced by its user id. **Owner**, **Team Leader**, and a To-Do's owner are all `ApplicationUser` references. Pulse deliberately does **not** route through `ConsultantDetail` (the HR/employment record): Pulse needs identity, not payroll/PTO data, and anchoring on `ConsultantDetail` would wrongly exclude any login user (e.g. a Leadership facilitator) who is not a billable consultant.
+_Avoid_: keying a Person on `ConsultantId`
 
 **Team**:
-A group of Persons, with exactly one **Team Leader**. Owns its own KPIs, check-ins, headlines, issues, and to-dos. Order in the roster is also the meeting order. Teams are flat; nesting is display-only grouping for now (no rollup, aggregation, or inheritance).
+A functional org unit (e.g. Sales, Marketing, Operations, Leadership) grouping Persons, with exactly one **Team Leader**. Owns its own KPIs, check-ins, headlines, issues, and to-dos. Order in the roster is also the meeting order. Teams are flat; nesting is display-only grouping for now (no rollup, aggregation, or inheritance). In Ripple a Team is a **new first-class entity** — Ripple has no pre-existing org-unit concept (only delivery-oriented `Project`/`Client`, which Pulse does **not** derive Teams from). It is **owned by the WeeklyPulse area** but modeled as a generic `Team` (not `PulseTeam`) so it can later graduate into a shared, company-wide org concept. See [ADR 0002](../adr/0002-team-as-new-org-entity.md).
+
+In v1 a Team is **leader-only**: `{ Name, Team Leader (`ApplicationUser`), display order }` — there is **no Person↔Team membership roster**, because nothing in the model reads one (Owners may be cross-team and are picked from the full `ApplicationUser` directory; meeting order is *Team* order; Readiness is KPI-only). "Grouping Persons" is conceptual, not a stored member list. Add membership later only when a feature actually consumes it (e.g. a "who's on this Team" view).
+_Avoid_: deriving a Team from `Project`/`ProjectConsultantAssigned`; naming it `PulseTeam`; modeling a member roster nothing reads
 
 **Team Leader**:
 The one Person who leads a Team. A Team has exactly one Leader, but a Person may lead **more than one Team** (e.g. David Barrios leads both Sales and Marketing).
@@ -84,7 +88,8 @@ A calendar month, quarter, or year used to group a KPI's weekly results in **KPI
 A living entity is "active in" a Week if it was surfaced in that week's Review or received a comment / status change that week. Determines which Weeks it appears under in Meeting History. Derivable from comment/status timestamps — not a stored attribution.
 
 **Weekly Summary**:
-A **Snapshot entity** capturing the meeting record for a Week. Presented as an **auto-assembled, fully editable draft**, not a blank form: main decisions ← Issues Solved this Week; main actions ← To-Dos created in-meeting this Week; main risks ← Risk-type Headlines + High/Critical open Issues; summary text ← the suggested-format sentence pre-filled from the Week's data. The facilitator confirms or overrides any field. (Mockup pre-fills with plain derivation — no AI required.)
+A Week's meeting record, presented as an **auto-assembled, read-only draft** computed from the Week's data — *not* a stored entity in v1: main decisions ← Issues Solved this Week; main actions ← To-Dos created in-meeting this Week; main risks ← Risk-type Headlines + High/Critical open Issues; summary text ← the suggested-format sentence. Plain derivation, no AI. **Editing/override any field is deferred** (it would require persisting a `WeeklySummary` record) until a facilitator actually needs to correct the draft — the prototype validated only the derivation, read-only.
+_Avoid_: treating the Summary as a stored snapshot or a blank form to fill in (v1)
 
 **Readiness**:
 A per-Team, per-Week signal with three states, based **only** on KPIs:
@@ -97,12 +102,12 @@ Check-ins, headlines, and issues do not affect readiness — they are often legi
 
 **No Team "Active" flag.** The team-level active flag (§7) is removed — with a freely-editable roster and no permissions, an inactive team is just one you delete or never add. (The KPI-level **Active** flag is unrelated and kept.)
 
-**Settings — Person management deferred.** Adding and removing **Persons** (and their Team membership) lives in **Settings** and is intentionally **out of the mockup**: it is well-understood CRUD the team already knows how to build, and it answers none of the model questions the prototype exists to probe. (Contrast **KPI** create/edit, which *is* in the mockup precisely because its **Guarded mutation** UX is a live design question.)
+**Settings scope.** Pulse **Settings** manages **Teams** (name, Team Leader, order) and **KPI definitions** (the **Guarded mutation** UX — a live design question, hence in the mockup). It does **not** manage **Persons**: in Ripple, Persons are existing `ApplicationUser`s administered by the AdminCenter user admin, so Pulse just references them. Person↔Team membership is not modeled (see **Team**). (In the mockup, Person management was out of scope as well-understood CRUD that probes none of the model questions.)
 
 **No numeric KPI roll-ups (yet).** KPI History groups and displays weekly results by period — it does **not** sum, average, or otherwise compute over KPI result values, which are free text. Numeric/quarterly aggregation is **out of scope for now** (noted for Andrés): the mockup validates the *history lens*, not computed totals. Revisit only if KPI results gain a structured numeric type.
 
-**No permissions / no auth in the mockup.** The product is fully open — no login, no roles, no per-team edit restrictions — until it is integrated into Ripple. The §8 rules ("a team edits only its own data; Leadership edits everything") and any "Admin" concept are deferred to the Ripple integration, not built in the mockup.
+**Permissions (Ripple integration).** The mockup is fully open. Inside Ripple, access is gated through Ripple's **claims/policy** pattern (a new `WeeklyPulse` `SystemSubArea`), at **coarse granularity**: two policies — **Participate** (view + everyday edits: check-ins, KPI results, headlines, issues, to-dos for any team) and **Administer** (the guarded/structural actions: KPI definition create/edit/retire, deleting Meeting History, Settings/Person management). Editing is **trust-based, not row-level team-scoped** — a Participant may edit any Team's data. Row-level "a team edits only its own data" enforcement is intentionally **not** built: it would require a load-bearing Person↔Team membership (deferred with Settings/Person management) and conflicts with the cross-team **Owner**. Revisit only if abuse appears.
 
 ## Flagged ambiguities
 
-**"Leadership"** — used in the spec both as Team #1 (Eder's team, which reports like any other) and as a permission tier ("Leadership can edit everything"). In the mockup there are no permissions, so Leadership is simply a **Team**. The permission meaning is deferred to Ripple.
+**"Leadership"** — used in the spec both as Team #1 (Eder's team, which reports like any other) and as a permission tier ("Leadership can edit everything"). On Ripple integration these **cleanly separate**: **Leadership-the-Team** is an ordinary `Team` row that reports like any other; **Leadership-the-authority** is the **Administer** policy/claim and is *not* tied to membership in the Leadership Team. (Resolved — no longer ambiguous.)
