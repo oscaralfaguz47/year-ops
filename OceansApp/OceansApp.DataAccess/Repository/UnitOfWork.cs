@@ -56,6 +56,9 @@ namespace OceansApp.DataAccess.Repository
             Country = new CountryRepository(_db);
             Company = new CompanyRepository(_db);
             ConsultantDetail = new ConsultantDetailRepository(_db, _userManager, _cache);
+            // PaymentAnchor must be constructed before ConsultantPayment: the latter's ctor reads
+            // unitOfWork.PaymentAnchor (same reason ProjectConsultantAssignedHistory is set up top).
+            PaymentAnchor = new PaymentAnchorRepository(_db);
             ConsultantPayment = new ConsultantPaymentRepository(_db, this, _config, _queueClient);
             ConsultantPaymentsDebitsCredits = new ConsultantPaymentDebitsCreditsRepository(_db, this);
             ConsultantPosition = new ConsultantPositionRepository(_db);
@@ -77,7 +80,6 @@ namespace OceansApp.DataAccess.Repository
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
             JournalAccountPayableEntry = new JournalAccountPayableEntryRepository(_db);
             Partner = new PartnerRepository(_db);
-            PaymentAnchor = new PaymentAnchorRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
             PaymentBookEntryParent = new PaymentBookEntryParentRepository(_db);
             Product = new ProductRepository(_db);
