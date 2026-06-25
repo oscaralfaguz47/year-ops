@@ -62,6 +62,11 @@ namespace OceansApp.DataAccess.Repository
                                     Name = u.Name,
                                     LastName = u.LastName,
                                     Email = u.Email,
+                                    // FIXME (brittle, not yet fixed): PaymentMethodId is nullable in the DB but
+                                    // hard-cast to (int). EF throws "Nullable object must have a value" during
+                                    // materialization for any consultant with a NULL PaymentMethodId (hit while
+                                    // validating the project-less interview-payment flow). Same risk on PaymentPeriod
+                                    // below. Guard with a null-coalesce or make the VM property nullable when touched.
                                     PaymentMethodId = (int)c.PaymentMethodId,
                                     CompanyId = c.CompanyId,
                                     CountryName = co.Name,
