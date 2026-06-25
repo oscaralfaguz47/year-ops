@@ -34,6 +34,7 @@ namespace OceansApp.DataAccess.Repository
         private ApplicationDbContext _db;
         private readonly IConsultantDetailRepository _consultantDetailRepository;
         private readonly IProjectConsultantAssignedHistoryRepository _projectConsultantAssignedHistoryRepository;
+        private readonly IPaymentAnchorRepository _paymentAnchorRepository;
         private readonly IConfiguration _config;
         private readonly Lazy<QueueClient> _queueClient;
         public ConsultantPaymentRepository(ApplicationDbContext db, IUnitOfWork unitOfWork, IConfiguration config,
@@ -42,6 +43,7 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
             _consultantDetailRepository = unitOfWork.ConsultantDetail;
             _projectConsultantAssignedHistoryRepository = unitOfWork.ProjectConsultantAssignedHistory;
+            _paymentAnchorRepository = unitOfWork.PaymentAnchor;
             _config = config;
             _queueClient = queueClient;
         }
@@ -115,7 +117,29 @@ namespace OceansApp.DataAccess.Repository
                     defaultProject = activeProjects.FirstOrDefault();
                     if (defaultProject == null)
                     {
-                        return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Default project not found." };
+                        // Project-less consultant (e.g. someone joining purely for interviews): there is
+                        // no active assignment in the period, so anchor non-hours payments to the most
+                        // recent historical assignment (rate + project + position). See docs/adr/0001.
+                        var anchor = await _paymentAnchorRepository.ResolveAnchorAsync(consultant.ConsultantId, endDate);
+                        if (anchor == null)
+                        {
+                            // No assignment history at all => no anchor; fail gracefully with the
+                            // existing 'no project' message (operator remedy per ADR 0001).
+                            return new MethodResponse { MessageType = "Not Found", Success = false, Message = "Default project not found." };
+                        }
+
+                        // Synthesize a project-less stand-in so the existing pricing/stamping flow below
+                        // binds every line to the anchor project at the anchor rate. There are no active
+                        // projects, so no hours rows are produced (hours = 0).
+                        defaultProject = new GetProjectInfoWhereConsultantIsActiveInProjectVM
+                        {
+                            ProjectId = anchor.ProjectId,
+                            HourlySalary = anchor.Rate,
+                            MonthlySalary = 0,
+                            MonthlySalaryPartner = 0,
+                            IsDefaultProject = false,
+                            HolidaysMustBePaid = false
+                        };
                     }
                 }
 

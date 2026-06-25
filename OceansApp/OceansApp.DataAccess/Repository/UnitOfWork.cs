@@ -77,6 +77,7 @@ namespace OceansApp.DataAccess.Repository
             JournalAccountPayable = new JournalAccountPayableRepository(_db);
             JournalAccountPayableEntry = new JournalAccountPayableEntryRepository(_db);
             Partner = new PartnerRepository(_db);
+            PaymentAnchor = new PaymentAnchorRepository(_db);
             PaymentMethod = new PaymentMethodRepository(_db);
             PaymentBookEntryParent = new PaymentBookEntryParentRepository(_db);
             Product = new ProductRepository(_db);
@@ -143,6 +144,7 @@ namespace OceansApp.DataAccess.Repository
         public IImageBlobRepository ImageBlob { get; set; }
         public IJournalAccountPayableRepository JournalAccountPayable { get; set; }
         public IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; set; }
+        public IPaymentAnchorRepository PaymentAnchor { get; set; }
         public IPaymentMethodRepository PaymentMethod { get; set; }
         public IPaymentBookEntryParentRepository PaymentBookEntryParent { get; set; }
         public IProductRepository Product { get; set; }
