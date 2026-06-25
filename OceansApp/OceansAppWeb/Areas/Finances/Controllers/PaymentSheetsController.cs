@@ -17,6 +17,7 @@ using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using OceansAppWeb.Helpers;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Security.Claims;
@@ -173,36 +174,10 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         private async Task SendNewSubmissionNotification(string consultantName, DateTime startDate, DateTime endDate,
             int projectId)
         {
-            var emailTemplates = new EmailTemplates();
             string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/Finances/PaymentSheets";
-            string startDateFormated = startDate.ToString("MMM d", CultureInfo.InvariantCulture);
-            string endDateFormated = endDate.ToString("MMM d", CultureInfo.InvariantCulture);
-            string periodString = $"{startDateFormated} - {endDateFormated}";
-
             var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
-            var projectName = project?.Name?.Trim() ?? string.Empty;
-
-            var createNotificationBody = emailTemplates.SubmissionHoursNotificationBody(baseUrl,
-                (consultantName ?? string.Empty).Trim(), periodString, projectName);
-            var templateEmail = emailTemplates.EmailTemplate("NEW SUBMISSION TO REVIEW", createNotificationBody);
-
-            SendEmailVM emailToSend = new()
-            {
-                Subject = "New Submission to Review - Ripple by Oceans",
-                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
-                EmailTo = _config["InternalEmailENV"],
-                Body = templateEmail
-            };
-
-            var messageContent = JsonConvert.SerializeObject(emailToSend);
-            try
-            {
-                await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
-            }
-            catch (Exception)
-            {
-                _telemetryClient.TrackTrace($"Fail sending email to: {_config["InternalEmailENV"]}, the connection with the function app failed");
-            }
+            await SubmissionNotifications.SendNewSubmissionToReview(_queueClient, _config, _telemetryClient,
+                baseUrl, consultantName, project?.Name ?? string.Empty, startDate, endDate);
         }
 
         [HttpGet("GetConsultantsToPayList")]
