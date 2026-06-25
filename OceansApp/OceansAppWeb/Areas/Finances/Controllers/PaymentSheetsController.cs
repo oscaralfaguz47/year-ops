@@ -20,6 +20,7 @@ using OceansApp.Utility.SharedMethods.InputValidations;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Security.Claims;
+using System.Text;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
@@ -48,6 +49,160 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        // ---- Manual Hours Upload (admin uploads hours on behalf of a consultant) ----
+        // Behind the existing AccessToManageTheBasicsOfPaymentSheets policy (inherited at class level);
+        // no new policy/claim. See docs/adr/0002.
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet("ManualHoursUpload")]
+        public IActionResult ManualHoursUpload()
+        {
+            return View();
+        }
+
+        [HttpGet("GetConsultantsForManualUpload")]
+        public async Task<IActionResult> GetConsultantsForManualUpload(string? searchText)
+        {
+            try
+            {
+                var consultants = await _unitOfWork.ConsultantDetail
+                    .SearchConsultantsByNameAndShowInactiveAsync(searchText ?? string.Empty, false);
+                return Ok(new { consultants });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "There was an error fetching consultants.", detail = ex.Message });
+            }
+        }
+
+        [HttpGet("GetActiveNoTrackingProjectsForConsultant")]
+        public async Task<IActionResult> GetActiveNoTrackingProjectsForConsultant(int consultantId,
+            DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var activeProjects = await _unitOfWork.ProjectConsultantAssigned
+                    .GetProjectsInfoWhereConsultantIsActiveInPeriod(consultantId, startDate, endDate);
+
+                // Tracking-tool projects are out of scope: an admin cannot supply the consultant's evidence.
+                var projects = activeProjects
+                    .Where(p => !p.AccessToTrackingTool)
+                    .Select(p => new { p.ProjectId, p.ProjectName })
+                    .ToList();
+
+                return Ok(new { projects });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "There was an error fetching the consultant's projects.", detail = ex.Message });
+            }
+        }
+
+        [HttpPost("UploadHoursOnBehalf")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadHoursOnBehalf([FromBody] UploadHoursOnBehalfVM model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", model.ConsultantId, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", model.ProjectId, ModelState);
+            validateInputs.ValidateDateValidFormat("StartPeriodDate", "Start Period Date", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartPeriodDate", "Start Period Date", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
+
+            if (model.Hours <= 0)
+            {
+                ModelState.AddModelError("Hours", "Enter a number of hours greater than zero.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                var userActionedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                }
+
+                MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.UploadHoursOnBehalf(
+                    userActionedBy, model.ConsultantId, model.ProjectId, model.StartPeriodDate, model.EndPeriodDate, model.Hours);
+
+                if (!response.Success)
+                {
+                    if (response.MessageType == "Validation Error")
+                    {
+                        var errors = new Dictionary<string, List<string>>
+                        {
+                            { response.FieldName ?? "Hours", new List<string> { response.Message } }
+                        };
+                        return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                    }
+                    return BadRequest(new { error = response.Message, messageType = response.MessageType });
+                }
+
+                // Fire the internal "new submission to review" email, just like a normal submission.
+                var subject = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync(model.ConsultantId);
+                var consultantName = subject == null
+                    ? string.Empty
+                    : $"{subject.Name} {subject.LastName}".Trim();
+                await SendNewSubmissionNotification(consultantName, model.StartPeriodDate, model.EndPeriodDate, model.ProjectId);
+
+                return Ok(new { success = true, message = response.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task SendNewSubmissionNotification(string consultantName, DateTime startDate, DateTime endDate,
+            int projectId)
+        {
+            var emailTemplates = new EmailTemplates();
+            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/Finances/PaymentSheets";
+            string startDateFormated = startDate.ToString("MMM d", CultureInfo.InvariantCulture);
+            string endDateFormated = endDate.ToString("MMM d", CultureInfo.InvariantCulture);
+            string periodString = $"{startDateFormated} - {endDateFormated}";
+
+            var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
+            var projectName = project?.Name?.Trim() ?? string.Empty;
+
+            var createNotificationBody = emailTemplates.SubmissionHoursNotificationBody(baseUrl,
+                (consultantName ?? string.Empty).Trim(), periodString, projectName);
+            var templateEmail = emailTemplates.EmailTemplate("NEW SUBMISSION TO REVIEW", createNotificationBody);
+
+            SendEmailVM emailToSend = new()
+            {
+                Subject = "New Submission to Review - Ripple by Oceans",
+                SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
+                EmailTo = _config["InternalEmailENV"],
+                Body = templateEmail
+            };
+
+            var messageContent = JsonConvert.SerializeObject(emailToSend);
+            try
+            {
+                await _queueClient.Value.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(messageContent)));
+            }
+            catch (Exception)
+            {
+                _telemetryClient.TrackTrace($"Fail sending email to: {_config["InternalEmailENV"]}, the connection with the function app failed");
+            }
         }
 
         [HttpGet("GetConsultantsToPayList")]

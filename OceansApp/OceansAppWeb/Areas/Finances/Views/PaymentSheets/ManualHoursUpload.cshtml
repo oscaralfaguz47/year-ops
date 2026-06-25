@@ -1,0 +1,176 @@
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
+
+@Html.AntiForgeryToken()
+
+<div style="margin: 0 10px 0 10px; background-color: #fff;">
+    <div class="principal-header-container">
+        <div class="header-page">
+            <h2>MANUAL HOURS UPLOAD</h2>
+        </div>
+        <p>Upload project hours on behalf of a consultant who can't self-report, for one pay period.</p>
+    </div>
+
+    <div id="mhu-form" style="max-width: 640px; display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+
+        <div>
+            <label for="mhu-consultant-search"><strong>1. Consultant</strong></label>
+            <input id="mhu-consultant-search" type="text" class="form-control" placeholder="Search consultant by name"
+                   oninput="mhuSearchConsultants()" autocomplete="off" />
+            <select id="mhu-consultant" class="form-control" style="margin-top: 6px;" onchange="mhuOnConsultantOrPeriodChanged()">
+                <option value="">-- Select a consultant --</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <div style="flex: 1;">
+                <label for="mhu-start"><strong>2. Period start</strong></label>
+                <input id="mhu-start" type="date" class="form-control" onchange="mhuOnConsultantOrPeriodChanged()" />
+            </div>
+            <div style="flex: 1;">
+                <label for="mhu-end"><strong>Period end</strong></label>
+                <input id="mhu-end" type="date" class="form-control" onchange="mhuOnConsultantOrPeriodChanged()" />
+            </div>
+        </div>
+
+        <div>
+            <label for="mhu-project"><strong>3. Project</strong> (actively-assigned, no-tracking-tool only)</label>
+            <select id="mhu-project" class="form-control">
+                <option value="">-- Select a consultant and period first --</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="mhu-hours"><strong>4. Total hours for the period</strong></label>
+            <input id="mhu-hours" type="number" min="0" step="0.5" class="form-control" placeholder="e.g. 80" />
+        </div>
+
+        <div>
+            <button type="button" class="btn btn-primary" onclick="mhuReview()">Review</button>
+        </div>
+
+        <div id="mhu-confirm" style="display: none; border: 1px solid #baf7f4; border-radius: 8px; padding: 16px;">
+            <h4>Confirm upload</h4>
+            <p id="mhu-summary"></p>
+            <button type="button" class="btn btn-success" onclick="mhuConfirm()">Confirm &amp; upload</button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('mhu-confirm').style.display='none';">Cancel</button>
+        </div>
+
+        <div id="mhu-message" style="margin-top: 8px;"></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let mhuSearchTimer = null;
+
+    function mhuSetMessage(text, isError) {
+        const el = document.getElementById('mhu-message');
+        el.textContent = text;
+        el.style.color = isError ? '#c0392b' : '#2e7d32';
+    }
+
+    function mhuSearchConsultants() {
+        clearTimeout(mhuSearchTimer);
+        const searchText = document.getElementById('mhu-consultant-search').value;
+        mhuSearchTimer = setTimeout(function () {
+            $.get('/Finances/PaymentSheets/GetConsultantsForManualUpload', { searchText: searchText })
+                .done(function (data) {
+                    const sel = document.getElementById('mhu-consultant');
+                    sel.innerHTML = '<option value="">-- Select a consultant --</option>';
+                    (data.consultants || []).forEach(function (c) {
+                        const opt = document.createElement('option');
+                        opt.value = c.value;
+                        opt.textContent = c.text;
+                        sel.appendChild(opt);
+                    });
+                })
+                .fail(function () { mhuSetMessage('Could not load consultants.', true); });
+        }, 300);
+    }
+
+    function mhuOnConsultantOrPeriodChanged() {
+        const consultantId = document.getElementById('mhu-consultant').value;
+        const start = document.getElementById('mhu-start').value;
+        const end = document.getElementById('mhu-end').value;
+        const projectSel = document.getElementById('mhu-project');
+        projectSel.innerHTML = '<option value="">-- Select a consultant and period first --</option>';
+        if (!consultantId || !start || !end) {
+            return;
+        }
+        $.get('/Finances/PaymentSheets/GetActiveNoTrackingProjectsForConsultant',
+            { consultantId: consultantId, startDate: start, endDate: end })
+            .done(function (data) {
+                projectSel.innerHTML = '';
+                const projects = data.projects || [];
+                if (projects.length === 0) {
+                    projectSel.innerHTML = '<option value="">-- No eligible projects in this period --</option>';
+                    return;
+                }
+                projectSel.innerHTML = '<option value="">-- Select a project --</option>';
+                projects.forEach(function (p) {
+                    const opt = document.createElement('option');
+                    opt.value = p.projectId;
+                    opt.textContent = p.projectName;
+                    projectSel.appendChild(opt);
+                });
+            })
+            .fail(function () { mhuSetMessage('Could not load projects.', true); });
+    }
+
+    function mhuReview() {
+        mhuSetMessage('', false);
+        const consultant = document.getElementById('mhu-consultant');
+        const project = document.getElementById('mhu-project');
+        const start = document.getElementById('mhu-start').value;
+        const end = document.getElementById('mhu-end').value;
+        const hours = document.getElementById('mhu-hours').value;
+
+        if (!consultant.value || !project.value || !start || !end || !hours || parseFloat(hours) <= 0) {
+            mhuSetMessage('Please complete consultant, period, project and a positive number of hours.', true);
+            return;
+        }
+
+        document.getElementById('mhu-summary').textContent =
+            'Upload ' + hours + ' hour(s) for ' + consultant.options[consultant.selectedIndex].text +
+            ' on project "' + project.options[project.selectedIndex].text + '" for the period ' +
+            start + ' to ' + end + '. The submission will be created as "Waiting to be approved".';
+        document.getElementById('mhu-confirm').style.display = 'block';
+    }
+
+    function mhuConfirm() {
+        const token = $('[name="__RequestVerificationToken"]').val();
+        const payload = {
+            ConsultantId: parseInt(document.getElementById('mhu-consultant').value, 10),
+            ProjectId: parseInt(document.getElementById('mhu-project').value, 10),
+            StartPeriodDate: document.getElementById('mhu-start').value,
+            EndPeriodDate: document.getElementById('mhu-end').value,
+            Hours: parseFloat(document.getElementById('mhu-hours').value)
+        };
+
+        $.ajax({
+            url: '/Finances/PaymentSheets/UploadHoursOnBehalf',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: { 'RequestVerificationToken': token },
+            data: JSON.stringify(payload)
+        })
+        .done(function (res) {
+            document.getElementById('mhu-confirm').style.display = 'none';
+            mhuSetMessage(res.message || 'Hours uploaded.', false);
+        })
+        .fail(function (xhr) {
+            let msg = 'Upload failed.';
+            if (xhr.responseJSON) {
+                if (xhr.responseJSON.error) {
+                    msg = xhr.responseJSON.error;
+                } else if (xhr.responseJSON.errors) {
+                    msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+                }
+            }
+            mhuSetMessage(msg, true);
+        });
+    }
+</script>
+}
