@@ -197,7 +197,7 @@ The work is sliced into **three tracer-bullet phases**, each a complete, indepen
 - `scripts/ralph/prd.weekly-pulse.phase2.json` — the 6 Phase 2 slices (#31–#36)
 - `scripts/ralph/prd.weekly-pulse.phase3.json` — the 3 Phase 3 slices (#37–#39)
 
-All three target one shared branch (`sandcastle/weekly-pulse`); each story's `notes` reference its `GitHub issue #N`, which sandcastle closes on success. Run a phase with `SANDCASTLE_PRD=scripts/ralph/prd.weekly-pulse.phase1.json npm run sandcastle`; the loop builds those slices and **stops** (no more unfinished stories). Verify, then run the next phase's file. The GitHub `ready-for-agent` / `blocked` labels are a parallel human/tracker signal of the same gating — they don't drive sandcastle, the backlog files do.
+All three target one shared branch (`sandcastle/weekly-pulse`); each story's `notes` reference its `GitHub issue #N`, which sandcastle closes on success. Run a phase with `SANDCASTLE_PRD=scripts/ralph/prd.weekly-pulse.phase1.json npm run sandcastle`; the loop builds those slices and **stops** (no more unfinished stories). Verify, then run the next phase's file. The backlog files live locally (untracked) since the loop mutates them; the GitHub `ready-for-agent` / `blocked` labels are the tracked, parallel signal of the same gating.
 
 | Phase | Milestone / epic | Scope | Gate |
 |---|---|---|---|
