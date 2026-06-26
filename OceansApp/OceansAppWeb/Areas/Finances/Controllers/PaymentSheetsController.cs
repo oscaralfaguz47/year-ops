@@ -17,9 +17,11 @@ using OceansApp.Models.ViewModels.ReportingMyTimeSubmissions;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
+using OceansAppWeb.Helpers;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Security.Claims;
+using System.Text;
 
 namespace OceansAppWeb.Areas.Finances.Controllers
 {
@@ -48,6 +50,92 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        // ---- Manual Hours Upload (admin uploads hours on behalf of a consultant) ----
+        // Surfaced as a modal on the Payment Sheets page (_ManualHoursUploadModalPartialView),
+        // opened from a row's "Upload hours on behalf" button: the consultant, project and period
+        // are taken from the row, so only the upload POST below is needed. Behind the existing
+        // AccessToManageTheBasicsOfPaymentSheets policy (inherited at class level); no new
+        // policy/claim. See docs/adr/0002.
+
+        [HttpPost("UploadHoursOnBehalf")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadHoursOnBehalf([FromBody] UploadHoursOnBehalfVM model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new { error = "The object data is null, it should be a valid object.", messageType = "Exception Error" });
+            }
+            ValidateInputs validateInputs = new();
+
+            validateInputs.ValidateRequiredFieldIntType("ConsultantId", "Consultant", model.ConsultantId, ModelState);
+            validateInputs.ValidateRequiredFieldIntType("ProjectId", "Project", model.ProjectId, ModelState);
+            validateInputs.ValidateDateValidFormat("StartPeriodDate", "Start Period Date", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("StartPeriodDate", "Start Period Date", model.StartPeriodDate, ModelState);
+            validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
+            validateInputs.ValidateRequiredFieldAnyValue("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
+
+            if (model.HoursPerDay <= 0)
+            {
+                ModelState.AddModelError("Hours", "Enter a number of hours per day greater than zero.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(e => e.Value.Errors.Count > 0).ToDictionary(kvp => kvp.Key, kvp =>
+                kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return BadRequest(new { errors = errors, messageType = "Validation Error" });
+            }
+
+            try
+            {
+                var userActionedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userActionedBy == null)
+                {
+                    return BadRequest(new { error = "User does not exist.", messageType = "Exception Error" });
+                }
+
+                MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.UploadHoursOnBehalf(
+                    userActionedBy, model.ConsultantId, model.ProjectId, model.StartPeriodDate, model.EndPeriodDate, model.HoursPerDay);
+
+                if (!response.Success)
+                {
+                    if (response.MessageType == "Validation Error")
+                    {
+                        var errors = new Dictionary<string, List<string>>
+                        {
+                            { response.FieldName ?? "Hours", new List<string> { response.Message } }
+                        };
+                        return BadRequest(new { errors = errors, messageType = "Validation Error" });
+                    }
+                    return BadRequest(new { error = response.Message, messageType = response.MessageType });
+                }
+
+                // Fire the internal "new submission to review" email, just like a normal submission.
+                var subject = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync(model.ConsultantId);
+                var consultantName = subject == null
+                    ? string.Empty
+                    : $"{subject.Name} {subject.LastName}".Trim();
+                await SendNewSubmissionNotification(consultantName, model.StartPeriodDate, model.EndPeriodDate, model.ProjectId);
+
+                return Ok(new { success = true, message = response.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task SendNewSubmissionNotification(string consultantName, DateTime startDate, DateTime endDate,
+            int projectId)
+        {
+            string baseUrl = $"{HttpContext.Request.Scheme}://{Request.Host}/Finances/PaymentSheets";
+            var project = await _unitOfWork.Project.GetFirstOrDefaultAsync(x => x.ProjectId == projectId);
+            await SubmissionNotifications.SendNewSubmissionToReview(_queueClient, _config, _telemetryClient,
+                baseUrl, consultantName, project?.Name ?? string.Empty, startDate, endDate);
         }
 
         [HttpGet("GetConsultantsToPayList")]
