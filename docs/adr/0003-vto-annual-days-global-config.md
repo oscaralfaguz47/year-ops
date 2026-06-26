@@ -1,6 +1,13 @@
 # VTO annual days is a global config value, stored on AdminPtoConfiguration
 
-**Status:** accepted
+**Status:** withdrawn (2026-06-26, before implementation)
+
+> **Withdrawn.** A ponytail (YAGNI) review of the Feature 4+5+6 PRD cut this: VTO is company
+> policy fixed at one volunteering day per year, so a configurable DB value is flexibility nobody
+> sets. Feature 5 now displays a **constant** "1 day per year" and the balance calc keeps the
+> existing literal. Priscila's "from the database" ask is deferred — revisit this ADR and reinstate
+> the config only when a second VTO allowance value is genuinely needed. The analysis below is kept
+> as the record of what was considered.
 
 ## Context
 

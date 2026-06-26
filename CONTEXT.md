@@ -98,9 +98,9 @@ The umbrella for leave requests, each a `TimeOffRequest` with a `TimeOffType`. T
     month-to-month** in Ripple (one day per month from an anchor date), minus used. Only the
     Administrative population sees the carried-over-vs-accrued breakdown.
 - **UPTO (Unpaid Time Off)** — unlimited; no balance.
-- **VTO (Voluntary Time Off)** — volunteering days per year (historically a hardcoded single day;
-  becoming a **company-wide configurable allowance**, `allowance − used`). **Not** a vacation balance
-  and unrelated to PTO carry-over/accrual. Distinct concept that merely shares the word "VTO" with an
+- **VTO (Voluntary Time Off)** — a single volunteering day per year (a fixed `1 − used` allowance;
+  configurability was considered and withdrawn, see ADR 0003). **Not** a vacation balance and
+  unrelated to PTO carry-over/accrual. Distinct concept that merely shares the word "VTO" with an
   unrelated static perks blurb — when this glossary says VTO it means the Voluntary Time Off request
   type.
 
