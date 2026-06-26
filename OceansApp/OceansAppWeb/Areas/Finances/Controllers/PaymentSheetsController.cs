@@ -657,7 +657,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
                 ProjectConsultantPeriodDisabledTracking disableTracking = new()
                 {
-                    ProjectId = model.ProjectId,
+                    ProjectId = model.ProjectId.Value,
                     ConsultantId = model.ConsultantId,
                     StartPeriodDate = model.StartPeriodDate,
                     EndPeriodDate = model.EndPeriodDate,
@@ -666,7 +666,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 };
                 await _unitOfWork.ProjectConsultantPeriodDisabledTracking.AddAsync(disableTracking);
 
-                var projectMovements = await _unitOfWork.ReportingMyTimeMovement.GetAllAsync(x => x.ProjectId == model.ProjectId &&
+                var projectMovements = await _unitOfWork.ReportingMyTimeMovement.GetAllAsync(x => x.ProjectId == model.ProjectId.Value &&
                   x.ConsultantId == model.ConsultantId && (x.ActionDate.Date >= model.StartPeriodDate.Date &&
                   x.ActionDate.Date <= model.EndPeriodDate.Date));
 
@@ -688,7 +688,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 var timeMovementToCreate = new ReportingMyTimeMovement
                 {
                     ConsultantId = model.ConsultantId,
-                    ProjectId = model.ProjectId,
+                    ProjectId = model.ProjectId.Value,
                     ActionDate = model.EndPeriodDate,
                     Notes = "No hours to report for this period.",
                     TransactionStatusId = transactionStatus.TransactionStatusId,
@@ -698,7 +698,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 };
                 await _unitOfWork.ReportingMyTimeMovement.AddAsync(timeMovementToCreate);
 
-                var submission = await _unitOfWork.ReportingMyTimeMovementSubmission.GetFirstOrDefaultAsync(x => x.ProjectId == model.ProjectId &&
+                var submission = await _unitOfWork.ReportingMyTimeMovementSubmission.GetFirstOrDefaultAsync(x => x.ProjectId == model.ProjectId.Value &&
                  x.ConsultantId == model.ConsultantId && (x.StartPeriodDate.Date == model.StartPeriodDate.Date &&
                  x.EndPeriodDate.Date == model.EndPeriodDate.Date));
 
@@ -712,7 +712,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                     var submissionToCreate = new ReportingMyTimeMovementSubmission
                     {
                         ConsultantId = model.ConsultantId,
-                        ProjectId = model.ProjectId,
+                        ProjectId = model.ProjectId.Value,
                         TransactionStatusId = transactionStatus.TransactionStatusId,
                         SubmissionDate = DateTime.UtcNow,
                         StartPeriodDate = model.StartPeriodDate,

@@ -112,8 +112,11 @@ async function getListOfResults(firstTime, filters) {
                 if (obj.transactionStatusName === 'Approved' && obj.submissionId !== null) {
                     actionsBtns = `<div class="action-btns-box status-actions"><button onclick="displayApproveRejectConfirmation('Reject', 'PaymentSheets', ${obj.submissionId})" class="reject-approvement-btn"><img src="/icons/Shared/circle-x-mark.svg"> Reject Approvement</button></div>`;
                 }
-                if ((obj.transactionStatusName === 'Rejected' && obj.paymentStatus !== 'Paid') || obj.transactionStatusName === 'Pending' ||
-                    (obj.transactionStatusName === 'Approved' && obj.submissionId === null)) {
+                // Project-less ('—') rows have null projectId — upload doesn't apply and there are no
+                // hours to remove, so skip this whole block (the remove button POSTs null otherwise).
+                if (obj.projectId != null &&
+                    ((obj.transactionStatusName === 'Rejected' && obj.paymentStatus !== 'Paid') || obj.transactionStatusName === 'Pending' ||
+                    (obj.transactionStatusName === 'Approved' && obj.submissionId === null))) {
                     // Offer "upload on behalf" only for the no-tracking-tool, nothing-filed-yet state
                     // (the "Awaiting upload" rows) that this feature actually serves, and only while
                     // the period is unpaid. Tracking-tool consultants also surface as Pending/Rejected
