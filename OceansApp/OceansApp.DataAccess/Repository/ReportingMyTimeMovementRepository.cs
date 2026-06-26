@@ -760,6 +760,15 @@ namespace OceansApp.DataAccess.Repository
                         _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete);
                     }
 
+                    // Synthesize a daily TimeFrom/TimeTo window spanning hoursPerDay (e.g. 8h -> 09:00-17:00),
+                    // anchored at 09:00 unless that overflows the day. Autofill movements always carry
+                    // TimeFrom/TimeTo; the approvals review screen renders them, so on-behalf movements must
+                    // too (a null TimeFrom breaks that screen). Quantity stays hoursPerDay, matching the window.
+                    int dailyMinutes = (int)Math.Round((double)hoursPerDay * 60);
+                    int startMinutes = (9 * 60 + dailyMinutes <= 24 * 60) ? 9 * 60 : 0;
+                    string timeFrom = $"{startMinutes / 60:D2}:{startMinutes % 60:D2}";
+                    string timeTo = $"{(startMinutes + dailyMinutes) / 60:D2}:{(startMinutes + dailyMinutes) % 60:D2}";
+
                     // Autofill semantics: write the same daily quantity to every weekday (skipping
                     // weekends/holidays), exactly like AutofillTimeEntryTrackingTool.
                     foreach (var date in weekdayDates)
@@ -773,6 +782,8 @@ namespace OceansApp.DataAccess.Repository
                             TransactionStatusId = transactionStatusWaiting.TransactionStatusId,
                             MovementTypeId = movementType.MovementTypeId,
                             CreationDate = DateTime.UtcNow,
+                            TimeFrom = timeFrom,
+                            TimeTo = timeTo,
                             Quantity = hoursPerDay,
                             IsBillable = project.IsBillable,
                             NonBillableReason = "The project is non billable by default.",
