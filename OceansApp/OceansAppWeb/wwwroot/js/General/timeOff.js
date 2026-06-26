@@ -40,6 +40,7 @@ async function loadInitialData() {
             const balanceData = await balanceRes.json();
             balances = balanceData.balances;
             renderBalancesCard();
+            renderVtoCard();
         }
     } catch (e) {
         console.error('Failed to load balances:', e);
@@ -123,43 +124,20 @@ function renderBalancesCard() {
     let html = '';
 
     if (balances.isAdminPtoEnabled) {
+        // Consolidated view: Total (= the available/remaining balance the calc
+        // produces), Used, Monthly rate. 'days' shown once on the top line so the
+        // balance never wraps; carried-over/accrued breakdown intentionally omitted.
         const available = parseFloat(balances.adminPtoAvailable ?? 0).toFixed(2);
-        const initial = parseFloat(balances.adminPtoInitialBalance ?? 0);
-        const accrued = parseFloat(balances.adminPtoAccruedToDate ?? 0).toFixed(2);
         const used = parseFloat(balances.adminPtoUsed ?? 0).toFixed(2);
         const monthly = parseFloat(balances.adminPtoMonthlyRate ?? 0).toFixed(2);
 
-        // Go-live date scopes the accrued/used rows so the missing pre-go-live
-        // usage (already folded into the carried-over balance) is self-evident.
-        let sinceLabel = 'to date';
-        if (balances.adminPtoEffectiveDate) {
-            const d = new Date(balances.adminPtoEffectiveDate);
-            if (!isNaN(d)) {
-                sinceLabel = `since ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-            }
-        }
-
         html += `<div class="bal-row">
-            <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
+            <div class="bal-name"><span class="bal-dot pto"></span>Total</div>
             <div class="bal-val">${available} days</div>
-        </div>`;
-
-        // Carried-over balance only applies to users who had a balance at go-live;
-        // new hires accrue from zero, so the row is hidden when it's not relevant.
-        if (initial > 0) {
-            html += `<div class="bal-sub-row">
-            <span class="bal-sub-label">Carried over</span>
-            <span class="bal-sub-val">${initial.toFixed(2)} days</span>
-        </div>`;
-        }
-
-        html += `<div class="bal-sub-row">
-            <span class="bal-sub-label">Accrued ${sinceLabel}</span>
-            <span class="bal-sub-val">${accrued} days</span>
         </div>
         <div class="bal-sub-row">
-            <span class="bal-sub-label">Used / Pending ${sinceLabel}</span>
-            <span class="bal-sub-val">${used} days</span>
+            <span class="bal-sub-label">Used</span>
+            <span class="bal-sub-val">${used}</span>
         </div>
         <div class="bal-sub-row">
             <span class="bal-sub-label">Monthly rate</span>
@@ -177,14 +155,41 @@ function renderBalancesCard() {
             <div class="bal-name"><span class="bal-dot upto"></span>Unpaid Time Off</div>
             <div><span class="bal-unlimited">Unlimited</span></div>
         </div>`;
-
-        html += `<div class="bal-row">
-            <div class="bal-name"><span class="bal-dot vto"></span>Voluntary Time Off</div>
-            <div class="bal-val">${balances.vtoAvailable} days</div>
-        </div>`;
     }
 
     container.innerHTML = html;
+}
+
+function renderVtoCard() {
+    const card = document.getElementById('vto-card');
+    const container = document.getElementById('vto-container');
+    if (!card || !container) return;
+
+    // VTO is a consultant-only benefit; admin-PTO users don't see it, so the whole
+    // card is hidden for them (preserves the prior visibility — display only).
+    if (balances.isAdminPtoEnabled) {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = '';
+
+    // Fixed allowance of 1 day per year (ADR 0003 withdrawn — no config), so the
+    // used count is derived from the remaining balance rather than recalculated.
+    const available = balances.vtoAvailable ?? 0;
+    const used = 1 - available;
+
+    container.innerHTML = `<div class="bal-row">
+        <div class="bal-name"><span class="bal-dot vto"></span>Current balance</div>
+        <div class="bal-val">${available} day${available !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="bal-sub-row">
+        <span class="bal-sub-label">Used</span>
+        <span class="bal-sub-val">${used} day${used !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="bal-sub-row">
+        <span class="bal-sub-label">Allowance</span>
+        <span class="bal-sub-val">1 day per year</span>
+    </div>`;
 }
 
 async function loadCalendarMonth() {
