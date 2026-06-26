@@ -7,6 +7,10 @@ let holidayDates = [];
 let isDragging = false;
 let dragStart = null;
 let dragEnd = null;
+let requestedBusinessDays = 0;
+
+// Hard-block message reused for the native submit tooltip when VTO is over-allowance.
+const VTO_OVER_ALLOWANCE_MSG = 'You have already used your voluntary day off this year.';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
@@ -384,6 +388,27 @@ function onTimeOffTypeChange() {
         balDisplay.className = '';
         balDisplay.innerHTML = '';
     }
+
+    updateSubmitState();
+}
+
+// Hard-block VTO submission when requested days exceed the yearly allowance (available < requested).
+// Disables the submit control and attaches a native title tooltip carrying the reason.
+function updateSubmitState() {
+    const btn = document.getElementById('submitRequestBtn');
+    if (!btn) return;
+
+    const type = document.getElementById('timeOffTypeSelect').value;
+    const blocked = type === 'VTO'
+        && requestedBusinessDays > 0
+        && (balances.vtoAvailable ?? 0) < requestedBusinessDays;
+
+    btn.disabled = blocked;
+    if (blocked) {
+        btn.title = VTO_OVER_ALLOWANCE_MSG;
+    } else {
+        btn.removeAttribute('title');
+    }
 }
 
 function recalculateDays() {
@@ -391,6 +416,8 @@ function recalculateDays() {
     const endStr = document.getElementById('endDateInput').value;
     if (!startStr || !endStr) {
         document.getElementById('businessDaysDisplay').value = '';
+        requestedBusinessDays = 0;
+        updateSubmitState();
         return;
     }
 
@@ -398,6 +425,8 @@ function recalculateDays() {
     const end = new Date(endStr + 'T00:00:00');
     if (start > end) {
         document.getElementById('businessDaysDisplay').value = 'Invalid range';
+        requestedBusinessDays = 0;
+        updateSubmitState();
         return;
     }
 
@@ -409,7 +438,9 @@ function recalculateDays() {
         count++;
     }
 
+    requestedBusinessDays = count;
     document.getElementById('businessDaysDisplay').value = count + ' business day' + (count !== 1 ? 's' : '');
+    updateSubmitState();
 }
 
 async function submitTimeOffRequest() {
