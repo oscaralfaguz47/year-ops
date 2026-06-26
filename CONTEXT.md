@@ -85,3 +85,33 @@ and remain an operator/manual case (same spirit as ADR 0001). No evidence-file g
 ## Pay Period (quincena)
 
 The biweekly cadence the sheet is computed for (`CONSULTANT_DETAILS.PaymentPeriod = 1`).
+
+## Time Off
+
+The umbrella for leave requests, each a `TimeOffRequest` with a `TimeOffType`. Three types exist:
+
+- **PTO (Paid Time Off)** — paid vacation. Has a **balance** that is consumed by requests. Two
+  populations compute it differently:
+  - *Consultant PTO* — a flat annual allowance (`AnnualPaidTimeOffDays`) minus used.
+  - *Administrative PTO* — a **carried-over** opening balance (`InitialAdminPtoBalance`, the figure
+    brought over from the external **Vacation Tracker** tool) **plus** an amount **accrued
+    month-to-month** in Ripple (one day per month from an anchor date), minus used. Only the
+    Administrative population sees the carried-over-vs-accrued breakdown.
+- **UPTO (Unpaid Time Off)** — unlimited; no balance.
+- **VTO (Voluntary Time Off)** — volunteering days per year (historically a hardcoded single day;
+  becoming a **company-wide configurable allowance**, `allowance − used`). **Not** a vacation balance
+  and unrelated to PTO carry-over/accrual. Distinct concept that merely shares the word "VTO" with an
+  unrelated static perks blurb — when this glossary says VTO it means the Voluntary Time Off request
+  type.
+
+**Used** is never stored; it is the sum of a consultant's request days in scope, and counts both
+**Approved and pending ("Waiting to be approved")** requests against the balance.
+
+## Time Off Balances card
+
+The single card on the Time Off page that shows a user their balances. It renders one of two shapes
+depending on the viewer: the **Administrative-PTO** shape (carried-over + accrued breakdown, used,
+monthly rate) or the **consultant** shape (PTO line, UPTO unlimited, and the VTO line). Priscila's
+informal **"Policies and PTO" card** ("polisis/pitio") refers to this card. The planned changes:
+give **VTO its own card** shown more widely (Feature 5), and **collapse the PTO carried-over/accrued
+split into a single current-balance figure** while keeping "used" (Feature 6).

@@ -42,7 +42,11 @@ There's no place in Ripple to manually enter hours for someone else; the only ex
 
 ---
 
-> **VTO group — Features 4 + 5 + 6 ship together (one branch off `demo`).** These are one cohesive VTO/PTO unit sharing a single dependency: the **balance number**. Feature 6 defines the source of truth (carried-over + accrued − used, as one figure that ticks +1/month minus used); Features 4 and 5 both consume it. Sequence: **(1)** Feature 6 first — establish the consolidated balance calc + single-line card display; **(2)** Feature 5 alongside it — same card surface, carve VTO into its own card and position it; **(3)** Feature 4 last — wire submit-time validation to the now-canonical *available* balance. Split into two PRs if size demands (card `5+6`, then validation `4`), but one branch either way since 4 depends on 6's balance definition. Feature 2 stays separate (payment-sheet, sibling to Feature 3 — not VTO).
+> **Time-off card group — Features 4 + 5 + 6 ship together (one branch off `demo`).** Two *independent* concerns that happen to touch the **same card surface** (`renderBalancesCard()` in `timeOff.js` + `TimeOff/Index.cshtml`), which is the real reason to keep them on one branch — they would otherwise conflict on the same view:
+> - **VTO track (Features 4 + 5)** — Voluntary Time Off, the 1-day/year line (`TimeOffType == "VTO"`). Feature 5 carves it into its own card; Feature 4 validates available VTO on submit.
+> - **PTO track (Feature 6)** — the vacation balance. Collapse the carried-over (from Vacation Tracker) vs accrued-month-to-month split into one figure. This is the **Administrative-PTO** display only (`InitialAdminPtoBalance` + monthly accrual); consultants never see the split.
+>
+> Earlier note retracted: VTO and PTO are **different balances** (VTO is a hardcoded `1 − used`; PTO carries-over + accrues), so 4 does **not** validate against 6's number. No cross-dependency — sequence is free; split into VTO PR (4+5) and PTO PR (6) if size demands. Feature 2 stays separate (payment-sheet, sibling to Feature 3). "polisis/pitio" in the transcript = the existing **"Policies and PTO"** card.
 
 ## 4. VTO availability validation on submit
 
