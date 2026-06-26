@@ -87,11 +87,25 @@ async function getListOfResults(firstTime, filters) {
                 if (obj.lastSubmissionDate !== null) {
                     lastSubmissionformattedDate = formatUtcToLocalMmDdYyyyTime(obj.lastSubmissionDate);
                 }
-                if (obj.transactionStatusName === 'Approved' && obj.submissionId === null) {
+                // The SP defaults a no-tracking-tool consultant with no submission to 'Approved'.
+                // That is really "nothing filed yet" — the state the row's "Upload hours on behalf"
+                // action resolves — so it drives the "Awaiting upload" badge, the dates copy, and
+                // the upload button below. The raw transactionStatusName stays 'Approved'.
+                // Project-less (NHP) rows — interviews, debit/credit, reimbursements — also come
+                // through as Approved/null-submission but with projectId === null; the upload doesn't
+                // apply to them, so gate on a real project and leave them at their original copy.
+                const isApprovedNoSubmission = obj.transactionStatusName === 'Approved' && obj.submissionId === null;
+                const isAwaitingUpload = isApprovedNoSubmission && obj.projectId != null;
+                if (isAwaitingUpload) {
+                    lastSubmissionformattedDate = 'Not yet uploaded';
+                    submissionformattedDate = 'Not yet uploaded';
+                } else if (isApprovedNoSubmission) {
                     lastSubmissionformattedDate = 'No Submission is needed';
                     submissionformattedDate = 'No Submission is needed';
                 }
                 let submissionLabel = `<div class="submission-dates"><span style="display:block;"><strong>Submitted On: </strong> ${submissionformattedDate}</span><span style="display:block;"><strong>Re-Submitted On: </strong> ${lastSubmissionformattedDate}</span></div>`;
+
+                const submissionDisplayStatus = isAwaitingUpload ? 'Awaiting upload' : obj.transactionStatusName;
                 if (obj.transactionStatusName === 'Waiting to be approved') {
                     actionsBtns = `<div class="action-btns-box status-actions"><button onclick="displayReviewForApprovalModal('modal-review-for-approval', ${obj.submissionId})" class="review-btn">Review for approval</button></div>`;
                 }
@@ -100,7 +114,18 @@ async function getListOfResults(firstTime, filters) {
                 }
                 if ((obj.transactionStatusName === 'Rejected' && obj.paymentStatus !== 'Paid') || obj.transactionStatusName === 'Pending' ||
                     (obj.transactionStatusName === 'Approved' && obj.submissionId === null)) {
-                    actionsBtns = `<div class="action-btns-box status-actions"><button onclick="removeProjectInPeriod('${obj.projectName}', ${obj.projectId}, ${obj.consultantId})" class="remove-for-period-btn"><img src="/icons/Shared/trash.svg">Remove for this period</button></div>`;
+                    // Offer "upload on behalf" only for the no-tracking-tool, nothing-filed-yet state
+                    // (the "Awaiting upload" rows) that this feature actually serves, and only while
+                    // the period is unpaid. Tracking-tool consultants also surface as Pending/Rejected
+                    // here but the upload doesn't apply to them, so they're deliberately excluded.
+                    // Names are encoded for the onclick string; encodeURIComponent leaves apostrophes
+                    // intact, so escape them too (O'Brien) — the modal decodeURIComponent's them back.
+                    const canUploadOnBehalf = isAwaitingUpload && obj.paymentStatus !== 'Paid';
+                    const enc = s => encodeURIComponent(s).replace(/'/g, '%27');
+                    const uploadOnBehalfBtn = canUploadOnBehalf
+                        ? `<button onclick="openManualHoursUploadModal(${obj.consultantId}, '${enc(obj.consultantName)}', ${obj.projectId}, '${enc(obj.projectName)}')" class="review-btn upload-on-behalf-btn" title="Upload hours on behalf of this consultant"><img src="/icons/Shared/clock.svg"> Upload hours on behalf</button>`
+                        : '';
+                    actionsBtns = `<div class="action-btns-box status-actions${canUploadOnBehalf ? ' stacked-actions' : ''}">${uploadOnBehalfBtn}<button onclick="removeProjectInPeriod('${obj.projectName}', ${obj.projectId}, ${obj.consultantId})" class="remove-for-period-btn"><img src="/icons/Shared/trash.svg">Remove for this period</button></div>`;
                 }
                 if (obj.numApprovedSubmissions === obj.numProjectsIsActive) {
                     reviewForPaymentBtn = `<li onclick="displayReviewForPaymentModal('modal-review-for-payment', ${obj.consultantId})">Review for payment</li>`;
@@ -167,16 +192,16 @@ async function getListOfResults(firstTime, filters) {
     <td class="project-name-col"><span>${obj.projectName}</span></td>
     <td class="reported-hours">${hoursReportedInProject}</td>
             <td>${submissionLabel}</td>
-    <td>${getStatusLabel(obj.transactionStatusName)}</td>
+    <td>${getStatusLabel(submissionDisplayStatus)}</td>
     <td>${actionsBtns}</td>
 </tr>`);
                 } else {
                     nameCount++;
                     rows.push(`<tr class="hover-group-${groupName}">
     <td class="project-name-col"><span>${obj.projectName}</span></td>
-     <td class="reported-hours">${hoursReportedInProject}</td> 
+     <td class="reported-hours">${hoursReportedInProject}</td>
              <td>${submissionLabel}</td>
-    <td>${getStatusLabel(obj.transactionStatusName)}</td>
+    <td>${getStatusLabel(submissionDisplayStatus)}</td>
     <td>${actionsBtns}</td>
 </tr>`);
                 }

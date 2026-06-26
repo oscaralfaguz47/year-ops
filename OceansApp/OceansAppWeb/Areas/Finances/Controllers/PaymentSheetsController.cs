@@ -53,53 +53,11 @@ namespace OceansAppWeb.Areas.Finances.Controllers
         }
 
         // ---- Manual Hours Upload (admin uploads hours on behalf of a consultant) ----
-        // Behind the existing AccessToManageTheBasicsOfPaymentSheets policy (inherited at class level);
-        // no new policy/claim. See docs/adr/0002.
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpGet("ManualHoursUpload")]
-        public IActionResult ManualHoursUpload()
-        {
-            return View();
-        }
-
-        [HttpGet("GetConsultantsForManualUpload")]
-        public async Task<IActionResult> GetConsultantsForManualUpload(string? searchText)
-        {
-            try
-            {
-                var consultants = await _unitOfWork.ConsultantDetail
-                    .SearchConsultantsByNameAndShowInactiveAsync(searchText ?? string.Empty, false);
-                return Ok(new { consultants });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = "There was an error fetching consultants.", detail = ex.Message });
-            }
-        }
-
-        [HttpGet("GetActiveNoTrackingProjectsForConsultant")]
-        public async Task<IActionResult> GetActiveNoTrackingProjectsForConsultant(int consultantId,
-            DateTime startDate, DateTime endDate)
-        {
-            try
-            {
-                var activeProjects = await _unitOfWork.ProjectConsultantAssigned
-                    .GetProjectsInfoWhereConsultantIsActiveInPeriod(consultantId, startDate, endDate);
-
-                // Tracking-tool projects are out of scope: an admin cannot supply the consultant's evidence.
-                var projects = activeProjects
-                    .Where(p => !p.AccessToTrackingTool)
-                    .Select(p => new { p.ProjectId, p.ProjectName })
-                    .ToList();
-
-                return Ok(new { projects });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = "There was an error fetching the consultant's projects.", detail = ex.Message });
-            }
-        }
+        // Surfaced as a modal on the Payment Sheets page (_ManualHoursUploadModalPartialView),
+        // opened from a row's "Upload hours on behalf" button: the consultant, project and period
+        // are taken from the row, so only the upload POST below is needed. Behind the existing
+        // AccessToManageTheBasicsOfPaymentSheets policy (inherited at class level); no new
+        // policy/claim. See docs/adr/0002.
 
         [HttpPost("UploadHoursOnBehalf")]
         [ValidateAntiForgeryToken]
