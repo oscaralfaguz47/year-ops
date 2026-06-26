@@ -113,5 +113,6 @@ The single card on the Time Off page that shows a user their balances. It render
 depending on the viewer: the **Administrative-PTO** shape (carried-over + accrued breakdown, used,
 monthly rate) or the **consultant** shape (PTO line, UPTO unlimited, and the VTO line). Priscila's
 informal **"Policies and PTO" card** ("polisis/pitio") refers to this card. The planned changes:
-give **VTO its own card** shown more widely (Feature 5), and **collapse the PTO carried-over/accrued
-split into a single current-balance figure** while keeping "used" (Feature 6).
+give **VTO its own card** on the Time Off page (same audience as today — no auth/visibility change;
+Feature 5), and **collapse the PTO carried-over/accrued split into a single current-balance figure**,
+keeping **used** and **monthly rate** (Feature 6, Administrative population only).
