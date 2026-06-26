@@ -33,7 +33,7 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<MethodResponse> AutofillTimeEntryTrackingTool(string userIdCreatedBy,
             CreateUpdateMovementTrackingToolVM timeEntryData, DateTime startDate, DateTime endDate);
         Task<MethodResponse> UploadHoursOnBehalf(string actingAdminUserId, int subjectConsultantId,
-            int projectId, DateTime periodStart, DateTime periodEnd, decimal hours);
+            int projectId, DateTime periodStart, DateTime periodEnd, decimal hoursPerDay);
         Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
            CreateUpdateMovementTrackingToolVM timeEntryData);
         Task<List<GetTrackingToolProjectMovementsVM>> GetTrackingToolProjectMovementsAsync(int projectId, int consultId, DateTime startDate,

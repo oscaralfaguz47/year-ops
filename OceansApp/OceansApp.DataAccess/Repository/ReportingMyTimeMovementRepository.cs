@@ -654,18 +654,19 @@ namespace OceansApp.DataAccess.Repository
         }
 
         public async Task<MethodResponse> UploadHoursOnBehalf(string actingAdminUserId, int subjectConsultantId,
-            int projectId, DateTime periodStart, DateTime periodEnd, decimal hours)
+            int projectId, DateTime periodStart, DateTime periodEnd, decimal hoursPerDay)
         {
             // Admin-driven autofill: AutofillTimeEntryTrackingTool + CreateSubmission fused, with the
             // actor/subject split threaded through. Movements/submission key to the SUBJECT consultant
             // (including their PaymentPeriod); the acting admin is recorded for audit. See docs/adr/0002.
+            // Like autofill, hoursPerDay is the daily quantity written to EACH weekday (not a period total).
             if (string.IsNullOrWhiteSpace(actingAdminUserId))
             {
                 return MethodResponse.CreateFailureExceptionResponse("Acting admin user is required.");
             }
-            if (hours <= 0)
+            if (hoursPerDay <= 0)
             {
-                return MethodResponse.CreateFailureValidationResponse("Enter a number of hours greater than zero.", "Hours");
+                return MethodResponse.CreateFailureValidationResponse("Enter a number of hours per day greater than zero.", "Hours");
             }
 
             await using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -746,13 +747,8 @@ namespace OceansApp.DataAccess.Repository
                     var weekdayDates = WeekdaySpread.GetWeekdayDates(startDateFormat, endDateFormat, holidays.Select(h => h.Date));
                     if (weekdayDates.Count == 0)
                     {
-                        return MethodResponse.CreateFailureValidationResponse("The selected period has no weekdays to spread hours across.", "Hours");
+                        return MethodResponse.CreateFailureValidationResponse("The selected period has no weekdays to fill hours on.", "Hours");
                     }
-
-                    // Spread the total hours across the period's weekdays; keep the persisted total exact
-                    // by putting any rounding remainder on the first weekday.
-                    decimal perDay = decimal.Round(hours / weekdayDates.Count, 2, MidpointRounding.AwayFromZero);
-                    decimal remainder = hours - (perDay * weekdayDates.Count);
 
                     // Overwrite any existing in-period movements for this consultant/project (drafts/rejected).
                     var existingTimes = await _db.REPORTING_MY_TIME_MOVEMENTS
@@ -764,18 +760,20 @@ namespace OceansApp.DataAccess.Repository
                         _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete);
                     }
 
-                    for (int i = 0; i < weekdayDates.Count; i++)
+                    // Autofill semantics: write the same daily quantity to every weekday (skipping
+                    // weekends/holidays), exactly like AutofillTimeEntryTrackingTool.
+                    foreach (var date in weekdayDates)
                     {
                         var timeMovementToCreate = new ReportingMyTimeMovement
                         {
                             ConsultantId = subject.ConsultantId,
                             ProjectId = projectId,
-                            ActionDate = weekdayDates[i],
+                            ActionDate = date,
                             Notes = "Uploaded on behalf by an admin.",
                             TransactionStatusId = transactionStatusWaiting.TransactionStatusId,
                             MovementTypeId = movementType.MovementTypeId,
                             CreationDate = DateTime.UtcNow,
-                            Quantity = i == 0 ? perDay + remainder : perDay,
+                            Quantity = hoursPerDay,
                             IsBillable = project.IsBillable,
                             NonBillableReason = "The project is non billable by default.",
                             UserIdLastUpdatedBy = actingAdminUserId  // actor stamped on each movement

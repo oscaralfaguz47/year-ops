@@ -10,6 +10,7 @@ namespace OceansApp.Models.ViewModels.PaymentSheets
         public int ProjectId { get; set; }
         public DateTime StartPeriodDate { get; set; }
         public DateTime EndPeriodDate { get; set; }
-        public decimal Hours { get; set; }
+        /// <summary>Hours worked per weekday (autofill semantics) — written to each weekday in the period, not a period total.</summary>
+        public decimal HoursPerDay { get; set; }
     }
 }

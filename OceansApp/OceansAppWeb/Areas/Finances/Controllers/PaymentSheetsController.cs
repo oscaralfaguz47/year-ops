@@ -118,9 +118,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
             validateInputs.ValidateRequiredFieldAnyValue("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
 
-            if (model.Hours <= 0)
+            if (model.HoursPerDay <= 0)
             {
-                ModelState.AddModelError("Hours", "Enter a number of hours greater than zero.");
+                ModelState.AddModelError("Hours", "Enter a number of hours per day greater than zero.");
             }
 
             if (!ModelState.IsValid)
@@ -140,7 +140,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
 
                 MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.UploadHoursOnBehalf(
-                    userActionedBy, model.ConsultantId, model.ProjectId, model.StartPeriodDate, model.EndPeriodDate, model.Hours);
+                    userActionedBy, model.ConsultantId, model.ProjectId, model.StartPeriodDate, model.EndPeriodDate, model.HoursPerDay);
 
                 if (!response.Success)
                 {

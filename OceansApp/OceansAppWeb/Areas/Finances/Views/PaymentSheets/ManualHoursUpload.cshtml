@@ -42,8 +42,9 @@
         </div>
 
         <div>
-            <label for="mhu-hours"><strong>4. Total hours for the period</strong></label>
-            <input id="mhu-hours" type="number" min="0" step="0.5" class="form-control" placeholder="e.g. 80" />
+            <label for="mhu-hours"><strong>4. Hours per day</strong></label>
+            <input id="mhu-hours" type="number" min="0" step="0.5" value="8" class="form-control" placeholder="e.g. 8" />
+            <small style="color: #555;">Autofill standard: 8 h/day, Monday–Friday (weekends and holidays are skipped). Edit this if the consultant's schedule is different.</small>
         </div>
 
         <div>
@@ -128,14 +129,14 @@
         const hours = document.getElementById('mhu-hours').value;
 
         if (!consultant.value || !project.value || !start || !end || !hours || parseFloat(hours) <= 0) {
-            mhuSetMessage('Please complete consultant, period, project and a positive number of hours.', true);
+            mhuSetMessage('Please complete consultant, period, project and a positive number of hours per day.', true);
             return;
         }
 
         document.getElementById('mhu-summary').textContent =
-            'Upload ' + hours + ' hour(s) for ' + consultant.options[consultant.selectedIndex].text +
+            'Fill ' + hours + ' hour(s) per weekday for ' + consultant.options[consultant.selectedIndex].text +
             ' on project "' + project.options[project.selectedIndex].text + '" for the period ' +
-            start + ' to ' + end + '. The submission will be created as "Waiting to be approved".';
+            start + ' to ' + end + ' (Monday–Friday, weekends and holidays skipped). The submission will be created as "Waiting to be approved".';
         document.getElementById('mhu-confirm').style.display = 'block';
     }
 
@@ -146,7 +147,7 @@
             ProjectId: parseInt(document.getElementById('mhu-project').value, 10),
             StartPeriodDate: document.getElementById('mhu-start').value,
             EndPeriodDate: document.getElementById('mhu-end').value,
-            Hours: parseFloat(document.getElementById('mhu-hours').value)
+            HoursPerDay: parseFloat(document.getElementById('mhu-hours').value)
         };
 
         $.ajax({
