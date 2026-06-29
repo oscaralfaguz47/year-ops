@@ -1634,6 +1634,21 @@ namespace OceansApp.DataAccess.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // CHECK-INS (Weekly Pulse snapshot — exactly one per (Team, Week))
+            modelBuilder.Entity<CheckIn>(entity =>
+            {
+                entity.HasIndex(e => new { e.TeamId, e.WeekStart }).IsUnique();
+                entity.HasIndex(e => e.WeekStart);
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1715,5 +1730,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<SystemSubArea> SYSTEM_SUB_AREAS { get; set; }
         public DbSet<TimeOffRequest> TIME_OFF_REQUESTS { get; set; }
         public DbSet<Team> TEAMS { get; set; }
+        public DbSet<CheckIn> CHECK_INS { get; set; }
     }
 }
