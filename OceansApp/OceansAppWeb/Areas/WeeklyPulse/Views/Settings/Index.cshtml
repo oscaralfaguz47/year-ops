@@ -1,0 +1,196 @@
+@using OceansApp.Models.Models
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model SettingsVM
+
+@{
+    var people = Model.People;
+}
+
+<div class="container">
+    <h2 style="font-weight: bold">Weekly Pulse Settings</h2>
+    <p class="text-muted">
+        Manage Teams and KPI definitions. Creating, editing and retiring these structural
+        records asks for an explicit confirmation first — everyday Dashboard edits stay frictionless.
+    </p>
+    <a asp-action="Index" asp-controller="Dashboard" class="btn btn-outline-secondary btn-sm mb-3">Back to Dashboard</a>
+
+    @* ---- Teams ----------------------------------------------------------- *@
+    <h4 class="mt-3">Teams</h4>
+    <p class="text-muted small">A Person may lead more than one Team.</p>
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Name</th>
+                <th>Team Leader</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model.Teams)
+            {
+                <tr>
+                    <td colspan="4">
+                        @* Guarded edit: confirm before the POST. *@
+                        <form asp-action="EditTeam" method="post" class="row g-2 align-items-end"
+                              onsubmit="return confirm('Save changes to this Team? This reshapes the meeting.');">
+                            <input type="hidden" name="teamId" value="@row.Team.TeamId" />
+                            <div class="col-auto">
+                                <label class="form-label small">Order</label>
+                                <input type="number" name="displayOrder" value="@row.Team.DisplayOrder" class="form-control form-control-sm" style="width:6rem" />
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label small">Name</label>
+                                <input type="text" name="name" value="@row.Team.Name" class="form-control form-control-sm" />
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label small">Team Leader</label>
+                                <select name="teamLeaderId" class="form-select form-select-sm">
+                                    @foreach (var p in people)
+                                    {
+                                        if (p.Id == row.Team.TeamLeaderId)
+                                        {
+                                            <option value="@p.Id" selected>@p.DisplayName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@p.Id">@p.DisplayName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Save Team</button>
+                            </div>
+                        </form>
+
+                        @* ---- KPI definitions for this Team ----------------- *@
+                        <div class="ms-4 mt-2">
+                            <h6>KPI definitions</h6>
+                            @if (!row.Kpis.Any())
+                            {
+                                <p class="text-muted small mb-1">No KPIs yet.</p>
+                            }
+                            @foreach (var kpi in row.Kpis)
+                            {
+                                <form asp-action="EditKpi" method="post" class="row g-2 align-items-end mb-1 @(kpi.Active ? "" : "opacity-50")"
+                                      onsubmit="return confirm('Save changes to this KPI definition?');">
+                                    <input type="hidden" name="kpiDefinitionId" value="@kpi.KpiDefinitionId" />
+                                    <div class="col-auto">
+                                        <label class="form-label small">Name</label>
+                                        <input type="text" name="name" value="@kpi.Name" class="form-control form-control-sm" />
+                                    </div>
+                                    <div class="col-auto">
+                                        <label class="form-label small">Owner</label>
+                                        <select name="ownerId" class="form-select form-select-sm">
+                                            @foreach (var p in people)
+                                            {
+                                                if (p.Id == kpi.OwnerId)
+                                                {
+                                                    <option value="@p.Id" selected>@p.DisplayName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@p.Id">@p.DisplayName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-auto">
+                                        <label class="form-label small">Target</label>
+                                        <input type="text" name="target" value="@kpi.Target" class="form-control form-control-sm" placeholder="&gt;= 95%" />
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="form-check">
+                                            @* Active and InScope are independent flags. *@
+                                            <input class="form-check-input" type="checkbox" name="active" value="true" id="active-@kpi.KpiDefinitionId" @(kpi.Active ? "checked" : "") />
+                                            <label class="form-check-label small" for="active-@kpi.KpiDefinitionId">Active</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="inScope" value="true" id="scope-@kpi.KpiDefinitionId" @(kpi.InScope ? "checked" : "") />
+                                            <label class="form-check-label small" for="scope-@kpi.KpiDefinitionId">In scope</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">Save KPI</button>
+                                    </div>
+                                </form>
+
+                                @if (kpi.Active)
+                                {
+                                    @* Guarded retire: keeps history, stops expecting new input. *@
+                                    <form asp-action="RetireKpi" method="post" class="mb-3"
+                                          onsubmit="return confirm('Retire this KPI? Historical results are kept, but it stops expecting new input and drops from the Review.');">
+                                        <input type="hidden" name="kpiDefinitionId" value="@kpi.KpiDefinitionId" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Retire KPI</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <p class="text-muted small mb-3">Retired — historical results kept, no new input expected.</p>
+                                }
+                            }
+
+                            @* Guarded create. *@
+                            <form asp-action="CreateKpi" method="post" class="row g-2 align-items-end mt-2"
+                                  onsubmit="return confirm('Create this KPI definition?');">
+                                <input type="hidden" name="teamId" value="@row.Team.TeamId" />
+                                <div class="col-auto">
+                                    <input type="text" name="name" class="form-control form-control-sm" placeholder="KPI name" />
+                                </div>
+                                <div class="col-auto">
+                                    <select name="ownerId" class="form-select form-select-sm">
+                                        <option value="">— Owner —</option>
+                                        @foreach (var p in people)
+                                        {
+                                            <option value="@p.Id">@p.DisplayName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <input type="text" name="target" class="form-control form-control-sm" placeholder="Target, e.g. &gt;= 95%" />
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="inScope" value="true" id="newscope-@row.Team.TeamId" checked />
+                                        <label class="form-check-label small" for="newscope-@row.Team.TeamId">In scope</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-success btn-sm">Add KPI</button>
+                                </div>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* Guarded create Team. *@
+    <h5 class="mt-4">Add Team</h5>
+    <form asp-action="CreateTeam" method="post" class="row g-2 align-items-end"
+          onsubmit="return confirm('Create this Team?');">
+        <div class="col-auto">
+            <label class="form-label small">Order</label>
+            <input type="number" name="displayOrder" value="0" class="form-control form-control-sm" style="width:6rem" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label small">Name</label>
+            <input type="text" name="name" class="form-control form-control-sm" placeholder="Team name" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label small">Team Leader</label>
+            <select name="teamLeaderId" class="form-select form-select-sm">
+                <option value="">— Leader —</option>
+                @foreach (var p in people)
+                {
+                    <option value="@p.Id">@p.DisplayName</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-success btn-sm">Add Team</button>
+        </div>
+    </form>
+</div>

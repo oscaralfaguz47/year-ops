@@ -68,6 +68,7 @@
         ITeamRepository Team { get; }
         ICheckInRepository CheckIn { get; }
         IIssueRepository Issue { get; }
+        IKpiDefinitionRepository KpiDefinition { get; }
         ITransactionStatusRepository TransactionStatus { get; }
         ITimeOffRequestRepository TimeOffRequest { get; }
 

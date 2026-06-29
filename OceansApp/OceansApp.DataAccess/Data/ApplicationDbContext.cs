@@ -1678,6 +1678,25 @@ namespace OceansApp.DataAccess.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // KPI DEFINITIONS (Weekly Pulse structural record — one per metric, per Team)
+            modelBuilder.Entity<KpiDefinition>(entity =>
+            {
+                entity.HasIndex(e => e.TeamId);
+                entity.HasIndex(e => e.OwnerId);
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Owner)
+                    .WithMany()
+                    .HasForeignKey(e => e.OwnerId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1762,5 +1781,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<CheckIn> CHECK_INS { get; set; }
         public DbSet<Issue> ISSUES { get; set; }
         public DbSet<IssueHistory> ISSUE_HISTORIES { get; set; }
+        public DbSet<KpiDefinition> KPI_DEFINITIONS { get; set; }
     }
 }
