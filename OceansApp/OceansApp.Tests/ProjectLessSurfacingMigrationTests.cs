@@ -39,5 +39,20 @@ namespace OceansApp.Tests
             var sql = GetCreateProcedureSql();
             Assert.Contains("CONSULTANT_REIMBURSED_BENEFITS", sql);
         }
+
+        // Guards the period-disabled fix: a consultant whose only project was removed via the
+        // payment-sheet "remove for this period" action must still surface project-less. The fix
+        // makes ProjectLessConsultants ignore period-disabled assignments by correlating the
+        // disabled-tracking table against AC.ProjectId (unique to this fix). Reverting drops it.
+        [Fact]
+        public void Up_IgnoresPeriodDisabledAssignmentsForProjectLessSurfacing()
+        {
+            var migration = new thirtysixFixSP_PAYMENT_SHEETS_ProjectLessDisabledTracking();
+            var sql = migration.UpOperations
+                .OfType<SqlOperation>()
+                .Select(o => o.Sql)
+                .Last(s => s.Contains("CREATE PROCEDURE SP_PAYMENT_SHEETS_GetAllConsultantsToPayWithFilters"));
+            Assert.Contains("PCPDT.ProjectId = AC.ProjectId", sql);
+        }
     }
 }
