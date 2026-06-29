@@ -32,6 +32,9 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>The team's KPIs that expect input this Week, each with its result (or null).</summary>
         public List<KpiResultRowVM> Kpis { get; set; } = new();
+
+        /// <summary>The team's headlines posted this Week (snapshot — blank each new Week).</summary>
+        public List<Headline> Headlines { get; set; } = new();
     }
 
     public class KpiResultRowVM

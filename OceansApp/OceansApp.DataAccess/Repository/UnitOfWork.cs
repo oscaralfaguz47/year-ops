@@ -104,6 +104,7 @@ namespace OceansApp.DataAccess.Repository
             Issue = new IssueRepository(_db);
             KpiDefinition = new KpiDefinitionRepository(_db);
             KpiResult = new KpiResultRepository(_db);
+            Headline = new HeadlineRepository(_db);
             TransactionStatus = new TransactionStatusRepository(_db);
             TimeOffRequest = new TimeOffRequestRepository(_db, _config, _queueClient);
         }
@@ -175,6 +176,7 @@ namespace OceansApp.DataAccess.Repository
         public IIssueRepository Issue { get; set; }
         public IKpiDefinitionRepository KpiDefinition { get; private set; }
         public IKpiResultRepository KpiResult { get; private set; }
+        public IHeadlineRepository Headline { get; private set; }
         public ITransactionStatusRepository TransactionStatus { get; set; }
         public ITimeOffRequestRepository TimeOffRequest { get; set; }
 

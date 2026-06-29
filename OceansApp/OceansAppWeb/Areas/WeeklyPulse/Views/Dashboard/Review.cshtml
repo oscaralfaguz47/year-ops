@@ -1,3 +1,4 @@
+@using OceansApp.Models.Domain.WeeklyPulse
 @using OceansApp.Models.Models
 @using OceansApp.Models.ViewModels.WeeklyPulse
 @model ReviewVM
@@ -20,6 +21,29 @@
                     <span class="badge bg-secondary">@team.Team.DisplayOrder</span>
                     @team.Team.Name
                 </h4>
+
+                @* News round opens the segment: every headline surfaces — Risk loud, Highlight quiet. *@
+                @if (team.Headlines.Any())
+                {
+                    <div class="mb-3">
+                        <h6 class="text-muted">News round</h6>
+                        @foreach (var headlineRow in team.Headlines)
+                        {
+                            var loud = headlineRow.Emphasis == HeadlineEmphasis.Loud;
+                            <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
+                                <span class="badge @(loud ? "bg-danger" : "bg-success")">@headlineRow.Headline.Type</span>
+                                @if (loud)
+                                {
+                                    <strong>@headlineRow.Headline.Text</strong>
+                                }
+                                else
+                                {
+                                    <span>@headlineRow.Headline.Text</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
 
                 @if (!team.Issues.Any())
                 {

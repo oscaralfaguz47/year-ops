@@ -70,6 +70,7 @@
         IIssueRepository Issue { get; }
         IKpiDefinitionRepository KpiDefinition { get; }
         IKpiResultRepository KpiResult { get; }
+        IHeadlineRepository Headline { get; }
         ITransactionStatusRepository TransactionStatus { get; }
         ITimeOffRequestRepository TimeOffRequest { get; }
 

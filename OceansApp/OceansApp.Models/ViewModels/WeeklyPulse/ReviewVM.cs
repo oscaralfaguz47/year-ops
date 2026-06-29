@@ -1,3 +1,4 @@
+using OceansApp.Models.Domain.WeeklyPulse;
 using OceansApp.Models.Models;
 
 namespace OceansApp.Models.ViewModels.WeeklyPulse
@@ -24,7 +25,21 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
     {
         public Team Team { get; set; }
 
+        /// <summary>
+        /// The Team's headlines for the Week — the news round that opens its segment.
+        /// Every headline surfaces; <see cref="HeadlineRowVM.Emphasis"/> says how loud.
+        /// </summary>
+        public List<HeadlineRowVM> Headlines { get; set; } = new();
+
         /// <summary>The Team's surfaced Issues for the Week, in priority order.</summary>
         public List<IssueRowVM> Issues { get; set; } = new();
+    }
+
+    public class HeadlineRowVM
+    {
+        public Headline Headline { get; set; }
+
+        /// <summary>Loud (Risk) or Quiet (Highlight) — every headline surfaces.</summary>
+        public HeadlineEmphasis Emphasis { get; set; }
     }
 }

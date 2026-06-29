@@ -17,6 +17,10 @@
         KpiStatus.Yellow => "bg-warning text-dark",
         _ => "bg-danger"
     };
+
+    // Risk reads loud, Highlight reads quiet — same emphasis as the Review news round.
+    static string HeadlineCss(HeadlineType type) =>
+        type == HeadlineType.Risk ? "bg-danger" : "bg-success";
 }
 
 <div class="text-center">
@@ -34,6 +38,7 @@
                     <th>Readiness</th>
                     <th>KPIs</th>
                     <th>Check-in</th>
+                    <th>Headlines</th>
                     <th>Issues</th>
                 </tr>
             </thead>
@@ -110,6 +115,33 @@
                                 </select>
                                 <textarea name="note" class="form-control" rows="2" placeholder="Note">@(row.CheckIn?.Note)</textarea>
                                 <button type="submit" class="btn btn-primary btn-sm">Save check-in</button>
+                            </form>
+                        </td>
+                        <td class="text-start">
+                            @* Headlines are a snapshot news round — many per Team/Week, blank each Week. *@
+                            @foreach (var headline in row.Headlines)
+                            {
+                                <div class="border rounded p-2 mb-2">
+                                    <span class="badge @HeadlineCss(headline.Type)">@headline.Type</span>
+                                    <span>@headline.Text</span>
+                                </div>
+                            }
+                            @if (row.Headlines.Count == 0)
+                            {
+                                <span class="text-muted">No headlines yet</span>
+                            }
+
+                            @* Post a headline — Highlight (a win) or Risk (a concern). Not pinnable. *@
+                            <form asp-action="PostHeadline" method="post" class="d-flex flex-column gap-1 mt-2">
+                                <input type="hidden" name="teamId" value="@row.Team.TeamId" />
+                                <select name="type" class="form-select form-select-sm">
+                                    @foreach (var t in Enum.GetValues<HeadlineType>())
+                                    {
+                                        <option value="@t">@t</option>
+                                    }
+                                </select>
+                                <input type="text" name="text" class="form-control form-control-sm" placeholder="Headline" />
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Post headline</button>
                             </form>
                         </td>
                         <td class="text-start">

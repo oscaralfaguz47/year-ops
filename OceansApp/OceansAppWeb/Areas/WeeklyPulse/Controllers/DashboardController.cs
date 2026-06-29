@@ -41,6 +41,9 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var kpiResults = await _unitOfWork.KpiResult.GetAllAsync(
                 filter: r => r.WeekStart == weekStart);
 
+            // Snapshot: only this Week's headlines, so a new Week starts blank.
+            var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
+
             var vm = new DashboardVM
             {
                 WeekStart = weekStart,
@@ -75,6 +78,9 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                                 Kpi = k,
                                 Result = teamResults.FirstOrDefault(r => r.KpiDefinitionId == k.KpiDefinitionId)
                             })
+                            .ToList(),
+                        Headlines = headlines
+                            .Where(h => h.TeamId == t.TeamId)
                             .ToList()
                     };
                 }).ToList()
@@ -138,6 +144,9 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var issues = await _unitOfWork.Issue.GetAllAsync(
                 includeProperties: nameof(Issue.History));
 
+            // Snapshot: this Week's headlines open each team's segment as a news round.
+            var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
+
             // Surface the union of Open and pinned-Deferred issues, never Solved,
             // grouped by the record's Team in meeting order.
             var vm = new ReviewVM
@@ -146,6 +155,15 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 Teams = teams.Select(t => new ReviewTeamVM
                 {
                     Team = t,
+                    // News round: every headline surfaces, Risk loud and Highlight quiet.
+                    Headlines = headlines
+                        .Where(h => h.TeamId == t.TeamId)
+                        .Select(h => new HeadlineRowVM
+                        {
+                            Headline = h,
+                            Emphasis = ReviewSurfacingService.SurfaceHeadline(h.Type)
+                        })
+                        .ToList(),
                     Issues = issues
                         .Where(i => i.TeamId == t.TeamId)
                         .Select(i => new IssueRowVM
@@ -160,6 +178,27 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             };
 
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PostHeadline(int teamId, HeadlineType type, string text)
+        {
+            // Posting a headline is a frictionless everyday edit. Headlines are additive —
+            // each post is its own row (there may be many per Team/Week, the news round).
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                await _unitOfWork.Headline.PostAsync(new Headline
+                {
+                    TeamId = teamId,
+                    WeekStart = WeekStartCalculator.Current(),
+                    Type = type,
+                    Text = text
+                });
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]

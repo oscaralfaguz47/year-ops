@@ -1712,6 +1712,22 @@ namespace OceansApp.DataAccess.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // HEADLINES (Weekly Pulse Snapshot entity — many per (Team, Week), ADR 0001)
+            modelBuilder.Entity<Headline>(entity =>
+            {
+                // Not unique: a Team may post many headlines in a Week (the news round).
+                entity.HasIndex(e => new { e.TeamId, e.WeekStart });
+                entity.HasIndex(e => e.WeekStart);
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1798,5 +1814,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<IssueHistory> ISSUE_HISTORIES { get; set; }
         public DbSet<KpiDefinition> KPI_DEFINITIONS { get; set; }
         public DbSet<KpiResult> KPI_RESULTS { get; set; }
+        public DbSet<Headline> HEADLINES { get; set; }
     }
 }

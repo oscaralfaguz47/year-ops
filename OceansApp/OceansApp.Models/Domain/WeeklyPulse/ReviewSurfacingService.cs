@@ -52,5 +52,16 @@ namespace OceansApp.Models.Domain.WeeklyPulse
 
             return result is { Status: KpiStatus.Green } ? KpiSurfacing.Quiet : KpiSurfacing.Loud;
         }
+
+        /// <summary>
+        /// How a Headline surfaces in the Review news round. Unlike a KPI there is no scope
+        /// gate and no Hidden outcome: <i>every</i> headline surfaces (it is the meeting's
+        /// good-news/bad-news round). A <see cref="HeadlineType.Risk"/> is flagged
+        /// <see cref="HeadlineEmphasis.Loud"/>, while a <see cref="HeadlineType.Highlight"/>
+        /// is kept <see cref="HeadlineEmphasis.Quiet"/>. Headlines are not pinnable — there
+        /// is nothing to un-park because they all already surface.
+        /// </summary>
+        public static HeadlineEmphasis SurfaceHeadline(HeadlineType type) =>
+            type == HeadlineType.Risk ? HeadlineEmphasis.Loud : HeadlineEmphasis.Quiet;
     }
 }
