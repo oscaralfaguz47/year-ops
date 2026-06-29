@@ -165,12 +165,7 @@ function renderVtoCard() {
     const container = document.getElementById('vto-container');
     if (!card || !container) return;
 
-    // VTO is a consultant-only benefit; admin-PTO users don't see it, so the whole
-    // card is hidden for them (preserves the prior visibility — display only).
-    if (balances.isAdminPtoEnabled) {
-        card.style.display = 'none';
-        return;
-    }
+    // VTO is available to all employees, including admin-PTO users.
     card.style.display = '';
 
     // Fixed allowance of 1 day per year (ADR 0003 withdrawn — no config), so the

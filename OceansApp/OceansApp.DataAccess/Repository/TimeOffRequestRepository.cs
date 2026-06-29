@@ -10,6 +10,7 @@ using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.TimeOff;
 using OceansApp.Utility;
+using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 
@@ -51,7 +52,7 @@ namespace OceansApp.DataAccess.Repository
             }
 
             int vtoUsedAndPending = await GetUsedDaysAsync(consultantId, "VTO", currentYear);
-            result.VtoAvailable = 1 - vtoUsedAndPending;
+            result.VtoAvailable = BenefitsCD.VtoAnnualDays - vtoUsedAndPending;
 
             return result;
         }
@@ -494,6 +495,10 @@ namespace OceansApp.DataAccess.Repository
             var config = await _db.ADMIN_PTO_CONFIGURATION.FirstOrDefaultAsync();
 
             var result = new TimeOffBalancesVM { IsAdminPtoEnabled = true };
+
+            // VTO (flat 1 day/yr) applies to all categories; set before the config null-check.
+            result.VtoAvailable = BenefitsCD.VtoAnnualDays
+                - await GetUsedDaysAsync(consultantId, "VTO", DateTime.UtcNow.Year);
 
             if (config == null)
                 return result;
