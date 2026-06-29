@@ -1697,6 +1697,21 @@ namespace OceansApp.DataAccess.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // KPI RESULTS (Weekly Pulse Snapshot entity — exactly one per (KPI, Week), ADR 0001)
+            modelBuilder.Entity<KpiResult>(entity =>
+            {
+                entity.HasIndex(e => new { e.KpiDefinitionId, e.WeekStart }).IsUnique();
+                entity.HasIndex(e => e.WeekStart);
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.KpiDefinition)
+                    .WithMany()
+                    .HasForeignKey(e => e.KpiDefinitionId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1782,5 +1797,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<Issue> ISSUES { get; set; }
         public DbSet<IssueHistory> ISSUE_HISTORIES { get; set; }
         public DbSet<KpiDefinition> KPI_DEFINITIONS { get; set; }
+        public DbSet<KpiResult> KPI_RESULTS { get; set; }
     }
 }

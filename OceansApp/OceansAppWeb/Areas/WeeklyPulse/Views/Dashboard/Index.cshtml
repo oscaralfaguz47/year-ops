@@ -1,6 +1,23 @@
+@using OceansApp.Models.Domain.WeeklyPulse
 @using OceansApp.Models.Models
 @using OceansApp.Models.ViewModels.WeeklyPulse
 @model DashboardVM
+
+@functions {
+    static (string Css, string Label) ReadinessBadge(ReadinessState state) => state switch
+    {
+        ReadinessState.Ready => ("bg-success", "Ready"),
+        ReadinessState.NotReady => ("bg-warning text-dark", "Not ready"),
+        _ => ("bg-secondary", "Not configured")
+    };
+
+    static string StatusCss(KpiStatus status) => status switch
+    {
+        KpiStatus.Green => "bg-success",
+        KpiStatus.Yellow => "bg-warning text-dark",
+        _ => "bg-danger"
+    };
+}
 
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Dashboard</h2>
@@ -14,6 +31,8 @@
                 <tr>
                     <th>Meeting Order</th>
                     <th>Team</th>
+                    <th>Readiness</th>
+                    <th>KPIs</th>
                     <th>Check-in</th>
                     <th>Issues</th>
                 </tr>
@@ -24,6 +43,55 @@
                     <tr>
                         <td>@row.Team.DisplayOrder</td>
                         <td>@row.Team.Name</td>
+                        <td>
+                            @{
+                                var badge = ReadinessBadge(row.Readiness);
+                            }
+                            <span class="badge @badge.Css">@badge.Label</span>
+                        </td>
+                        <td class="text-start">
+                            @* KPI result is a frictionless everyday edit — value + manual status + notes. *@
+                            @foreach (var kpiRow in row.Kpis)
+                            {
+                                <div class="border rounded p-2 mb-2">
+                                    <div>
+                                        <strong>@kpiRow.Kpi.Name</strong>
+                                        <span class="text-muted">(target @kpiRow.Kpi.Target)</span>
+                                        @if (kpiRow.Result != null)
+                                        {
+                                            <span class="badge @StatusCss(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">No result yet</span>
+                                        }
+                                    </div>
+                                    <form asp-action="RecordKpiResult" method="post" class="d-flex flex-column gap-1 mt-1">
+                                        <input type="hidden" name="kpiDefinitionId" value="@kpiRow.Kpi.KpiDefinitionId" />
+                                        <input type="text" name="value" class="form-control form-control-sm" placeholder="Result (e.g. 92%)" value="@(kpiRow.Result?.Value)" />
+                                        <select name="status" class="form-select form-select-sm">
+                                            @foreach (var s in Enum.GetValues<KpiStatus>())
+                                            {
+                                                if (kpiRow.Result != null && kpiRow.Result.Status == s)
+                                                {
+                                                    <option value="@s" selected>@s</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@s">@s</option>
+                                                }
+                                            }
+                                        </select>
+                                        <textarea name="notes" class="form-control form-control-sm" rows="1" placeholder="Notes">@(kpiRow.Result?.Notes)</textarea>
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">Save result</button>
+                                    </form>
+                                </div>
+                            }
+                            @if (row.Kpis.Count == 0)
+                            {
+                                <span class="text-muted">No KPIs configured</span>
+                            }
+                        </td>
                         <td class="text-start">
                             <form asp-action="RecordCheckIn" method="post" class="d-flex flex-column gap-2">
                                 <input type="hidden" name="teamId" value="@row.Team.TeamId" />

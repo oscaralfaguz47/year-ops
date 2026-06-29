@@ -1,3 +1,4 @@
+using OceansApp.Models.Domain.WeeklyPulse;
 using OceansApp.Models.Models;
 
 namespace OceansApp.Models.ViewModels.WeeklyPulse
@@ -22,6 +23,23 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>The team's living Issues with their state as of the Week.</summary>
         public List<IssueRowVM> Issues { get; set; } = new();
+
+        /// <summary>
+        /// The team's readiness signal for the Week, derived only from its KPIs
+        /// (see <see cref="ReadinessService"/>).
+        /// </summary>
+        public ReadinessState Readiness { get; set; }
+
+        /// <summary>The team's KPIs that expect input this Week, each with its result (or null).</summary>
+        public List<KpiResultRowVM> Kpis { get; set; } = new();
+    }
+
+    public class KpiResultRowVM
+    {
+        public KpiDefinition Kpi { get; set; }
+
+        /// <summary>The KPI's result for the Week, or null when not yet recorded.</summary>
+        public KpiResult Result { get; set; }
     }
 
     public class IssueRowVM
