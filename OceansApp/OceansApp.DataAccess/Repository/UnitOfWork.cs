@@ -101,6 +101,7 @@ namespace OceansApp.DataAccess.Repository
             SystemSubArea = new SystemSubAreaRepository(_db);
             Team = new TeamRepository(_db);
             CheckIn = new CheckInRepository(_db);
+            Issue = new IssueRepository(_db);
             TransactionStatus = new TransactionStatusRepository(_db);
             TimeOffRequest = new TimeOffRequestRepository(_db, _config, _queueClient);
         }
@@ -169,6 +170,7 @@ namespace OceansApp.DataAccess.Repository
         public ISystemSubAreaRepository SystemSubArea { get; set; }
         public ITeamRepository Team { get; set; }
         public ICheckInRepository CheckIn { get; set; }
+        public IIssueRepository Issue { get; set; }
         public ITransactionStatusRepository TransactionStatus { get; set; }
         public ITimeOffRequestRepository TimeOffRequest { get; set; }
 

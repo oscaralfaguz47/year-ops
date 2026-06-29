@@ -67,6 +67,7 @@
         ISystemSubAreaRepository SystemSubArea { get; }
         ITeamRepository Team { get; }
         ICheckInRepository CheckIn { get; }
+        IIssueRepository Issue { get; }
         ITransactionStatusRepository TransactionStatus { get; }
         ITimeOffRequestRepository TimeOffRequest { get; }
 

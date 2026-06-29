@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Domain.WeeklyPulse;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.WeeklyPulse;
 using OceansApp.Utility.WeeklyPulse;
@@ -31,17 +32,75 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var checkIns = await _unitOfWork.CheckIn.GetAllAsync(
                 filter: c => c.WeekStart == weekStart);
 
+            // Living: all Issues carry across Weeks; show each as of this Week.
+            var issues = await _unitOfWork.Issue.GetAllAsync(
+                includeProperties: nameof(Issue.History));
+
             var vm = new DashboardVM
             {
                 WeekStart = weekStart,
                 Teams = teams.Select(t => new TeamCheckInVM
                 {
                     Team = t,
-                    CheckIn = checkIns.FirstOrDefault(c => c.TeamId == t.TeamId)
+                    CheckIn = checkIns.FirstOrDefault(c => c.TeamId == t.TeamId),
+                    Issues = issues
+                        .Where(i => i.TeamId == t.TeamId)
+                        .Select(i => new IssueRowVM
+                        {
+                            Issue = i,
+                            State = IssueStateService.StateAsOf(i.History, weekStart)
+                        })
+                        .OrderBy(r => r.State)
+                        .ThenByDescending(r => r.Issue.Priority)
+                        .ToList()
                 }).ToList()
             };
 
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RaiseIssue(int teamId, string title, IssuePriority priority)
+        {
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                await _unitOfWork.Issue.RaiseAsync(new Issue
+                {
+                    TeamId = teamId,
+                    Title = title,
+                    Priority = priority,
+                    OriginWeekStart = WeekStartCalculator.Current()
+                }, DateTimeOffset.UtcNow);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CommentIssue(int issueId, string comment)
+        {
+            if (!string.IsNullOrWhiteSpace(comment))
+            {
+                await _unitOfWork.Issue.CommentAsync(
+                    issueId, comment, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransitionIssue(int issueId, IssueStatus status)
+        {
+            await _unitOfWork.Issue.TransitionAsync(
+                issueId, status, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+            await _unitOfWork.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]

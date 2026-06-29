@@ -1649,6 +1649,35 @@ namespace OceansApp.DataAccess.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // ISSUES (Weekly Pulse Living entity — single identity across Weeks, ADR 0001)
+            modelBuilder.Entity<Issue>(entity =>
+            {
+                entity.HasIndex(e => e.TeamId);
+                entity.HasIndex(e => e.OriginWeekStart);
+
+                entity.Property(e => e.OriginWeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ISSUE HISTORY (week-stamped status/comment rows — one row per change)
+            modelBuilder.Entity<IssueHistory>(entity =>
+            {
+                entity.HasIndex(e => new { e.IssueId, e.WeekStart });
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Issue)
+                    .WithMany(i => i.History)
+                    .HasForeignKey(e => e.IssueId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1731,5 +1760,7 @@ namespace OceansApp.DataAccess.Data
         public DbSet<TimeOffRequest> TIME_OFF_REQUESTS { get; set; }
         public DbSet<Team> TEAMS { get; set; }
         public DbSet<CheckIn> CHECK_INS { get; set; }
+        public DbSet<Issue> ISSUES { get; set; }
+        public DbSet<IssueHistory> ISSUE_HISTORIES { get; set; }
     }
 }
