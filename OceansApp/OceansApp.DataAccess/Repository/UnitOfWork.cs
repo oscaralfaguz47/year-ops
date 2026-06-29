@@ -99,6 +99,7 @@ namespace OceansApp.DataAccess.Repository
             NotificationRecipient = new NotificationRecipientRepository(_db);
             SystemArea = new SystemAreaRepository(_db);
             SystemSubArea = new SystemSubAreaRepository(_db);
+            Team = new TeamRepository(_db);
             TransactionStatus = new TransactionStatusRepository(_db);
             TimeOffRequest = new TimeOffRequestRepository(_db, _config, _queueClient);
         }
@@ -165,6 +166,7 @@ namespace OceansApp.DataAccess.Repository
         public INotificationRecipientRepository NotificationRecipient { get; set; }
         public ISystemAreaRepository SystemArea { get; set; }
         public ISystemSubAreaRepository SystemSubArea { get; set; }
+        public ITeamRepository Team { get; set; }
         public ITransactionStatusRepository TransactionStatus { get; set; }
         public ITimeOffRequestRepository TimeOffRequest { get; set; }
 

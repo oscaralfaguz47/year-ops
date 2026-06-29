@@ -65,6 +65,7 @@
         INotificationRecipientRepository NotificationRecipient { get; }
         ISystemAreaRepository SystemArea { get; }
         ISystemSubAreaRepository SystemSubArea { get; }
+        ITeamRepository Team { get; }
         ITransactionStatusRepository TransactionStatus { get; }
         ITimeOffRequestRepository TimeOffRequest { get; }
 

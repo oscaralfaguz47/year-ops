@@ -1622,6 +1622,18 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(e => e.EndDate).HasColumnType("date").IsRequired();
             });
 
+            modelBuilder.Entity<Team>(entity =>
+            {
+                entity.HasIndex(e => e.DisplayOrder);
+                entity.HasIndex(e => e.TeamLeaderId);
+
+                entity.HasOne(e => e.TeamLeader)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamLeaderId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1702,5 +1714,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<SystemArea> SYSTEM_AREAS { get; set; }
         public DbSet<SystemSubArea> SYSTEM_SUB_AREAS { get; set; }
         public DbSet<TimeOffRequest> TIME_OFF_REQUESTS { get; set; }
+        public DbSet<Team> TEAMS { get; set; }
     }
 }

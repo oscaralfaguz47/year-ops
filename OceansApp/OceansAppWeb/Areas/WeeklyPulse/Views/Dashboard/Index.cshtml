@@ -1,0 +1,27 @@
+@using OceansApp.Models.Models
+@model IEnumerable<Team>
+
+<div class="text-center">
+    <h2 style="font-weight: bold">Weekly Pulse Dashboard</h2>
+    <hr />
+
+    <div class="container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Meeting Order</th>
+                    <th>Team</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var team in Model)
+                {
+                    <tr>
+                        <td>@team.DisplayOrder</td>
+                        <td>@team.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

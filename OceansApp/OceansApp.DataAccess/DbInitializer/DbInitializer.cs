@@ -11,6 +11,7 @@ using OceansApp.Utility.ConstantData.Claims.TrackingTool;
 using OceansApp.Utility.ConstantData.Claims.AccountManagement;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
 using OceansApp.Utility.ConstantData.Claims.TimeOff;
+using OceansApp.Utility.ConstantData.Claims.WeeklyPulse;
 using OceansApp.Models.ViewModels.ConsultantPositions;
 
 namespace OceansApp.DataAccess.DbInitializer
@@ -1055,7 +1056,8 @@ namespace OceansApp.DataAccess.DbInitializer
                     new () { Name = "My Account" },
                     new () { Name = "Account Management" },
                     new () { Name = "Recruiting" },
-                    new () { Name = "Time Off" }
+                    new () { Name = "Time Off" },
+                    new () { Name = "Weekly Pulse" }
                 };
 
                 var existingAreas = (await _db.SYSTEM_AREAS
@@ -1111,7 +1113,9 @@ namespace OceansApp.DataAccess.DbInitializer
                     new() { SystemAreaId = AREA("Recruiting"),         Name = "Interviews" },
 
                     new() { SystemAreaId = AREA("Time Off"),           Name = "Time Off Request" },
-                    new() { SystemAreaId = AREA("Time Off"),           Name = "Time Off Approvals" }
+                    new() { SystemAreaId = AREA("Time Off"),           Name = "Time Off Approvals" },
+
+                    new() { SystemAreaId = AREA("Weekly Pulse"),       Name = "Weekly Pulse" }
                 };
 
                 var existingSubAreas = (await _db.SYSTEM_SUB_AREAS
@@ -1324,6 +1328,22 @@ namespace OceansApp.DataAccess.DbInitializer
                     ClaimValue = TimeOffClaimsCD.Time_Off_Approvals_ClaimValue,
                     Description = "Access to approve or reject time off requests",
                     SystemSubAreaId = SUBAREA("Time Off Approvals")
+                });
+
+                // WEEKLY PULSE
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = WeeklyPulseClaimsCD.Participate_ClaimType,
+                    ClaimValue = WeeklyPulseClaimsCD.Participate_ClaimValue,
+                    Description = "Access to participate in the Weekly Pulse",
+                    SystemSubAreaId = SUBAREA("Weekly Pulse")
+                });
+                systemClaimsList.Add(new ApplicationSystemClaim
+                {
+                    ClaimType = WeeklyPulseClaimsCD.Administer_ClaimType,
+                    ClaimValue = WeeklyPulseClaimsCD.Administer_ClaimValue,
+                    Description = "Access to administer the Weekly Pulse",
+                    SystemSubAreaId = SUBAREA("Weekly Pulse")
                 });
 
                 var existingSystemClaims = await _db.APPLICATION_SYSTEM_CLAIMS
@@ -1546,6 +1566,34 @@ namespace OceansApp.DataAccess.DbInitializer
                         await _db.RoleClaims.AddRangeAsync(consultantClaimsToInsert);
                         await _db.SaveChangesAsync();
                     }
+                }
+
+                // ----------------- WEEKLY PULSE TEAMS --------------------------------
+                // Teams are leader-only (ADR 0002). Seed in meeting order (DisplayOrder),
+                // led by the master user as a sensible default until real leaders are assigned.
+                if (!string.IsNullOrEmpty(firstMasterUserId))
+                {
+                    var teamsList = new List<Team>
+                    {
+                        new() { Name = "Sales",      DisplayOrder = 1, TeamLeaderId = firstMasterUserId },
+                        new() { Name = "Marketing",  DisplayOrder = 2, TeamLeaderId = firstMasterUserId },
+                        new() { Name = "Operations", DisplayOrder = 3, TeamLeaderId = firstMasterUserId }
+                    };
+
+                    var existingTeamNames = (await _db.TEAMS
+                        .AsNoTracking()
+                        .Select(x => x.Name)
+                        .ToListAsync())
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                    var teamsToInsert = teamsList
+                        .Where(t => !existingTeamNames.Contains(t.Name))
+                        .ToList();
+
+                    if (teamsToInsert.Count > 0)
+                        await _db.TEAMS.AddRangeAsync(teamsToInsert);
+
+                    await _db.SaveChangesAsync();
                 }
 
                 await transaction.CommitAsync();
