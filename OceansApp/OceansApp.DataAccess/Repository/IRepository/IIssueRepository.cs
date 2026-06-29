@@ -30,5 +30,13 @@ namespace OceansApp.DataAccess.Repository.IRepository
         /// ready for stateAsOf computation.
         /// </summary>
         Task<IEnumerable<Issue>> GetForTeamAsync(int teamId);
+
+        /// <summary>
+        /// Sets the Review pin override on an Issue. The pin is a Deferred-only override:
+        /// the Issue's state as of <paramref name="weekStart"/> must be
+        /// <see cref="IssueStatus.Deferred"/>, otherwise the call is rejected
+        /// (<see cref="InvalidOperationException"/>). Does not save.
+        /// </summary>
+        Task SetPinAsync(int issueId, bool pinned, DateOnly weekStart);
     }
 }

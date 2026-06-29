@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Domain.WeeklyPulse;
 using OceansApp.Models.Models;
 
 namespace OceansApp.DataAccess.Repository
@@ -51,5 +52,18 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<IEnumerable<Issue>> GetForTeamAsync(int teamId) =>
             await GetAllAsync(filter: i => i.TeamId == teamId, includeProperties: nameof(Issue.History));
+
+        public async Task SetPinAsync(int issueId, bool pinned, DateOnly weekStart)
+        {
+            var issue = await _db.ISSUES
+                .Include(i => i.History)
+                .FirstOrDefaultAsync(i => i.IssueId == issueId)
+                ?? throw new InvalidOperationException($"No issue {issueId}.");
+
+            // Pin is a Deferred-only override — rejected at the model level otherwise.
+            ReviewSurfacingService.EnsurePinnable(IssueStateService.StateAsOf(issue.History, weekStart));
+
+            issue.Pinned = pinned;
+        }
     }
 }

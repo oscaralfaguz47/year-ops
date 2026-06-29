@@ -5,6 +5,7 @@
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Dashboard</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
+    <a asp-action="Review" class="btn btn-primary btn-sm mb-2">Start Review</a>
     <hr />
 
     <div class="container">
@@ -51,7 +52,23 @@
                                         <strong>@issueRow.Issue.Title</strong>
                                         <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
                                         <span class="badge bg-info text-dark">@issueRow.State</span>
+                                        @if (issueRow.Issue.Pinned)
+                                        {
+                                            <span class="badge bg-warning text-dark">Pinned</span>
+                                        }
                                     </div>
+
+                                    @* Pin is offered only on Deferred issues — it un-parks them for Review. *@
+                                    @if (issueRow.State == IssueStatus.Deferred)
+                                    {
+                                        <form asp-action="SetPin" method="post" class="mt-1">
+                                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                            <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
+                                            </button>
+                                        </form>
+                                    }
 
                                     <form asp-action="TransitionIssue" method="post" class="d-flex gap-1 mt-1">
                                         <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />

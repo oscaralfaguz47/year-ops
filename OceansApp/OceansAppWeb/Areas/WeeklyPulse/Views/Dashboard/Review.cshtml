@@ -1,0 +1,58 @@
+@using OceansApp.Models.Models
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model ReviewVM
+
+<div class="text-center">
+    <h2 style="font-weight: bold">Weekly Pulse Review</h2>
+    <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">Back to Dashboard</a>
+
+    <div class="alert alert-info text-start" role="note">
+        @Model.HiddenHint
+    </div>
+    <hr />
+
+    <div class="container">
+        @foreach (var team in Model.Teams)
+        {
+            <div class="text-start mb-4">
+                <h4>
+                    <span class="badge bg-secondary">@team.Team.DisplayOrder</span>
+                    @team.Team.Name
+                </h4>
+
+                @if (!team.Issues.Any())
+                {
+                    <p class="text-muted">No issues surface for this team.</p>
+                }
+                else
+                {
+                    @foreach (var issueRow in team.Issues)
+                    {
+                        <div class="border rounded p-2 mb-2">
+                            <strong>@issueRow.Issue.Title</strong>
+                            <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                            <span class="badge bg-info text-dark">@issueRow.State</span>
+                            @if (issueRow.Issue.Pinned)
+                            {
+                                <span class="badge bg-warning text-dark">Pinned</span>
+                            }
+
+                            @* A pinned-Deferred issue can be un-pinned (re-parked) from Review. *@
+                            @if (issueRow.State == IssueStatus.Deferred)
+                            {
+                                <form asp-action="SetPin" method="post" class="mt-1">
+                                    <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                    <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                                        @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>

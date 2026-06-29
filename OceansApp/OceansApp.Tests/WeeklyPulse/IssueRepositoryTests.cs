@@ -113,5 +113,52 @@ namespace OceansApp.Tests.WeeklyPulse
             Assert.Equal(W2, comment.WeekStart);
             Assert.Equal(IssueStatus.Open, IssueStateService.StateAsOf(issue.History, W2));
         }
+
+        [Fact]
+        public async Task SetPinAsync_PinsDeferredIssue()
+        {
+            using var db = NewContext();
+            var repo = new IssueRepository(db);
+
+            await repo.RaiseAsync(new Issue
+            {
+                TeamId = 1,
+                Title = "Vendor SLA review",
+                Priority = IssuePriority.Med,
+                OriginWeekStart = W1
+            }, At(W1));
+            await db.SaveChangesAsync();
+
+            var issueId = (await repo.GetForTeamAsync(1)).Single().IssueId;
+            await repo.TransitionAsync(issueId, IssueStatus.Deferred, W2, At(W2));
+            await db.SaveChangesAsync();
+
+            await repo.SetPinAsync(issueId, pinned: true, W2);
+            await db.SaveChangesAsync();
+
+            Assert.True((await repo.GetForTeamAsync(1)).Single().Pinned);
+        }
+
+        [Fact]
+        public async Task SetPinAsync_RejectsNonDeferredIssue()
+        {
+            using var db = NewContext();
+            var repo = new IssueRepository(db);
+
+            // Issue is Open (never Deferred) — pinning must be rejected at the model level.
+            await repo.RaiseAsync(new Issue
+            {
+                TeamId = 1,
+                Title = "Open issue",
+                Priority = IssuePriority.Med,
+                OriginWeekStart = W1
+            }, At(W1));
+            await db.SaveChangesAsync();
+
+            var issueId = (await repo.GetForTeamAsync(1)).Single().IssueId;
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => repo.SetPinAsync(issueId, pinned: true, W1));
+        }
     }
 }

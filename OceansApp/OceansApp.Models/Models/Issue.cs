@@ -38,6 +38,14 @@ namespace OceansApp.Models.Models
         [Required]
         public DateOnly OriginWeekStart { get; set; }
 
+        /// <summary>
+        /// The Review pin override: when set, a <see cref="IssueStatus.Deferred"/> issue
+        /// is un-parked back into Review for the meeting. The pin is offered only on
+        /// Deferred issues (see <c>ReviewSurfacingService.EnsurePinnable</c>); Open issues
+        /// already surface and Solved ones are done.
+        /// </summary>
+        public bool Pinned { get; set; }
+
         /// <summary>The week-stamped status/comment history — one row per change.</summary>
         [ValidateNever]
         public ICollection<IssueHistory> History { get; set; } = new List<IssueHistory>();

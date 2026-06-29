@@ -103,6 +103,53 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Review()
+        {
+            var weekStart = WeekStartCalculator.Current();
+
+            var teams = await _unitOfWork.Team.GetAllAsync(
+                orderBy: q => q.OrderBy(t => t.DisplayOrder));
+
+            var issues = await _unitOfWork.Issue.GetAllAsync(
+                includeProperties: nameof(Issue.History));
+
+            // Surface the union of Open and pinned-Deferred issues, never Solved,
+            // grouped by the record's Team in meeting order.
+            var vm = new ReviewVM
+            {
+                WeekStart = weekStart,
+                Teams = teams.Select(t => new ReviewTeamVM
+                {
+                    Team = t,
+                    Issues = issues
+                        .Where(i => i.TeamId == t.TeamId)
+                        .Select(i => new IssueRowVM
+                        {
+                            Issue = i,
+                            State = IssueStateService.StateAsOf(i.History, weekStart)
+                        })
+                        .Where(r => ReviewSurfacingService.Surfaces(r.State, r.Issue.Pinned))
+                        .OrderByDescending(r => r.Issue.Priority)
+                        .ToList()
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPin(int issueId, bool pinned)
+        {
+            // The pin is offered only on Deferred issues; the repository rejects pinning
+            // any other state at the model level.
+            await _unitOfWork.Issue.SetPinAsync(issueId, pinned, WeekStartCalculator.Current());
+            await _unitOfWork.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RecordCheckIn(int teamId, CheckInType type, string note)
