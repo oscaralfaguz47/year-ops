@@ -36,5 +36,21 @@ namespace OceansApp.Models.Domain.WeeklyPulse
                 throw new InvalidOperationException(
                     $"Only Deferred issues are pinnable (state is {state}).");
         }
+
+        /// <summary>
+        /// How a KPI surfaces in Review. The scope gate comes first: a KPI that is not in
+        /// meeting scope (per <see cref="KpiScopeService.SurfacesInReview"/>) is
+        /// <see cref="KpiSurfacing.Hidden"/> regardless of its result. Among in-scope KPIs the
+        /// Green-quiet rule applies: a Green result is <see cref="KpiSurfacing.Quiet"/>, while
+        /// any other status — or a missing result (<paramref name="result"/> is <c>null</c>) —
+        /// is <see cref="KpiSurfacing.Loud"/>.
+        /// </summary>
+        public static KpiSurfacing SurfaceKpi(KpiDefinition kpi, KpiResult? result)
+        {
+            if (!KpiScopeService.SurfacesInReview(kpi))
+                return KpiSurfacing.Hidden;
+
+            return result is { Status: KpiStatus.Green } ? KpiSurfacing.Quiet : KpiSurfacing.Loud;
+        }
     }
 }
