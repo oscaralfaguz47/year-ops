@@ -102,6 +102,7 @@ namespace OceansApp.DataAccess.Repository
             Team = new TeamRepository(_db);
             CheckIn = new CheckInRepository(_db);
             Issue = new IssueRepository(_db);
+            ToDo = new ToDoRepository(_db);
             KpiDefinition = new KpiDefinitionRepository(_db);
             KpiResult = new KpiResultRepository(_db);
             Headline = new HeadlineRepository(_db);
@@ -174,6 +175,7 @@ namespace OceansApp.DataAccess.Repository
         public ITeamRepository Team { get; set; }
         public ICheckInRepository CheckIn { get; set; }
         public IIssueRepository Issue { get; set; }
+        public IToDoRepository ToDo { get; set; }
         public IKpiDefinitionRepository KpiDefinition { get; private set; }
         public IKpiResultRepository KpiResult { get; private set; }
         public IHeadlineRepository Headline { get; private set; }

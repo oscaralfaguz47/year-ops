@@ -33,6 +33,12 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>The Team's surfaced Issues for the Week, in priority order.</summary>
         public List<IssueRowVM> Issues { get; set; } = new();
+
+        /// <summary>
+        /// The Team's surfaced To-Dos for the Week — every non-Done To-Do, Blocked flagged
+        /// loud (see <see cref="ToDoRowVM.Surfacing"/>). Done to-dos are dropped.
+        /// </summary>
+        public List<ToDoRowVM> ToDos { get; set; } = new();
     }
 
     public class HeadlineRowVM

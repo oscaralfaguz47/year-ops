@@ -36,6 +36,13 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var issues = await _unitOfWork.Issue.GetAllAsync(
                 includeProperties: nameof(Issue.History));
 
+            // Living: all To-Dos carry across Weeks; show each as of this Week (non-Done only).
+            var toDos = await _unitOfWork.ToDo.GetAllAsync(
+                includeProperties: $"{nameof(ToDo.History)},{nameof(ToDo.Owner)}");
+
+            // Candidate owners for the To-Do owner dropdown.
+            var people = await _unitOfWork.ApplicationUser.GetAllAsync();
+
             // KPIs are structural (carry across Weeks); their results are this Week's snapshot.
             var kpis = (await _unitOfWork.KpiDefinition.GetAllAsync()).ToList();
             var kpiResults = await _unitOfWork.KpiResult.GetAllAsync(
@@ -81,9 +88,29 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                             .ToList(),
                         Headlines = headlines
                             .Where(h => h.TeamId == t.TeamId)
+                            .ToList(),
+                        // Living To-Dos surface on the Dashboard until Done.
+                        ToDos = toDos
+                            .Where(td => td.TeamId == t.TeamId)
+                            .Select(td => new ToDoRowVM
+                            {
+                                ToDo = td,
+                                State = ToDoStateService.StateAsOf(td.History, weekStart)
+                            })
+                            .Where(r => ReviewSurfacingService.ToDoShowsOnDashboard(r.State))
+                            .OrderBy(r => r.State)
+                            .ThenBy(r => r.ToDo.DueDate)
                             .ToList()
                     };
-                }).ToList()
+                }).ToList(),
+                People = people
+                    .OrderBy(p => p.Name).ThenBy(p => p.LastName)
+                    .Select(p => new PersonOptionVM
+                    {
+                        Id = p.Id,
+                        DisplayName = $"{p.Name} {p.LastName}".Trim()
+                    })
+                    .ToList()
             };
 
             return View(vm);
@@ -133,6 +160,37 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RaiseToDo(int teamId, string title, string ownerId, DateOnly dueDate)
+        {
+            if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(ownerId))
+            {
+                await _unitOfWork.ToDo.RaiseAsync(new ToDo
+                {
+                    TeamId = teamId,
+                    Title = title,
+                    OwnerId = ownerId,
+                    DueDate = dueDate,
+                    OriginWeekStart = WeekStartCalculator.Current()
+                }, DateTimeOffset.UtcNow);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TransitionToDo(int toDoId, ToDoStatus status)
+        {
+            await _unitOfWork.ToDo.TransitionAsync(
+                toDoId, status, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+            await _unitOfWork.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
         [HttpGet]
         public async Task<IActionResult> Review()
         {
@@ -143,6 +201,9 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
             var issues = await _unitOfWork.Issue.GetAllAsync(
                 includeProperties: nameof(Issue.History));
+
+            var toDos = await _unitOfWork.ToDo.GetAllAsync(
+                includeProperties: $"{nameof(ToDo.History)},{nameof(ToDo.Owner)}");
 
             // Snapshot: this Week's headlines open each team's segment as a news round.
             var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
@@ -173,6 +234,24 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                         })
                         .Where(r => ReviewSurfacingService.Surfaces(r.State, r.Issue.Pinned))
                         .OrderByDescending(r => r.Issue.Priority)
+                        .ToList(),
+                    // Every non-Done To-Do surfaces; Blocked is flagged loud, Done is dropped.
+                    ToDos = toDos
+                        .Where(td => td.TeamId == t.TeamId)
+                        .Select(td =>
+                        {
+                            var state = ToDoStateService.StateAsOf(td.History, weekStart);
+                            return new ToDoRowVM
+                            {
+                                ToDo = td,
+                                State = state,
+                                Surfacing = ReviewSurfacingService.SurfaceToDo(state)
+                            };
+                        })
+                        .Where(r => r.Surfacing != ToDoSurfacing.Hidden)
+                        // Blocked (Loud) first so it reads loud, then by due date.
+                        .OrderByDescending(r => r.Surfacing)
+                        .ThenBy(r => r.ToDo.DueDate)
                         .ToList()
                 }).ToList()
             };

@@ -1678,6 +1678,43 @@ namespace OceansApp.DataAccess.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // TO-DOS (Weekly Pulse Living entity — single identity across Weeks, ADR 0001)
+            modelBuilder.Entity<ToDo>(entity =>
+            {
+                entity.HasIndex(e => e.TeamId);
+                entity.HasIndex(e => e.OwnerId);
+                entity.HasIndex(e => e.OriginWeekStart);
+
+                entity.Property(e => e.DueDate).HasColumnType("date").IsRequired();
+                entity.Property(e => e.OriginWeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Owner)
+                    .WithMany()
+                    .HasForeignKey(e => e.OwnerId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // TO-DO HISTORY (week-stamped status/comment rows — one row per change)
+            modelBuilder.Entity<ToDoHistory>(entity =>
+            {
+                entity.HasIndex(e => new { e.ToDoId, e.WeekStart });
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.ToDo)
+                    .WithMany(t => t.History)
+                    .HasForeignKey(e => e.ToDoId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // KPI DEFINITIONS (Weekly Pulse structural record — one per metric, per Team)
             modelBuilder.Entity<KpiDefinition>(entity =>
             {
@@ -1812,6 +1849,8 @@ namespace OceansApp.DataAccess.Data
         public DbSet<CheckIn> CHECK_INS { get; set; }
         public DbSet<Issue> ISSUES { get; set; }
         public DbSet<IssueHistory> ISSUE_HISTORIES { get; set; }
+        public DbSet<ToDo> TODOS { get; set; }
+        public DbSet<ToDoHistory> TODO_HISTORIES { get; set; }
         public DbSet<KpiDefinition> KPI_DEFINITIONS { get; set; }
         public DbSet<KpiResult> KPI_RESULTS { get; set; }
         public DbSet<Headline> HEADLINES { get; set; }

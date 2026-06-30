@@ -63,5 +63,25 @@ namespace OceansApp.Models.Domain.WeeklyPulse
         /// </summary>
         public static HeadlineEmphasis SurfaceHeadline(HeadlineType type) =>
             type == HeadlineType.Risk ? HeadlineEmphasis.Loud : HeadlineEmphasis.Quiet;
+
+        /// <summary>
+        /// Whether a To-Do shows on the Dashboard: it surfaces until <see cref="ToDoStatus.Done"/>,
+        /// i.e. every non-Done To-Do is shown. A Done To-Do drops off.
+        /// </summary>
+        public static bool ToDoShowsOnDashboard(ToDoStatus state) => state != ToDoStatus.Done;
+
+        /// <summary>
+        /// How a To-Do surfaces in Review. Unlike a KPI there is no scope gate: <i>every</i>
+        /// non-Done To-Do surfaces. A <see cref="ToDoStatus.Done"/> To-Do is dropped
+        /// (<see cref="ToDoSurfacing.Hidden"/>), a <see cref="ToDoStatus.Blocked"/> To-Do is
+        /// flagged <see cref="ToDoSurfacing.Loud"/>, and an <see cref="ToDoStatus.Open"/> To-Do
+        /// is kept <see cref="ToDoSurfacing.Quiet"/>.
+        /// </summary>
+        public static ToDoSurfacing SurfaceToDo(ToDoStatus state) => state switch
+        {
+            ToDoStatus.Done => ToDoSurfacing.Hidden,
+            ToDoStatus.Blocked => ToDoSurfacing.Loud,
+            _ => ToDoSurfacing.Quiet
+        };
     }
 }

@@ -12,6 +12,9 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
     {
         public DateOnly WeekStart { get; set; }
         public List<TeamCheckInVM> Teams { get; set; } = new();
+
+        /// <summary>Candidate owners (id + display name) for the To-Do owner dropdown.</summary>
+        public List<PersonOptionVM> People { get; set; } = new();
     }
 
     public class TeamCheckInVM
@@ -23,6 +26,9 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>The team's living Issues with their state as of the Week.</summary>
         public List<IssueRowVM> Issues { get; set; } = new();
+
+        /// <summary>The team's living To-Dos (non-Done) with their state as of the Week.</summary>
+        public List<ToDoRowVM> ToDos { get; set; } = new();
 
         /// <summary>
         /// The team's readiness signal for the Week, derived only from its KPIs
@@ -51,5 +57,19 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>The Issue's state as of the Dashboard's Week (derived, not stored).</summary>
         public IssueStatus State { get; set; }
+    }
+
+    public class ToDoRowVM
+    {
+        public ToDo ToDo { get; set; }
+
+        /// <summary>The To-Do's state as of the Week (derived, not stored).</summary>
+        public ToDoStatus State { get; set; }
+
+        /// <summary>
+        /// How the To-Do surfaces in the Review (Blocked loud, Open quiet, Done hidden).
+        /// Set only on the Review surface; the Dashboard reads <see cref="State"/> directly.
+        /// </summary>
+        public ToDoSurfacing Surfacing { get; set; }
     }
 }

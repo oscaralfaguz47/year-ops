@@ -76,6 +76,35 @@
                         </div>
                     }
                 }
+
+                @* To-Dos: every non-Done to-do surfaces, Blocked flagged loud; Done is dropped. *@
+                <h6 class="text-muted mt-3">To-Dos</h6>
+                @if (!team.ToDos.Any())
+                {
+                    <p class="text-muted">No to-dos surface for this team.</p>
+                }
+                else
+                {
+                    @foreach (var toDoRow in team.ToDos)
+                    {
+                        var loud = toDoRow.Surfacing == ToDoSurfacing.Loud;
+                        <div class="alert @(loud ? "alert-danger" : "alert-secondary") py-2 mb-2" role="note">
+                            <span class="badge @(loud ? "bg-danger" : "bg-info text-dark")">@toDoRow.State</span>
+                            @if (loud)
+                            {
+                                <strong>@toDoRow.ToDo.Title</strong>
+                            }
+                            else
+                            {
+                                <span>@toDoRow.ToDo.Title</span>
+                            }
+                            <span class="text-muted small">
+                                — @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim()),
+                                due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
+                            </span>
+                        </div>
+                    }
+                }
             </div>
         }
     </div>
