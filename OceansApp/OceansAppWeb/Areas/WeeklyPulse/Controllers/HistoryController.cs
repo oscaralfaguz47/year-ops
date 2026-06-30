@@ -99,6 +99,52 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             return View(vm);
         }
 
+        /// <summary>
+        /// KPI History picker — the KPI definitions whose weekly results can be read back as
+        /// a Period-grouped history. Read-only (Participate).
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Kpis()
+        {
+            var kpis = await _unitOfWork.KpiDefinition.GetAllAsync(
+                includeProperties: nameof(KpiDefinition.Team));
+
+            var vm = new KpiHistoryIndexVM
+            {
+                Kpis = kpis.OrderBy(k => k.Team?.DisplayOrder).ThenBy(k => k.Name).ToList()
+            };
+            return View(vm);
+        }
+
+        /// <summary>
+        /// KPI History for a single KPI — its weekly results read in sequence and grouped by
+        /// the selected Period granularity (month / quarter / year). Display only: a Week
+        /// belongs wholly to the Period containing its Monday and no value is summed or
+        /// averaged (see <see cref="KpiHistoryService.GroupByPeriod"/>).
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Kpi(int kpiDefinitionId, PeriodGranularity granularity = PeriodGranularity.Month)
+        {
+            var kpi = (await _unitOfWork.KpiDefinition.GetAllAsync(
+                filter: k => k.KpiDefinitionId == kpiDefinitionId,
+                includeProperties: nameof(KpiDefinition.Team))).FirstOrDefault();
+            if (kpi == null)
+            {
+                return NotFound();
+            }
+
+            var results = await _unitOfWork.KpiResult.GetAllAsync(
+                filter: r => r.KpiDefinitionId == kpiDefinitionId);
+
+            var vm = new KpiHistoryVM
+            {
+                Kpi = kpi,
+                Granularity = granularity,
+                Periods = KpiHistoryService.GroupByPeriod(results, granularity)
+            };
+            return View(vm);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "Administer")]

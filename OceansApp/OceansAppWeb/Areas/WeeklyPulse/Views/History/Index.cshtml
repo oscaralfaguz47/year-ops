@@ -11,6 +11,7 @@
     <h2 style="font-weight: bold">Meeting History</h2>
     <p class="text-muted">Past Weeks, read back as minutes.</p>
     <a asp-action="Index" asp-controller="Dashboard" class="btn btn-outline-secondary btn-sm mb-3">Back to Dashboard</a>
+    <a asp-action="Kpis" class="btn btn-outline-secondary btn-sm mb-3">KPI History</a>
 
     <div class="container">
         @if (!Model.Weeks.Any())
