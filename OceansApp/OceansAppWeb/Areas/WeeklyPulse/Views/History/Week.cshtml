@@ -2,15 +2,6 @@
 @using OceansApp.Models.ViewModels.WeeklyPulse
 @model WeekMinutesVM
 
-@functions {
-    static string StatusCss(KpiStatus status) => status switch
-    {
-        KpiStatus.Green => "bg-success",
-        KpiStatus.Yellow => "bg-warning text-dark",
-        _ => "bg-danger"
-    };
-}
-
 <div class="text-center">
     <h2 style="font-weight: bold">Meeting Minutes</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd") — every entity shown as of this Week.</p>
@@ -62,7 +53,7 @@
                         @foreach (var kpiRow in team.Kpis)
                         {
                             <div class="border rounded p-2 mb-2">
-                                <span class="badge @StatusCss(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
                                 <span>@kpiRow.Kpi.Name</span>
                                 <span class="text-muted small">
                                     — @kpiRow.Result.Value (target @kpiRow.Kpi.Target)

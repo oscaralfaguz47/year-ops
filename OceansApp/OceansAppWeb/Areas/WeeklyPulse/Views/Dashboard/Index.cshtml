@@ -12,13 +12,6 @@
         _ => ("bg-secondary", "Not configured")
     };
 
-    static string StatusCss(KpiStatus status) => status switch
-    {
-        KpiStatus.Green => "bg-success",
-        KpiStatus.Yellow => "bg-warning text-dark",
-        _ => "bg-danger"
-    };
-
     // Risk reads loud, Highlight reads quiet — same emphasis as the Review news round.
     static string HeadlineCss(HeadlineType type) =>
         type == HeadlineType.Risk ? "bg-danger" : "bg-success";
@@ -71,7 +64,7 @@
                                         <span class="text-muted">(target @kpiRow.Kpi.Target)</span>
                                         @if (kpiRow.Result != null)
                                         {
-                                            <span class="badge @StatusCss(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                            <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
                                         }
                                         else
                                         {

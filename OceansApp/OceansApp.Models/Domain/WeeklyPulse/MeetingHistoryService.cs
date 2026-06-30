@@ -32,14 +32,23 @@ namespace OceansApp.Models.Domain.WeeklyPulse
         /// Whether an <see cref="Issue"/> was active in <paramref name="week"/>: it surfaced
         /// in that Week's Review (its as-of state surfaces, per
         /// <see cref="ReviewSurfacingService.Surfaces"/>) OR it had a status/comment row that
-        /// Week. Pure: derived from the history rows plus the pin flag.
+        /// Week. Pure: derived from the history rows.
+        ///
+        /// <para>An entity can never be active <i>before it existed</i>: a Week earlier than
+        /// <paramref name="originWeekStart"/> is not active, regardless of what
+        /// <see cref="IssueStateService.StateAsOf"/> would default to (it returns Open when no
+        /// row is on/before the Week, which would otherwise surface the Issue in pre-origin
+        /// Weeks). The live pin is deliberately <b>not</b> consulted: a pin is a mutable
+        /// current-meeting flag, not week-stamped, so feeding it into historical surfacing
+        /// would let toggling a pin today rewrite past minutes.</para>
         /// </summary>
-        public static bool IssueActiveInWeek(IEnumerable<IssueHistory> history, bool pinned, DateOnly week)
+        public static bool IssueActiveInWeek(IEnumerable<IssueHistory> history, DateOnly originWeekStart, DateOnly week)
         {
+            if (week < originWeekStart) return false;
             var rows = history as ICollection<IssueHistory> ?? history.ToList();
             var touchedThisWeek = rows.Any(h => h.WeekStart == week);
             var surfaces = ReviewSurfacingService.Surfaces(
-                IssueStateService.StateAsOf(rows, week), pinned);
+                IssueStateService.StateAsOf(rows, week), pinned: false);
             return touchedThisWeek || surfaces;
         }
 
@@ -48,10 +57,13 @@ namespace OceansApp.Models.Domain.WeeklyPulse
         /// that Week's Review (its as-of state is not <see cref="ToDoSurfacing.Hidden"/>, per
         /// <see cref="ReviewSurfacingService.SurfaceToDo"/>) OR it had a status/comment row
         /// that Week. Pure: derived from the history rows. Mirrors
-        /// <see cref="IssueActiveInWeek"/> (a To-Do has no pin).
+        /// <see cref="IssueActiveInWeek"/> (a To-Do has no pin), including the pre-origin
+        /// guard: a Week earlier than <paramref name="originWeekStart"/> is never active even
+        /// though <see cref="ToDoStateService.StateAsOf"/> defaults to Open there.
         /// </summary>
-        public static bool ToDoActiveInWeek(IEnumerable<ToDoHistory> history, DateOnly week)
+        public static bool ToDoActiveInWeek(IEnumerable<ToDoHistory> history, DateOnly originWeekStart, DateOnly week)
         {
+            if (week < originWeekStart) return false;
             var rows = history as ICollection<ToDoHistory> ?? history.ToList();
             var touchedThisWeek = rows.Any(h => h.WeekStart == week);
             var surfaces = ReviewSurfacingService.SurfaceToDo(

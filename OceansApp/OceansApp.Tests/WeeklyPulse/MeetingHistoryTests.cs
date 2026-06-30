@@ -56,8 +56,8 @@ namespace OceansApp.Tests.WeeklyPulse
                 IssueStatusRow(IssueStatus.Deferred, W2),
             };
 
-            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, W1));
-            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, W2));
+            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W1, W1));
+            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W1, W2));
 
             Assert.Equal(IssueStatus.Open, IssueStateService.StateAsOf(history, W1));
             Assert.Equal(IssueStatus.Deferred, IssueStateService.StateAsOf(history, W2));
@@ -70,7 +70,20 @@ namespace OceansApp.Tests.WeeklyPulse
             // and is therefore active in W2 despite having no row that Week.
             var history = new[] { IssueStatusRow(IssueStatus.Open, W1) };
 
-            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, W2));
+            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W1, W2));
+        }
+
+        [Fact]
+        public void IssueActiveInWeek_False_BeforeItExisted_DespiteStateAsOfDefaultingToOpen()
+        {
+            // Raised Open in W2 (origin = W2). In W1, before it existed, StateAsOf defaults
+            // to Open (no row on/before W1) which would surface it — the origin guard must
+            // keep it out of pre-origin Weeks.
+            var history = new[] { IssueStatusRow(IssueStatus.Open, W2) };
+
+            Assert.Equal(IssueStatus.Open, IssueStateService.StateAsOf(history, W1)); // the trap
+            Assert.False(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W2, W1));
+            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W2, W2));
         }
 
         [Fact]
@@ -84,16 +97,16 @@ namespace OceansApp.Tests.WeeklyPulse
                 IssueCommentRow(W3),
             };
 
-            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, W3));
+            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W2, W3));
         }
 
         [Fact]
         public void IssueActiveInWeek_False_WhenParkedQuietAndUntouchedThatWeek()
         {
-            // Deferred in W2, unpinned, no row in W3: neither surfaces nor touched -> not active.
+            // Deferred in W2, no row in W3: neither surfaces nor touched -> not active.
             var history = new[] { IssueStatusRow(IssueStatus.Deferred, W2) };
 
-            Assert.False(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, W3));
+            Assert.False(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W2, W3));
         }
 
         [Fact]
@@ -103,18 +116,19 @@ namespace OceansApp.Tests.WeeklyPulse
             // week — a Solved issue never surfaces.
             var history = new[] { IssueStatusRow(IssueStatus.Solved, W3) };
 
-            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, W3));
-            Assert.False(MeetingHistoryService.IssueActiveInWeek(history, pinned: false, new DateOnly(2026, 6, 22)));
+            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W3, W3));
+            Assert.False(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W3, new DateOnly(2026, 6, 22)));
         }
 
         [Fact]
-        public void IssueActiveInWeek_True_WhenPinnedDeferred_Surfaces()
+        public void IssueActiveInWeek_IgnoresLivePin_SoTogglingItCannotRewritePastMinutes()
         {
-            // A pinned Deferred issue is un-parked back into Review, so it is active even
-            // in a week with no row of its own.
+            // A Deferred issue untouched in W3 is quiet in Review. The live pin is a mutable
+            // current-meeting flag (not week-stamped), so it must NOT make the issue active
+            // in past minutes — otherwise toggling the pin today would rewrite W3's record.
             var history = new[] { IssueStatusRow(IssueStatus.Deferred, W2) };
 
-            Assert.True(MeetingHistoryService.IssueActiveInWeek(history, pinned: true, W3));
+            Assert.False(MeetingHistoryService.IssueActiveInWeek(history, originWeekStart: W2, W3));
         }
 
         // ---- ToDoActiveInWeek ----------------------------------------------
@@ -130,9 +144,20 @@ namespace OceansApp.Tests.WeeklyPulse
                 ToDoStatusRow(ToDoStatus.Done, W3),
             };
 
-            Assert.True(MeetingHistoryService.ToDoActiveInWeek(history, W2));
-            Assert.True(MeetingHistoryService.ToDoActiveInWeek(history, W3));
-            Assert.False(MeetingHistoryService.ToDoActiveInWeek(history, new DateOnly(2026, 6, 22)));
+            Assert.True(MeetingHistoryService.ToDoActiveInWeek(history, originWeekStart: W1, W2));
+            Assert.True(MeetingHistoryService.ToDoActiveInWeek(history, originWeekStart: W1, W3));
+            Assert.False(MeetingHistoryService.ToDoActiveInWeek(history, originWeekStart: W1, new DateOnly(2026, 6, 22)));
+        }
+
+        [Fact]
+        public void ToDoActiveInWeek_False_BeforeItExisted_DespiteStateAsOfDefaultingToOpen()
+        {
+            // Created Open in W2 (origin = W2). In W1, before it existed, StateAsOf defaults
+            // to Open (which surfaces) — the origin guard must keep it out of pre-origin Weeks.
+            var history = new[] { ToDoStatusRow(ToDoStatus.Open, W2) };
+
+            Assert.False(MeetingHistoryService.ToDoActiveInWeek(history, originWeekStart: W2, W1));
+            Assert.True(MeetingHistoryService.ToDoActiveInWeek(history, originWeekStart: W2, W2));
         }
 
         // ---- DistinctWeeks --------------------------------------------------

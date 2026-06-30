@@ -58,9 +58,13 @@ namespace OceansApp.Models.Domain.WeeklyPulse
                 .Where(h => h.WeekStart == week && h.Type == HeadlineType.Risk)
                 .ToList();
 
-            // Risks, part 2: High/Critical Issues still Open as of this Week.
+            // Risks, part 2: High/Critical Issues still Open as of this Week. The
+            // OriginWeekStart guard keeps an Issue out of Weeks before it existed —
+            // StateAsOf defaults to Open for any Week with no row on/before it, which would
+            // otherwise flag a not-yet-created Issue as an open risk.
             var riskIssues = issueList
-                .Where(i => (i.Priority == IssuePriority.High || i.Priority == IssuePriority.Critical)
+                .Where(i => i.OriginWeekStart <= week
+                            && (i.Priority == IssuePriority.High || i.Priority == IssuePriority.Critical)
                             && IssueStateService.StateAsOf(i.History, week) == IssueStatus.Open)
                 .OrderByDescending(i => i.Priority)
                 .ThenBy(i => i.Title)

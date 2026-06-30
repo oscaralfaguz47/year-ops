@@ -73,7 +73,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                     // appears under every Week it touched, with its per-week progression).
                     Issues = issues
                         .Where(i => i.TeamId == t.TeamId)
-                        .Where(i => MeetingHistoryService.IssueActiveInWeek(i.History, i.Pinned, weekStart))
+                        .Where(i => MeetingHistoryService.IssueActiveInWeek(i.History, i.OriginWeekStart, weekStart))
                         .Select(i => new IssueRowVM
                         {
                             Issue = i,
@@ -84,7 +84,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                         .ToList(),
                     ToDos = toDos
                         .Where(td => td.TeamId == t.TeamId)
-                        .Where(td => MeetingHistoryService.ToDoActiveInWeek(td.History, weekStart))
+                        .Where(td => MeetingHistoryService.ToDoActiveInWeek(td.History, td.OriginWeekStart, weekStart))
                         .Select(td => new ToDoRowVM
                         {
                             ToDo = td,
@@ -189,9 +189,11 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
         {
             // Administer-gated: remove a past Week from the record. Deletes everything stamped
             // to that WeekStart — the snapshots (check-ins, headlines, KPI results) and the
-            // week-stamped living-entity history rows. The Issues/To-Dos themselves remain;
-            // their state simply re-derives from whatever rows are left. One SaveAsync commits
-            // it all atomically.
+            // week-stamped living-entity history rows. An Issue/To-Do active in other Weeks
+            // keeps its remaining rows and simply re-derives its state; but one whose ENTIRE
+            // history was in this Week would be left with no rows and silently re-derive to a
+            // phantom Open state forever (StateAsOf defaults to Open) — so those orphans are
+            // removed outright. One SaveAsync commits it all atomically.
             var checkIns = await _unitOfWork.CheckIn.GetAllAsync(filter: c => c.WeekStart == weekStart);
             _unitOfWork.CheckIn.RemoveRange(checkIns);
 
@@ -203,6 +205,15 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
             await _unitOfWork.Issue.DeleteHistoryForWeekAsync(weekStart);
             await _unitOfWork.ToDo.DeleteHistoryForWeekAsync(weekStart);
+
+            // Remove living entities whose only history was in the deleted Week.
+            var issues = await _unitOfWork.Issue.GetAllAsync(includeProperties: nameof(Issue.History));
+            _unitOfWork.Issue.RemoveRange(
+                issues.Where(i => i.History.Any() && i.History.All(h => h.WeekStart == weekStart)).ToList());
+
+            var toDos = await _unitOfWork.ToDo.GetAllAsync(includeProperties: nameof(ToDo.History));
+            _unitOfWork.ToDo.RemoveRange(
+                toDos.Where(td => td.History.Any() && td.History.All(h => h.WeekStart == weekStart)).ToList());
 
             await _unitOfWork.SaveAsync();
 

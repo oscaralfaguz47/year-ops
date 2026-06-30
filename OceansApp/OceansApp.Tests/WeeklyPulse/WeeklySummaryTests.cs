@@ -118,6 +118,29 @@ namespace OceansApp.Tests.WeeklyPulse
                 summary.RiskIssues.Select(i => i.Title));
         }
 
+        [Fact]
+        public void Risks_ExcludeHighCriticalIssues_FromWeeksBeforeTheyExisted()
+        {
+            // Critical Issue raised in W3 (origin = W3). Deriving the Summary for W2 (before
+            // it existed): StateAsOf defaults to Open for W2 (no row on/before it), which
+            // would wrongly flag a not-yet-created Issue as an open risk — the OriginWeekStart
+            // guard must exclude it.
+            var futureCritical = new Issue
+            {
+                Title = "Not yet raised",
+                Priority = IssuePriority.Critical,
+                OriginWeekStart = W3,
+                History = new[] { Status(IssueStatus.Open, W3) }
+            };
+
+            Assert.Equal(IssueStatus.Open, IssueStateService.StateAsOf(futureCritical.History, W2)); // the trap
+
+            var summary = WeeklySummaryService.Derive(
+                new[] { futureCritical }, Array.Empty<ToDo>(), Array.Empty<Headline>(), W2);
+
+            Assert.Empty(summary.RiskIssues);
+        }
+
         // ---- Summary text <- the suggested-format sentence -----------------
 
         [Fact]

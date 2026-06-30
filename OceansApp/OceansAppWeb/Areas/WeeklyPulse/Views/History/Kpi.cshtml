@@ -10,13 +10,6 @@
         PeriodGranularity.Quarter => $"Q{p.Index} {p.Year}",
         _ => p.Year.ToString()
     };
-
-    static string StatusBadge(KpiStatus s) => s switch
-    {
-        KpiStatus.Green => "bg-success",
-        KpiStatus.Yellow => "bg-warning text-dark",
-        _ => "bg-danger"
-    };
 }
 
 <div class="text-center">
@@ -55,7 +48,7 @@
                             {
                                 if (period.StatusTally.TryGetValue(status, out var count))
                                 {
-                                    <span class="badge @StatusBadge(status) ms-1">@status: @count</span>
+                                    <span class="badge @KpiBadge.Css(status) ms-1">@status: @count</span>
                                 }
                             }
                         </span>
@@ -68,7 +61,7 @@
                                     <span class="text-muted small">Week of @result.WeekStart.ToString("yyyy-MM-dd")</span>
                                     &mdash; @result.Value
                                 </span>
-                                <span class="badge @StatusBadge(result.Status)">@result.Status</span>
+                                <span class="badge @KpiBadge.Css(result.Status)">@result.Status</span>
                             </li>
                         }
                     </ul>
