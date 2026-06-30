@@ -312,6 +312,16 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 MethodResponse response = await _unitOfWork.ConsultantPayment.ApproveAndRejectSubmission(userActionedBy, dataFromUser, baseUrl);
                 if (!response.Success)
                 {
+                    // Surface validation failures (e.g. consultant has no payment method) in the shape the
+                    // approve modal renders as a warning toast, rather than the generic "unexpected error".
+                    if (response.MessageType == "Validation Error")
+                    {
+                        var validationErrors = new Dictionary<string, List<string>>
+                        {
+                            { response.FieldName ?? "Submission", new List<string> { response.Message } }
+                        };
+                        return BadRequest(new { errors = validationErrors, messageType = "Validation Error" });
+                    }
                     return BadRequest(new { error = response.Message, messageType = response.MessageType });
                 }
 
