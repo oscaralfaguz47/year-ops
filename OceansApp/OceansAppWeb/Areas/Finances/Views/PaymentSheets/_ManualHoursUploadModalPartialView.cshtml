@@ -38,9 +38,9 @@
                     </div>
 
                     <div>
-                        <label for="mhu-hours"><strong>4. Hours per day</strong></label>
-                        <input id="mhu-hours" type="number" min="0" step="0.5" value="8" class="form-control" placeholder="e.g. 8" />
-                        <small style="color: #555;">Autofill standard: 8 h/day, Monday–Friday (weekends and holidays are skipped). Edit this if the consultant's schedule is different.</small>
+                        <label for="mhu-hours"><strong>4. Total hours for the period</strong> <span id="mhu-days" style="color: #555; font-weight: normal;"></span></label>
+                        <input id="mhu-hours" type="number" min="0.5" step="0.5" class="form-control" placeholder="e.g. 160" />
+                        <small style="color: #555;">Defaults to the period's full-time hours (workable days × 8). Override to add or drop a few hours. Don't add holiday hours — if the project pays holidays, they're added automatically later.</small>
                     </div>
 
                     <div id="mhu-message" style="margin-top: 8px;"></div>
@@ -55,7 +55,7 @@
 
                 <div class="action-btns-box">
                     <button type="button" onclick="hideModal('modal-manual-hours-upload')" class="cancel-btn">Cancel</button>
-                    <button type="button" class="review-btn" onclick="mhuReview()">Review</button>
+                    <button type="button" id="mhu-review-btn" class="review-btn" onclick="mhuReview()">Review</button>
                 </div>
             </div>
         </div>

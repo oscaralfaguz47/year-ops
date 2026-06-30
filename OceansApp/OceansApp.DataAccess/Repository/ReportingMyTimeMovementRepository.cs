@@ -654,19 +654,21 @@ namespace OceansApp.DataAccess.Repository
         }
 
         public async Task<MethodResponse> UploadHoursOnBehalf(string actingAdminUserId, int subjectConsultantId,
-            int projectId, DateTime periodStart, DateTime periodEnd, decimal hoursPerDay)
+            int projectId, DateTime periodStart, DateTime periodEnd, decimal totalHours)
         {
             // Admin-driven autofill: AutofillTimeEntryTrackingTool + CreateSubmission fused, with the
             // actor/subject split threaded through. Movements/submission key to the SUBJECT consultant
             // (including their PaymentPeriod); the acting admin is recorded for audit. See docs/adr/0002.
-            // Like autofill, hoursPerDay is the daily quantity written to EACH weekday (not a period total).
+            // totalHours is the PERIOD total the admin is filing; the server recomputes the workable-day
+            // count and spreads it across those days (even to the cent, trailing days carry the
+            // remainder). See docs/adr/0003.
             if (string.IsNullOrWhiteSpace(actingAdminUserId))
             {
                 return MethodResponse.CreateFailureExceptionResponse("Acting admin user is required.");
             }
-            if (hoursPerDay <= 0)
+            if (totalHours <= 0)
             {
-                return MethodResponse.CreateFailureValidationResponse("Enter a number of hours per day greater than zero.", "Hours");
+                return MethodResponse.CreateFailureValidationResponse("Enter a total number of hours greater than zero.", "Hours");
             }
 
             await using (var transaction = await _db.Database.BeginTransactionAsync())
@@ -730,24 +732,23 @@ namespace OceansApp.DataAccess.Repository
                     var startDateFormat = periodStartCanonical.Date;
                     var endDateFormat = periodEndCanonical.Date;
 
-                    // Resolve the subject's holidays for the period exactly as autofill does.
-                    var currentProjectHistory = await _projectConsultantAssignedHistoryRepository
-                        .GetCurrentProjectConsultantHistoryAsync(subject.ConsultantId, projectId, periodEndCanonical);
-
-                    IEnumerable<ConsultantHolidayDate> holidays = new List<ConsultantHolidayDate>();
-                    if (currentProjectHistory != null && currentProjectHistory.IsDefaultProject
-                        && currentProjectHistory.HolidaysMustBePaid && subject.ConsultantHolidayId > 0)
-                    {
-                        holidays = await _db.CONSULTANT_HOLIDAY_DATES
-                            .Where(x => x.ConsultantHolidayId == subject.ConsultantHolidayId
-                                     && x.Date >= periodStartCanonical && x.Date <= periodEndCanonical)
-                            .ToListAsync();
-                    }
-
-                    var weekdayDates = WeekdaySpread.GetWeekdayDates(startDateFormat, endDateFormat, holidays.Select(h => h.Date));
+                    // Workable days come from one shared resolver — the SAME day-set the preview endpoint
+                    // shows the admin and the spread divides by, so the displayed default and the filed
+                    // total can't diverge. Server owns N; the client never sends it. See docs/adr/0003.
+                    var weekdayDates = await GetWorkableWeekdayDatesAsync(subject, projectId, periodStart);
                     if (weekdayDates.Count == 0)
                     {
                         return MethodResponse.CreateFailureValidationResponse("The selected period has no weekdays to fill hours on.", "Hours");
+                    }
+
+                    // Reject a physically impossible total: more than 24h on every workable day is a typo,
+                    // not a real figure. Besides the absurd pay, such a day synthesizes an out-of-range
+                    // TimeFrom/TimeTo window (e.g. "27:16") that breaks the approvals review screen the
+                    // per-day window exists to satisfy. See docs/adr/0003.
+                    if (totalHours > weekdayDates.Count * 24m)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse(
+                            "The total hours exceed the maximum possible for this period.", "Hours");
                     }
 
                     // Overwrite any existing in-period movements for this consultant/project (drafts/rejected).
@@ -760,31 +761,43 @@ namespace OceansApp.DataAccess.Repository
                         _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete);
                     }
 
-                    // Synthesize a daily TimeFrom/TimeTo window spanning hoursPerDay (e.g. 8h -> 09:00-17:00),
-                    // anchored at 09:00 unless that overflows the day. Autofill movements always carry
-                    // TimeFrom/TimeTo; the approvals review screen renders them, so on-behalf movements must
-                    // too (a null TimeFrom breaks that screen). Quantity stays hoursPerDay, matching the window.
-                    int dailyMinutes = (int)Math.Round((double)hoursPerDay * 60);
-                    int startMinutes = (9 * 60 + dailyMinutes <= 24 * 60) ? 9 * 60 : 0;
-                    string timeFrom = $"{startMinutes / 60:D2}:{startMinutes % 60:D2}";
-                    string timeTo = $"{(startMinutes + dailyMinutes) / 60:D2}:{(startMinutes + dailyMinutes) % 60:D2}";
+                    // Spread the period total across the workable days. Even split to the cent, with the
+                    // last few days carrying one extra cent each to soak up the remainder so the filed
+                    // movements sum to exactly totalHours. In the default case (totalHours == N×8) this is
+                    // a flat 8.00/day. See docs/adr/0003.
+                    var dailyQuantities = PeriodTotalSpread.Spread(totalHours, weekdayDates.Count);
 
-                    // Autofill semantics: write the same daily quantity to every weekday (skipping
-                    // weekends/holidays), exactly like AutofillTimeEntryTrackingTool.
-                    foreach (var date in weekdayDates)
+                    for (var i = 0; i < weekdayDates.Count; i++)
                     {
+                        var quantity = dailyQuantities[i];
+                        if (quantity <= 0)
+                        {
+                            // A day that came out at 0 cents (a tiny total, fewer cents than days)
+                            // carries no movement; the non-zero cents landed on the trailing days. See docs/adr/0003.
+                            continue;
+                        }
+
+                        // Synthesize THIS day's TimeFrom/TimeTo window spanning its own quantity (e.g. 8h ->
+                        // 09:00-17:00), anchored at 09:00 unless that overflows the day. Computed per day so
+                        // the remainder day gets its own window. Autofill movements always carry TimeFrom/
+                        // TimeTo; the approvals review screen renders them (a null TimeFrom breaks it).
+                        int dailyMinutes = (int)Math.Round((double)quantity * 60);
+                        int startMinutes = (9 * 60 + dailyMinutes <= 24 * 60) ? 9 * 60 : 0;
+                        string timeFrom = $"{startMinutes / 60:D2}:{startMinutes % 60:D2}";
+                        string timeTo = $"{(startMinutes + dailyMinutes) / 60:D2}:{(startMinutes + dailyMinutes) % 60:D2}";
+
                         var timeMovementToCreate = new ReportingMyTimeMovement
                         {
                             ConsultantId = subject.ConsultantId,
                             ProjectId = projectId,
-                            ActionDate = date,
+                            ActionDate = weekdayDates[i],
                             Notes = "Uploaded on behalf by an admin.",
                             TransactionStatusId = transactionStatusWaiting.TransactionStatusId,
                             MovementTypeId = movementType.MovementTypeId,
                             CreationDate = DateTime.UtcNow,
                             TimeFrom = timeFrom,
                             TimeTo = timeTo,
-                            Quantity = hoursPerDay,
+                            Quantity = quantity,
                             IsBillable = project.IsBillable,
                             NonBillableReason = "The project is non billable by default.",
                             UserIdLastUpdatedBy = actingAdminUserId  // actor stamped on each movement
@@ -852,6 +865,69 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
+        }
+
+        /// <summary>
+        /// Read-only workable-day count for a subject/project/period, for the Manual Hours Upload
+        /// preview: the admin's modal calls this on open to prefill the suggested total (N × 8) and
+        /// show "N days". Returns 0 when the upload would refuse the same inputs — consultant unknown,
+        /// no payment period, not assigned to the project, or a tracking-tool project — so the modal
+        /// treats 0 as "nothing to fill" and keeps submit disabled instead of promising an upload the
+        /// server will then reject. The 0-cases here mirror the guards in <see cref="UploadHoursOnBehalf"/>.
+        /// Shares <see cref="GetWorkableWeekdayDatesAsync"/> with the upload so the count shown and the
+        /// count filed are one server-computed N. See docs/adr/0003.
+        /// </summary>
+        public async Task<int> GetWorkableDaysAsync(int subjectConsultantId, int projectId, DateTime periodDate)
+        {
+            var subject = await _db.CONSULTANT_DETAILS.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ConsultantId == subjectConsultantId);
+            if (subject?.PaymentPeriod == null)
+            {
+                return 0;
+            }
+            if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == projectId && x.ConsultantId == subjectConsultantId))
+            {
+                return 0;
+            }
+            // Mirror the upload's tracking-tool guard: autofill can't satisfy a tracking-tool project's
+            // evidence gate, so the upload rejects it — the preview must too, or it would prefill a total
+            // and enable Review for an upload that Confirm then refuses. See docs/adr/0002 + 0003.
+            var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId);
+            if (project == null || project.ClientHasTrackingTool)
+            {
+                return 0;
+            }
+
+            var weekdayDates = await GetWorkableWeekdayDatesAsync(subject, projectId, periodDate);
+            return weekdayDates.Count;
+        }
+
+        /// <summary>
+        /// The shared workable-day resolver for Manual Hours Upload: canonical period boundaries from
+        /// the SUBJECT's PaymentPeriod, minus weekends and (on paying assignments) paid holidays —
+        /// the exact day-set the spread writes to. Paying-assignment holidays are excluded because the
+        /// payment computation pays them separately via the auto "Holidays" movement; non-paying
+        /// holidays are included as normal work. Used by both the preview and the upload so they share
+        /// one N. See docs/adr/0003.
+        /// </summary>
+        private async Task<List<DateTime>> GetWorkableWeekdayDatesAsync(ConsultantDetail subject, int projectId, DateTime periodDate)
+        {
+            var period = CalculatePaymentPeriodDates(periodDate, subject.PaymentPeriod.Value);
+
+            var currentProjectHistory = await _projectConsultantAssignedHistoryRepository
+                .GetCurrentProjectConsultantHistoryAsync(subject.ConsultantId, projectId, period.EndDate);
+
+            IEnumerable<ConsultantHolidayDate> holidays = new List<ConsultantHolidayDate>();
+            if (currentProjectHistory != null && currentProjectHistory.IsDefaultProject
+                && currentProjectHistory.HolidaysMustBePaid && subject.ConsultantHolidayId > 0)
+            {
+                holidays = await _db.CONSULTANT_HOLIDAY_DATES
+                    .Where(x => x.ConsultantHolidayId == subject.ConsultantHolidayId
+                             && x.Date >= period.StartDate && x.Date <= period.EndDate)
+                    .ToListAsync();
+            }
+
+            return WeekdaySpread.GetWeekdayDates(period.StartDate.Date, period.EndDate.Date, holidays.Select(h => h.Date));
         }
 
         public async Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,
