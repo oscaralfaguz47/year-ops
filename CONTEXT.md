@@ -75,12 +75,36 @@ A consultant with no active assignment is out of scope (assign them first, per A
 [pay period](#pay-period-quincena)**, not one lump for a whole absence.
 
 It is modelled as **autofill performed by an admin on someone else's behalf**: it reuses the existing
-autofill behaviour (spread the entered hours across the period's weekdays) plus the submit step, so it
-lands at **"Waiting to be approved"** and goes through normal review — it is **never auto-approved**.
+autofill behaviour plus the submit step, so it lands at **"Waiting to be approved"** and goes through
+normal review — it is **never auto-approved**. The admin enters a **period total**, which defaults to
+the period's [workable days](#workable-days) × 8 h and is overridable; the total is spread evenly across
+those workable days to the cent, with the last few days carrying any rounding remainder so the movements
+sum to exactly the entered total. The admin never enters holiday hours — paid holidays are paid automatically by the
+payment computation, separately from this upload (see [Workable Days](#workable-days)).
 Because autofill only operates on **no-tracking-tool projects** (it rejects tracking-tool projects),
 manual hours upload is scoped to no-tracking-tool assignments. **Tracking-tool projects are out of
 scope** — their submit requires consultant-supplied evidence screenshots an admin cannot produce —
 and remain an operator/manual case (same spirit as ADR 0001). No evidence-file gate is involved.
+
+## Workable Days
+
+The set of **weekdays** (Mon–Fri) in a pay period that an on-behalf [Manual Hours Upload](#manual-hours-upload)
+fills normal hours on — concretely, the days `WeekdaySpread.GetWeekdayDates` produces for that
+consultant/project/period. It is both the basis for the upload's default total (workable days × 8 h) and
+the divisor the entered total is spread across; computed **server-side** so the displayed count, the
+default, and the actual spread can never diverge.
+
+Holidays are handled by the *paid-holiday* rule, not by a separate count:
+
+- On a **holiday-paying assignment** (`IsDefaultProject && HolidaysMustBePaid`), the consultant's
+  holidays are **excluded** from workable days — they are *not* filled with normal hours here, because
+  the payment computation already injects a separate paid **"Holidays"** movement
+  (`NumHoursForHoliday`, default 8 h) for each. Filling them here too would pay the day twice.
+- On a **non-paying assignment**, holidays are ordinary workdays and are **included** in workable days
+  (filled as normal hours).
+
+This is the inverse of "paying ⇒ add the holiday hours," and it is deliberate: paying assignments get
+the holiday paid through the automatic channel, non-paying ones get it as worked time — each paid once.
 
 ## Pay Period (quincena)
 
