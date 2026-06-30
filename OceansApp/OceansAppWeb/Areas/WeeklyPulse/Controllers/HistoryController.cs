@@ -100,6 +100,43 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
         }
 
         /// <summary>
+        /// Weekly Summary — an auto-assembled, READ-ONLY draft computed on the fly from the
+        /// Week's data (never stored — see ADR 0001). For each Team: decisions are the Issues
+        /// Solved this Week, actions the To-Dos raised this Week, risks the Week's Risk-type
+        /// Headlines plus its open High/Critical Issues, and a single suggested-format
+        /// sentence (see <see cref="WeeklySummaryService.Derive"/>). Read-only (Participate);
+        /// no WeeklySummary row is created.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Summary(DateOnly weekStart)
+        {
+            var teams = await _unitOfWork.Team.GetAllAsync(
+                orderBy: q => q.OrderBy(t => t.DisplayOrder));
+
+            var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
+            var issues = await _unitOfWork.Issue.GetAllAsync(includeProperties: nameof(Issue.History));
+            var toDos = await _unitOfWork.ToDo.GetAllAsync(
+                includeProperties: $"{nameof(ToDo.History)},{nameof(ToDo.Owner)}");
+
+            var vm = new WeeklySummaryVM
+            {
+                WeekStart = weekStart,
+                Teams = teams.Select(t => new WeeklySummaryTeamVM
+                {
+                    Team = t,
+                    // Pure derivation over this Team's slice of the Week's data — nothing stored.
+                    Summary = WeeklySummaryService.Derive(
+                        issues.Where(i => i.TeamId == t.TeamId),
+                        toDos.Where(td => td.TeamId == t.TeamId),
+                        headlines.Where(h => h.TeamId == t.TeamId),
+                        weekStart)
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        /// <summary>
         /// KPI History picker — the KPI definitions whose weekly results can be read back as
         /// a Period-grouped history. Read-only (Participate).
         /// </summary>
