@@ -87,5 +87,13 @@ namespace OceansApp.DataAccess.Repository
 
             issue.Pinned = pinned;
         }
+
+        public async Task DeleteHistoryForWeekAsync(DateOnly weekStart)
+        {
+            var rows = await _db.ISSUE_HISTORIES
+                .Where(h => h.WeekStart == weekStart)
+                .ToListAsync();
+            _db.ISSUE_HISTORIES.RemoveRange(rows);
+        }
     }
 }

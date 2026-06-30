@@ -1,0 +1,118 @@
+@using OceansApp.Models.Models
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model WeekMinutesVM
+
+@functions {
+    static string StatusCss(KpiStatus status) => status switch
+    {
+        KpiStatus.Green => "bg-success",
+        KpiStatus.Yellow => "bg-warning text-dark",
+        _ => "bg-danger"
+    };
+}
+
+<div class="text-center">
+    <h2 style="font-weight: bold">Meeting Minutes</h2>
+    <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd") — every entity shown as of this Week.</p>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">Back to History</a>
+
+    <div class="container">
+        @foreach (var team in Model.Teams)
+        {
+            <div class="text-start mb-4">
+                <h4>
+                    <span class="badge bg-secondary">@team.Team.DisplayOrder</span>
+                    @team.Team.Name
+                </h4>
+
+                @* Snapshot: the Team's check-in (segue) for the Week. *@
+                @if (team.CheckIn != null)
+                {
+                    <div class="mb-3">
+                        <h6 class="text-muted">Check-in</h6>
+                        <div class="border rounded p-2">
+                            <span class="badge bg-secondary">@team.CheckIn.Type</span>
+                            <span>@team.CheckIn.Note</span>
+                        </div>
+                    </div>
+                }
+
+                @* Snapshot: the Week's news round. *@
+                @if (team.Headlines.Any())
+                {
+                    <div class="mb-3">
+                        <h6 class="text-muted">News round</h6>
+                        @foreach (var headline in team.Headlines)
+                        {
+                            <div class="border rounded p-2 mb-2">
+                                <span class="badge bg-secondary">@headline.Type</span>
+                                <span>@headline.Text</span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* Snapshot: KPI results recorded that Week. *@
+                @if (team.Kpis.Any())
+                {
+                    <div class="mb-3">
+                        <h6 class="text-muted">KPIs</h6>
+                        @foreach (var kpiRow in team.Kpis)
+                        {
+                            <div class="border rounded p-2 mb-2">
+                                <span class="badge @StatusCss(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                <span>@kpiRow.Kpi.Name</span>
+                                <span class="text-muted small">
+                                    — @kpiRow.Result.Value (target @kpiRow.Kpi.Target)
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* Living: Issues active that Week, as of that Week. *@
+                <h6 class="text-muted">Issues</h6>
+                @if (!team.Issues.Any())
+                {
+                    <p class="text-muted">No issues active for this team that Week.</p>
+                }
+                else
+                {
+                    @foreach (var issueRow in team.Issues)
+                    {
+                        <div class="border rounded p-2 mb-2">
+                            <strong>@issueRow.Issue.Title</strong>
+                            <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                            <span class="badge bg-info text-dark">@issueRow.State</span>
+                            @if (issueRow.Issue.Pinned)
+                            {
+                                <span class="badge bg-warning text-dark">Pinned</span>
+                            }
+                        </div>
+                    }
+                }
+
+                @* Living: To-Dos active that Week, as of that Week. *@
+                <h6 class="text-muted mt-3">To-Dos</h6>
+                @if (!team.ToDos.Any())
+                {
+                    <p class="text-muted">No to-dos active for this team that Week.</p>
+                }
+                else
+                {
+                    @foreach (var toDoRow in team.ToDos)
+                    {
+                        <div class="border rounded p-2 mb-2">
+                            <span class="badge bg-info text-dark">@toDoRow.State</span>
+                            <span>@toDoRow.ToDo.Title</span>
+                            <span class="text-muted small">
+                                — @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim()),
+                                due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
+                            </span>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -63,5 +63,13 @@ namespace OceansApp.DataAccess.Repository
             await RaiseAsync(toDo, at);
             return toDo;
         }
+
+        public async Task DeleteHistoryForWeekAsync(DateOnly weekStart)
+        {
+            var rows = await _db.TODO_HISTORIES
+                .Where(h => h.WeekStart == weekStart)
+                .ToListAsync();
+            _db.TODO_HISTORIES.RemoveRange(rows);
+        }
     }
 }

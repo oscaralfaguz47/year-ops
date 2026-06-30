@@ -56,5 +56,14 @@ namespace OceansApp.DataAccess.Repository.IRepository
         /// (<see cref="InvalidOperationException"/>). Does not save.
         /// </summary>
         Task SetPinAsync(int issueId, bool pinned, DateOnly weekStart);
+
+        /// <summary>
+        /// Deletes every <see cref="IssueHistory"/> row stamped to <paramref name="weekStart"/>
+        /// — the Issue side of removing a past Week from the Meeting History (Administer).
+        /// The living Issue records themselves are left intact; their state simply re-derives
+        /// from whatever rows remain. Does not save; the caller commits via
+        /// <see cref="IUnitOfWork.SaveAsync"/>.
+        /// </summary>
+        Task DeleteHistoryForWeekAsync(DateOnly weekStart);
     }
 }
