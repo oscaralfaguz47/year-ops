@@ -282,6 +282,49 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConvertCheckInToIssue(int checkInId)
+        {
+            // Additive conversion: the check-in stays intact in its Week; a new pre-filled
+            // Issue is raised carrying a back-reference to it.
+            await _unitOfWork.Issue.ConvertCheckInAsync(
+                checkInId, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+            await _unitOfWork.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConvertHeadlineToIssue(int headlineId)
+        {
+            // Additive conversion: the headline stays in its Week; a new pre-filled Issue
+            // is raised carrying a back-reference to it.
+            await _unitOfWork.Issue.ConvertHeadlineAsync(
+                headlineId, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+            await _unitOfWork.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConvertIssueToToDo(int issueId, string ownerId, DateOnly dueDate)
+        {
+            // Additive conversion: the source Issue stays intact; a new pre-filled To-Do is
+            // raised carrying a back-reference to it. The To-Do's owner and due date (which
+            // an Issue does not carry) come from the form.
+            if (!string.IsNullOrWhiteSpace(ownerId))
+            {
+                await _unitOfWork.ToDo.ConvertIssueAsync(
+                    issueId, ownerId, dueDate, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetPin(int issueId, bool pinned)
         {
             // The pin is offered only on Deferred issues; the repository rejects pinning

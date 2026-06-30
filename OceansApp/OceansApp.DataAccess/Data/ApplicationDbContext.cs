@@ -1654,6 +1654,8 @@ namespace OceansApp.DataAccess.Data
             {
                 entity.HasIndex(e => e.TeamId);
                 entity.HasIndex(e => e.OriginWeekStart);
+                // Conversion back-reference (additive): which source this Issue came from.
+                entity.HasIndex(e => new { e.OriginType, e.OriginId });
 
                 entity.Property(e => e.OriginWeekStart).HasColumnType("date").IsRequired();
 
@@ -1684,6 +1686,8 @@ namespace OceansApp.DataAccess.Data
                 entity.HasIndex(e => e.TeamId);
                 entity.HasIndex(e => e.OwnerId);
                 entity.HasIndex(e => e.OriginWeekStart);
+                // Conversion back-reference (additive): which source this To-Do came from.
+                entity.HasIndex(e => new { e.OriginType, e.OriginId });
 
                 entity.Property(e => e.DueDate).HasColumnType("date").IsRequired();
                 entity.Property(e => e.OriginWeekStart).HasColumnType("date").IsRequired();

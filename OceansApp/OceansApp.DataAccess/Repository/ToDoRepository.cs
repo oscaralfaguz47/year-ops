@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.Models.Domain.WeeklyPulse;
 using OceansApp.Models.Models;
 
 namespace OceansApp.DataAccess.Repository
@@ -50,5 +52,16 @@ namespace OceansApp.DataAccess.Repository
 
         public async Task<IEnumerable<ToDo>> GetForTeamAsync(int teamId) =>
             await GetAllAsync(filter: t => t.TeamId == teamId, includeProperties: nameof(ToDo.History));
+
+        public async Task<ToDo> ConvertIssueAsync(int issueId, string ownerId, DateOnly dueDate, DateOnly weekStart, DateTimeOffset at)
+        {
+            // Additive conversion: read the source Issue, never mutate or remove it.
+            var issue = await _db.ISSUES.FirstOrDefaultAsync(i => i.IssueId == issueId)
+                ?? throw new InvalidOperationException($"No issue {issueId}.");
+
+            var toDo = ConversionService.FromIssue(issue, ownerId, dueDate, weekStart);
+            await RaiseAsync(toDo, at);
+            return toDo;
+        }
     }
 }

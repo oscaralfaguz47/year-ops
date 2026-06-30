@@ -46,6 +46,18 @@ namespace OceansApp.Models.Models
         /// </summary>
         public bool Pinned { get; set; }
 
+        /// <summary>
+        /// Conversion back-reference: the kind of source record this Issue was converted
+        /// from (a <see cref="OriginType.CheckIn"/> or a <see cref="OriginType.Headline"/>),
+        /// or <c>null</c> when it was raised directly. Conversions are additive — the source
+        /// is never consumed; this only records provenance (see Conversion in
+        /// docs/oce-weekly-pulse/CONTEXT.md). Paired with <see cref="OriginId"/>.
+        /// </summary>
+        public OriginType? OriginType { get; set; }
+
+        /// <summary>The id of the source record named by <see cref="OriginType"/>, or null.</summary>
+        public int? OriginId { get; set; }
+
         /// <summary>The week-stamped status/comment history — one row per change.</summary>
         [ValidateNever]
         public ICollection<IssueHistory> History { get; set; } = new List<IssueHistory>();

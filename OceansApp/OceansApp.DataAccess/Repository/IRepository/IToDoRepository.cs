@@ -29,5 +29,15 @@ namespace OceansApp.DataAccess.Repository.IRepository
         /// stateAsOf computation.
         /// </summary>
         Task<IEnumerable<ToDo>> GetForTeamAsync(int teamId);
+
+        /// <summary>
+        /// Converts an <see cref="Issue"/> into a new pre-filled To-Do (additive): the source
+        /// Issue is left intact (its history untouched), and the new To-Do carries an origin
+        /// back-reference to it (see <c>ConversionService.FromIssue</c>). The To-Do's required
+        /// <paramref name="ownerId"/> and <paramref name="dueDate"/> are supplied by the caller.
+        /// Raised via <see cref="RaiseAsync"/> in <paramref name="weekStart"/>. Throws
+        /// <see cref="InvalidOperationException"/> if the Issue does not exist. Does not save.
+        /// </summary>
+        Task<ToDo> ConvertIssueAsync(int issueId, string ownerId, DateOnly dueDate, DateOnly weekStart, DateTimeOffset at);
     }
 }

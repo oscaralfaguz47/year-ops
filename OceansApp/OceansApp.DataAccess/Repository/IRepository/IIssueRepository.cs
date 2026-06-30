@@ -32,6 +32,24 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<IEnumerable<Issue>> GetForTeamAsync(int teamId);
 
         /// <summary>
+        /// Converts a <see cref="CheckIn"/> into a new pre-filled Issue (additive): the
+        /// source check-in is left intact in its Week, and the new Issue carries an origin
+        /// back-reference to it (see <c>ConversionService.FromCheckIn</c>). Raised via
+        /// <see cref="RaiseAsync"/> in <paramref name="weekStart"/>. Throws
+        /// <see cref="InvalidOperationException"/> if the check-in does not exist. Returns the
+        /// new (unsaved) Issue; the caller commits via <see cref="IUnitOfWork.SaveAsync"/>.
+        /// </summary>
+        Task<Issue> ConvertCheckInAsync(int checkInId, DateOnly weekStart, DateTimeOffset at);
+
+        /// <summary>
+        /// Converts a <see cref="Headline"/> into a new pre-filled Issue (additive): the
+        /// source headline is left intact in its Week, and the new Issue carries an origin
+        /// back-reference to it (see <c>ConversionService.FromHeadline</c>). Throws
+        /// <see cref="InvalidOperationException"/> if the headline does not exist. Does not save.
+        /// </summary>
+        Task<Issue> ConvertHeadlineAsync(int headlineId, DateOnly weekStart, DateTimeOffset at);
+
+        /// <summary>
         /// Sets the Review pin override on an Issue. The pin is a Deferred-only override:
         /// the Issue's state as of <paramref name="weekStart"/> must be
         /// <see cref="IssueStatus.Deferred"/>, otherwise the call is rejected
