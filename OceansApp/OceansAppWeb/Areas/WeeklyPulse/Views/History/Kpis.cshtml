@@ -1,0 +1,29 @@
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model KpiHistoryIndexVM
+
+<div class="text-center">
+    <h2 style="font-weight: bold">KPI History</h2>
+    <p class="text-muted">Pick a KPI to read its weekly results back by Period.</p>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">Back to History</a>
+
+    <div class="container">
+        @if (!Model.Kpis.Any())
+        {
+            <p class="text-muted">No KPIs defined yet.</p>
+        }
+        else
+        {
+            <ul class="list-group text-start">
+                @foreach (var kpi in Model.Kpis)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a asp-action="Kpi" asp-route-kpiDefinitionId="@kpi.KpiDefinitionId">
+                            @kpi.Name
+                        </a>
+                        <span class="text-muted small">@kpi.Team?.Name</span>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>

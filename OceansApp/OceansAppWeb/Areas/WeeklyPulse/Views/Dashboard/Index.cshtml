@@ -28,6 +28,7 @@
     <h2 style="font-weight: bold">Weekly Pulse Dashboard</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
     <a asp-action="Review" class="btn btn-primary btn-sm mb-2">Start Review</a>
+    <a asp-action="Index" asp-controller="History" class="btn btn-outline-secondary btn-sm mb-2">Meeting History</a>
     @if (User.HasClaim(c => c.Type == WeeklyPulseClaimsCD.Administer_ClaimType && c.Value == WeeklyPulseClaimsCD.Administer_ClaimValue))
     {
         <a asp-action="Index" asp-controller="Settings" class="btn btn-outline-secondary btn-sm mb-2">Settings</a>

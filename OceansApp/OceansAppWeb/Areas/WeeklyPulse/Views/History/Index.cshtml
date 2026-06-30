@@ -1,0 +1,43 @@
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@using OceansApp.Utility.ConstantData.Claims.WeeklyPulse
+@model MeetingHistoryVM
+
+@{
+    var canAdminister = User.HasClaim(
+        WeeklyPulseClaimsCD.Administer_ClaimType, WeeklyPulseClaimsCD.Administer_ClaimValue);
+}
+
+<div class="text-center">
+    <h2 style="font-weight: bold">Meeting History</h2>
+    <p class="text-muted">Past Weeks, read back as minutes.</p>
+    <a asp-action="Index" asp-controller="Dashboard" class="btn btn-outline-secondary btn-sm mb-3">Back to Dashboard</a>
+    <a asp-action="Kpis" class="btn btn-outline-secondary btn-sm mb-3">KPI History</a>
+
+    <div class="container">
+        @if (!Model.Weeks.Any())
+        {
+            <p class="text-muted">No past Weeks yet — the history fills in as Weeks accumulate.</p>
+        }
+        else
+        {
+            <ul class="list-group text-start">
+                @foreach (var week in Model.Weeks)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a asp-action="Week" asp-route-weekStart="@week.ToString("yyyy-MM-dd")">
+                            Week of @week.ToString("yyyy-MM-dd")
+                        </a>
+                        @if (canAdminister)
+                        {
+                            <form asp-action="DeleteWeek" method="post" class="m-0"
+                                  onsubmit="return confirm('Delete the minutes for the week of @week.ToString("yyyy-MM-dd")? This removes that Week\'s snapshots and history rows.');">
+                                <input type="hidden" name="weekStart" value="@week.ToString("yyyy-MM-dd")" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                            </form>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>

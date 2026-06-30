@@ -39,5 +39,14 @@ namespace OceansApp.DataAccess.Repository.IRepository
         /// <see cref="InvalidOperationException"/> if the Issue does not exist. Does not save.
         /// </summary>
         Task<ToDo> ConvertIssueAsync(int issueId, string ownerId, DateOnly dueDate, DateOnly weekStart, DateTimeOffset at);
+
+        /// <summary>
+        /// Deletes every <see cref="ToDoHistory"/> row stamped to <paramref name="weekStart"/>
+        /// — the To-Do side of removing a past Week from the Meeting History (Administer).
+        /// The living To-Do records themselves are left intact; their state simply re-derives
+        /// from whatever rows remain. Does not save; the caller commits via
+        /// <see cref="IUnitOfWork.SaveAsync"/>.
+        /// </summary>
+        Task DeleteHistoryForWeekAsync(DateOnly weekStart);
     }
 }
