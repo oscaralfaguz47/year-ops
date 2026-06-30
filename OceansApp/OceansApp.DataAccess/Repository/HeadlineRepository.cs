@@ -12,11 +12,6 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-        public void Update(Headline obj)
-        {
-            _db.HEADLINES.Update(obj);
-        }
-
         public Task PostAsync(Headline obj) => AddAsync(obj);
 
         public Task<IEnumerable<Headline>> GetForWeekAsync(DateOnly weekStart) =>

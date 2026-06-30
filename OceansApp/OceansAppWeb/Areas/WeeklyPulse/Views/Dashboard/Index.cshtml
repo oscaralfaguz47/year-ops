@@ -117,6 +117,15 @@
                                 <textarea name="note" class="form-control" rows="2" placeholder="Note">@(row.CheckIn?.Note)</textarea>
                                 <button type="submit" class="btn btn-primary btn-sm">Save check-in</button>
                             </form>
+
+                            @* Additive conversion: raises a pre-filled Issue, the check-in stays intact. *@
+                            @if (row.CheckIn != null)
+                            {
+                                <form asp-action="ConvertCheckInToIssue" method="post" class="mt-2">
+                                    <input type="hidden" name="checkInId" value="@row.CheckIn.CheckInId" />
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Convert to issue</button>
+                                </form>
+                            }
                         </td>
                         <td class="text-start">
                             @* Headlines are a snapshot news round — many per Team/Week, blank each Week. *@
@@ -125,6 +134,12 @@
                                 <div class="border rounded p-2 mb-2">
                                     <span class="badge @HeadlineCss(headline.Type)">@headline.Type</span>
                                     <span>@headline.Text</span>
+
+                                    @* Additive conversion: raises a pre-filled Issue, the headline stays intact. *@
+                                    <form asp-action="ConvertHeadlineToIssue" method="post" class="mt-1">
+                                        <input type="hidden" name="headlineId" value="@headline.HeadlineId" />
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Convert to issue</button>
+                                    </form>
                                 </div>
                             }
                             @if (row.Headlines.Count == 0)
@@ -193,6 +208,19 @@
                                         <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
                                         <input type="text" name="comment" class="form-control form-control-sm" placeholder="IDS comment" />
                                         <button type="submit" class="btn btn-outline-secondary btn-sm">Comment</button>
+                                    </form>
+
+                                    @* Additive conversion: raises a pre-filled To-Do (owner + due required), the issue stays intact. *@
+                                    <form asp-action="ConvertIssueToToDo" method="post" class="d-flex flex-column gap-1 mt-1">
+                                        <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                        <select name="ownerId" class="form-select form-select-sm">
+                                            @foreach (var person in Model.People)
+                                            {
+                                                <option value="@person.Id">@person.DisplayName</option>
+                                            }
+                                        </select>
+                                        <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Convert to to-do</button>
                                     </form>
                                 </div>
                             }

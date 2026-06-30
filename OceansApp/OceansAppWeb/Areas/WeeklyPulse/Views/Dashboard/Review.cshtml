@@ -3,6 +3,15 @@
 @using OceansApp.Models.ViewModels.WeeklyPulse
 @model ReviewVM
 
+@functions {
+    static string StatusCss(KpiStatus status) => status switch
+    {
+        KpiStatus.Green => "bg-success",
+        KpiStatus.Yellow => "bg-warning text-dark",
+        _ => "bg-danger"
+    };
+}
+
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Review</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
@@ -40,6 +49,39 @@
                                 {
                                     <span>@headlineRow.Headline.Text</span>
                                 }
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* KPIs: in-scope only, Loud (Red/Yellow/missing) before Quiet (Green). *@
+                @if (team.Kpis.Any())
+                {
+                    <div class="mb-3">
+                        <h6 class="text-muted">KPIs</h6>
+                        @foreach (var kpiRow in team.Kpis)
+                        {
+                            var loud = kpiRow.Surfacing == KpiSurfacing.Loud;
+                            <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
+                                @if (kpiRow.Result != null)
+                                {
+                                    <span class="badge @StatusCss(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">No result</span>
+                                }
+                                @if (loud)
+                                {
+                                    <strong>@kpiRow.Kpi.Name</strong>
+                                }
+                                else
+                                {
+                                    <span>@kpiRow.Kpi.Name</span>
+                                }
+                                <span class="text-muted small">
+                                    — @(kpiRow.Result?.Value ?? "no result yet") (target @kpiRow.Kpi.Target)
+                                </span>
                             </div>
                         }
                     </div>

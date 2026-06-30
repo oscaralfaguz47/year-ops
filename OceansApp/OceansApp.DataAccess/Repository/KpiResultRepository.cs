@@ -12,11 +12,6 @@ namespace OceansApp.DataAccess.Repository
             _db = db;
         }
 
-        public void Update(KpiResult obj)
-        {
-            _db.KPI_RESULTS.Update(obj);
-        }
-
         public async Task UpsertAsync(KpiResult obj)
         {
             var existing = await GetForWeekAsync(obj.KpiDefinitionId, obj.WeekStart);

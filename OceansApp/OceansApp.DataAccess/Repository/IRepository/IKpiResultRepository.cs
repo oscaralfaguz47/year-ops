@@ -4,8 +4,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IKpiResultRepository : IRepository<KpiResult>
     {
-        void Update(KpiResult obj);
-
         /// <summary>
         /// Inserts the result for its (KpiDefinitionId, WeekStart), or overwrites the existing
         /// row's <see cref="KpiResult.Value"/>, <see cref="KpiResult.Status"/> and

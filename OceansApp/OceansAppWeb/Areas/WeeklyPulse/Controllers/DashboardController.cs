@@ -208,6 +208,11 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             // Snapshot: this Week's headlines open each team's segment as a news round.
             var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
 
+            // KPIs are structural (carry across Weeks); their results are this Week's snapshot.
+            var kpis = (await _unitOfWork.KpiDefinition.GetAllAsync()).ToList();
+            var kpiResults = await _unitOfWork.KpiResult.GetAllAsync(
+                filter: r => r.WeekStart == weekStart);
+
             // Surface the union of Open and pinned-Deferred issues, never Solved,
             // grouped by the record's Team in meeting order.
             var vm = new ReviewVM
@@ -216,6 +221,24 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 Teams = teams.Select(t => new ReviewTeamVM
                 {
                     Team = t,
+                    // KPIs: scope gate first (out-of-scope/retired drop), then Green-quiet.
+                    Kpis = kpis
+                        .Where(k => k.TeamId == t.TeamId)
+                        .Select(k =>
+                        {
+                            var result = kpiResults.FirstOrDefault(r => r.KpiDefinitionId == k.KpiDefinitionId);
+                            return new KpiReviewRowVM
+                            {
+                                Kpi = k,
+                                Result = result,
+                                Surfacing = ReviewSurfacingService.SurfaceKpi(k, result)
+                            };
+                        })
+                        .Where(r => r.Surfacing != KpiSurfacing.Hidden)
+                        // Loud (Red/Yellow/missing) first so concerns read first, then by name.
+                        .OrderByDescending(r => r.Surfacing)
+                        .ThenBy(r => r.Kpi.Name)
+                        .ToList(),
                     // News round: every headline surfaces, Risk loud and Highlight quiet.
                     Headlines = headlines
                         .Where(h => h.TeamId == t.TeamId)

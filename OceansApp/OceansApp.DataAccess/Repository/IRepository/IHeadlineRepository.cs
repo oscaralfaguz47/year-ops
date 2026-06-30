@@ -4,8 +4,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
 {
     public interface IHeadlineRepository : IRepository<Headline>
     {
-        void Update(Headline obj);
-
         /// <summary>
         /// Posts a new Headline for its (TeamId, WeekStart). Headlines are additive — each
         /// post is its own row (there may be many per Team/Week, the meeting's news round),

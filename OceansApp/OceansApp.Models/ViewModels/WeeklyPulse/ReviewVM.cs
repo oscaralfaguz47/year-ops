@@ -31,6 +31,13 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
         /// </summary>
         public List<HeadlineRowVM> Headlines { get; set; } = new();
 
+        /// <summary>
+        /// The Team's surfaced KPIs for the Week — in-scope only (out-of-scope/retired KPIs
+        /// are dropped), Loud (Red/Yellow/missing) before Quiet (Green). See
+        /// <see cref="ReviewSurfacingService.SurfaceKpi"/>.
+        /// </summary>
+        public List<KpiReviewRowVM> Kpis { get; set; } = new();
+
         /// <summary>The Team's surfaced Issues for the Week, in priority order.</summary>
         public List<IssueRowVM> Issues { get; set; } = new();
 
@@ -47,5 +54,16 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>Loud (Risk) or Quiet (Highlight) — every headline surfaces.</summary>
         public HeadlineEmphasis Emphasis { get; set; }
+    }
+
+    public class KpiReviewRowVM
+    {
+        public KpiDefinition Kpi { get; set; }
+
+        /// <summary>The KPI's result for the Week, or null when not yet recorded.</summary>
+        public KpiResult Result { get; set; }
+
+        /// <summary>How the KPI surfaces in Review — Loud (Red/Yellow/missing) or Quiet (Green).</summary>
+        public KpiSurfacing Surfacing { get; set; }
     }
 }
