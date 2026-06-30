@@ -1568,6 +1568,48 @@ namespace OceansApp.DataAccess.DbInitializer
                     }
                 }
 
+                // Assign Weekly Pulse claims (Participate + Administer) to the Admin role
+                var adminRole = await _roleManager.FindByNameAsync(SD.Role_User_Admin);
+                if (adminRole != null)
+                {
+                    var adminRoleClaims = await _db.RoleClaims
+                        .AsNoTracking()
+                        .Where(rc => rc.RoleId == adminRole.Id)
+                        .Select(rc => new { rc.ClaimType, rc.ClaimValue })
+                        .ToListAsync();
+                    var adminRoleClaimKeys = adminRoleClaims
+                        .Select(x => (x.ClaimType, x.ClaimValue))
+                        .ToHashSet();
+
+                    var adminClaimsToAssign = new List<(string ClaimType, string ClaimValue)>
+                    {
+                        (WeeklyPulseClaimsCD.Participate_ClaimType, WeeklyPulseClaimsCD.Participate_ClaimValue),
+                        (WeeklyPulseClaimsCD.Administer_ClaimType, WeeklyPulseClaimsCD.Administer_ClaimValue)
+                    };
+
+                    var adminClaimsToInsert = new List<ApplicationRoleClaim>();
+                    foreach (var claim in adminClaimsToAssign)
+                    {
+                        if (!adminRoleClaimKeys.Contains(claim))
+                        {
+                            adminClaimsToInsert.Add(new ApplicationRoleClaim
+                            {
+                                RoleId = adminRole.Id,
+                                ClaimType = claim.ClaimType,
+                                ClaimValue = claim.ClaimValue,
+                                CreatedBy = firstMasterUserId,
+                                CreationDate = DateTime.UtcNow
+                            });
+                        }
+                    }
+
+                    if (adminClaimsToInsert.Any())
+                    {
+                        await _db.RoleClaims.AddRangeAsync(adminClaimsToInsert);
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
                 // ----------------- WEEKLY PULSE TEAMS --------------------------------
                 // Teams are leader-only (ADR 0002). Seed in meeting order (DisplayOrder),
                 // led by the master user as a sensible default until real leaders are assigned.
