@@ -1625,6 +1625,17 @@ namespace OceansApp.DataAccess.Repository
                         return MethodResponse.CreateFailureExceptionResponse("Consultant does not exist.");
                     }
 
+                    // Approving is the gateway to paying, which needs a payment method. Without one the
+                    // make-payment step can't complete, so stop here with a clear, actionable message
+                    // instead of letting the consultant slip through to a later cryptic failure. (0 is the
+                    // "not set" sentinel from GetConsultantWithUserAsync.) Rejecting needs no method.
+                    if (dataFromUser.TransactionStatus == "Approved" && consultant.PaymentMethodId == 0)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse(
+                            $"{consultant.Name} {consultant.LastName} has no payment method configured. Set one on their profile before approving for payment.",
+                            "PaymentMethod");
+                    }
+
                     var userActionedByObject = await _db.AspNetUsers.FirstOrDefaultAsync(x => x.Id == userIdCreatedBy);
                     if (userActionedByObject == null)
                     {

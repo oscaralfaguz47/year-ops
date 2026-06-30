@@ -76,9 +76,9 @@ namespace OceansAppWeb.Areas.Finances.Controllers
             validateInputs.ValidateDateValidFormat("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
             validateInputs.ValidateRequiredFieldAnyValue("EndPeriodDate", "End Period Date", model.EndPeriodDate, ModelState);
 
-            if (model.HoursPerDay <= 0)
+            if (model.TotalHours <= 0)
             {
-                ModelState.AddModelError("Hours", "Enter a number of hours per day greater than zero.");
+                ModelState.AddModelError("Hours", "Enter a total number of hours greater than zero.");
             }
 
             if (!ModelState.IsValid)
@@ -98,7 +98,7 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
 
                 MethodResponse response = await _unitOfWork.ReportingMyTimeMovement.UploadHoursOnBehalf(
-                    userActionedBy, model.ConsultantId, model.ProjectId, model.StartPeriodDate, model.EndPeriodDate, model.HoursPerDay);
+                    userActionedBy, model.ConsultantId, model.ProjectId, model.StartPeriodDate, model.EndPeriodDate, model.TotalHours);
 
                 if (!response.Success)
                 {
@@ -114,13 +114,55 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 }
 
                 // Fire the internal "new submission to review" email, just like a normal submission.
-                var subject = await _unitOfWork.ConsultantDetail.GetConsultantWithUserAsync(model.ConsultantId);
-                var consultantName = subject == null
-                    ? string.Empty
-                    : $"{subject.Name} {subject.LastName}".Trim();
-                await SendNewSubmissionNotification(consultantName, model.StartPeriodDate, model.EndPeriodDate, model.ProjectId);
+                // Resolve the consultant's name from the entity + user directly, NOT via
+                // GetConsultantWithUserAsync — that VM projection hard-casts a nullable PaymentMethodId
+                // and throws for consultants who have none set (e.g. internal/administrative), which would
+                // silently drop the review email. Reading the entities can't hit that cast.
+                // Still best-effort: the upload has already committed, so a notification/email-infra
+                // failure here must NOT report the committed upload as failed. Log and carry on.
+                try
+                {
+                    var subjectDetail = await _unitOfWork.ConsultantDetail
+                        .GetFirstOrDefaultAsync(c => c.ConsultantId == model.ConsultantId);
+                    var subjectUser = subjectDetail == null
+                        ? null
+                        : await _unitOfWork.ApplicationUser.GetFirstOrDefaultAsync(u => u.Id == subjectDetail.UserId);
+                    var consultantName = subjectUser == null
+                        ? string.Empty
+                        : $"{subjectUser.Name} {subjectUser.LastName}".Trim();
+                    await SendNewSubmissionNotification(consultantName, model.StartPeriodDate, model.EndPeriodDate, model.ProjectId);
+                }
+                catch (Exception notifyEx)
+                {
+                    _telemetryClient.TrackException(notifyEx);
+                }
 
                 return Ok(new { success = true, message = response.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, messageType = "Exception Error" });
+            }
+        }
+
+        // Read-only preview backing the modal's "Total hours for the period" default: returns the
+        // server-computed workable-day count and the suggested total (N × 8). The modal calls this on
+        // open to prefill the total and show "N days"; on failure it keeps submit disabled (no fallback
+        // to a hardcoded 8). Behind the same AccessToManageTheBasicsOfPaymentSheets policy (inherited at
+        // class level) as the upload. See docs/adr/0003.
+        [HttpGet("PreviewWorkableDays")]
+        public async Task<IActionResult> PreviewWorkableDays(int consultantId, int projectId, DateTime periodDate)
+        {
+            try
+            {
+                int workableDays = await _unitOfWork.ReportingMyTimeMovement
+                    .GetWorkableDaysAsync(consultantId, projectId, periodDate);
+
+                // The suggested default is a standard full-time day (8h) across every workable day. The
+                // admin overrides for part-time/non-standard schedules; paid-holiday hours (which may use a
+                // different per-assignment rate) are added separately by the payment computation, not here.
+                const int standardFullTimeHoursPerDay = 8;
+                return Ok(new { workableDays, suggestedTotal = workableDays * standardFullTimeHoursPerDay });
             }
             catch (Exception ex)
             {
@@ -270,6 +312,16 @@ namespace OceansAppWeb.Areas.Finances.Controllers
                 MethodResponse response = await _unitOfWork.ConsultantPayment.ApproveAndRejectSubmission(userActionedBy, dataFromUser, baseUrl);
                 if (!response.Success)
                 {
+                    // Surface validation failures (e.g. consultant has no payment method) in the shape the
+                    // approve modal renders as a warning toast, rather than the generic "unexpected error".
+                    if (response.MessageType == "Validation Error")
+                    {
+                        var validationErrors = new Dictionary<string, List<string>>
+                        {
+                            { response.FieldName ?? "Submission", new List<string> { response.Message } }
+                        };
+                        return BadRequest(new { errors = validationErrors, messageType = "Validation Error" });
+                    }
                     return BadRequest(new { error = response.Message, messageType = response.MessageType });
                 }
 
