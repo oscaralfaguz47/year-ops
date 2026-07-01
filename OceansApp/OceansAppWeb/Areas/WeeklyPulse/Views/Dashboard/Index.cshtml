@@ -5,17 +5,153 @@
 @model DashboardVM
 
 @functions {
+    // Background class only. The app theme (Bootswatch "Flatly") uses badge fills too light
+    // for its default white text; the board keeps the text white and deepens each fill to a
+    // darker shade (see the scoped CSS below) so every badge clears ~4.5:1 contrast.
     static (string Css, string Label) ReadinessBadge(ReadinessState state) => state switch
     {
         ReadinessState.Ready => ("bg-success", "Ready"),
-        ReadinessState.NotReady => ("bg-warning text-dark", "Not ready"),
+        ReadinessState.NotReady => ("bg-warning", "Not ready"),
         _ => ("bg-secondary", "Not configured")
     };
 
     // Risk reads loud, Highlight reads quiet — same emphasis as the Review news round.
     static string HeadlineCss(HeadlineType type) =>
         type == HeadlineType.Risk ? "bg-danger" : "bg-success";
+
+    // Converted entities carry a "[from <origin>] " title prefix; the board shows a ↩ glyph
+    // instead, so strip the textual prefix for display (heading + card title).
+    static string StripOrigin(string title)
+    {
+        if (string.IsNullOrEmpty(title) || !title.StartsWith("[from ")) { return title; }
+        var end = title.IndexOf("] ", StringComparison.Ordinal);
+        return end >= 0 ? title[(end + 2)..] : title;
+    }
+
+    // Human label for a conversion origin, revealed when the card's modal opens.
+    static string OriginLabel(OriginType type) => type switch
+    {
+        OriginType.CheckIn => "check-in",
+        OriginType.Headline => "headline",
+        _ => "issue"
+    };
+
+    // A stable accent colour per team slot, so a team's cards read the same colour in
+    // every column of the pooled board.
+    static string TeamColor(int index)
+    {
+        string[] palette = { "#0d6efd", "#6f42c1", "#d63384", "#fd7e14", "#198754", "#20c997" };
+        return palette[index % palette.Length];
+    }
 }
+
+@{
+    // The filter is URL-driven so a team view is bookmarkable. "All selected" is the
+    // unfiltered default; from there a chip click focuses to that one team, and once a
+    // subset is active each chip toggles its own membership.
+    var allTeamIds = Model.Teams.Select(r => r.Team.TeamId).ToList();
+    var selected = Model.SelectedTeamIds;
+    var allSelected = selected.Count == allTeamIds.Count;
+
+    // Colour by position in the full (unfiltered) team order, so a team keeps its colour
+    // regardless of which subset the filter is showing.
+    var teamColor = Model.Teams
+        .Select((r, i) => (r.Team.TeamId, Color: TeamColor(i)))
+        .ToDictionary(x => x.TeamId, x => x.Color);
+
+    // The teams currently in view; every column, card and add-picker draws from this set,
+    // so an excluded team contributes nothing anywhere (server-side filter).
+    var shown = Model.Teams.Where(r => selected.Contains(r.Team.TeamId)).ToList();
+
+    // A clean URL when every team shows (drop the param), otherwise ?teams=<csv>.
+    string HrefFor(IEnumerable<int> ids)
+    {
+        var list = ids.Distinct().ToList();
+        return list.Count == 0 || list.Count == allTeamIds.Count
+            ? Url.Action("Index")
+            : Url.Action("Index", new { teams = string.Join(",", list) });
+    }
+}
+
+<style>
+    /* Full-bleed board — minimal outer margins, one horizontal scroll. */
+    .kb-wrap { padding: 0 6px; }
+    .kb-board {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 6px 2px 14px;
+        align-items: flex-start;
+    }
+    .kb-col {
+        flex: 0 0 300px;
+        width: 300px;
+        background: #f1f3f5;
+        border-radius: 10px;
+        padding: 8px;
+        max-height: 78vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .kb-col-head {
+        font-weight: 600;
+        font-size: .9rem;
+        padding: 2px 4px 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .kb-col-body { overflow-y: auto; flex: 1 1 auto; }
+    .kb-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,.12);
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        font-size: .85rem;
+        text-align: left;
+    }
+    /* Title row: content left, the readiness pill (check-ins only) pinned top-right. */
+    .kb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+    .kb-card-main { min-width: 0; word-break: break-word; }
+    .kb-readiness { flex: 0 0 auto; }
+    /* Badges sit below the title, bottom-left. */
+    .kb-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+    /* Footer row: badges bottom-left, the ↩ conversion glyph bottom-right. */
+    .kb-card-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 6px; margin-top: 6px; }
+    .kb-origin { color: #adb5bd; font-size: 1.05rem; line-height: 1; flex: 0 0 auto; align-self: flex-end; }
+    /* Badge text stays white; the Flatly fills are too light for that, so deepen each fill
+       within the board/modals to a shade that clears ~4.5:1 against white. */
+    .kb-badges .badge, .kb-card-head .kb-readiness, .modal-body .badge { color: #fff !important; }
+    .kb-badges .badge.bg-success, .kb-card-head .kb-readiness.bg-success, .modal-body .badge.bg-success { background-color: #157347 !important; }
+    .kb-badges .badge.bg-warning, .kb-card-head .kb-readiness.bg-warning, .modal-body .badge.bg-warning { background-color: #b26a00 !important; }
+    .kb-badges .badge.bg-secondary, .kb-card-head .kb-readiness.bg-secondary, .modal-body .badge.bg-secondary { background-color: #566573 !important; }
+    .kb-badges .badge.bg-danger, .modal-body .badge.bg-danger { background-color: #c0392b !important; }
+    .kb-badges .badge.bg-info, .modal-body .badge.bg-info { background-color: #2471a3 !important; }
+    .kb-badges .badge.bg-light, .modal-body .badge.bg-light { background-color: #566573 !important; border-color: transparent; }
+    .kb-count { color: #868e96; font-weight: 500; }
+    .kb-add {
+        background: transparent;
+        border: 1px dashed #adb5bd;
+        color: #495057;
+        border-radius: 8px;
+        padding: 6px;
+        width: 100%;
+        font-size: .85rem;
+        margin-top: 4px;
+    }
+    .kb-add:hover { background: #e9ecef; }
+    .kb-empty { color: #868e96; font-size: .8rem; padding: 2px 4px; }
+    .kb-click { cursor: pointer; }
+    .kb-click:hover { outline: 2px solid #0d6efd33; }
+    .team-chip {
+        display: inline-block;
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+</style>
 
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Dashboard</h2>
@@ -28,282 +164,579 @@
     }
     <hr />
 
-    <div class="container">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Meeting Order</th>
-                    <th>Team</th>
-                    <th>Readiness</th>
-                    <th>KPIs</th>
-                    <th>Check-in</th>
-                    <th>Headlines</th>
-                    <th>Issues</th>
-                    <th>To-Dos</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in Model.Teams)
-                {
-                    <tr>
-                        <td>@row.Team.DisplayOrder</td>
-                        <td>@row.Team.Name</td>
-                        <td>
-                            @{
-                                var badge = ReadinessBadge(row.Readiness);
-                            }
-                            <span class="badge @badge.Css">@badge.Label</span>
-                        </td>
-                        <td class="text-start">
-                            @* KPI result is a frictionless everyday edit — value + manual status + notes. *@
-                            @foreach (var kpiRow in row.Kpis)
-                            {
-                                <div class="border rounded p-2 mb-2">
-                                    <div>
-                                        <strong>@kpiRow.Kpi.Name</strong>
-                                        <span class="text-muted">(target @kpiRow.Kpi.Target)</span>
-                                        @if (kpiRow.Result != null)
-                                        {
-                                            <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-light text-dark">No result yet</span>
-                                        }
-                                    </div>
-                                    <form asp-action="RecordKpiResult" method="post" class="d-flex flex-column gap-1 mt-1">
-                                        <input type="hidden" name="kpiDefinitionId" value="@kpiRow.Kpi.KpiDefinitionId" />
-                                        <input type="text" name="value" class="form-control form-control-sm" placeholder="Result (e.g. 92%)" value="@(kpiRow.Result?.Value)" />
-                                        <select name="status" class="form-select form-select-sm">
-                                            @foreach (var s in Enum.GetValues<KpiStatus>())
-                                            {
-                                                if (kpiRow.Result != null && kpiRow.Result.Status == s)
-                                                {
-                                                    <option value="@s" selected>@s</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="@s">@s</option>
-                                                }
-                                            }
-                                        </select>
-                                        <textarea name="notes" class="form-control form-control-sm" rows="1" placeholder="Notes">@(kpiRow.Result?.Notes)</textarea>
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">Save result</button>
-                                    </form>
-                                </div>
-                            }
-                            @if (row.Kpis.Count == 0)
-                            {
-                                <span class="text-muted">No KPIs configured</span>
-                            }
-                        </td>
-                        <td class="text-start">
-                            <form asp-action="RecordCheckIn" method="post" class="d-flex flex-column gap-2">
-                                <input type="hidden" name="teamId" value="@row.Team.TeamId" />
-                                <select name="type" class="form-select">
-                                    @foreach (var t in Enum.GetValues<CheckInType>())
-                                    {
-                                        if (row.CheckIn != null && row.CheckIn.Type == t)
-                                        {
-                                            <option value="@t" selected>@t</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@t">@t</option>
-                                        }
-                                    }
-                                </select>
-                                <textarea name="note" class="form-control" rows="2" placeholder="Note">@(row.CheckIn?.Note)</textarea>
-                                <button type="submit" class="btn btn-primary btn-sm">Save check-in</button>
-                            </form>
-
-                            @* Additive conversion: raises a pre-filled Issue, the check-in stays intact. *@
-                            @if (row.CheckIn != null)
-                            {
-                                <form asp-action="ConvertCheckInToIssue" method="post" class="mt-2">
-                                    <input type="hidden" name="checkInId" value="@row.CheckIn.CheckInId" />
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Convert to issue</button>
-                                </form>
-                            }
-                        </td>
-                        <td class="text-start">
-                            @* Headlines are a snapshot news round — many per Team/Week, blank each Week. *@
-                            @foreach (var headline in row.Headlines)
-                            {
-                                <div class="border rounded p-2 mb-2">
-                                    <span class="badge @HeadlineCss(headline.Type)">@headline.Type</span>
-                                    <span>@headline.Text</span>
-
-                                    @* Additive conversion: raises a pre-filled Issue, the headline stays intact. *@
-                                    <form asp-action="ConvertHeadlineToIssue" method="post" class="mt-1">
-                                        <input type="hidden" name="headlineId" value="@headline.HeadlineId" />
-                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Convert to issue</button>
-                                    </form>
-                                </div>
-                            }
-                            @if (row.Headlines.Count == 0)
-                            {
-                                <span class="text-muted">No headlines yet</span>
-                            }
-
-                            @* Post a headline — Highlight (a win) or Risk (a concern). Not pinnable. *@
-                            <form asp-action="PostHeadline" method="post" class="d-flex flex-column gap-1 mt-2">
-                                <input type="hidden" name="teamId" value="@row.Team.TeamId" />
-                                <select name="type" class="form-select form-select-sm">
-                                    @foreach (var t in Enum.GetValues<HeadlineType>())
-                                    {
-                                        <option value="@t">@t</option>
-                                    }
-                                </select>
-                                <input type="text" name="text" class="form-control form-control-sm" placeholder="Headline" />
-                                <button type="submit" class="btn btn-outline-primary btn-sm">Post headline</button>
-                            </form>
-                        </td>
-                        <td class="text-start">
-                            @foreach (var issueRow in row.Issues)
-                            {
-                                <div class="border rounded p-2 mb-2">
-                                    <div>
-                                        <strong>@issueRow.Issue.Title</strong>
-                                        <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
-                                        <span class="badge bg-info text-dark">@issueRow.State</span>
-                                        @if (issueRow.Issue.Pinned)
-                                        {
-                                            <span class="badge bg-warning text-dark">Pinned</span>
-                                        }
-                                    </div>
-
-                                    @* Pin is offered only on Deferred issues — it un-parks them for Review. *@
-                                    @if (issueRow.State == IssueStatus.Deferred)
-                                    {
-                                        <form asp-action="SetPin" method="post" class="mt-1">
-                                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
-                                            <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
-                                            <button type="submit" class="btn btn-outline-warning btn-sm">
-                                                @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
-                                            </button>
-                                        </form>
-                                    }
-
-                                    <form asp-action="TransitionIssue" method="post" class="d-flex gap-1 mt-1">
-                                        <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
-                                        <select name="status" class="form-select form-select-sm">
-                                            @foreach (var s in Enum.GetValues<IssueStatus>())
-                                            {
-                                                if (s == issueRow.State)
-                                                {
-                                                    <option value="@s" selected>@s</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="@s">@s</option>
-                                                }
-                                            }
-                                        </select>
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">Set status</button>
-                                    </form>
-
-                                    <form asp-action="CommentIssue" method="post" class="d-flex gap-1 mt-1">
-                                        <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
-                                        <input type="text" name="comment" class="form-control form-control-sm" placeholder="IDS comment" />
-                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Comment</button>
-                                    </form>
-
-                                    @* Additive conversion: raises a pre-filled To-Do (owner + due required), the issue stays intact. *@
-                                    <form asp-action="ConvertIssueToToDo" method="post" class="d-flex flex-column gap-1 mt-1">
-                                        <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
-                                        <select name="ownerId" class="form-select form-select-sm">
-                                            @foreach (var person in Model.People)
-                                            {
-                                                <option value="@person.Id">@person.DisplayName</option>
-                                            }
-                                        </select>
-                                        <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
-                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Convert to to-do</button>
-                                    </form>
-                                </div>
-                            }
-
-                            <form asp-action="RaiseIssue" method="post" class="d-flex flex-column gap-1 mt-2">
-                                <input type="hidden" name="teamId" value="@row.Team.TeamId" />
-                                <input type="text" name="title" class="form-control form-control-sm" placeholder="New issue" />
-                                <select name="priority" class="form-select form-select-sm">
-                                    @foreach (var p in Enum.GetValues<IssuePriority>())
-                                    {
-                                        if (p == IssuePriority.Med)
-                                        {
-                                            <option value="@p" selected>@p</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@p">@p</option>
-                                        }
-                                    }
-                                </select>
-                                <button type="submit" class="btn btn-success btn-sm">Raise issue</button>
-                            </form>
-                        </td>
-                        <td class="text-start">
-                            @* Living To-Dos surface here until Done; Blocked reads loud. *@
-                            @foreach (var toDoRow in row.ToDos)
-                            {
-                                <div class="border rounded p-2 mb-2">
-                                    <div>
-                                        <strong>@toDoRow.ToDo.Title</strong>
-                                        @if (toDoRow.State == ToDoStatus.Blocked)
-                                        {
-                                            <span class="badge bg-danger">@toDoRow.State</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-info text-dark">@toDoRow.State</span>
-                                        }
-                                    </div>
-                                    <div class="text-muted small">
-                                        Owner: @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim())
-                                        · Due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
-                                    </div>
-
-                                    <form asp-action="TransitionToDo" method="post" class="d-flex gap-1 mt-1">
-                                        <input type="hidden" name="toDoId" value="@toDoRow.ToDo.ToDoId" />
-                                        <select name="status" class="form-select form-select-sm">
-                                            @foreach (var s in Enum.GetValues<ToDoStatus>())
-                                            {
-                                                if (s == toDoRow.State)
-                                                {
-                                                    <option value="@s" selected>@s</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="@s">@s</option>
-                                                }
-                                            }
-                                        </select>
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">Set status</button>
-                                    </form>
-                                </div>
-                            }
-                            @if (row.ToDos.Count == 0)
-                            {
-                                <span class="text-muted">No open to-dos</span>
-                            }
-
-                            <form asp-action="RaiseToDo" method="post" class="d-flex flex-column gap-1 mt-2">
-                                <input type="hidden" name="teamId" value="@row.Team.TeamId" />
-                                <input type="text" name="title" class="form-control form-control-sm" placeholder="New to-do" />
-                                <select name="ownerId" class="form-select form-select-sm">
-                                    @foreach (var person in Model.People)
-                                    {
-                                        <option value="@person.Id">@person.DisplayName</option>
-                                    }
-                                </select>
-                                <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
-                                <button type="submit" class="btn btn-success btn-sm">Add to-do</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    @* Bookmarkable team filter — plain links, so every state is a shareable URL. The
+       colour swatch doubles as the legend for the team-tagged cards below. *@
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center mb-2" id="team-filter">
+        <span class="text-muted small me-1">Teams:</span>
+        @foreach (var row in Model.Teams)
+        {
+            var id = row.Team.TeamId;
+            var isOn = selected.Contains(id);
+            IEnumerable<int> target;
+            if (allSelected)
+            {
+                target = new[] { id };                  // focus to only this team
+            }
+            else if (isOn)
+            {
+                target = selected.Where(x => x != id);  // remove from the view
+            }
+            else
+            {
+                target = selected.Append(id);           // add to the view
+            }
+            <a href="@HrefFor(target)" class="btn btn-sm @(isOn ? "btn-primary" : "btn-outline-primary")">
+                <span class="team-chip" style="background:@teamColor[id]"></span>@row.Team.Name
+            </a>
+        }
+        <a href="@Url.Action("Index")" class="btn btn-sm @(allSelected ? "btn-secondary" : "btn-outline-secondary")">Show all</a>
+        <span class="text-muted small ms-1">Showing @selected.Count of @allTeamIds.Count teams</span>
     </div>
 </div>
+
+@* ---- Cross-team category board: 5 fixed columns, all shown teams pooled into each,
+       each card colour-tagged by team. Cards and "+" open the modals rendered below. ---- *@
+<div class="kb-wrap">
+    <div class="kb-board">
+        @* KPIs — no add affordance (KPIs are configured in Settings); cards record a result. *@
+        <div class="kb-col">
+            <div class="kb-col-head">KPIs <span class="kb-count">@shown.Sum(r => r.Kpis.Count)</span></div>
+            <div class="kb-col-body">
+                @foreach (var row in shown)
+                {
+                    var color = teamColor[row.Team.TeamId];
+                    foreach (var kpiRow in row.Kpis)
+                    {
+                        <div class="kb-card kb-click" data-bs-toggle="modal" data-bs-target="#kpi-modal-@kpiRow.Kpi.KpiDefinitionId">
+                            <div class="kb-card-head">
+                                <span class="kb-card-main"><span class="team-chip" style="background:@color"></span><strong>@kpiRow.Kpi.Name</strong></span>
+                            </div>
+                            <div class="kb-badges mt-1">
+                                @if (kpiRow.Result != null)
+                                {
+                                    <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                    <span class="text-muted small">@kpiRow.Result.Value</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light border">No result yet</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                @if (shown.Sum(r => r.Kpis.Count) == 0)
+                {
+                    <div class="kb-empty">No KPIs configured</div>
+                }
+            </div>
+        </div>
+
+        @* Check-ins — one card per shown team (the per-team prep ritual); cards edit/record. *@
+        <div class="kb-col">
+            <div class="kb-col-head">Check-ins <span class="kb-count">@shown.Count(r => r.CheckIn != null)</span></div>
+            <div class="kb-col-body">
+                @foreach (var row in shown)
+                {
+                    var color = teamColor[row.Team.TeamId];
+                    var badge = ReadinessBadge(row.Readiness);
+                    <div class="kb-card kb-click" data-bs-toggle="modal" data-bs-target="#checkin-modal-@row.Team.TeamId">
+                        <div class="kb-card-head">
+                            <span class="kb-card-main"><span class="team-chip" style="background:@color"></span><strong>@row.Team.Name</strong></span>
+                            <span class="badge rounded-pill kb-readiness @badge.Css">@badge.Label</span>
+                        </div>
+                        @if (row.CheckIn != null)
+                        {
+                            <div class="small mt-1">@row.CheckIn.Note</div>
+                            <div class="kb-badges mt-1"><span class="badge bg-secondary">@row.CheckIn.Type</span></div>
+                        }
+                        else
+                        {
+                            <div class="text-muted small mt-1">No check-in yet</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Headlines — snapshot news round; cards convert to issue, "+" posts a new one. *@
+        <div class="kb-col">
+            <div class="kb-col-head">Headlines <span class="kb-count">@shown.Sum(r => r.Headlines.Count)</span></div>
+            <div class="kb-col-body">
+                @foreach (var row in shown)
+                {
+                    var color = teamColor[row.Team.TeamId];
+                    foreach (var headline in row.Headlines)
+                    {
+                        <div class="kb-card kb-click" data-bs-toggle="modal" data-bs-target="#headline-modal-@headline.HeadlineId">
+                            <div class="kb-card-head">
+                                <span class="kb-card-main"><span class="team-chip" style="background:@color"></span>@headline.Text</span>
+                            </div>
+                            <div class="kb-badges mt-1"><span class="badge @HeadlineCss(headline.Type)">@headline.Type</span></div>
+                        </div>
+                    }
+                }
+                @if (shown.Sum(r => r.Headlines.Count) == 0)
+                {
+                    <div class="kb-empty">No headlines yet</div>
+                }
+            </div>
+            <button type="button" class="kb-add" data-bs-toggle="modal" data-bs-target="#add-headline-modal">+ Post headline</button>
+        </div>
+
+        @* Issues — living; card hosts the full lifecycle, "+" raises a new one. *@
+        <div class="kb-col">
+            <div class="kb-col-head">Issues <span class="kb-count">@shown.Sum(r => r.Issues.Count)</span></div>
+            <div class="kb-col-body">
+                @foreach (var row in shown)
+                {
+                    var color = teamColor[row.Team.TeamId];
+                    foreach (var issueRow in row.Issues)
+                    {
+                        <div class="kb-card kb-click" data-bs-toggle="modal" data-bs-target="#issue-modal-@issueRow.Issue.IssueId">
+                            <div class="kb-card-head">
+                                <span class="kb-card-main"><span class="team-chip" style="background:@color"></span><strong>@StripOrigin(issueRow.Issue.Title)</strong></span>
+                            </div>
+                            <div class="kb-card-foot">
+                                <div class="kb-badges">
+                                    <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                                    <span class="badge bg-info">@issueRow.State</span>
+                                    @if (issueRow.Issue.Pinned)
+                                    {
+                                        <span class="badge bg-warning">Pinned</span>
+                                    }
+                                </div>
+                                @if (issueRow.Issue.OriginType != null)
+                                {
+                                    <span class="kb-origin" title="Converted from a @OriginLabel(issueRow.Issue.OriginType.Value)">↩</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                @if (shown.Sum(r => r.Issues.Count) == 0)
+                {
+                    <div class="kb-empty">No issues</div>
+                }
+            </div>
+            <button type="button" class="kb-add" data-bs-toggle="modal" data-bs-target="#add-issue-modal">+ Raise issue</button>
+        </div>
+
+        @* To-Dos — living; card sets status, "+" adds a new one. *@
+        <div class="kb-col">
+            <div class="kb-col-head">To-Dos <span class="kb-count">@shown.Sum(r => r.ToDos.Count)</span></div>
+            <div class="kb-col-body">
+                @foreach (var row in shown)
+                {
+                    var color = teamColor[row.Team.TeamId];
+                    foreach (var toDoRow in row.ToDos)
+                    {
+                        <div class="kb-card kb-click" data-bs-toggle="modal" data-bs-target="#todo-modal-@toDoRow.ToDo.ToDoId">
+                            <div class="kb-card-head">
+                                <span class="kb-card-main"><span class="team-chip" style="background:@color"></span><strong>@StripOrigin(toDoRow.ToDo.Title)</strong></span>
+                            </div>
+                            <div class="text-muted small mt-1">Due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")</div>
+                            <div class="kb-card-foot">
+                                <div class="kb-badges">
+                                    @if (toDoRow.State == ToDoStatus.Blocked)
+                                    {
+                                        <span class="badge bg-danger">@toDoRow.State</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">@toDoRow.State</span>
+                                    }
+                                </div>
+                                @if (toDoRow.ToDo.OriginType != null)
+                                {
+                                    <span class="kb-origin" title="Converted from a @OriginLabel(toDoRow.ToDo.OriginType.Value)">↩</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                @if (shown.Sum(r => r.ToDos.Count) == 0)
+                {
+                    <div class="kb-empty">No open to-dos</div>
+                }
+            </div>
+            <button type="button" class="kb-add" data-bs-toggle="modal" data-bs-target="#add-todo-modal">+ Add to-do</button>
+        </div>
+    </div>
+</div>
+
+@*
+    Modals — server-rendered per entity so each carries its real IDs and (via the Form
+    Tag Helper) an antiforgery token, and the existing [ValidateAntiForgeryToken] POST
+    actions work unchanged. Each POST reloads the page; RedirectToDashboard preserves the
+    ?teams= filter via Referer. Rendered here (outside the scrolling columns) so Bootstrap's
+    fixed-position overlays are never clipped by a column's overflow.
+*@
+
+@* ---- Add modals (led by a team picker — the pooled board carries no per-column team) ---- *@
+
+<div class="modal fade" id="add-headline-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Post headline</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="PostHeadline" method="post">
+                <div class="modal-body text-start">
+                    <label class="form-label small mb-1">Team</label>
+                    <select name="teamId" class="form-select form-select-sm mb-2">
+                        @foreach (var row in shown)
+                        {
+                            <option value="@row.Team.TeamId">@row.Team.Name</option>
+                        }
+                    </select>
+                    <label class="form-label small mb-1">Type</label>
+                    <select name="type" class="form-select form-select-sm mb-2">
+                        @foreach (var t in Enum.GetValues<HeadlineType>())
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </select>
+                    <label class="form-label small mb-1">Headline</label>
+                    <input type="text" name="text" class="form-control form-control-sm" placeholder="Headline" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Post headline</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-issue-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Raise issue</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="RaiseIssue" method="post">
+                <div class="modal-body text-start">
+                    <label class="form-label small mb-1">Team</label>
+                    <select name="teamId" class="form-select form-select-sm mb-2">
+                        @foreach (var row in shown)
+                        {
+                            <option value="@row.Team.TeamId">@row.Team.Name</option>
+                        }
+                    </select>
+                    <label class="form-label small mb-1">Title</label>
+                    <input type="text" name="title" class="form-control form-control-sm mb-2" placeholder="New issue" />
+                    <label class="form-label small mb-1">Priority</label>
+                    <select name="priority" class="form-select form-select-sm">
+                        @foreach (var p in Enum.GetValues<IssuePriority>())
+                        {
+                            if (p == IssuePriority.Med)
+                            {
+                                <option value="@p" selected>@p</option>
+                            }
+                            else
+                            {
+                                <option value="@p">@p</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-success">Raise issue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-todo-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add to-do</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="RaiseToDo" method="post">
+                <div class="modal-body text-start">
+                    <label class="form-label small mb-1">Team</label>
+                    <select name="teamId" class="form-select form-select-sm mb-2">
+                        @foreach (var row in shown)
+                        {
+                            <option value="@row.Team.TeamId">@row.Team.Name</option>
+                        }
+                    </select>
+                    <label class="form-label small mb-1">Title</label>
+                    <input type="text" name="title" class="form-control form-control-sm mb-2" placeholder="New to-do" />
+                    <label class="form-label small mb-1">Owner</label>
+                    <select name="ownerId" class="form-select form-select-sm mb-2">
+                        @foreach (var person in Model.People)
+                        {
+                            <option value="@person.Id">@person.DisplayName</option>
+                        }
+                    </select>
+                    <label class="form-label small mb-1">Due date</label>
+                    <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-success">Add to-do</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ---- Edit modals (one per entity, prefilled, no team picker) ---- *@
+
+@foreach (var row in shown)
+{
+    @* KPI — record result (value + manual status + notes). *@
+    foreach (var kpiRow in row.Kpis)
+    {
+        <div class="modal fade" id="kpi-modal-@kpiRow.Kpi.KpiDefinitionId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@kpiRow.Kpi.Name <span class="text-muted small">· @row.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form asp-action="RecordKpiResult" method="post">
+                        <input type="hidden" name="kpiDefinitionId" value="@kpiRow.Kpi.KpiDefinitionId" />
+                        <div class="modal-body text-start">
+                            <p class="text-muted small mb-2">Target: @kpiRow.Kpi.Target</p>
+                            <label class="form-label small mb-1">Result</label>
+                            <input type="text" name="value" class="form-control form-control-sm mb-2" placeholder="e.g. 92%" value="@(kpiRow.Result?.Value)" />
+                            <label class="form-label small mb-1">Status</label>
+                            <select name="status" class="form-select form-select-sm mb-2">
+                                @foreach (var s in Enum.GetValues<KpiStatus>())
+                                {
+                                    if (kpiRow.Result != null && kpiRow.Result.Status == s)
+                                    {
+                                        <option value="@s" selected>@s</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@s">@s</option>
+                                    }
+                                }
+                            </select>
+                            <label class="form-label small mb-1">Notes</label>
+                            <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Notes">@(kpiRow.Result?.Notes)</textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Save result</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Check-in — record/edit (upsert per team/week) + additive convert-to-issue. *@
+    <div class="modal fade" id="checkin-modal-@row.Team.TeamId" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Check-in <span class="text-muted small">· @row.Team.Name</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <form asp-action="RecordCheckIn" method="post">
+                        <input type="hidden" name="teamId" value="@row.Team.TeamId" />
+                        <label class="form-label small mb-1">Type</label>
+                        <select name="type" class="form-select form-select-sm mb-2">
+                            @foreach (var t in Enum.GetValues<CheckInType>())
+                            {
+                                if (row.CheckIn != null && row.CheckIn.Type == t)
+                                {
+                                    <option value="@t" selected>@t</option>
+                                }
+                                else
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            }
+                        </select>
+                        <label class="form-label small mb-1">Note</label>
+                        <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Note">@(row.CheckIn?.Note)</textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">Save check-in</button>
+                    </form>
+
+                    @* Additive conversion: raises a pre-filled Issue, the check-in stays intact. *@
+                    @if (row.CheckIn != null)
+                    {
+                        <hr />
+                        <form asp-action="ConvertCheckInToIssue" method="post">
+                            <input type="hidden" name="checkInId" value="@row.CheckIn.CheckInId" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Convert to issue</button>
+                        </form>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Headline — snapshot; the only action is additive convert-to-issue. *@
+    foreach (var headline in row.Headlines)
+    {
+        <div class="modal fade" id="headline-modal-@headline.HeadlineId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Headline <span class="text-muted small">· @row.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <p class="mb-2"><span class="badge @HeadlineCss(headline.Type)">@headline.Type</span> @headline.Text</p>
+                        @* Additive conversion: raises a pre-filled Issue, the headline stays intact. *@
+                        <form asp-action="ConvertHeadlineToIssue" method="post">
+                            <input type="hidden" name="headlineId" value="@headline.HeadlineId" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Convert to issue</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Issue — full lifecycle in one modal: status, IDS comment, pin, convert-to-to-do. *@
+    foreach (var issueRow in row.Issues)
+    {
+        <div class="modal fade" id="issue-modal-@issueRow.Issue.IssueId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            @StripOrigin(issueRow.Issue.Title)
+                            <span class="text-muted small">· @row.Team.Name</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <p class="mb-2">
+                            <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                            <span class="badge bg-info">@issueRow.State</span>
+                            @if (issueRow.Issue.Pinned)
+                            {
+                                <span class="badge bg-warning">Pinned</span>
+                            }
+                        </p>
+                        @if (issueRow.Issue.OriginType != null)
+                        {
+                            <p class="text-muted small mb-2">↩ Converted from a @OriginLabel(issueRow.Issue.OriginType.Value)</p>
+                        }
+
+                        <form asp-action="TransitionIssue" method="post" class="d-flex gap-1 mb-2">
+                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                            <select name="status" class="form-select form-select-sm">
+                                @foreach (var s in Enum.GetValues<IssueStatus>())
+                                {
+                                    if (s == issueRow.State)
+                                    {
+                                        <option value="@s" selected>@s</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@s">@s</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set status</button>
+                        </form>
+
+                        <form asp-action="CommentIssue" method="post" class="d-flex gap-1 mb-2">
+                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                            <input type="text" name="comment" class="form-control form-control-sm" placeholder="IDS comment" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Add</button>
+                        </form>
+
+                        @* Pin is offered only on Deferred issues — it un-parks them for Review. *@
+                        @if (issueRow.State == IssueStatus.Deferred)
+                        {
+                            <form asp-action="SetPin" method="post" class="mb-2">
+                                <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
+                                </button>
+                            </form>
+                        }
+
+                        <hr />
+                        @* Additive conversion: raises a pre-filled To-Do (owner + due required), the issue stays intact. *@
+                        <label class="form-label small mb-1">Convert to to-do</label>
+                        <form asp-action="ConvertIssueToToDo" method="post" class="d-flex flex-column gap-1">
+                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                            <select name="ownerId" class="form-select form-select-sm">
+                                @foreach (var person in Model.People)
+                                {
+                                    <option value="@person.Id">@person.DisplayName</option>
+                                }
+                            </select>
+                            <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Convert to to-do</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* To-Do — set status. *@
+    foreach (var toDoRow in row.ToDos)
+    {
+        <div class="modal fade" id="todo-modal-@toDoRow.ToDo.ToDoId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@StripOrigin(toDoRow.ToDo.Title) <span class="text-muted small">· @row.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <div class="text-muted small mb-2">
+                            Owner: @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim())
+                            · Due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
+                        </div>
+                        @if (toDoRow.ToDo.OriginType != null)
+                        {
+                            <p class="text-muted small mb-2">↩ Converted from a @OriginLabel(toDoRow.ToDo.OriginType.Value)</p>
+                        }
+                        <form asp-action="TransitionToDo" method="post" class="d-flex gap-1">
+                            <input type="hidden" name="toDoId" value="@toDoRow.ToDo.ToDoId" />
+                            <select name="status" class="form-select form-select-sm">
+                                @foreach (var s in Enum.GetValues<ToDoStatus>())
+                                {
+                                    if (s == toDoRow.State)
+                                    {
+                                        <option value="@s" selected>@s</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@s">@s</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set status</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

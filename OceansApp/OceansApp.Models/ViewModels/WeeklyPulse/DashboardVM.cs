@@ -15,6 +15,13 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
         /// <summary>Candidate owners (id + display name) for the To-Do owner dropdown.</summary>
         public List<PersonOptionVM> People { get; set; } = new();
+
+        /// <summary>
+        /// The TeamIds currently in view, driven by the <c>?teams=</c> querystring so a
+        /// filtered view is bookmarkable. Defaults to every team (no filter). The chip bar
+        /// iterates <see cref="Teams"/> for the full list; only ids in this set render.
+        /// </summary>
+        public HashSet<int> SelectedTeamIds { get; set; } = new();
     }
 
     public class TeamCheckInVM

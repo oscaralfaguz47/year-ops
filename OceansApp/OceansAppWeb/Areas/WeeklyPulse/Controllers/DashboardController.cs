@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using OceansApp.DataAccess.Repository.IRepository;
 using OceansApp.Models.Domain.WeeklyPulse;
 using OceansApp.Models.Models;
@@ -20,13 +21,51 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Bounce back to the Dashboard after a POST, preserving the bookmarkable
+        /// <c>?teams=</c> filter the user posted from. The value is read off the Referer's
+        /// query (not by redirecting to the Referer URL itself, which would be an
+        /// open-redirect risk) and re-attached to a known-safe Index route. When the Referer
+        /// is absent or carries no filter (e.g. stripped by a proxy, or posted from Review),
+        /// it falls back to the unfiltered Dashboard.
+        /// </summary>
+        private IActionResult RedirectToDashboard()
+        {
+            var referer = Request.Headers.Referer.ToString();
+            if (!string.IsNullOrEmpty(referer)
+                && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri)
+                && QueryHelpers.ParseQuery(refererUri.Query).TryGetValue("teams", out var teams)
+                && !string.IsNullOrWhiteSpace(teams))
+            {
+                return RedirectToAction(nameof(Index), new { teams = teams.ToString() });
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery(Name = "teams")] string? teamFilter = null)
         {
             var weekStart = WeekStartCalculator.Current();
 
             var teams = await _unitOfWork.Team.GetAllAsync(
                 orderBy: q => q.OrderBy(t => t.DisplayOrder));
+
+            // The ?teams= filter is bookmarkable: parse the CSV of TeamIds, keep only ids
+            // that still exist (a stale bookmark to a deleted team is ignored), and default
+            // to every team when absent or empty.
+            var allTeamIds = teams.Select(t => t.TeamId).ToHashSet();
+            var selectedTeamIds = (teamFilter ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => int.TryParse(s, out var id) ? id : (int?)null)
+                .Where(id => id.HasValue && allTeamIds.Contains(id.Value))
+                .Select(id => id!.Value)
+                .ToHashSet();
+            if (selectedTeamIds.Count == 0)
+            {
+                selectedTeamIds = allTeamIds;
+            }
 
             // Snapshot: only this Week's check-ins, so a new Week starts blank.
             var checkIns = await _unitOfWork.CheckIn.GetAllAsync(
@@ -54,6 +93,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var vm = new DashboardVM
             {
                 WeekStart = weekStart,
+                SelectedTeamIds = selectedTeamIds,
                 Teams = teams.Select(t =>
                 {
                     var teamKpis = kpis.Where(k => k.TeamId == t.TeamId).ToList();
@@ -132,7 +172,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -146,7 +186,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -157,7 +197,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 issueId, status, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -177,7 +217,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -188,7 +228,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 toDoId, status, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpGet]
@@ -300,7 +340,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -313,7 +353,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 checkInId, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -326,7 +366,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 headlineId, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -343,7 +383,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -355,7 +395,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             await _unitOfWork.Issue.SetPinAsync(issueId, pinned, WeekStartCalculator.Current());
             await _unitOfWork.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -377,7 +417,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
 
         [HttpPost]
@@ -393,7 +433,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             });
             await _unitOfWork.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToDashboard();
         }
     }
 }
