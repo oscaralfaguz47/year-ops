@@ -74,19 +74,5 @@ namespace OceansApp.DataAccess.Repository
             return results.ToList();
         }
 
-        //PAYMENT SHEETS
-        public async Task<List<GetProjectInfoWhereConsultantIsActiveInProjectVM>> GetProjectsInfoWhereConsultantIsActiveInPeriod(int consultantId, DateTime startDate,
-            DateTime endDate)
-        {
-            var connection = _db.Database.GetDbConnection();
-            var parameters = new DynamicParameters();
-            parameters.Add("@ConsultantId", consultantId);
-            parameters.Add("@StartDate", startDate);
-            parameters.Add("@EndDate", endDate);
-
-            var results = await connection.QueryAsync<GetProjectInfoWhereConsultantIsActiveInProjectVM>("SP_PAYMENT_SHEETS_GetProjectsInfoWhereConsultantIsActiveInPeriod", parameters, commandType: CommandType.StoredProcedure);
-            return results.ToList();
-        }
-
     }
 }

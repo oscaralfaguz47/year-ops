@@ -89,7 +89,7 @@ async function displayReviewForApprovalModal(modalId, submissionId) {
             });
             let liTotalHoursMinutes = document.createElement('li');
             liTotalHoursMinutes.innerHTML = `<label class="total-label"><strong>TOTAL HOURS/MINUTES:</strong> ${totalHours} Hours, ${totalMinutes} Minutes.</label><br>
-            <label><strong>TOTAL HOURS FORMATTED:</strong> ${totalHoursFormatted} Hours.</label>`;
+            <label><strong>TOTAL HOURS FORMATTED:</strong> ${Number(totalHoursFormatted.toFixed(2))} Hours.</label>`;
             ul.appendChild(liTotalHoursMinutes);
             contentForRightHeaderDiv = `<span><strong><i class="fa-solid fa-clock"></i> Total worked time: </strong> <span class="total-amount">${totalPayableHours}h, ${totalPayableMinutes}m</span></span>
             ${totalHolidaysHours > 0 ? `<span><strong><i class="fa-solid fa-gift"></i> Total holidays time: </strong> <span class="total-amount">${totalHolidaysHours}h, 0m</span></span>` : ``}
