@@ -59,7 +59,7 @@
                             break;
 
                         case ReviewMoment.Kpi:
-                            @* KPI review — view-only. In-scope only, Loud (Red/Yellow/missing) before Quiet (Green). *@
+                            @* KPI review — view-only. Only this Week's included results, Loud (Red/Yellow) before Quiet (Green). *@
                             <div class="my-3">
                                 <h5>KPI review</h5>
                                 @if (!team.Kpis.Any())
@@ -72,14 +72,7 @@
                                     {
                                         var loud = kpiRow.Surfacing == KpiSurfacing.Loud;
                                         <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
-                                            @if (kpiRow.Result != null)
-                                            {
-                                                <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-danger">No result</span>
-                                            }
+                                            <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
                                             @if (loud)
                                             {
                                                 <strong>@kpiRow.Kpi.Name</strong>
@@ -89,7 +82,7 @@
                                                 <span>@kpiRow.Kpi.Name</span>
                                             }
                                             <span class="text-muted small">
-                                                — @(kpiRow.Result?.Value ?? "no result yet") (target @kpiRow.Kpi.Target)
+                                                — @kpiRow.Result.Value (target @kpiRow.Kpi.Target)
                                             </span>
                                         </div>
                                     }

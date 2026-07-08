@@ -4,51 +4,53 @@ using OceansApp.Models.Models;
 namespace OceansApp.Tests.WeeklyPulse
 {
     /// <summary>
-    /// Pure-logic tests for <see cref="KpiScopeService"/>: the two flags are independent,
-    /// and retiring a KPI (Active=false) drops it from both Readiness and the Review.
+    /// Pure-logic tests for <see cref="KpiScopeService"/>: <see cref="KpiScopeService.ExpectsInput"/>
+    /// is driven by the definition's Active flag (drives Readiness), while
+    /// <see cref="KpiScopeService.SurfacesInReview"/> is a per-Week decision on the result
+    /// (IncludeInReview). Retiring a KPI drops it from Readiness; un-ticking a result — or having
+    /// no result this Week — drops it from the Review, and the two are independent.
     /// </summary>
     public class KpiScopeTests
     {
-        private static KpiDefinition Kpi(bool active, bool inScope) =>
-            new() { Name = "On-time delivery", Target = ">= 95%", Active = active, InScope = inScope };
+        private static KpiDefinition Kpi(bool active) =>
+            new() { Name = "On-time delivery", Target = ">= 95%", Active = active };
+
+        private static KpiResult Result(bool includeInReview) =>
+            new() { Value = "92%", Status = KpiStatus.Green, IncludeInReview = includeInReview };
 
         [Fact]
         public void ActiveKpi_ExpectsInput_ForReadiness()
         {
-            Assert.True(KpiScopeService.ExpectsInput(Kpi(active: true, inScope: true)));
-            Assert.True(KpiScopeService.ExpectsInput(Kpi(active: true, inScope: false)));
+            Assert.True(KpiScopeService.ExpectsInput(Kpi(active: true)));
         }
 
         [Fact]
-        public void RetiredKpi_DropsFromReadiness_AndReview()
+        public void RetiredKpi_DropsFromReadiness()
         {
-            var retired = Kpi(active: false, inScope: true);
-
-            // Retiring stops it expecting new input (Readiness) and removes it from the meeting.
-            Assert.False(KpiScopeService.ExpectsInput(retired));
-            Assert.False(KpiScopeService.SurfacesInReview(retired));
+            // Retiring stops it expecting new input (Readiness); it no longer counts.
+            Assert.False(KpiScopeService.ExpectsInput(Kpi(active: false)));
         }
 
         [Fact]
-        public void SurfacesInReview_RequiresBothActiveAndInScope()
+        public void SurfacesInReview_RequiresAnIncludedResultThisWeek()
         {
-            Assert.True(KpiScopeService.SurfacesInReview(Kpi(active: true, inScope: true)));
-            Assert.False(KpiScopeService.SurfacesInReview(Kpi(active: true, inScope: false)));
-            Assert.False(KpiScopeService.SurfacesInReview(Kpi(active: false, inScope: true)));
+            Assert.True(KpiScopeService.SurfacesInReview(Result(includeInReview: true)));
+            Assert.False(KpiScopeService.SurfacesInReview(Result(includeInReview: false)));
         }
 
         [Fact]
-        public void Flags_AreIndependent()
+        public void MissingResult_DoesNotSurfaceInReview()
         {
-            // Active without InScope: live and expecting input, but out of the meeting.
-            var liveOutOfScope = Kpi(active: true, inScope: false);
-            Assert.True(KpiScopeService.ExpectsInput(liveOutOfScope));
-            Assert.False(KpiScopeService.SurfacesInReview(liveOutOfScope));
+            Assert.False(KpiScopeService.SurfacesInReview(result: null));
+        }
 
-            // InScope without Active is a no-op for surfacing — retired always drops out.
-            var retiredInScope = Kpi(active: false, inScope: true);
-            Assert.False(KpiScopeService.ExpectsInput(retiredInScope));
-            Assert.False(KpiScopeService.SurfacesInReview(retiredInScope));
+        [Fact]
+        public void ReviewInclusion_IsIndependentOfReadiness()
+        {
+            // An Active KPI counts toward Readiness regardless of whether its result is included.
+            var active = Kpi(active: true);
+            Assert.True(KpiScopeService.ExpectsInput(active));
+            Assert.False(KpiScopeService.SurfacesInReview(Result(includeInReview: false)));
         }
     }
 }

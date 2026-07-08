@@ -11,13 +11,12 @@ namespace OceansApp.Models.Models
     /// <i>guarded</i> mutation (an explicit confirm precedes the POST) because it reshapes what the
     /// meeting expects — distinct from the frictionless everyday recording of results.
     ///
-    /// Two <b>independent</b> flags govern its lifecycle:
-    /// <list type="bullet">
-    /// <item><see cref="Active"/> — live vs retired. Retiring keeps the definition (and any
-    /// historical results that reference it) but stops it expecting new input.</item>
-    /// <item><see cref="InScope"/> — whether it is in the meeting (Review) scope.</item>
-    /// </list>
-    /// Neither flag implies the other; see <c>KpiScopeService</c> for how they combine. See ADR 0002.
+    /// A single flag governs its lifecycle: <see cref="Active"/> — live vs retired. Retiring keeps
+    /// the definition (and any historical results that reference it) but stops it expecting new
+    /// input; an Active KPI counts toward Readiness. Whether a KPI appears in the meeting (Review)
+    /// is no longer a structural property of the definition — it is a per-Week decision recorded on
+    /// each <see cref="KpiResult"/> (see <c>KpiResult.IncludeInReview</c> and <c>KpiScopeService</c>).
+    /// See ADR 0002.
     /// </summary>
     public class KpiDefinition
     {
@@ -47,12 +46,8 @@ namespace OceansApp.Models.Models
         [MaxLength(200)]
         public string Target { get; set; }
 
-        /// <summary>Live (true) vs retired (false). Independent of <see cref="InScope"/>.</summary>
+        /// <summary>Live (true) vs retired (false). Retiring stops it expecting new input.</summary>
         [Required]
         public bool Active { get; set; } = true;
-
-        /// <summary>In the meeting (Review) scope. Independent of <see cref="Active"/>.</summary>
-        [Required]
-        public bool InScope { get; set; } = true;
     }
 }

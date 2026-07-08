@@ -4,55 +4,41 @@ using OceansApp.Models.Models;
 namespace OceansApp.Tests.WeeklyPulse
 {
     /// <summary>
-    /// Covers the pure KPI Review surfacing predicate: a KPI surfaces iff it is in
-    /// meeting scope (Active &amp;&amp; InScope); among those, a non-Green or missing
-    /// result is Loud while Green stays Quiet. Out-of-scope KPIs are Hidden regardless
-    /// of status. No DbContext/HttpContext — operates on a definition + optional result.
+    /// Covers the pure KPI Review surfacing predicate: this Week's result surfaces iff it is
+    /// included (IncludeInReview); among those, a non-Green result is Loud while Green stays
+    /// Quiet. A result that is un-ticked — or a missing result — is Hidden. No DbContext/
+    /// HttpContext — operates on an optional result.
     /// </summary>
     public class KpiSurfacingTests
     {
-        private static KpiDefinition Kpi(bool active = true, bool inScope = true) =>
-            new() { Name = "On-time delivery", Target = ">= 95%", Active = active, InScope = inScope };
-
-        private static KpiResult Result(KpiStatus status) =>
-            new() { Value = "92%", Status = status };
+        private static KpiResult Result(KpiStatus status, bool includeInReview = true) =>
+            new() { Value = "92%", Status = status, IncludeInReview = includeInReview };
 
         [Fact]
-        public void OutOfScopeKpi_IsHidden_RegardlessOfStatus()
+        public void ExcludedResult_IsHidden_RegardlessOfStatus()
         {
-            var outOfScope = Kpi(active: true, inScope: false);
-
-            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(outOfScope, Result(KpiStatus.Red)));
-            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(outOfScope, Result(KpiStatus.Green)));
-            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(outOfScope, result: null));
+            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(Result(KpiStatus.Red, includeInReview: false)));
+            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(Result(KpiStatus.Green, includeInReview: false)));
         }
 
         [Fact]
-        public void RetiredKpi_IsHidden_EvenWhenInScope()
+        public void MissingResult_IsHidden()
         {
-            var retired = Kpi(active: false, inScope: true);
-
-            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(retired, Result(KpiStatus.Red)));
+            Assert.Equal(KpiSurfacing.Hidden, ReviewSurfacingService.SurfaceKpi(result: null));
         }
 
         [Theory]
         [InlineData(KpiStatus.Red)]
         [InlineData(KpiStatus.Yellow)]
-        public void InScopeNonGreenKpi_IsLoud(KpiStatus status)
+        public void IncludedNonGreenResult_IsLoud(KpiStatus status)
         {
-            Assert.Equal(KpiSurfacing.Loud, ReviewSurfacingService.SurfaceKpi(Kpi(), Result(status)));
+            Assert.Equal(KpiSurfacing.Loud, ReviewSurfacingService.SurfaceKpi(Result(status)));
         }
 
         [Fact]
-        public void InScopeMissingResultKpi_IsLoud()
+        public void IncludedGreenResult_IsQuiet()
         {
-            Assert.Equal(KpiSurfacing.Loud, ReviewSurfacingService.SurfaceKpi(Kpi(), result: null));
-        }
-
-        [Fact]
-        public void InScopeGreenKpi_IsQuiet()
-        {
-            Assert.Equal(KpiSurfacing.Quiet, ReviewSurfacingService.SurfaceKpi(Kpi(), Result(KpiStatus.Green)));
+            Assert.Equal(KpiSurfacing.Quiet, ReviewSurfacingService.SurfaceKpi(Result(KpiStatus.Green)));
         }
     }
 }

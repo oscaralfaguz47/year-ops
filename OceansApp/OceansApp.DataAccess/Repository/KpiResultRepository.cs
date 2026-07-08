@@ -23,6 +23,7 @@ namespace OceansApp.DataAccess.Repository
             {
                 existing.Value = obj.Value;
                 existing.Status = obj.Status;
+                existing.IncludeInReview = obj.IncludeInReview;
                 existing.Notes = obj.Notes;
             }
         }

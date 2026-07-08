@@ -29,7 +29,7 @@ namespace OceansApp.Tests.WeeklyPulse
         };
 
         [Fact]
-        public async Task AddAsync_CreatesDefinition_DefaultingToLiveAndInScope()
+        public async Task AddAsync_CreatesDefinition_DefaultingToLive()
         {
             using var db = NewContext();
             var repo = new KpiDefinitionRepository(db);
@@ -41,7 +41,6 @@ namespace OceansApp.Tests.WeeklyPulse
             Assert.Equal("On-time delivery", kpi.Name);
             Assert.Equal(">= 95%", kpi.Target);
             Assert.True(kpi.Active);
-            Assert.True(kpi.InScope);
         }
 
         [Fact]
@@ -59,7 +58,7 @@ namespace OceansApp.Tests.WeeklyPulse
         }
 
         [Fact]
-        public async Task Update_EditsFlagsIndependently_WithoutTouchingTheOther()
+        public async Task Update_EditsTheDefinition()
         {
             using var db = NewContext();
             var repo = new KpiDefinitionRepository(db);
@@ -68,13 +67,13 @@ namespace OceansApp.Tests.WeeklyPulse
             await db.SaveChangesAsync();
 
             var kpi = (await repo.GetForTeamAsync(1)).Single();
-            kpi.InScope = false; // out of meeting scope, but still live
+            kpi.Target = ">= 99%";
             repo.Update(kpi);
             await db.SaveChangesAsync();
 
             var saved = (await repo.GetForTeamAsync(1)).Single();
             Assert.True(saved.Active);
-            Assert.False(saved.InScope);
+            Assert.Equal(">= 99%", saved.Target);
         }
 
         [Fact]
@@ -94,9 +93,6 @@ namespace OceansApp.Tests.WeeklyPulse
             var kpi = (await repo.GetForTeamAsync(1)).Single();
             Assert.False(kpi.Active);
             Assert.False(KpiScopeService.ExpectsInput(kpi));
-
-            // Retiring does not silently touch the scope flag — the two are independent.
-            Assert.True(kpi.InScope);
         }
     }
 }

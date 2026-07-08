@@ -38,9 +38,9 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
         public List<HeadlineRowVM> Headlines { get; set; } = new();
 
         /// <summary>
-        /// The Team's surfaced KPIs for the Week — in-scope only (out-of-scope/retired KPIs
-        /// are dropped), Loud (Red/Yellow/missing) before Quiet (Green). See
-        /// <see cref="ReviewSurfacingService.SurfaceKpi"/>.
+        /// The Team's surfaced KPIs for the Week — only this Week's included results (a result
+        /// with IncludeInReview set; un-ticked or missing results are dropped), Loud (Red/Yellow)
+        /// before Quiet (Green). See <see cref="ReviewSurfacingService.SurfaceKpi"/>.
         /// </summary>
         public List<KpiReviewRowVM> Kpis { get; set; } = new();
 

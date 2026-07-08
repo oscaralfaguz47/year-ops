@@ -38,16 +38,16 @@ namespace OceansApp.Models.Domain.WeeklyPulse
         }
 
         /// <summary>
-        /// How a KPI surfaces in Review. The scope gate comes first: a KPI that is not in
-        /// meeting scope (per <see cref="KpiScopeService.SurfacesInReview"/>) is
-        /// <see cref="KpiSurfacing.Hidden"/> regardless of its result. Among in-scope KPIs the
-        /// Green-quiet rule applies: a Green result is <see cref="KpiSurfacing.Quiet"/>, while
-        /// any other status — or a missing result (<paramref name="result"/> is <c>null</c>) —
-        /// is <see cref="KpiSurfacing.Loud"/>.
+        /// How this Week's KPI result surfaces in Review. The inclusion gate comes first: a result
+        /// that is not included this Week — or a missing result (<paramref name="result"/> is
+        /// <c>null</c>) — is <see cref="KpiSurfacing.Hidden"/> (per
+        /// <see cref="KpiScopeService.SurfacesInReview"/>). Among included results the Green-quiet
+        /// rule applies: a Green result is <see cref="KpiSurfacing.Quiet"/>, while any other status
+        /// is <see cref="KpiSurfacing.Loud"/> — dim-don't-hide, so it appears but reads louder.
         /// </summary>
-        public static KpiSurfacing SurfaceKpi(KpiDefinition kpi, KpiResult? result)
+        public static KpiSurfacing SurfaceKpi(KpiResult? result)
         {
-            if (!KpiScopeService.SurfacesInReview(kpi))
+            if (!KpiScopeService.SurfacesInReview(result))
                 return KpiSurfacing.Hidden;
 
             return result is { Status: KpiStatus.Green } ? KpiSurfacing.Quiet : KpiSurfacing.Loud;

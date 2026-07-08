@@ -520,6 +520,12 @@
                                     }
                                 }
                             </select>
+                            <div class="form-check mb-2">
+                                @* Per-Week decision: whether this result surfaces in the Review. Defaults checked. *@
+                                <input class="form-check-input" type="checkbox" name="includeInReview" value="true"
+                                       id="include-@kpiRow.Kpi.KpiDefinitionId" @((kpiRow.Result?.IncludeInReview ?? true) ? "checked" : "") />
+                                <label class="form-check-label small" for="include-@kpiRow.Kpi.KpiDefinitionId">Include in Weekly Pulse Review</label>
+                            </div>
                             <label class="form-label small mb-1">Notes</label>
                             <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Notes">@(kpiRow.Result?.Notes)</textarea>
                         </div>

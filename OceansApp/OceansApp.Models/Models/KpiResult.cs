@@ -41,6 +41,15 @@ namespace OceansApp.Models.Models
         [Required]
         public KpiStatus Status { get; set; }
 
+        /// <summary>
+        /// Whether this Week's result surfaces in the Weekly Pulse Review — a per-Week decision
+        /// recorded on the result (via the 'Include in Weekly Pulse Review' checkbox), defaulting
+        /// to true. Un-ticking it drops this KPI from the Week's Review without affecting Readiness
+        /// (which counts every Active KPI's result regardless of inclusion). See KpiScopeService.
+        /// </summary>
+        [Required]
+        public bool IncludeInReview { get; set; } = true;
+
         [MaxLength(2000)]
         public string? Notes { get; set; }
     }

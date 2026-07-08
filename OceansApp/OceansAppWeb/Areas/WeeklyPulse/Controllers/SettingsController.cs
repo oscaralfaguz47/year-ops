@@ -97,7 +97,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateKpi(int teamId, string name, string ownerId, string target, bool inScope)
+        public async Task<IActionResult> CreateKpi(int teamId, string name, string ownerId, string target)
         {
             if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(ownerId) && !string.IsNullOrWhiteSpace(target))
             {
@@ -107,8 +107,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                     Name = name,
                     OwnerId = ownerId,
                     Target = target,
-                    Active = true,        // created live
-                    InScope = inScope     // scope is independent of live/retired
+                    Active = true        // created live; Review-inclusion is decided per Week on the result
                 });
                 await _unitOfWork.SaveAsync();
             }
@@ -118,7 +117,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditKpi(int kpiDefinitionId, string name, string ownerId, string target, bool active, bool inScope)
+        public async Task<IActionResult> EditKpi(int kpiDefinitionId, string name, string ownerId, string target, bool active)
         {
             var kpi = await _unitOfWork.KpiDefinition.GetFirstOrDefaultAsync(k => k.KpiDefinitionId == kpiDefinitionId);
             if (kpi != null && !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(ownerId) && !string.IsNullOrWhiteSpace(target))
@@ -126,9 +125,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 kpi.Name = name;
                 kpi.OwnerId = ownerId;
                 kpi.Target = target;
-                // Active and InScope are two independent flags — set each from its own input.
                 kpi.Active = active;
-                kpi.InScope = inScope;
                 _unitOfWork.KpiDefinition.Update(kpi);
                 await _unitOfWork.SaveAsync();
             }

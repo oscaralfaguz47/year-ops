@@ -319,7 +319,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 Teams = teams.Select(t => new ReviewTeamVM
                 {
                     Team = t,
-                    // KPIs: scope gate first (out-of-scope/retired drop), then Green-quiet.
+                    // KPIs: inclusion gate first (only this Week's included results), then Green-quiet.
                     Kpis = kpis
                         .Where(k => k.TeamId == t.TeamId)
                         .Select(k =>
@@ -329,11 +329,11 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                             {
                                 Kpi = k,
                                 Result = result,
-                                Surfacing = ReviewSurfacingService.SurfaceKpi(k, result)
+                                Surfacing = ReviewSurfacingService.SurfaceKpi(result)
                             };
                         })
                         .Where(r => r.Surfacing != KpiSurfacing.Hidden)
-                        // Loud (Red/Yellow/missing) first so concerns read first, then by name.
+                        // Loud (Red/Yellow) first so concerns read first, then by name.
                         .OrderByDescending(r => r.Surfacing)
                         .ThenBy(r => r.Kpi.Name)
                         .ToList(),
@@ -460,10 +460,11 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RecordKpiResult(int kpiDefinitionId, string value, KpiStatus status, string? notes)
+        public async Task<IActionResult> RecordKpiResult(int kpiDefinitionId, string value, KpiStatus status, bool includeInReview, string? notes)
         {
             // Recording a KPI result is a frictionless everyday edit (unlike the guarded
-            // definition). Upsert keeps exactly one result per (KPI, Week).
+            // definition). Upsert keeps exactly one result per (KPI, Week). Whether this Week's
+            // result surfaces in the Review is a per-Week decision (the checkbox, default on).
             if (!string.IsNullOrWhiteSpace(value))
             {
                 await _unitOfWork.KpiResult.UpsertAsync(new KpiResult
@@ -472,6 +473,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                     WeekStart = WeekStartCalculator.Current(),
                     Value = value,
                     Status = status,
+                    IncludeInReview = includeInReview,
                     Notes = notes
                 });
                 await _unitOfWork.SaveAsync();

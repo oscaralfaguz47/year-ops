@@ -30,8 +30,7 @@ namespace OceansApp.Tests.WeeklyPulse
                 Name = "On-time delivery",
                 OwnerId = "leader-1",
                 Target = ">= 95%",
-                Active = true,
-                InScope = true
+                Active = true
             });
             db.SaveChanges();
             return db;
@@ -73,6 +72,22 @@ namespace OceansApp.Tests.WeeklyPulse
             Assert.Equal("97%", saved.Value);
             Assert.Equal(KpiStatus.Green, saved.Status);
             Assert.Equal("Recovered", saved.Notes);
+        }
+
+        [Fact]
+        public async Task IncludeInReview_RoundTrips_ThroughUpsert()
+        {
+            using var db = NewContext();
+            var repo = new KpiResultRepository(db);
+
+            // Recorded included by default, then re-saved un-ticked — the flag persists on update.
+            await repo.UpsertAsync(new KpiResult { KpiDefinitionId = 1, WeekStart = Week, Value = "92%", Status = KpiStatus.Green, IncludeInReview = true });
+            await db.SaveChangesAsync();
+            Assert.True((await repo.GetForWeekAsync(1, Week)).IncludeInReview);
+
+            await repo.UpsertAsync(new KpiResult { KpiDefinitionId = 1, WeekStart = Week, Value = "92%", Status = KpiStatus.Green, IncludeInReview = false });
+            await db.SaveChangesAsync();
+            Assert.False((await repo.GetForWeekAsync(1, Week)).IncludeInReview);
         }
 
         [Fact]
