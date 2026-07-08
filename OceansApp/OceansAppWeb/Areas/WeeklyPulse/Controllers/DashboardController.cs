@@ -186,7 +186,8 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            // Referer-aware: a create made from the guided Review returns to Review.
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -248,7 +249,8 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            // Referer-aware: a create made from the guided Review returns to Review.
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -398,7 +400,8 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            // Referer-aware: a post made from the guided Review returns to Review.
+            return RedirectBack();
         }
 
         [HttpPost]
