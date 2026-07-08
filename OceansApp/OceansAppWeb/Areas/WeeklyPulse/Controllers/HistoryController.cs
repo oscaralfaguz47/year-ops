@@ -42,7 +42,6 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 orderBy: q => q.OrderBy(t => t.DisplayOrder));
 
             // Snapshots stamped to this Week.
-            var checkIns = await _unitOfWork.CheckIn.GetAllAsync(filter: c => c.WeekStart == weekStart);
             var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
             var kpis = (await _unitOfWork.KpiDefinition.GetAllAsync()).ToList();
             var kpiResults = await _unitOfWork.KpiResult.GetAllAsync(filter: r => r.WeekStart == weekStart);
@@ -58,7 +57,6 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 Teams = teams.Select(t => new WeekMinutesTeamVM
                 {
                     Team = t,
-                    CheckIn = checkIns.FirstOrDefault(c => c.TeamId == t.TeamId),
                     Headlines = headlines.Where(h => h.TeamId == t.TeamId).ToList(),
                     Kpis = kpiResults
                         .Where(r => kpis.Any(k => k.KpiDefinitionId == r.KpiDefinitionId && k.TeamId == t.TeamId))
@@ -188,15 +186,12 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
         public async Task<IActionResult> DeleteWeek(DateOnly weekStart)
         {
             // Administer-gated: remove a past Week from the record. Deletes everything stamped
-            // to that WeekStart — the snapshots (check-ins, headlines, KPI results) and the
+            // to that WeekStart — the snapshots (headlines, KPI results) and the
             // week-stamped living-entity history rows. An Issue/To-Do active in other Weeks
             // keeps its remaining rows and simply re-derives its state; but one whose ENTIRE
             // history was in this Week would be left with no rows and silently re-derive to a
             // phantom Open state forever (StateAsOf defaults to Open) — so those orphans are
             // removed outright. One SaveAsync commits it all atomically.
-            var checkIns = await _unitOfWork.CheckIn.GetAllAsync(filter: c => c.WeekStart == weekStart);
-            _unitOfWork.CheckIn.RemoveRange(checkIns);
-
             var headlines = await _unitOfWork.Headline.GetAllAsync(filter: h => h.WeekStart == weekStart);
             _unitOfWork.Headline.RemoveRange(headlines);
 
@@ -226,14 +221,12 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
         /// </summary>
         private async Task<IReadOnlyList<DateOnly>> DistinctWeeksAsync()
         {
-            var checkIns = await _unitOfWork.CheckIn.GetAllAsync();
             var kpiResults = await _unitOfWork.KpiResult.GetAllAsync();
             var headlines = await _unitOfWork.Headline.GetAllAsync();
             var issues = await _unitOfWork.Issue.GetAllAsync(includeProperties: nameof(Issue.History));
             var toDos = await _unitOfWork.ToDo.GetAllAsync(includeProperties: nameof(ToDo.History));
 
-            var stamps = checkIns.Select(c => c.WeekStart)
-                .Concat(kpiResults.Select(r => r.WeekStart))
+            var stamps = kpiResults.Select(r => r.WeekStart)
                 .Concat(headlines.Select(h => h.WeekStart))
                 .Concat(issues.SelectMany(i => i.History).Select(h => h.WeekStart))
                 .Concat(toDos.SelectMany(td => td.History).Select(h => h.WeekStart));

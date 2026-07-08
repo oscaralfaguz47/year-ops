@@ -18,18 +18,6 @@
                     @team.Team.Name
                 </h4>
 
-                @* Snapshot: the Team's check-in (segue) for the Week. *@
-                @if (team.CheckIn != null)
-                {
-                    <div class="mb-3">
-                        <h6 class="text-muted">Check-in</h6>
-                        <div class="border rounded p-2">
-                            <span class="badge bg-secondary">@team.CheckIn.Type</span>
-                            <span>@team.CheckIn.Note</span>
-                        </div>
-                    </div>
-                }
-
                 @* Snapshot: the Week's news round. *@
                 @if (team.Headlines.Any())
                 {

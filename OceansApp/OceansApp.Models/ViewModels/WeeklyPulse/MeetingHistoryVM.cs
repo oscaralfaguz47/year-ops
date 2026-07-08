@@ -15,7 +15,7 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
 
     /// <summary>
     /// Backs the minutes for a single past Week: each Team with that Week's snapshots
-    /// (check-in, headlines, KPI results) plus every living Issue/To-Do that was
+    /// (headlines, KPI results) plus every living Issue/To-Do that was
     /// <b>active that Week</b> (see <c>MeetingHistoryService.IssueActiveInWeek</c> /
     /// <c>ToDoActiveInWeek</c>), shown <i>as of</i> that Week — so a single entity appears
     /// under each Week it touched, with its per-week progression.
@@ -29,9 +29,6 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
     public class WeekMinutesTeamVM
     {
         public Team Team { get; set; }
-
-        /// <summary>The Team's check-in snapshot for the Week, or null when none was recorded.</summary>
-        public CheckIn CheckIn { get; set; }
 
         /// <summary>The Team's headline snapshots posted that Week.</summary>
         public List<Headline> Headlines { get; set; } = new();

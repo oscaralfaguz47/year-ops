@@ -32,40 +32,6 @@ namespace OceansApp.Tests.WeeklyPulse
         }
 
         [Fact]
-        public async Task ConvertCheckInAsync_CreatesPrefilledIssue_AndLeavesCheckInIntact()
-        {
-            using var db = NewContext();
-            db.CHECK_INS.Add(new CheckIn
-            {
-                TeamId = 1,
-                WeekStart = SourceWeek,
-                Type = CheckInType.Concern,
-                Note = "Vendor invoice late"
-            });
-            await db.SaveChangesAsync();
-            var checkInId = db.CHECK_INS.Single().CheckInId;
-
-            var issueRepo = new IssueRepository(db);
-            var issue = await issueRepo.ConvertCheckInAsync(checkInId, ConversionWeek, At(ConversionWeek));
-            await db.SaveChangesAsync();
-
-            // New pre-filled, back-referenced Issue with its initial Open status row.
-            var stored = Assert.Single(await issueRepo.GetForTeamAsync(1));
-            Assert.Equal("[from check-in] Vendor invoice late", stored.Title);
-            Assert.Equal(OriginType.CheckIn, stored.OriginType);
-            Assert.Equal(checkInId, stored.OriginId);
-            Assert.Equal(ConversionWeek, stored.OriginWeekStart);
-            Assert.Equal(IssueStatus.Open, IssueStateService.StateAsOf(stored.History, ConversionWeek));
-            Assert.Equal(stored.IssueId, issue.IssueId);
-
-            // Source check-in is preserved, unchanged, in its Week.
-            var source = Assert.Single(db.CHECK_INS);
-            Assert.Equal(checkInId, source.CheckInId);
-            Assert.Equal("Vendor invoice late", source.Note);
-            Assert.Equal(SourceWeek, source.WeekStart);
-        }
-
-        [Fact]
         public async Task ConvertHeadlineAsync_CreatesPrefilledIssue_AndLeavesHeadlineIntact()
         {
             using var db = NewContext();
@@ -132,13 +98,13 @@ namespace OceansApp.Tests.WeeklyPulse
         }
 
         [Fact]
-        public async Task ConvertCheckInAsync_Throws_WhenSourceMissing()
+        public async Task ConvertHeadlineAsync_Throws_WhenSourceMissing()
         {
             using var db = NewContext();
             var issueRepo = new IssueRepository(db);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => issueRepo.ConvertCheckInAsync(999, ConversionWeek, At(ConversionWeek)));
+                () => issueRepo.ConvertHeadlineAsync(999, ConversionWeek, At(ConversionWeek)));
         }
     }
 }

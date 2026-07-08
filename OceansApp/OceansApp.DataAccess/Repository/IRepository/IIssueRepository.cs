@@ -32,16 +32,6 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<IEnumerable<Issue>> GetForTeamAsync(int teamId);
 
         /// <summary>
-        /// Converts a <see cref="CheckIn"/> into a new pre-filled Issue (additive): the
-        /// source check-in is left intact in its Week, and the new Issue carries an origin
-        /// back-reference to it (see <c>ConversionService.FromCheckIn</c>). Raised via
-        /// <see cref="RaiseAsync"/> in <paramref name="weekStart"/>. Throws
-        /// <see cref="InvalidOperationException"/> if the check-in does not exist. Returns the
-        /// new (unsaved) Issue; the caller commits via <see cref="IUnitOfWork.SaveAsync"/>.
-        /// </summary>
-        Task<Issue> ConvertCheckInAsync(int checkInId, DateOnly weekStart, DateTimeOffset at);
-
-        /// <summary>
         /// Converts a <see cref="Headline"/> into a new pre-filled Issue (additive): the
         /// source headline is left intact in its Week, and the new Issue carries an origin
         /// back-reference to it (see <c>ConversionService.FromHeadline</c>). Throws

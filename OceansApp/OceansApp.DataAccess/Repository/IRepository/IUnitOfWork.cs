@@ -66,7 +66,6 @@
         ISystemAreaRepository SystemArea { get; }
         ISystemSubAreaRepository SystemSubArea { get; }
         ITeamRepository Team { get; }
-        ICheckInRepository CheckIn { get; }
         IIssueRepository Issue { get; }
         IToDoRepository ToDo { get; }
         IKpiDefinitionRepository KpiDefinition { get; }

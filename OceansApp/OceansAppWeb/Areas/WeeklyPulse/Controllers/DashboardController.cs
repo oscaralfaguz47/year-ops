@@ -67,10 +67,6 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 selectedTeamIds = allTeamIds;
             }
 
-            // Snapshot: only this Week's check-ins, so a new Week starts blank.
-            var checkIns = await _unitOfWork.CheckIn.GetAllAsync(
-                filter: c => c.WeekStart == weekStart);
-
             // Living: all Issues carry across Weeks; show each as of this Week.
             var issues = await _unitOfWork.Issue.GetAllAsync(
                 includeProperties: nameof(Issue.History));
@@ -103,7 +99,6 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                     return new TeamCheckInVM
                     {
                         Team = t,
-                        CheckIn = checkIns.FirstOrDefault(c => c.TeamId == t.TeamId),
                         Issues = issues
                             .Where(i => i.TeamId == t.TeamId)
                             .Select(i => new IssueRowVM
@@ -345,19 +340,6 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConvertCheckInToIssue(int checkInId)
-        {
-            // Additive conversion: the check-in stays intact in its Week; a new pre-filled
-            // Issue is raised carrying a back-reference to it.
-            await _unitOfWork.Issue.ConvertCheckInAsync(
-                checkInId, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
-            await _unitOfWork.SaveAsync();
-
-            return RedirectToDashboard();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConvertHeadlineToIssue(int headlineId)
         {
             // Additive conversion: the headline stays in its Week; a new pre-filled Issue
@@ -416,22 +398,6 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 });
                 await _unitOfWork.SaveAsync();
             }
-
-            return RedirectToDashboard();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RecordCheckIn(int teamId, CheckInType type, string note)
-        {
-            await _unitOfWork.CheckIn.UpsertAsync(new CheckIn
-            {
-                TeamId = teamId,
-                WeekStart = WeekStartCalculator.Current(),
-                Type = type,
-                Note = note
-            });
-            await _unitOfWork.SaveAsync();
 
             return RedirectToDashboard();
         }

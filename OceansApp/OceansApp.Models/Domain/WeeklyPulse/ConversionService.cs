@@ -17,21 +17,6 @@ namespace OceansApp.Models.Domain.WeeklyPulse
     public static class ConversionService
     {
         /// <summary>
-        /// Pre-fills a new <see cref="Issue"/> from a <see cref="CheckIn"/> (segue),
-        /// back-referencing the source check-in. Priority defaults to
-        /// <see cref="IssuePriority.Med"/>.
-        /// </summary>
-        public static Issue FromCheckIn(CheckIn source, DateOnly weekStart) => new()
-        {
-            TeamId = source.TeamId,
-            Title = $"[from check-in] {source.Note}",
-            Priority = IssuePriority.Med,
-            OriginWeekStart = weekStart,
-            OriginType = OriginType.CheckIn,
-            OriginId = source.CheckInId
-        };
-
-        /// <summary>
         /// Pre-fills a new <see cref="Issue"/> from a <see cref="Headline"/>,
         /// back-referencing the source headline. A <see cref="HeadlineType.Risk"/> maps to
         /// <see cref="IssuePriority.High"/>; a Highlight maps to <see cref="IssuePriority.Med"/>.

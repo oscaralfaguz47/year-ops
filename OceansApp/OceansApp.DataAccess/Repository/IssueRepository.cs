@@ -53,17 +53,6 @@ namespace OceansApp.DataAccess.Repository
         public async Task<IEnumerable<Issue>> GetForTeamAsync(int teamId) =>
             await GetAllAsync(filter: i => i.TeamId == teamId, includeProperties: nameof(Issue.History));
 
-        public async Task<Issue> ConvertCheckInAsync(int checkInId, DateOnly weekStart, DateTimeOffset at)
-        {
-            // Additive conversion: read the source, never mutate or remove it.
-            var checkIn = await _db.CHECK_INS.FirstOrDefaultAsync(c => c.CheckInId == checkInId)
-                ?? throw new InvalidOperationException($"No check-in {checkInId}.");
-
-            var issue = ConversionService.FromCheckIn(checkIn, weekStart);
-            await RaiseAsync(issue, at);
-            return issue;
-        }
-
         public async Task<Issue> ConvertHeadlineAsync(int headlineId, DateOnly weekStart, DateTimeOffset at)
         {
             // Additive conversion: the headline stays intact in its Week.

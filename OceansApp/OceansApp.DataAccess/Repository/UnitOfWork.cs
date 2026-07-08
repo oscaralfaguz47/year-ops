@@ -100,7 +100,6 @@ namespace OceansApp.DataAccess.Repository
             SystemArea = new SystemAreaRepository(_db);
             SystemSubArea = new SystemSubAreaRepository(_db);
             Team = new TeamRepository(_db);
-            CheckIn = new CheckInRepository(_db);
             Issue = new IssueRepository(_db);
             ToDo = new ToDoRepository(_db);
             KpiDefinition = new KpiDefinitionRepository(_db);
@@ -173,7 +172,6 @@ namespace OceansApp.DataAccess.Repository
         public ISystemAreaRepository SystemArea { get; set; }
         public ISystemSubAreaRepository SystemSubArea { get; set; }
         public ITeamRepository Team { get; set; }
-        public ICheckInRepository CheckIn { get; set; }
         public IIssueRepository Issue { get; set; }
         public IToDoRepository ToDo { get; set; }
         public IKpiDefinitionRepository KpiDefinition { get; private set; }

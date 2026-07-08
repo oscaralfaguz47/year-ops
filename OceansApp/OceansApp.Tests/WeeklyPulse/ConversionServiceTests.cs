@@ -15,29 +15,6 @@ namespace OceansApp.Tests.WeeklyPulse
         private static readonly DateOnly Due = new(2026, 6, 30);
 
         [Fact]
-        public void FromCheckIn_PrefillsIssue_WithCheckInOrigin()
-        {
-            var checkIn = new CheckIn
-            {
-                CheckInId = 7,
-                TeamId = 3,
-                WeekStart = SourceWeek,
-                Type = CheckInType.Concern,
-                Note = "Vendor invoice is late again"
-            };
-
-            var issue = ConversionService.FromCheckIn(checkIn, ConversionWeek);
-
-            Assert.Equal(3, issue.TeamId);
-            Assert.Equal("[from check-in] Vendor invoice is late again", issue.Title);
-            Assert.Equal(IssuePriority.Med, issue.Priority);
-            // Raised in the conversion Week, not the source's Week.
-            Assert.Equal(ConversionWeek, issue.OriginWeekStart);
-            Assert.Equal(OriginType.CheckIn, issue.OriginType);
-            Assert.Equal(7, issue.OriginId);
-        }
-
-        [Fact]
         public void FromHeadline_PrefillsIssue_RiskMapsToHighPriority()
         {
             var headline = new Headline

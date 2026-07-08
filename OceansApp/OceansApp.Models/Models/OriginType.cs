@@ -9,7 +9,11 @@ namespace OceansApp.Models.Models
     /// </summary>
     public enum OriginType
     {
-        /// <summary>Converted from a <see cref="CheckIn"/> (segue) into an Issue.</summary>
+        /// <summary>
+        /// Converted from a check-in (segue) into an Issue. Retained for historical Issues
+        /// raised before the check-in was removed as an entity (ADR 0003); no new conversion
+        /// produces this origin.
+        /// </summary>
         CheckIn = 0,
 
         /// <summary>Converted from a <see cref="Headline"/> into an Issue.</summary>

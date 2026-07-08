@@ -111,7 +111,7 @@
         font-size: .85rem;
         text-align: left;
     }
-    /* Title row: content left, the readiness pill (check-ins only) pinned top-right. */
+    /* Title row: content left, the readiness pill pinned top-right. */
     .kb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
     .kb-card-main { min-width: 0; word-break: break-word; }
     .kb-readiness { flex: 0 0 auto; }
@@ -232,28 +232,19 @@
             </div>
         </div>
 
-        @* Check-ins — one card per shown team (the per-team prep ritual); cards edit/record. *@
+        @* Readiness — one pill per shown team (KPI-derived; reported, not healthy). *@
         <div class="kb-col">
-            <div class="kb-col-head">Check-ins <span class="kb-count">@shown.Count(r => r.CheckIn != null)</span></div>
+            <div class="kb-col-head">Readiness</div>
             <div class="kb-col-body">
                 @foreach (var row in shown)
                 {
                     var color = teamColor[row.Team.TeamId];
                     var badge = ReadinessBadge(row.Readiness);
-                    <div class="kb-card kb-click" data-bs-toggle="modal" data-bs-target="#checkin-modal-@row.Team.TeamId">
+                    <div class="kb-card">
                         <div class="kb-card-head">
                             <span class="kb-card-main"><span class="team-chip" style="background:@color"></span><strong>@row.Team.Name</strong></span>
                             <span class="badge rounded-pill kb-readiness @badge.Css">@badge.Label</span>
                         </div>
-                        @if (row.CheckIn != null)
-                        {
-                            <div class="small mt-1">@row.CheckIn.Note</div>
-                            <div class="kb-badges mt-1"><span class="badge bg-secondary">@row.CheckIn.Type</span></div>
-                        }
-                        else
-                        {
-                            <div class="text-muted small mt-1">No check-in yet</div>
-                        }
                     </div>
                 }
             </div>
@@ -536,52 +527,6 @@
         </div>
     }
 
-    @* Check-in — record/edit (upsert per team/week) + additive convert-to-issue. *@
-    <div class="modal fade" id="checkin-modal-@row.Team.TeamId" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Check-in <span class="text-muted small">· @row.Team.Name</span></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-start">
-                    <form asp-action="RecordCheckIn" method="post">
-                        <input type="hidden" name="teamId" value="@row.Team.TeamId" />
-                        <label class="form-label small mb-1">Type</label>
-                        <select name="type" class="form-select form-select-sm mb-2">
-                            @foreach (var t in Enum.GetValues<CheckInType>())
-                            {
-                                if (row.CheckIn != null && row.CheckIn.Type == t)
-                                {
-                                    <option value="@t" selected>@t</option>
-                                }
-                                else
-                                {
-                                    <option value="@t">@t</option>
-                                }
-                            }
-                        </select>
-                        <label class="form-label small mb-1">Note</label>
-                        <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Note">@(row.CheckIn?.Note)</textarea>
-                        <button type="submit" class="btn btn-sm btn-primary">Save check-in</button>
-                    </form>
-
-                    @* Additive conversion: raises a pre-filled Issue, the check-in stays intact. *@
-                    @if (row.CheckIn != null)
-                    {
-                        <hr />
-                        <form asp-action="ConvertCheckInToIssue" method="post">
-                            <input type="hidden" name="checkInId" value="@row.CheckIn.CheckInId" />
-                            <button type="submit" class="btn btn-sm btn-outline-secondary">Convert to issue</button>
-                        </form>
-                    }
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     @* Headline — snapshot; the only action is additive convert-to-issue. *@
     foreach (var headline in row.Headlines)
