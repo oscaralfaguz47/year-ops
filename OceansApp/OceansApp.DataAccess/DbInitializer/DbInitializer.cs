@@ -35,6 +35,42 @@ namespace OceansApp.DataAccess.DbInitializer
             _config = config;
         }
 
+        // WP-CR3: the non-admin 'Weekly Pulse Participant' role carries ONLY the
+        // Participate claim — deliberately not Administer — so participation does not
+        // imply admin. Kept as data so the intent is unit-testable in isolation.
+        public static readonly (string ClaimType, string ClaimValue)[] WeeklyPulseParticipantRoleClaims =
+        {
+            (WeeklyPulseClaimsCD.Participate_ClaimType, WeeklyPulseClaimsCD.Participate_ClaimValue)
+        };
+
+        // Pure, idempotent claim-diff: returns the ApplicationRoleClaim rows that are
+        // desired for a role but not yet present (by ClaimType/ClaimValue). Re-running
+        // with the same existing keys yields an empty list — no duplicates.
+        public static List<ApplicationRoleClaim> BuildRoleClaimsToInsert(
+            string roleId,
+            IEnumerable<(string ClaimType, string ClaimValue)> desiredClaims,
+            ISet<(string ClaimType, string ClaimValue)> existingClaimKeys,
+            string? createdBy,
+            DateTime creationDate)
+        {
+            var toInsert = new List<ApplicationRoleClaim>();
+            foreach (var claim in desiredClaims)
+            {
+                if (!existingClaimKeys.Contains(claim))
+                {
+                    toInsert.Add(new ApplicationRoleClaim
+                    {
+                        RoleId = roleId,
+                        ClaimType = claim.ClaimType,
+                        ClaimValue = claim.ClaimValue,
+                        CreatedBy = createdBy,
+                        CreationDate = creationDate
+                    });
+                }
+            }
+            return toInsert;
+        }
+
         public async Task InitializeAsync()
         {
             try
@@ -1375,7 +1411,8 @@ namespace OceansApp.DataAccess.DbInitializer
                 {
                     new () { Name = SD.Role_User_Master },
                     new () { Name = SD.Role_User_Admin },
-                    new () { Name = SD.Role_User_Computer_Consultant }
+                    new () { Name = SD.Role_User_Computer_Consultant },
+                    new () { Name = SD.Role_User_Weekly_Pulse_Participant }
                 };
 
                 foreach (var role in rolesList)
@@ -1606,6 +1643,34 @@ namespace OceansApp.DataAccess.DbInitializer
                     if (adminClaimsToInsert.Any())
                     {
                         await _db.RoleClaims.AddRangeAsync(adminClaimsToInsert);
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
+                // Assign ONLY the Weekly Pulse Participate claim (never Administer) to the
+                // non-admin 'Weekly Pulse Participant' role. A Master/Admin grants Pulse
+                // access by adding a user to this role — decoupling participation from admin.
+                var pulseParticipantRole = await _roleManager.FindByNameAsync(SD.Role_User_Weekly_Pulse_Participant);
+                if (pulseParticipantRole != null)
+                {
+                    var participantRoleClaimKeys = (await _db.RoleClaims
+                        .AsNoTracking()
+                        .Where(rc => rc.RoleId == pulseParticipantRole.Id)
+                        .Select(rc => new { rc.ClaimType, rc.ClaimValue })
+                        .ToListAsync())
+                        .Select(x => (x.ClaimType, x.ClaimValue))
+                        .ToHashSet();
+
+                    var participantClaimsToInsert = BuildRoleClaimsToInsert(
+                        pulseParticipantRole.Id,
+                        WeeklyPulseParticipantRoleClaims,
+                        participantRoleClaimKeys,
+                        firstMasterUserId,
+                        DateTime.UtcNow);
+
+                    if (participantClaimsToInsert.Any())
+                    {
+                        await _db.RoleClaims.AddRangeAsync(participantClaimsToInsert);
                         await _db.SaveChangesAsync();
                     }
                 }
