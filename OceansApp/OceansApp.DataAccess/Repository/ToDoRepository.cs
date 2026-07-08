@@ -50,6 +50,19 @@ namespace OceansApp.DataAccess.Repository
             });
         }
 
+        public async Task EditAsync(int toDoId, int teamId, string title, string ownerId, DateOnly dueDate)
+        {
+            var toDo = await _db.TODOS.FirstOrDefaultAsync(t => t.ToDoId == toDoId)
+                ?? throw new InvalidOperationException($"No to-do {toDoId}.");
+
+            // The To-Do's own (Living) fields are edited in place; its status history — the
+            // Open -> Blocked -> Done lifecycle — is separate and left untouched.
+            toDo.TeamId = teamId;
+            toDo.Title = title;
+            toDo.OwnerId = ownerId;
+            toDo.DueDate = dueDate;
+        }
+
         public async Task<IEnumerable<ToDo>> GetForTeamAsync(int teamId) =>
             await GetAllAsync(filter: t => t.TeamId == teamId, includeProperties: nameof(ToDo.History));
 

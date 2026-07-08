@@ -63,6 +63,12 @@
     // so an excluded team contributes nothing anywhere (server-side filter).
     var shown = Model.Teams.Where(r => selected.Contains(r.Team.TeamId)).ToList();
 
+    // The full team list (every team, not just the filtered view) for the edit-form Team
+    // pickers — an edit can reassign a card to a team that is currently filtered out.
+    var teamOptions = Model.Teams
+        .Select(r => new TeamOptionVM { TeamId = r.Team.TeamId, Name = r.Team.Name })
+        .ToList();
+
     // A clean URL when every team shows (drop the param), otherwise ?teams=<csv>.
     string HrefFor(IEnumerable<int> ids)
     {
@@ -539,7 +545,50 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body text-start">
-                        <p class="mb-2"><span class="badge @HeadlineCss(headline.Type)">@headline.Type</span> @headline.Text</p>
+                        @* Click-to-edit: type / text / Team (the headline stays in its Week). *@
+                        <form asp-action="EditHeadline" method="post" class="d-flex flex-column gap-2 mb-2">
+                            <input type="hidden" name="headlineId" value="@headline.HeadlineId" />
+                            <div>
+                                <label class="form-label small mb-1">Headline</label>
+                                <input type="text" name="text" class="form-control form-control-sm" value="@headline.Text" maxlength="2000" required />
+                            </div>
+                            <div class="d-flex gap-2">
+                                <div class="flex-fill">
+                                    <label class="form-label small mb-1">Type</label>
+                                    <select name="type" class="form-select form-select-sm">
+                                        @foreach (var t in Enum.GetValues<HeadlineType>())
+                                        {
+                                            if (t == headline.Type)
+                                            {
+                                                <option value="@t" selected>@t</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@t">@t</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="flex-fill">
+                                    <label class="form-label small mb-1">Team</label>
+                                    <select name="teamId" class="form-select form-select-sm">
+                                        @foreach (var team in teamOptions)
+                                        {
+                                            if (team.TeamId == headline.TeamId)
+                                            {
+                                                <option value="@team.TeamId" selected>@team.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@team.TeamId">@team.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary align-self-start">Save changes</button>
+                        </form>
+                        <hr />
                         @* Additive conversion: raises a pre-filled Issue, the headline stays intact. *@
                         <form asp-action="ConvertHeadlineToIssue" method="post">
                             <input type="hidden" name="headlineId" value="@headline.HeadlineId" />
@@ -581,24 +630,19 @@
                             <p class="text-muted small mb-2">↩ Converted from a @OriginLabel(issueRow.Issue.OriginType.Value)</p>
                         }
 
-                        <form asp-action="TransitionIssue" method="post" class="d-flex gap-1 mb-2">
-                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
-                            <select name="status" class="form-select form-select-sm">
-                                @foreach (var s in Enum.GetValues<IssueStatus>())
-                                {
-                                    if (s == issueRow.State)
-                                    {
-                                        <option value="@s" selected>@s</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@s">@s</option>
-                                    }
-                                }
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-outline-primary">Set status</button>
-                        </form>
+                        @* Shared edit form: title / Team / priority / status in one save.
+                           Factored to _IssueEditForm so the Review (WP-CR4) reuses it. *@
+                        @await Html.PartialAsync("_IssueEditForm", new IssueEditFormVM
+                        {
+                            IssueId = issueRow.Issue.IssueId,
+                            TeamId = issueRow.Issue.TeamId,
+                            Title = StripOrigin(issueRow.Issue.Title),
+                            Priority = issueRow.Issue.Priority,
+                            State = issueRow.State,
+                            Teams = teamOptions
+                        })
 
+                        <hr />
                         <form asp-action="CommentIssue" method="post" class="d-flex gap-1 mb-2">
                             <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
                             <input type="text" name="comment" class="form-control form-control-sm" placeholder="IDS comment" />
@@ -651,14 +695,27 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body text-start">
-                        <div class="text-muted small mb-2">
-                            Owner: @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim())
-                            · Due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
-                        </div>
                         @if (toDoRow.ToDo.OriginType != null)
                         {
                             <p class="text-muted small mb-2">↩ Converted from a @OriginLabel(toDoRow.ToDo.OriginType.Value)</p>
                         }
+
+                        @* Shared edit form: owner / title / Team / due date. Factored to
+                           _ToDoEditForm so the Review (WP-CR4) reuses it. *@
+                        @await Html.PartialAsync("_ToDoEditForm", new ToDoEditFormVM
+                        {
+                            ToDoId = toDoRow.ToDo.ToDoId,
+                            TeamId = toDoRow.ToDo.TeamId,
+                            Title = StripOrigin(toDoRow.ToDo.Title),
+                            OwnerId = toDoRow.ToDo.OwnerId,
+                            DueDate = toDoRow.ToDo.DueDate,
+                            Teams = teamOptions,
+                            People = Model.People
+                        })
+
+                        <hr />
+                        @* Status is the To-Do's own lifecycle (Open -> Blocked -> Done), separate
+                           from the editable fields above. *@
                         <form asp-action="TransitionToDo" method="post" class="d-flex gap-1">
                             <input type="hidden" name="toDoId" value="@toDoRow.ToDo.ToDoId" />
                             <select name="status" class="form-select form-select-sm">

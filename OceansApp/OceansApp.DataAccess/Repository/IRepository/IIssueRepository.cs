@@ -26,6 +26,16 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task CommentAsync(int issueId, string comment, DateOnly weekStart, DateTimeOffset at);
 
         /// <summary>
+        /// Edits an Issue's own (Living) fields — its <see cref="Issue.TeamId"/>,
+        /// <see cref="Issue.Title"/> and <see cref="Issue.Priority"/> — in place. The
+        /// <paramref name="status"/> is applied through the history: a transition row is
+        /// appended only when it differs from the Issue's current state as of
+        /// <paramref name="weekStart"/> (so history stays one row per real change). Throws
+        /// <see cref="InvalidOperationException"/> if the Issue does not exist. Does not save.
+        /// </summary>
+        Task EditAsync(int issueId, int teamId, string title, IssuePriority priority, IssueStatus status, DateOnly weekStart, DateTimeOffset at);
+
+        /// <summary>
         /// Returns the Team's Issues with their full status/comment history loaded,
         /// ready for stateAsOf computation.
         /// </summary>

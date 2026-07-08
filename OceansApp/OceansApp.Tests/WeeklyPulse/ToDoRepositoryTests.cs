@@ -84,6 +84,33 @@ namespace OceansApp.Tests.WeeklyPulse
         }
 
         [Fact]
+        public async Task EditAsync_UpdatesOwnerTitleTeamAndDueDate_WithoutTouchingHistory()
+        {
+            using var db = NewContext();
+            db.TEAMS.Add(new Team { TeamId = 2, Name = "Ops", DisplayOrder = 2, TeamLeaderId = "leader-2" });
+            db.SaveChanges();
+            var repo = new ToDoRepository(db);
+
+            await repo.RaiseAsync(NewToDo(), At(W1));
+            await db.SaveChangesAsync();
+
+            var toDoId = (await repo.GetForTeamAsync(1)).Single().ToDoId;
+            var newDue = new DateOnly(2026, 7, 15);
+
+            await repo.EditAsync(toDoId, teamId: 2, "Send the revised quote", "owner-2", newDue);
+            await db.SaveChangesAsync();
+
+            var toDo = (await repo.GetForTeamAsync(2)).Single();
+            Assert.Equal("Send the revised quote", toDo.Title);
+            Assert.Equal("owner-2", toDo.OwnerId);
+            Assert.Equal(2, toDo.TeamId);
+            Assert.Equal(newDue, toDo.DueDate);
+            // Editing the To-Do's own fields never touches its status history.
+            Assert.Single(toDo.History, h => h.ChangeType == ToDoChangeType.Status);
+            Assert.Equal(ToDoStatus.Open, ToDoStateService.StateAsOf(toDo.History, W1));
+        }
+
+        [Fact]
         public async Task CommentAsync_AppendsCommentRow_WithoutChangingState()
         {
             using var db = NewContext();

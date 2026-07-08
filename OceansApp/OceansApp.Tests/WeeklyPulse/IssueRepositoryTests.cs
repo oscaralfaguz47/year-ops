@@ -115,6 +115,63 @@ namespace OceansApp.Tests.WeeklyPulse
         }
 
         [Fact]
+        public async Task EditAsync_UpdatesTitlePriorityAndTeam_WithoutTouchingHistory()
+        {
+            using var db = NewContext();
+            db.TEAMS.Add(new Team { TeamId = 2, Name = "Ops", DisplayOrder = 2, TeamLeaderId = "leader-2" });
+            db.SaveChanges();
+            var repo = new IssueRepository(db);
+
+            await repo.RaiseAsync(new Issue
+            {
+                TeamId = 1,
+                Title = "Typo in title",
+                Priority = IssuePriority.Low,
+                OriginWeekStart = W1
+            }, At(W1));
+            await db.SaveChangesAsync();
+
+            var issueId = (await repo.GetForTeamAsync(1)).Single().IssueId;
+
+            // Status unchanged (still Open) — so no history row is appended.
+            await repo.EditAsync(issueId, teamId: 2, "Corrected title", IssuePriority.High, IssueStatus.Open, W1, At(W1, 1));
+            await db.SaveChangesAsync();
+
+            var issue = (await repo.GetForTeamAsync(2)).Single();
+            Assert.Equal("Corrected title", issue.Title);
+            Assert.Equal(IssuePriority.High, issue.Priority);
+            Assert.Equal(2, issue.TeamId);
+            // Only the initial Open row — the edit changed nothing about status.
+            Assert.Single(issue.History, h => h.ChangeType == IssueChangeType.Status);
+        }
+
+        [Fact]
+        public async Task EditAsync_AppendsStatusRow_WhenStatusChanges()
+        {
+            using var db = NewContext();
+            var repo = new IssueRepository(db);
+
+            await repo.RaiseAsync(new Issue
+            {
+                TeamId = 1,
+                Title = "Needs deferring",
+                Priority = IssuePriority.Med,
+                OriginWeekStart = W1
+            }, At(W1));
+            await db.SaveChangesAsync();
+
+            var issueId = (await repo.GetForTeamAsync(1)).Single().IssueId;
+
+            await repo.EditAsync(issueId, teamId: 1, "Needs deferring", IssuePriority.Med, IssueStatus.Deferred, W2, At(W2));
+            await db.SaveChangesAsync();
+
+            var issue = (await repo.GetForTeamAsync(1)).Single();
+            // Open (initial) + Deferred (from the edit).
+            Assert.Equal(2, issue.History.Count(h => h.ChangeType == IssueChangeType.Status));
+            Assert.Equal(IssueStatus.Deferred, IssueStateService.StateAsOf(issue.History, W2));
+        }
+
+        [Fact]
         public async Task SetPinAsync_PinsDeferredIssue()
         {
             using var db = NewContext();

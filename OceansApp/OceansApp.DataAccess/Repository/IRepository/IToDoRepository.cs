@@ -25,6 +25,15 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task CommentAsync(int toDoId, string comment, DateOnly weekStart, DateTimeOffset at);
 
         /// <summary>
+        /// Edits a To-Do's own (Living) fields in place — its owning <see cref="ToDo.TeamId"/>,
+        /// <see cref="ToDo.Title"/>, <see cref="ToDo.OwnerId"/> and <see cref="ToDo.DueDate"/>.
+        /// The status lifecycle (Open -> Blocked -> Done, in the history) is separate and left
+        /// untouched. Throws <see cref="InvalidOperationException"/> if the To-Do does not exist.
+        /// Does not save.
+        /// </summary>
+        Task EditAsync(int toDoId, int teamId, string title, string ownerId, DateOnly dueDate);
+
+        /// <summary>
         /// Returns the Team's To-Dos with their full status/comment history loaded, ready for
         /// stateAsOf computation.
         /// </summary>

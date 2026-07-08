@@ -78,6 +78,28 @@ namespace OceansApp.Tests.WeeklyPulse
         }
 
         [Fact]
+        public async Task EditAsync_UpdatesTypeTextAndTeam_InPlace()
+        {
+            using var db = NewContext();
+            var repo = new HeadlineRepository(db);
+
+            await repo.PostAsync(new Headline { TeamId = 1, WeekStart = Week, Type = HeadlineType.Highlight, Text = "Draft" });
+            await db.SaveChangesAsync();
+
+            var headlineId = (await repo.GetForTeamWeekAsync(1, Week)).Single().HeadlineId;
+
+            await repo.EditAsync(headlineId, teamId: 2, HeadlineType.Risk, "Reworded and reassigned");
+            await db.SaveChangesAsync();
+
+            // The snapshot is edited in place — no new row, moved to the other team.
+            Assert.Empty(await repo.GetForTeamWeekAsync(1, Week));
+            var edited = Assert.Single(await repo.GetForTeamWeekAsync(2, Week));
+            Assert.Equal(headlineId, edited.HeadlineId);
+            Assert.Equal(HeadlineType.Risk, edited.Type);
+            Assert.Equal("Reworded and reassigned", edited.Text);
+        }
+
+        [Fact]
         public async Task DifferentWeek_StartsBlank()
         {
             using var db = NewContext();

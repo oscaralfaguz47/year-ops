@@ -50,6 +50,27 @@ namespace OceansApp.DataAccess.Repository
             });
         }
 
+        public async Task EditAsync(int issueId, int teamId, string title, IssuePriority priority, IssueStatus status, DateOnly weekStart, DateTimeOffset at)
+        {
+            var issue = await _db.ISSUES
+                .Include(i => i.History)
+                .FirstOrDefaultAsync(i => i.IssueId == issueId)
+                ?? throw new InvalidOperationException($"No issue {issueId}.");
+
+            // The Issue's own (Living) fields are edited in place.
+            issue.TeamId = teamId;
+            issue.Title = title;
+            issue.Priority = priority;
+
+            // Status is derived from history, not stored — so a status change is recorded as a
+            // new transition row, and only when it actually differs from the current state
+            // (keeps history to one row per real change, like TransitionAsync).
+            if (IssueStateService.StateAsOf(issue.History, weekStart) != status)
+            {
+                await TransitionAsync(issueId, status, weekStart, at);
+            }
+        }
+
         public async Task<IEnumerable<Issue>> GetForTeamAsync(int teamId) =>
             await GetAllAsync(filter: i => i.TeamId == teamId, includeProperties: nameof(Issue.History));
 

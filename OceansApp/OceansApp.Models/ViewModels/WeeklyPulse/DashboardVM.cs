@@ -76,4 +76,48 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
         /// </summary>
         public ToDoSurfacing Surfacing { get; set; }
     }
+
+    /// <summary>A Team option (id + name) for the edit-form Team pickers.</summary>
+    public class TeamOptionVM
+    {
+        public int TeamId { get; set; }
+        public string Name { get; set; }
+    }
+
+    /// <summary>
+    /// Backs the shared Issue edit form partial (<c>_IssueEditForm</c>). Self-contained so both
+    /// the Dashboard and the Review (WP-CR4 live-edit moments) can render the same form: it
+    /// carries the Issue's current editable values plus the Team option list. Status is edited
+    /// alongside the Issue's own fields (Team/title/priority) and applied through history.
+    /// </summary>
+    public class IssueEditFormVM
+    {
+        public int IssueId { get; set; }
+        public int TeamId { get; set; }
+        public string Title { get; set; }
+        public IssuePriority Priority { get; set; }
+
+        /// <summary>The Issue's current state as of the Week (pre-selects the status dropdown).</summary>
+        public IssueStatus State { get; set; }
+
+        public List<TeamOptionVM> Teams { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Backs the shared To-Do edit form partial (<c>_ToDoEditForm</c>). Self-contained so both
+    /// the Dashboard and the Review can render the same form: it carries the To-Do's current
+    /// editable values (Team/owner/title/due date) plus the Team and Person option lists. The
+    /// status lifecycle is edited separately and is not part of this form.
+    /// </summary>
+    public class ToDoEditFormVM
+    {
+        public int ToDoId { get; set; }
+        public int TeamId { get; set; }
+        public string Title { get; set; }
+        public string OwnerId { get; set; }
+        public DateOnly DueDate { get; set; }
+
+        public List<TeamOptionVM> Teams { get; set; } = new();
+        public List<PersonOptionVM> People { get; set; } = new();
+    }
 }

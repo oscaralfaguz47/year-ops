@@ -13,6 +13,15 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task PostAsync(Headline obj);
 
         /// <summary>
+        /// Edits an existing Headline snapshot in place — its <see cref="Headline.Type"/>,
+        /// <see cref="Headline.Text"/> and owning <see cref="Headline.TeamId"/>. The Week is
+        /// never changed (a headline belongs to the Week it was posted in). Throws
+        /// <see cref="InvalidOperationException"/> if the headline does not exist. Does not save;
+        /// the caller commits via <see cref="IUnitOfWork.SaveAsync"/>.
+        /// </summary>
+        Task EditAsync(int headlineId, int teamId, HeadlineType type, string text);
+
+        /// <summary>
         /// Returns every Team's headlines for the given Week (empty when the Week is blank).
         /// </summary>
         Task<IEnumerable<Headline>> GetForWeekAsync(DateOnly weekStart);

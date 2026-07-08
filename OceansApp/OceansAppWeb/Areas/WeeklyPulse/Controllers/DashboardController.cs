@@ -197,6 +197,23 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditIssue(int issueId, int teamId, string title, IssuePriority priority, IssueStatus status)
+        {
+            // Click-to-edit: the Issue's own fields (Team/title/priority) plus its derived
+            // status, applied in one save. A required, non-blank title guards the edit.
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                await _unitOfWork.Issue.EditAsync(
+                    issueId, teamId, title, priority, status,
+                    WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToDashboard();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RaiseToDo(int teamId, string title, string ownerId, DateOnly dueDate)
         {
             if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(ownerId))
@@ -222,6 +239,22 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             await _unitOfWork.ToDo.TransitionAsync(
                 toDoId, status, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
+
+            return RedirectToDashboard();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditToDo(int toDoId, int teamId, string title, string ownerId, DateOnly dueDate)
+        {
+            // Click-to-edit: the To-Do's own fields (Team/owner/title/due date). Status is its
+            // own lifecycle (TransitionToDo) and is not part of this edit. A required, non-blank
+            // title and owner guard the edit.
+            if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(ownerId))
+            {
+                await _unitOfWork.ToDo.EditAsync(toDoId, teamId, title, ownerId, dueDate);
+                await _unitOfWork.SaveAsync();
+            }
 
             return RedirectToDashboard();
         }
@@ -332,6 +365,21 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                     Type = type,
                     Text = text
                 });
+                await _unitOfWork.SaveAsync();
+            }
+
+            return RedirectToDashboard();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditHeadline(int headlineId, int teamId, HeadlineType type, string text)
+        {
+            // Click-to-edit: a headline is a snapshot — its Team, type and text move, its Week
+            // stays. A required, non-blank text guards the edit.
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                await _unitOfWork.Headline.EditAsync(headlineId, teamId, type, text);
                 await _unitOfWork.SaveAsync();
             }
 
