@@ -84,6 +84,12 @@
                                                 </div>
                                             </li>
                                         }
+                                        @if (User.HasClaim(c => c.Type == WeeklyPulseClaimsCD.Participate_ClaimType && c.Value == WeeklyPulseClaimsCD.Participate_ClaimValue))
+                                        {
+                                            <li class="nav-item" id="pulseItem">
+                                                <a class="nav-link" asp-area="WeeklyPulse" asp-controller="Dashboard" asp-action="Index"><img src="/icons/Shared/Navbar/pulse-white.svg" /> Pulse</a>
+                                            </li>
+                                        }
                                         @if (User.IsAuthorizedForGeneral())
                                         {
                                             <li class="nav-item dropdown" id="generalItem">
@@ -177,11 +183,6 @@
                                                     @if (User.HasClaim(c => c.Type == ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimType && c.Value == ConsultantPositionsClaimsCD.Manage_Consultant_Positions_ClaimValue))
                                                     {
                                                         <a id="manage" class="nav-link" asp-area="AdminCenter" asp-controller="ConsultantPositions" asp-action="Index">Consultant Positions Accounting Config</a>
-                                                    }
-                                                    @if (User.HasClaim(c => c.Type == WeeklyPulseClaimsCD.Participate_ClaimType && c.Value == WeeklyPulseClaimsCD.Participate_ClaimValue))
-                                                    {
-                                                        <div class="dropdown-divider"></div>
-                                                        <a id="manage" class="nav-link" asp-area="WeeklyPulse" asp-controller="Dashboard" asp-action="Index">Weekly Pulse</a>
                                                     }
                                                 </div>
                                             </li>
