@@ -3,6 +3,25 @@
 @using OceansApp.Models.ViewModels.WeeklyPulse
 @model ReviewVM
 
+@functions {
+    // Converted entities carry a "[from <origin>] " title prefix; the walk shows the plain
+    // title (mirrors the Dashboard), so strip the textual prefix for display and edit prefill.
+    static string StripOrigin(string title)
+    {
+        if (string.IsNullOrEmpty(title) || !title.StartsWith("[from ")) { return title; }
+        var end = title.IndexOf("] ", StringComparison.Ordinal);
+        return end >= 0 ? title[(end + 2)..] : title;
+    }
+}
+
+@{
+    // Full team list for the edit-form Team pickers — a live edit can reassign a record to a
+    // team that does not currently surface anything of its own in the walk.
+    var teamOptions = Model.Teams
+        .Select(r => new TeamOptionVM { TeamId = r.Team.TeamId, Name = r.Team.Name })
+        .ToList();
+}
+
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Review</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
@@ -13,129 +32,251 @@
     </div>
     <hr />
 
+    @* A guided sequential walk, not a board: each Team is run through the fixed moments
+       (Check-in -> KPI -> Headlines -> Issues -> To-Dos) in ReviewScriptService order, each
+       with its own edit rule. Only surfaced data shows (loud-first) via ReviewSurfacingService. *@
     <div class="container">
         @foreach (var team in Model.Teams)
         {
-            <div class="text-start mb-4">
+            <div class="text-start mb-5">
                 <h4>
                     <span class="badge bg-secondary">@team.Team.DisplayOrder</span>
                     @team.Team.Name
                 </h4>
 
-                @* News round opens the segment: every headline surfaces — Risk loud, Highlight quiet. *@
-                @if (team.Headlines.Any())
+                @foreach (var moment in ReviewScriptService.Moments)
                 {
-                    <div class="mb-3">
-                        <h6 class="text-muted">News round</h6>
-                        @foreach (var headlineRow in team.Headlines)
-                        {
-                            var loud = headlineRow.Emphasis == HeadlineEmphasis.Loud;
-                            <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
-                                <span class="badge @(loud ? "bg-danger" : "bg-success")">@headlineRow.Headline.Type</span>
-                                @if (loud)
+                    switch (moment)
+                    {
+                        case ReviewMoment.CheckIn:
+                            @* Unsaved sharing moment — a static header, nothing is stored. *@
+                            <div class="border-start border-4 ps-3 my-3">
+                                <h5 class="mb-1">Check-in</h5>
+                                <p class="text-muted small mb-0">
+                                    A quick sharing moment to open the segment — nothing is recorded.
+                                </p>
+                            </div>
+                            break;
+
+                        case ReviewMoment.Kpi:
+                            @* KPI review — view-only. In-scope only, Loud (Red/Yellow/missing) before Quiet (Green). *@
+                            <div class="my-3">
+                                <h5>KPI review</h5>
+                                @if (!team.Kpis.Any())
                                 {
-                                    <strong>@headlineRow.Headline.Text</strong>
+                                    <p class="text-muted">No KPIs surface for this team.</p>
                                 }
                                 else
                                 {
-                                    <span>@headlineRow.Headline.Text</span>
+                                    foreach (var kpiRow in team.Kpis)
+                                    {
+                                        var loud = kpiRow.Surfacing == KpiSurfacing.Loud;
+                                        <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
+                                            @if (kpiRow.Result != null)
+                                            {
+                                                <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">No result</span>
+                                            }
+                                            @if (loud)
+                                            {
+                                                <strong>@kpiRow.Kpi.Name</strong>
+                                            }
+                                            else
+                                            {
+                                                <span>@kpiRow.Kpi.Name</span>
+                                            }
+                                            <span class="text-muted small">
+                                                — @(kpiRow.Result?.Value ?? "no result yet") (target @kpiRow.Kpi.Target)
+                                            </span>
+                                        </div>
+                                    }
                                 }
                             </div>
-                        }
-                    </div>
-                }
+                            break;
 
-                @* KPIs: in-scope only, Loud (Red/Yellow/missing) before Quiet (Green). *@
-                @if (team.Kpis.Any())
-                {
-                    <div class="mb-3">
-                        <h6 class="text-muted">KPIs</h6>
-                        @foreach (var kpiRow in team.Kpis)
-                        {
-                            var loud = kpiRow.Surfacing == KpiSurfacing.Loud;
-                            <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
-                                @if (kpiRow.Result != null)
+                        case ReviewMoment.Headlines:
+                            @* Headlines — view-only; the only action is dropping a headline to an Issue
+                               (never a To-Do directly). Every headline surfaces: Risk loud, Highlight quiet. *@
+                            <div class="my-3">
+                                <h5>Headlines</h5>
+                                @if (!team.Headlines.Any())
                                 {
-                                    <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                    <p class="text-muted">No headlines for this team.</p>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">No result</span>
+                                    foreach (var headlineRow in team.Headlines)
+                                    {
+                                        var loud = headlineRow.Emphasis == HeadlineEmphasis.Loud;
+                                        <div class="alert @(loud ? "alert-danger" : "alert-success") py-2 mb-2" role="note">
+                                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                                <div>
+                                                    <span class="badge @(loud ? "bg-danger" : "bg-success")">@headlineRow.Headline.Type</span>
+                                                    @if (loud)
+                                                    {
+                                                        <strong>@headlineRow.Headline.Text</strong>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>@headlineRow.Headline.Text</span>
+                                                    }
+                                                </div>
+                                                @if (ReviewScriptService.CanDropToIssue(moment))
+                                                {
+                                                    @* Additive: raises a pre-filled Issue; the headline stays put. *@
+                                                    <form asp-action="ConvertHeadlineToIssue" method="post" class="flex-shrink-0">
+                                                        <input type="hidden" name="headlineId" value="@headlineRow.Headline.HeadlineId" />
+                                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Drop to issue</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
                                 }
-                                @if (loud)
-                                {
-                                    <strong>@kpiRow.Kpi.Name</strong>
-                                }
-                                else
-                                {
-                                    <span>@kpiRow.Kpi.Name</span>
-                                }
-                                <span class="text-muted small">
-                                    — @(kpiRow.Result?.Value ?? "no result yet") (target @kpiRow.Kpi.Target)
-                                </span>
                             </div>
-                        }
-                    </div>
-                }
+                            break;
 
-                @if (!team.Issues.Any())
-                {
-                    <p class="text-muted">No issues surface for this team.</p>
-                }
-                else
-                {
-                    @foreach (var issueRow in team.Issues)
-                    {
-                        <div class="border rounded p-2 mb-2">
-                            <strong>@issueRow.Issue.Title</strong>
-                            <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
-                            <span class="badge bg-info text-dark">@issueRow.State</span>
-                            @if (issueRow.Issue.Pinned)
-                            {
-                                <span class="badge bg-warning text-dark">Pinned</span>
-                            }
+                        case ReviewMoment.Issues:
+                            @* Issues — fully editable live in place (reusing the WP-CR2 form); issue -> To-Do available. *@
+                            <div class="my-3">
+                                <h5>Issues</h5>
+                                @if (!team.Issues.Any())
+                                {
+                                    <p class="text-muted">No issues surface for this team.</p>
+                                }
+                                else
+                                {
+                                    foreach (var issueRow in team.Issues)
+                                    {
+                                        <div class="border rounded p-3 mb-3">
+                                            <div class="mb-2">
+                                                <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                                                <span class="badge bg-info text-dark">@issueRow.State</span>
+                                                @if (issueRow.Issue.Pinned)
+                                                {
+                                                    <span class="badge bg-warning text-dark">Pinned</span>
+                                                }
+                                                @if (issueRow.Issue.OriginType != null)
+                                                {
+                                                    <span class="text-muted small">↩ converted</span>
+                                                }
+                                            </div>
 
-                            @* A pinned-Deferred issue can be un-pinned (re-parked) from Review. *@
-                            @if (issueRow.State == IssueStatus.Deferred)
-                            {
-                                <form asp-action="SetPin" method="post" class="mt-1">
-                                    <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
-                                    <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
-                                    <button type="submit" class="btn btn-outline-warning btn-sm">
-                                        @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
-                                    </button>
-                                </form>
-                            }
-                        </div>
-                    }
-                }
+                                            @* Shared WP-CR2 form: title / Team / priority / status in one save. *@
+                                            @await Html.PartialAsync("_IssueEditForm", new IssueEditFormVM
+                                            {
+                                                IssueId = issueRow.Issue.IssueId,
+                                                TeamId = issueRow.Issue.TeamId,
+                                                Title = StripOrigin(issueRow.Issue.Title),
+                                                Priority = issueRow.Issue.Priority,
+                                                State = issueRow.State,
+                                                Teams = teamOptions
+                                            })
 
-                @* To-Dos: every non-Done to-do surfaces, Blocked flagged loud; Done is dropped. *@
-                <h6 class="text-muted mt-3">To-Dos</h6>
-                @if (!team.ToDos.Any())
-                {
-                    <p class="text-muted">No to-dos surface for this team.</p>
-                }
-                else
-                {
-                    @foreach (var toDoRow in team.ToDos)
-                    {
-                        var loud = toDoRow.Surfacing == ToDoSurfacing.Loud;
-                        <div class="alert @(loud ? "alert-danger" : "alert-secondary") py-2 mb-2" role="note">
-                            <span class="badge @(loud ? "bg-danger" : "bg-info text-dark")">@toDoRow.State</span>
-                            @if (loud)
-                            {
-                                <strong>@toDoRow.ToDo.Title</strong>
-                            }
-                            else
-                            {
-                                <span>@toDoRow.ToDo.Title</span>
-                            }
-                            <span class="text-muted small">
-                                — @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim()),
-                                due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
-                            </span>
-                        </div>
+                                            <hr />
+                                            <form asp-action="CommentIssue" method="post" class="d-flex gap-1 mb-2">
+                                                <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                                <input type="text" name="comment" class="form-control form-control-sm" placeholder="IDS comment" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Add</button>
+                                            </form>
+
+                                            @* Pin is offered only on Deferred issues — it un-parks them for Review. *@
+                                            @if (issueRow.State == IssueStatus.Deferred)
+                                            {
+                                                <form asp-action="SetPin" method="post" class="mb-2">
+                                                    <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                                    <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                        @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
+                                                    </button>
+                                                </form>
+                                            }
+
+                                            @if (ReviewScriptService.CanSpawnToDo(moment))
+                                            {
+                                                <hr />
+                                                @* Additive conversion: raises a pre-filled To-Do (owner + due required), the issue stays intact. *@
+                                                <label class="form-label small mb-1">Convert to to-do</label>
+                                                <form asp-action="ConvertIssueToToDo" method="post" class="d-flex flex-column gap-1">
+                                                    <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                                    <select name="ownerId" class="form-select form-select-sm" required>
+                                                        @foreach (var person in Model.People)
+                                                        {
+                                                            <option value="@person.Id">@person.DisplayName</option>
+                                                        }
+                                                    </select>
+                                                    <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" required />
+                                                    <button type="submit" class="btn btn-sm btn-outline-secondary align-self-start">Convert to to-do</button>
+                                                </form>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            break;
+
+                        case ReviewMoment.ToDos:
+                            @* To-Dos — fully editable live in place (reusing the WP-CR2 form). Every
+                               non-Done to-do surfaces, Blocked flagged loud; Done is dropped. *@
+                            <div class="my-3">
+                                <h5>To-Dos</h5>
+                                @if (!team.ToDos.Any())
+                                {
+                                    <p class="text-muted">No to-dos surface for this team.</p>
+                                }
+                                else
+                                {
+                                    foreach (var toDoRow in team.ToDos)
+                                    {
+                                        var loud = toDoRow.Surfacing == ToDoSurfacing.Loud;
+                                        <div class="border rounded p-3 mb-3 @(loud ? "border-danger" : "")">
+                                            <div class="mb-2">
+                                                <span class="badge @(loud ? "bg-danger" : "bg-info text-dark")">@toDoRow.State</span>
+                                                @if (toDoRow.ToDo.OriginType != null)
+                                                {
+                                                    <span class="text-muted small">↩ converted</span>
+                                                }
+                                            </div>
+
+                                            @* Shared WP-CR2 form: owner / title / Team / due date. *@
+                                            @await Html.PartialAsync("_ToDoEditForm", new ToDoEditFormVM
+                                            {
+                                                ToDoId = toDoRow.ToDo.ToDoId,
+                                                TeamId = toDoRow.ToDo.TeamId,
+                                                Title = StripOrigin(toDoRow.ToDo.Title),
+                                                OwnerId = toDoRow.ToDo.OwnerId,
+                                                DueDate = toDoRow.ToDo.DueDate,
+                                                Teams = teamOptions,
+                                                People = Model.People
+                                            })
+
+                                            <hr />
+                                            @* Status is the To-Do's own lifecycle (Open -> Blocked -> Done). *@
+                                            <form asp-action="TransitionToDo" method="post" class="d-flex gap-1">
+                                                <input type="hidden" name="toDoId" value="@toDoRow.ToDo.ToDoId" />
+                                                <select name="status" class="form-select form-select-sm">
+                                                    @foreach (var s in Enum.GetValues<ToDoStatus>())
+                                                    {
+                                                        if (s == toDoRow.State)
+                                                        {
+                                                            <option value="@s" selected>@s</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@s">@s</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">Set status</button>
+                                            </form>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            break;
                     }
                 }
             </div>

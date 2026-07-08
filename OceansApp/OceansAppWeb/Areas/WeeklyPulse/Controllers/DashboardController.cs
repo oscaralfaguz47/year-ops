@@ -43,6 +43,25 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// After a POST from a surface shared by the Dashboard and the guided Review (WP-CR4),
+        /// return to whichever surface the edit was made on so it stays "live in place". When
+        /// the Referer is the Review, redirect back to Review; otherwise fall back to the
+        /// Dashboard (preserving its <c>?teams=</c> filter via <see cref="RedirectToDashboard"/>).
+        /// </summary>
+        private IActionResult RedirectBack()
+        {
+            var referer = Request.Headers.Referer.ToString();
+            if (!string.IsNullOrEmpty(referer)
+                && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri)
+                && refererUri.AbsolutePath.EndsWith("/Review", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction(nameof(Review));
+            }
+
+            return RedirectToDashboard();
+        }
+
         [HttpGet]
         public async Task<IActionResult> Index(
             [FromQuery(Name = "teams")] string? teamFilter = null)
@@ -181,7 +200,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -209,7 +228,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -240,7 +259,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 toDoId, status, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -256,7 +275,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpGet]
@@ -273,6 +292,9 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var toDos = await _unitOfWork.ToDo.GetAllAsync(
                 includeProperties: $"{nameof(ToDo.History)},{nameof(ToDo.Owner)}");
 
+            // Candidate owners for the live-edit moments (To-Do owner + issue -> To-Do pickers).
+            var people = await _unitOfWork.ApplicationUser.GetAllAsync();
+
             // Snapshot: this Week's headlines open each team's segment as a news round.
             var headlines = (await _unitOfWork.Headline.GetForWeekAsync(weekStart)).ToList();
 
@@ -286,6 +308,14 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             var vm = new ReviewVM
             {
                 WeekStart = weekStart,
+                People = people
+                    .OrderBy(p => p.Name).ThenBy(p => p.LastName)
+                    .Select(p => new PersonOptionVM
+                    {
+                        Id = p.Id,
+                        DisplayName = $"{p.Name} {p.LastName}".Trim()
+                    })
+                    .ToList(),
                 Teams = teams.Select(t => new ReviewTeamVM
                 {
                     Team = t,
@@ -396,7 +426,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 headlineId, WeekStartCalculator.Current(), DateTimeOffset.UtcNow);
             await _unitOfWork.SaveAsync();
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -413,7 +443,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
                 await _unitOfWork.SaveAsync();
             }
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpPost]
@@ -425,7 +455,7 @@ namespace OceansApp.Areas.WeeklyPulse.Controllers
             await _unitOfWork.Issue.SetPinAsync(issueId, pinned, WeekStartCalculator.Current());
             await _unitOfWork.SaveAsync();
 
-            return RedirectToDashboard();
+            return RedirectBack();
         }
 
         [HttpPost]

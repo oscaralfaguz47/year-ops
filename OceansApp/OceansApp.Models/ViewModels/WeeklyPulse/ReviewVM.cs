@@ -15,6 +15,12 @@ namespace OceansApp.Models.ViewModels.WeeklyPulse
         public DateOnly WeekStart { get; set; }
         public List<ReviewTeamVM> Teams { get; set; } = new();
 
+        /// <summary>
+        /// Candidate owners (id + display name) for the live-edit moments (WP-CR4): the To-Do
+        /// edit form's owner picker and the issue -> To-Do conversion's owner picker.
+        /// </summary>
+        public List<PersonOptionVM> People { get; set; } = new();
+
         /// <summary>A short note explaining what Review deliberately hides.</summary>
         public string HiddenHint { get; set; } =
             "Hidden on purpose: Solved issues are done, and Deferred issues stay parked " +
