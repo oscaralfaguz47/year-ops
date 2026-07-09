@@ -40,10 +40,17 @@
     .team-toggle.collapsed .chev { transform: rotate(-90deg); }
 </style>
 
+@{
+    ViewData["PulseCrumbs"] = new List<(string, string?)>
+    {
+        ("This Week", Url.Action("Index")),
+        ("Review", null),
+    };
+}
+
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Review</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
-    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2">Back to Dashboard</a>
     <div class="mb-2">
         <button type="button" id="expand-all" class="btn btn-outline-secondary btn-sm">Expand all</button>
         <button type="button" id="collapse-all" class="btn btn-outline-secondary btn-sm">Collapse all</button>

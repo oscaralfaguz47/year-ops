@@ -84,12 +84,9 @@
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Pulse Dashboard</h2>
     <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd")</p>
+    @* Review is a mode of the current week, so it stays a CTA here; History and Settings
+       moved to the persistent Pulse sub-nav. *@
     <a asp-action="Review" class="btn btn-primary btn-sm mb-2">Start Review</a>
-    <a asp-action="Index" asp-controller="History" class="btn btn-outline-secondary btn-sm mb-2">Meeting History</a>
-    @if (User.HasClaim(c => c.Type == WeeklyPulseClaimsCD.Administer_ClaimType && c.Value == WeeklyPulseClaimsCD.Administer_ClaimValue))
-    {
-        <a asp-action="Index" asp-controller="Settings" class="btn btn-outline-secondary btn-sm mb-2">Settings</a>
-    }
     <hr />
 
     @* Bookmarkable team filter — plain links, so every state is a shareable URL. The

@@ -12,12 +12,20 @@
     };
 }
 
+@{
+    ViewData["PulseCrumbs"] = new List<(string, string?)>
+    {
+        ("History", Url.Action("Index")),
+        ("KPI History", Url.Action("Kpis")),
+        (Model.Kpi.Name, null),
+    };
+}
+
 <div class="text-center">
     <h2 style="font-weight: bold">@Model.Kpi.Name</h2>
     <p class="text-muted">
         KPI History — @Model.Kpi.Team?.Name &middot; Target: @Model.Kpi.Target
     </p>
-    <a asp-action="Kpis" class="btn btn-outline-secondary btn-sm mb-3">Back to KPIs</a>
 
     <div class="btn-group btn-group-sm mb-3 d-block" role="group" aria-label="Period granularity">
         @foreach (var g in new[] { PeriodGranularity.Month, PeriodGranularity.Quarter, PeriodGranularity.Year })
