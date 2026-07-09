@@ -1,0 +1,27 @@
+@{
+    // Depth trail for drill-down pages, set by each view as ViewData["PulseCrumbs"] — a list
+    // of (label, href) where an empty href (or the last item) renders as the current page.
+    // Top-level section pages leave it null: the active tab already signposts them, so a
+    // one-item crumb would just be noise and nothing renders.
+    var crumbs = ViewData["PulseCrumbs"] as List<(string Text, string? Href)>;
+}
+@if (crumbs is { Count: > 0 })
+{
+    @* A div, not <nav>: the site theme styles bare <nav> like the dark top navbar. *@
+    <div class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb justify-content-center mb-0">
+            @for (var i = 0; i < crumbs.Count; i++)
+            {
+                var (text, href) = crumbs[i];
+                if (i == crumbs.Count - 1 || string.IsNullOrEmpty(href))
+                {
+                    <li class="breadcrumb-item active" aria-current="page">@text</li>
+                }
+                else
+                {
+                    <li class="breadcrumb-item"><a href="@href">@text</a></li>
+                }
+            }
+        </ol>
+    </div>
+}
