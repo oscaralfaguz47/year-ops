@@ -24,12 +24,12 @@
                 {
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <a asp-action="Week" asp-route-weekStart="@week.ToString("yyyy-MM-dd")">
-                            Week of @week.ToString("yyyy-MM-dd")
+                            Week of @week.ToString("dd-MM-yyyy")
                         </a>
                         @if (canAdminister)
                         {
                             <form asp-action="DeleteWeek" method="post" class="m-0"
-                                  onsubmit="return confirm('Delete the minutes for the week of @week.ToString("yyyy-MM-dd")? This removes that Week\'s snapshots and history rows.');">
+                                  onsubmit="return confirm('Delete the minutes for the week of @week.ToString("dd-MM-yyyy")? This removes that Week\'s snapshots and history rows.');">
                                 <input type="hidden" name="weekStart" value="@week.ToString("yyyy-MM-dd")" />
                                 <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
                             </form>

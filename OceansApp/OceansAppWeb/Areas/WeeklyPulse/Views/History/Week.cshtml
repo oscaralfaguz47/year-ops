@@ -6,13 +6,13 @@
     ViewData["PulseCrumbs"] = new List<(string, string?)>
     {
         ("History", Url.Action("Index")),
-        ($"Week of {Model.WeekStart:yyyy-MM-dd}", null),
+        ($"Week of {Model.WeekStart:dd-MM-yyyy}", null),
     };
 }
 
 <div class="text-center">
     <h2 style="font-weight: bold">Meeting Minutes</h2>
-    <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd") — every entity shown as of this Week.</p>
+    <p class="text-muted">Week of @Model.WeekStart.ToString("dd-MM-yyyy") — every entity shown as of this Week.</p>
     <a asp-action="Summary" asp-route-weekStart="@Model.WeekStart.ToString("yyyy-MM-dd")"
        class="btn btn-outline-primary btn-sm mb-3">Weekly Summary</a>
 
@@ -95,7 +95,7 @@
                             <span>@toDoRow.ToDo.Title</span>
                             <span class="text-muted small">
                                 — @(toDoRow.ToDo.Owner is null ? toDoRow.ToDo.OwnerId : $"{toDoRow.ToDo.Owner.Name} {toDoRow.ToDo.Owner.LastName}".Trim()),
-                                due @toDoRow.ToDo.DueDate.ToString("yyyy-MM-dd")
+                                due @toDoRow.ToDo.DueDate.ToString("dd-MM-yyyy")
                             </span>
                         </div>
                     }

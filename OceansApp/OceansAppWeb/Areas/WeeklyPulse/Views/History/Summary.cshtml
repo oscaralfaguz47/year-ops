@@ -16,14 +16,14 @@
     ViewData["PulseCrumbs"] = new List<(string, string?)>
     {
         ("History", Url.Action("Index")),
-        ($"Week of {Model.WeekStart:yyyy-MM-dd}", Url.Action("Week", new { weekStart = Model.WeekStart.ToString("yyyy-MM-dd") })),
+        ($"Week of {Model.WeekStart:dd-MM-yyyy}", Url.Action("Week", new { weekStart = Model.WeekStart.ToString("yyyy-MM-dd") })),
         ("Summary", null),
     };
 }
 
 <div class="text-center">
     <h2 style="font-weight: bold">Weekly Summary</h2>
-    <p class="text-muted">Week of @Model.WeekStart.ToString("yyyy-MM-dd") — derived, read-only.</p>
+    <p class="text-muted">Week of @Model.WeekStart.ToString("dd-MM-yyyy") — derived, read-only.</p>
 
     <div class="container text-start" style="max-width: 820px;">
         <div class="alert alert-info" role="alert">@Model.DerivedHint</div>
@@ -74,7 +74,7 @@
                                 {
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>@a.Title</span>
-                                        <span class="text-muted small">due @a.DueDate.ToString("yyyy-MM-dd")</span>
+                                        <span class="text-muted small">due @a.DueDate.ToString("dd-MM-yyyy")</span>
                                     </li>
                                 }
                             </ul>
