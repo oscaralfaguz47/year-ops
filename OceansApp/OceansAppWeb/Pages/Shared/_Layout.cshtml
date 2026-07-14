@@ -7,6 +7,7 @@
 @using OceansApp.Utility.ConstantData.Claims.AccountManagement
 @using OceansApp.Utility.ConstantData.Claims.Recruiting
 @using OceansApp.Utility.ConstantData.Claims.TrackingTool
+@using OceansApp.Utility.ConstantData.Claims.WeeklyPulse
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -81,6 +82,12 @@
                                                         <a class="nav-link" asp-area="General" asp-controller="TimeOffApprovals" asp-action="Index">Time Off Approvals</a>
                                                     }
                                                 </div>
+                                            </li>
+                                        }
+                                        @if (User.HasClaim(c => c.Type == WeeklyPulseClaimsCD.Participate_ClaimType && c.Value == WeeklyPulseClaimsCD.Participate_ClaimValue))
+                                        {
+                                            <li class="nav-item" id="pulseItem">
+                                                <a class="nav-link" asp-area="WeeklyPulse" asp-controller="Dashboard" asp-action="Index"><img src="/icons/Shared/Navbar/pulse-white.svg" /> Pulse</a>
                                             </li>
                                         }
                                         @if (User.IsAuthorizedForGeneral())

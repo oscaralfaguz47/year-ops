@@ -66,6 +66,12 @@
         INotificationRecipientRepository NotificationRecipient { get; }
         ISystemAreaRepository SystemArea { get; }
         ISystemSubAreaRepository SystemSubArea { get; }
+        ITeamRepository Team { get; }
+        IIssueRepository Issue { get; }
+        IToDoRepository ToDo { get; }
+        IKpiDefinitionRepository KpiDefinition { get; }
+        IKpiResultRepository KpiResult { get; }
+        IHeadlineRepository Headline { get; }
         ITransactionStatusRepository TransactionStatus { get; }
         ITimeOffRequestRepository TimeOffRequest { get; }
 

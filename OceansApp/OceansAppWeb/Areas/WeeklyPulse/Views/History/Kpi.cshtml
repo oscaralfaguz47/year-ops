@@ -1,0 +1,80 @@
+@using OceansApp.Models.Domain.WeeklyPulse
+@using OceansApp.Models.Models
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model KpiHistoryVM
+
+@functions {
+    static string PeriodLabel(KpiPeriod p) => p.Granularity switch
+    {
+        PeriodGranularity.Month => new DateOnly(p.Year, p.Index, 1).ToString("MMMM yyyy"),
+        PeriodGranularity.Quarter => $"Q{p.Index} {p.Year}",
+        _ => p.Year.ToString()
+    };
+}
+
+@{
+    ViewData["PulseCrumbs"] = new List<(string, string?)>
+    {
+        ("History", Url.Action("Index")),
+        ("KPI History", Url.Action("Kpis")),
+        (Model.Kpi.Name, null),
+    };
+}
+
+<div class="text-center">
+    <h2 style="font-weight: bold">@Model.Kpi.Name</h2>
+    <p class="text-muted">
+        KPI History — @Model.Kpi.Team?.Name &middot; Target: @Model.Kpi.Target
+    </p>
+
+    <div class="btn-group btn-group-sm mb-3 d-block" role="group" aria-label="Period granularity">
+        @foreach (var g in new[] { PeriodGranularity.Month, PeriodGranularity.Quarter, PeriodGranularity.Year })
+        {
+            var active = Model.Granularity == g ? "btn-primary" : "btn-outline-primary";
+            <a asp-action="Kpi"
+               asp-route-kpiDefinitionId="@Model.Kpi.KpiDefinitionId"
+               asp-route-granularity="@g"
+               class="btn @active">@g</a>
+        }
+    </div>
+
+    <div class="container text-start">
+        @if (!Model.Periods.Any())
+        {
+            <p class="text-muted">No results recorded for this KPI yet.</p>
+        }
+        else
+        {
+            @foreach (var period in Model.Periods)
+            {
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>@PeriodLabel(period.Period)</strong>
+                        <span>
+                            @* Status tally — a count of Weeks per status, never a sum or average. *@
+                            @foreach (var status in new[] { KpiStatus.Green, KpiStatus.Yellow, KpiStatus.Red })
+                            {
+                                if (period.StatusTally.TryGetValue(status, out var count))
+                                {
+                                    <span class="badge @KpiBadge.Css(status) ms-1">@status: @count</span>
+                                }
+                            }
+                        </span>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var result in period.Results)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <span class="text-muted small">Week of @result.WeekStart.ToString("dd-MM-yyyy")</span>
+                                    &mdash; @result.Value
+                                </span>
+                                <span class="badge @KpiBadge.Css(result.Status)">@result.Status</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </div>
+</div>

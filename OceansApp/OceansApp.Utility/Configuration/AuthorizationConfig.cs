@@ -13,6 +13,7 @@ using OceansApp.Utility.Configuration.AuthorizationRequirement.Finances;
 using OceansApp.Utility.Configuration.AuthorizationRequirement.Recruiting;
 using OceansApp.Utility.ConstantData.Claims.Recruiting;
 using OceansApp.Utility.ConstantData.Claims.TimeOff;
+using OceansApp.Utility.ConstantData.Claims.WeeklyPulse;
 
 namespace OceansApp.Utility.Configuration
 {
@@ -378,6 +379,18 @@ namespace OceansApp.Utility.Configuration
             {
                 options.AddPolicy("AccessToAdminTimeOffApprovals", policy =>
                     policy.RequireRole(SD.Role_User_Admin));
+            });
+
+            //WEEKLY PULSE
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Participate", policy =>
+                    policy.RequireClaim(WeeklyPulseClaimsCD.Participate_ClaimType, WeeklyPulseClaimsCD.Participate_ClaimValue));
+            });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Administer", policy =>
+                    policy.RequireClaim(WeeklyPulseClaimsCD.Administer_ClaimType, WeeklyPulseClaimsCD.Administer_ClaimValue));
             });
 
         }

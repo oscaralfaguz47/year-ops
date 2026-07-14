@@ -1,0 +1,349 @@
+<!doctype html>
+<!-- OCE Weekly Pulse — LOGIC PROTOTYPE (throwaway browser shell over model.js).
+     Clickable UI to validate the model. The rules live in model.js (unchanged);
+     this page is the disposable shell. Run:  node serve.js  then open the URL. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OCE Weekly Pulse — prototype</title>
+  <style>
+    :root {
+      --bg:#0f172a; --panel:#1e293b; --panel2:#172033; --line:#334155;
+      --txt:#e2e8f0; --dim:#94a3b8; --dim2:#64748b;
+      --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#38bdf8; --violet:#a78bfa;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font:14px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+           background:var(--bg); color:var(--txt); }
+    header { position:sticky; top:0; z-index:5; background:var(--panel); border-bottom:1px solid var(--line);
+             padding:10px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    header h1 { font-size:15px; margin:0; font-weight:700; letter-spacing:.2px; }
+    .week { color:var(--blue); font-weight:600; }
+    .tabs { display:flex; gap:4px; margin-left:auto; }
+    .tabs button, .btn { background:var(--panel2); color:var(--txt); border:1px solid var(--line);
+            border-radius:7px; padding:5px 11px; cursor:pointer; font-size:13px; }
+    .tabs button.active { background:var(--blue); color:#04263a; border-color:var(--blue); font-weight:700; }
+    .btn:hover, .tabs button:hover { border-color:var(--blue); }
+    .btn.sm { padding:1px 7px; font-size:12px; border-radius:6px; }
+    .btn.ghost { background:transparent; color:var(--dim); }
+    main { padding:18px; max-width:1100px; margin:0 auto; }
+    .hint { color:var(--dim); font-size:12.5px; margin:0 0 14px; }
+    .team { background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:14px 16px; margin-bottom:14px; }
+    .team h2 { font-size:14.5px; margin:0 0 2px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .lead { color:var(--dim); font-weight:400; font-size:12.5px; }
+    .row { padding:5px 0; border-top:1px solid #243049; display:flex; gap:9px; align-items:flex-start; flex-wrap:wrap; }
+    .row:first-of-type { border-top:none; }
+    .label { color:var(--dim2); font-size:11.5px; text-transform:uppercase; letter-spacing:.5px; min-width:64px; padding-top:2px; }
+    .grow { flex:1; min-width:200px; }
+    .badge { font-size:11px; padding:1px 8px; border-radius:999px; font-weight:700; }
+    .b-green { background:rgba(34,197,94,.15); color:var(--green); }
+    .b-yellow { background:rgba(234,179,8,.15); color:var(--yellow); }
+    .b-red { background:rgba(239,68,68,.15); color:var(--red); }
+    .b-dim { background:rgba(148,163,184,.13); color:var(--dim); }
+    .b-blue { background:rgba(56,189,248,.15); color:var(--blue); }
+    .b-violet { background:rgba(167,139,250,.18); color:var(--violet); }
+    .pill { font-size:11px; padding:1px 7px; border-radius:6px; background:var(--panel2); color:var(--dim); border:1px solid var(--line); }
+    .chip { display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line);
+            border-radius:8px; padding:4px 9px; margin:0 6px 6px 0; }
+    .item { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:3px 0; }
+    .muted { color:var(--dim); }
+    .strike { text-decoration:line-through; color:var(--dim2); }
+    .origin { color:var(--violet); font-size:11.5px; }
+    .quiet { opacity:.5; }
+    .acts { display:flex; gap:4px; flex-wrap:wrap; }
+    .addbar { margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; }
+    .col { display:flex; flex-direction:column; gap:2px; }
+    code { background:var(--panel2); padding:1px 5px; border-radius:5px; color:var(--blue); font-size:12px; }
+    .notice { background:var(--panel2); border:1px dashed var(--line); border-radius:9px; padding:8px 12px; color:var(--dim); font-size:12.5px; margin-bottom:14px; }
+    .navwk { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    h3.sec { font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim2); margin:16px 0 6px; }
+    .sum li { margin:2px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OCE Weekly Pulse <span class="muted" style="font-weight:400">· prototype</span></h1>
+    <span class="week" id="weekLabel"></span>
+    <button class="btn sm" data-action="advance">Advance week ▶</button>
+    <button class="btn sm ghost" data-action="reseed">Reset</button>
+    <nav class="tabs" id="tabs">
+      <button data-action="lens" data-arg="dash">Dashboard</button>
+      <button data-action="lens" data-arg="review">Review</button>
+      <button data-action="lens" data-arg="history">History</button>
+      <button data-action="lens" data-arg="kpiHist">KPI History</button>
+      <button data-action="lens" data-arg="summary">Summary</button>
+    </nav>
+  </header>
+  <main id="app" data-root></main>
+
+  <script type="module">
+    import * as M from './model.js';
+
+    let state = M.createSeedState();
+    let tab = 'dash';
+    let histWeek = 1;
+    let kpiHistSel = null;       // selected KPI id for the KPI History view
+    let kpiHistGran = 'quarter'; // month | quarter | year
+
+    // ---------- tiny html helpers ----------
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const teamName = (id) => (M.teamById(state, id) || {}).name || id;
+    const A = (action, arg, label, cls='btn sm') =>
+      `<button class="${cls}" data-action="${action}"${arg!=null?` data-arg="${esc(arg)}"`:''}>${label}</button>`;
+    const Aid = (action, id, label, cls='btn sm') =>
+      `<button class="${cls}" data-action="${action}" data-id="${esc(id)}">${label}</button>`;
+    const AidArg = (action, id, arg, label, active) =>
+      `<button class="btn sm${active?' ':' ghost'}" data-action="${action}" data-id="${esc(id)}" data-arg="${esc(arg)}">${label}</button>`;
+
+    const statusBadge = (st) => {
+      const cls = st==='Green'?'b-green':st==='Yellow'?'b-yellow':st==='Red'?'b-red':'b-dim';
+      return `<span class="badge ${cls}">${st}</span>`;
+    };
+    const readyBadge = (r) => {
+      const cls = r==='Ready'?'b-green':r==='Not ready'?'b-yellow':'b-dim';
+      return `<span class="badge ${cls}">${r}</span>`;
+    };
+    const stateBadge = (st) => {
+      const cls = (st==='Solved'||st==='Done')?'b-green':st==='Blocked'?'b-red':st==='Deferred'?'b-dim':'b-blue';
+      return `<span class="badge ${cls}">${st}</span>`;
+    };
+    const originTag = (e) => e.origin ? ` <span class="origin">← ${esc(e.origin.type)} ${esc(e.origin.id)}</span>` : '';
+
+    // ---------- issue / todo action clusters ----------
+    function issueActions(i, st) {
+      const states = ['Open','Deferred','Solved'];
+      const btns = states.map(s => AidArg('issueState', i.id, s, s, st===s)).join(' ');
+      // Pin only un-parks a Deferred issue, so it's offered only in that state.
+      const pinBtn = st==='Deferred' ? Aid('pin', i.id, i.pin?'★ pinned':'☆ pin', 'btn sm'+(i.pin?'':' ghost')) : '';
+      return `${btns} ${pinBtn} `
+           + `${Aid('comment', i.id, '💬', 'btn sm ghost')} ${Aid('convIssueTodo', i.id, '→ to-do', 'btn sm ghost')} `
+           + `${Aid('setPriority', i.id, 'pri', 'btn sm ghost')} ${Aid('show', i.id, 'log', 'btn sm ghost')}`;
+    }
+    function todoActions(d, st) {
+      const states = ['Open','Blocked','Done'];
+      const btns = states.map(s => AidArg('todoState', d.id, s, s, st===s)).join(' ');
+      return `${btns} ${Aid('comment', d.id, '💬', 'btn sm ghost')} ${Aid('show', d.id, 'log', 'btn sm ghost')}`;
+    }
+
+    // ========================================================== DASHBOARD
+    function renderDashboard() {
+      const hint = `<p class="hint">Input view — teams fill this in <b>during the week</b>. Open + Deferred issues and all non-Done to-dos stay on the list; snapshots (check-in, KPI results, headlines) are blank until entered, and reset each week.</p>`;
+      const cards = M.dashboard(state).map(row => {
+        const t = row.team;
+        const kpis = row.kpis.map(k => {
+          const flags = (k.def.inScope?'':`<span class="pill">tracked-only</span>`) + (k.def.active?'':`<span class="pill">retired</span>`);
+          const res = k.result ? `${statusBadge(k.result.status)} <span class="muted">${esc(k.result.actual)}</span>` : `<span class="muted">no result</span>`;
+          return `<div class="chip">${esc(k.def.id)} ${esc(k.def.name)} <span class="muted">(${esc(k.def.target)})</span> ${flags} → ${res}
+                  ${Aid('setResult', k.def.id, 'set', 'btn sm ghost')}
+                  ${Aid('editKpi', k.def.id, 'edit', 'btn sm ghost')}
+                  ${Aid('toggleScope', k.def.id, 'scope', 'btn sm ghost')}
+                  ${Aid('toggleActive', k.def.id, 'active', 'btn sm ghost')}</div>`;
+        }).join('');
+        const headlines = row.headlines.map(h =>
+          `<div class="item">${h.type==='Risk'?'<span class="badge b-red">Risk</span>':'<span class="badge b-blue">Highlight</span>'}
+           <code>${esc(h.id)}</code> ${esc(h.text)} ${h.pin?'<span class="badge b-violet">pinned</span>':''}
+           ${Aid('convHeadline', h.id, '→ issue', 'btn sm ghost')}</div>`).join('') || '<span class="muted">—</span>';
+        const issues = row.issues.map(x => {
+          const i = x.entity, quiet = x.state==='Deferred';
+          return `<div class="item${quiet?' quiet':''}"><code>${esc(i.id)}</code> ${esc(i.title)}
+            <span class="pill">${esc(i.priority)}</span> ${stateBadge(x.state)} ${i.pin?'<span class="badge b-violet">pinned</span>':''}
+            ${quiet?'<span class="muted">quiet on Review</span>':''}${originTag(i)}
+            <span class="acts">${issueActions(i, x.state)}</span></div>`;
+        }).join('') || '<span class="muted">—</span>';
+        const todos = row.todos.map(x => {
+          const d = x.entity, loud = x.state==='Blocked';
+          return `<div class="item"><code>${esc(d.id)}</code> ${esc(d.title)} ${stateBadge(x.state)}
+            ${loud?'<span class="muted">stays loud on Review</span>':''}${originTag(d)}
+            <span class="acts">${todoActions(d, x.state)}</span></div>`;
+        }).join('') || '<span class="muted">—</span>';
+        const ci = row.checkin ? `<span class="badge b-blue">${esc(row.checkin.type)}</span> ${esc(row.checkin.note)}
+            ${Aid('convCheckin', row.checkin.id, '→ issue', 'btn sm ghost')}` : '<span class="muted">— blank this week</span>';
+
+        return `<section class="team">
+          <h2>${esc(t.name)} <span class="lead">· lead ${esc(M.personName(state, t.leaderId))}</span> ${readyBadge(row.readiness)}</h2>
+          <div class="row"><span class="label">Check-in</span><span class="grow">${ci} ${Aid('editCheckin', t.id, 'edit', 'btn sm ghost')}</span></div>
+          <div class="row"><span class="label">KPIs</span><span class="grow">${kpis||'<span class="muted">none</span>'}</span></div>
+          <div class="row"><span class="label">Headlines</span><span class="grow col">${headlines}</span></div>
+          <div class="row"><span class="label">Issues</span><span class="grow col">${issues}</span></div>
+          <div class="row"><span class="label">To-dos</span><span class="grow col">${todos}</span></div>
+          <div class="addbar">
+            ${Aid('addKpi', t.id, '+ KPI')} ${Aid('addIssue', t.id, '+ issue')} ${Aid('addTodo', t.id, '+ to-do')} ${Aid('addHeadline', t.id, '+ headline')}
+          </div>
+        </section>`;
+      }).join('');
+      return hint + cards;
+    }
+
+    // ========================================================== REVIEW
+    function renderReview() {
+      const hint = `<p class="hint">Meeting view — only what should be <b>walked through</b>. Deferred issues, Done to-dos, out-of-scope KPIs, and Green KPIs are deliberately hidden. Pinned items appear even when they normally wouldn't.</p>`;
+      const cards = M.reviewSurfacing(state, state.currentWeek).map(row => {
+        const loud = row.kpis.filter(k=>k.loud), quiet = row.kpis.filter(k=>!k.loud);
+        if (!loud.length && !quiet.length && !row.issues.length && !row.todos.length && !row.headlines.length) return '';
+        const headlines = row.headlines.map(x => `<div class="item">${x.loud?'<span class="badge b-red">Risk</span>':'<span class="badge b-blue">Highlight</span>'} ${esc(x.entity.text)}
+            ${Aid('convHeadline', x.entity.id, '→ issue', 'btn sm ghost')}</div>`).join('') || '<span class="muted">—</span>';
+        const kpis = loud.map(k => `<div class="item">${statusBadge(k.status)} <code>${esc(k.def.id)}</code> ${esc(k.def.name)}
+            ${k.result?`<span class="muted">${esc(k.result.actual)}</span>`:'<span class="muted">missing</span>'}</div>`).join('')
+          + (quiet.length?`<div class="item muted">quiet (Green): ${quiet.map(k=>esc(k.def.name)).join(', ')}</div>`:'');
+        const issues = row.issues.map(x => `<div class="item"><code>${esc(x.entity.id)}</code> ${esc(x.title||x.entity.title)}
+            <span class="pill">${esc(x.entity.priority)}</span> ${x.autoSurface?'<span class="badge b-blue">open</span>':'<span class="badge b-violet">pinned in</span>'}${originTag(x.entity)}
+            <span class="acts">${issueActions(x.entity, x.state)}</span></div>`).join('') || '<span class="muted">—</span>';
+        const todos = row.todos.map(x => `<div class="item"><code>${esc(x.entity.id)}</code> ${esc(x.entity.title)}
+            ${x.blocked?'<span class="badge b-red">BLOCKED</span>':'<span class="badge b-blue">open</span>'}${originTag(x.entity)}
+            <span class="acts">${todoActions(x.entity, x.state)}</span></div>`).join('') || '<span class="muted">—</span>';
+        return `<section class="team">
+          <h2>${esc(row.team.name)} ${readyBadge(M.readiness(state, row.team.id, state.currentWeek))}</h2>
+          <div class="row"><span class="label">Headlines</span><span class="grow col">${headlines}</span></div>
+          <div class="row"><span class="label">KPIs</span><span class="grow col">${kpis||'<span class="muted">—</span>'}</span></div>
+          <div class="row"><span class="label">Issues</span><span class="grow col">${issues}</span></div>
+          <div class="row"><span class="label">To-dos</span><span class="grow col">${todos}</span></div>
+        </section>`;
+      }).join('');
+      return hint + cards;
+    }
+
+    // ========================================================== HISTORY (minutes)
+    function renderHistory() {
+      if (histWeek > state.currentWeek) histWeek = state.currentWeek;
+      const h = M.meetingHistory(state, histWeek);
+      const nav = `<div class="navwk">
+        ${A('histPrev', null, '◀ prev', 'btn sm'+(histWeek<=1?' ghost':''))}
+        <b>${esc(h.label)}</b>
+        ${A('histNext', null, 'next ▶', 'btn sm'+(histWeek>=state.currentWeek?' ghost':''))}
+        <span class="muted">— read as meeting minutes</span></div>`;
+      const snaps = [
+        ...h.checkins.map(c => `<div class="item"><span class="label">check-in</span> ${esc(teamName(c.teamId))}: <span class="badge b-blue">${esc(c.type)}</span> ${esc(c.note)}</div>`),
+        ...h.kpiResults.map(r => { const k = state.kpiDefs.find(x=>x.id===r.kpiId);
+          return `<div class="item"><span class="label">KPI</span> ${esc(k?k.name:r.kpiId)}: ${statusBadge(r.status)} <span class="muted">${esc(r.actual)}</span></div>`; }),
+        ...h.headlines.map(hl => `<div class="item"><span class="label">headline</span> ${esc(teamName(hl.teamId))}: ${hl.type==='Risk'?'<span class="badge b-red">Risk</span>':'<span class="badge b-blue">Highlight</span>'} ${esc(hl.text)}</div>`),
+      ].join('') || '<span class="muted">none recorded</span>';
+      const living = h.living.map(l => {
+        const evs = l.thisWeekEvents.map(ev => {
+          const label = ev.type==='created'?`created (${ev.detail})`:ev.type==='status'?`status → ${ev.detail}`:`comment: ${ev.detail}`;
+          return `<div class="muted" style="padding-left:16px">· ${esc(label)}</div>`;
+        }).join('') || `<div class="muted" style="padding-left:16px">· surfaced, no change this week</div>`;
+        return `<div class="item col" style="align-items:flex-start"><div><code>${esc(l.entity.id)}</code> ${esc(l.entity.title)}
+          <span class="muted">· ${esc(teamName(l.entity.teamId))}</span> → ${stateBadge(l.state)}${originTag(l.entity)}</div>${evs}</div>`;
+      }).join('') || '<span class="muted">none active this week</span>';
+      return `<p class="hint">One living entity appears under <b>every week it was active in</b>, shown <b>as of that week</b> — this is the test for "does it read as progression, or feel like duplication?"</p>`
+        + nav
+        + `<section class="team"><h3 class="sec">Snapshots (this week only)</h3>${snaps}
+           <h3 class="sec">Living entities active this week</h3>${living}</section>`;
+    }
+
+    // ========================================================== SUMMARY
+    function renderSummary() {
+      const s = M.buildSummary(state, state.currentWeek);
+      const list = (arr) => arr.length ? `<ul class="sum">${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="muted">—</p>';
+      return `<p class="hint">Auto-assembled editable draft (plain derivation, no AI). The facilitator would confirm or override each field.</p>
+        <section class="team">
+          <h3 class="sec">Decisions <span class="muted">← issues Solved this week</span></h3>${list(s.decisions)}
+          <h3 class="sec">Actions <span class="muted">← to-dos created in-meeting this week</span></h3>${list(s.actions)}
+          <h3 class="sec">Risks <span class="muted">← Risk headlines + High/Critical open issues</span></h3>${list(s.risks)}
+          <h3 class="sec">Summary text</h3><p>${esc(s.text)}</p>
+        </section>`;
+    }
+
+    // ========================================================== KPI HISTORY
+    function renderKpiHistory() {
+      if (!kpiHistSel || !state.kpiDefs.find(k=>k.id===kpiHistSel)) kpiHistSel = (state.kpiDefs[0]||{}).id;
+      if (!kpiHistSel) return `<p class="hint">No KPIs defined yet.</p>`;
+      const granBtns = M.GRANULARITIES.map(g => A('kpiHistGran', g, cap(g), 'btn sm'+(g===kpiHistGran?'':' ghost'))).join(' ');
+      const picker = M.teamsInOrder(state).map(t => {
+        const defs = state.kpiDefs.filter(k=>k.teamId===t.id); if (!defs.length) return '';
+        const btns = defs.map(k => Aid('kpiHistSel', k.id, esc(k.name)+(k.active?'':' (retired)'), 'btn sm'+(k.id===kpiHistSel?'':' ghost'))).join(' ');
+        return `<div class="row"><span class="label">${esc(t.name)}</span><span class="grow col" style="flex-flow:row wrap;gap:4px">${btns}</span></div>`;
+      }).join('');
+      const h = M.kpiHistory(state, kpiHistSel, kpiHistGran);
+      const dot = (st) => `<span class="badge ${st==='Green'?'b-green':st==='Yellow'?'b-yellow':st==='Red'?'b-red':'b-dim'}" title="${st}">${st==='Green'?'●':st==='Yellow'?'●':st==='Red'?'●':'·'}</span>`;
+      const groups = h.groups.map(g => {
+        const strip = g.rows.map(r=>dot(r.status)).join('');
+        const rows = g.rows.map(r=>`<div class="item"><code>W${r.week}</code> <span class="muted">${esc(r.label.replace(/^Week \d+ /,''))}</span> ${statusBadge(r.status)} <span class="muted">${r.result?esc(r.result.actual):'—'}</span></div>`).join('');
+        const tally = `🟢 ${g.tally.Green}  🟡 ${g.tally.Yellow}  🔴 ${g.tally.Red}` + (g.tally.Missing?`  · ${g.tally.Missing} missing`:'');
+        return `<section class="team"><h3 class="sec">${esc(g.label)} <span class="grow"></span><span>${strip}</span></h3>
+          <div class="muted" style="margin:-2px 0 8px">${tally} <span style="opacity:.55">— status counts, not a value total</span></div>
+          ${rows}</section>`;
+      }).join('');
+      return `<p class="hint">One KPI's weekly results across time, grouped by <b>${esc(h.granularity)}</b>. A trend you read <b>by eye</b> — values are free text, so there is <b>no roll-up total</b>. Each Week sits in the period of its Monday.</p>
+        <section class="team"><div class="row"><span class="label">Group by</span><span class="grow">${granBtns}</span></div>${picker}</section>
+        <h2 style="margin:16px 0 6px">${esc(h.kpi.name)} <span class="muted" style="font-weight:400">· target ${esc(h.kpi.target)} · ${esc(teamName(h.kpi.teamId))}</span></h2>
+        ${groups}`;
+    }
+
+    // ---------- render ----------
+    function render() {
+      document.getElementById('weekLabel').textContent = M.weekLabel(state.currentWeek);
+      [...document.querySelectorAll('#tabs button')].forEach(b => b.classList.toggle('active', b.dataset.arg===tab));
+      const app = document.getElementById('app');
+      app.innerHTML = tab==='dash'?renderDashboard():tab==='review'?renderReview():tab==='history'?renderHistory():tab==='kpiHist'?renderKpiHistory():renderSummary();
+    }
+
+    // ---------- actions ----------
+    const ISSUE_PRI = ['Low','Med','High','Critical'];
+    function handle(action, id, arg) {
+      try {
+        switch (action) {
+          case 'lens': tab = arg; if (tab==='history') histWeek = state.currentWeek; break;
+          case 'kpiHistSel': kpiHistSel = id; break;
+          case 'kpiHistGran': kpiHistGran = arg; break;
+          case 'advance': M.advanceWeek(state); tab='dash'; break;
+          case 'reseed': state = M.createSeedState(); tab='dash'; histWeek=1; break;
+          case 'histPrev': if (histWeek>1) histWeek--; break;
+          case 'histNext': if (histWeek<state.currentWeek) histWeek++; break;
+          case 'addIssue': { const t = prompt('Issue title?'); if (t) M.addIssue(state, id, t); break; }
+          case 'addTodo': { const t = prompt('To-do title?'); if (t) M.addTodo(state, id, t); break; }
+          case 'addHeadline': { const ty = prompt('Type — Highlight or Risk?','Highlight'); if(!ty) break;
+            const tx = prompt('Headline text?'); if (tx) M.addHeadline(state, id, cap(ty), tx); break; }
+          case 'editCheckin': { const ty = prompt('Type — Win / Concern / Priority / Other?','Win'); if(!ty) break;
+            const note = prompt('Check-in note?'); if (note!=null) M.upsertCheckin(state, id, cap(ty), note); break; }
+          case 'setResult': { const st = prompt('Status — Green / Yellow / Red?','Green'); if(!st) break;
+            const ac = prompt('Actual (free text)?',''); if (ac!=null) M.setKpiResult(state, id, cap(st), ac); break; }
+          case 'addKpi': { const n = prompt('KPI name?'); if(!n) break;
+            const tg = prompt('Weekly target (free text, e.g. "≥ 95%", "< 2 days", "$50k")?',''); if (tg==null) break;
+            if (!confirm(`Create a new KPI "${n}" for this team?\n\nKPIs are structural — unlike issues, to-dos, or the weekly value, they're meant to change rarely.`)) break;
+            M.addKpiDef(state, id, n, tg); break; }
+          case 'editKpi': { const k = state.kpiDefs.find(x=>x.id===id); if(!k) break;
+            const n = prompt('KPI name?', k.name); if(n==null) break;
+            const tg = prompt('Weekly target (free text)?', k.target); if(tg==null) break;
+            if (!confirm(`Save changes to KPI "${k.name}"?\n\nEditing a KPI definition is a structural change — the weekly results are not affected.`)) break;
+            M.editKpiDef(state, id, { name: n, target: tg }); break; }
+          case 'toggleScope': { const k = state.kpiDefs.find(x=>x.id===id); if(k) k.inScope=!k.inScope; break; }
+          case 'toggleActive': { const k = state.kpiDefs.find(x=>x.id===id); if(!k) break;
+            if (!confirm(`${k.active?'Retire':'Reactivate'} KPI "${k.name}"?\n\n${k.active?'It will stop expecting weekly results and drop out of the Review; its history stays intact.':'It will resume expecting weekly results.'}`)) break;
+            k.active=!k.active; break; }
+          case 'issueState': M.setLivingState(state, id, arg); break;
+          case 'todoState': M.setLivingState(state, id, arg); break;
+          case 'pin': M.togglePin(state, id); break;
+          case 'comment': { const c = prompt('Comment / IDS note?'); if (c) M.addComment(state, id, c); break; }
+          case 'setPriority': { const p = prompt('Priority — Low / Med / High / Critical?','Med'); if(p) M.setPriority(state, id, cap(p)); break; }
+          case 'convCheckin': M.convertCheckinToIssue(state, id); tab='dash'; break;
+          case 'convHeadline': M.convertHeadlineToIssue(state, id); tab='dash'; break;
+          case 'convIssueTodo': { const mtg = confirm('Created in the meeting? (OK = yes, counts toward Summary actions)'); M.convertIssueToTodo(state, id, mtg); break; }
+          case 'show': showLog(id); return;
+        }
+      } catch (e) { alert('error: ' + e.message); }
+      render();
+    }
+    const cap = (x) => x ? x.trim()[0].toUpperCase()+x.trim().slice(1).toLowerCase() : x;
+
+    function showLog(id) {
+      const e = M.livingById(state, id); if (!e) return;
+      const lines = e.events.map(ev => `  ${M.weekLabel(ev.week)}  ${ev.type==='created'?`created (${ev.detail})`:ev.type==='status'?`status → ${ev.detail}`:`comment: ${ev.detail}`}`);
+      const weeks = []; for (let w=1; w<=state.currentWeek; w++) if (M.activeInWeek(e,w)) weeks.push('W'+w);
+      alert(`${e.id} — ${e.title}\n${e.kind} · ${teamName(e.teamId)} · owner ${M.personName(state,e.ownerId)}\n`
+        + (e.origin?`back-link → ${e.origin.type} ${e.origin.id} (source preserved)\n`:'')
+        + `\nEvent log:\n${lines.join('\n')}\n\nActive in weeks: ${weeks.join(', ')}`);
+    }
+
+    document.querySelector('[data-root]').addEventListener('click', onClick);
+    document.querySelector('header').addEventListener('click', onClick);
+    function onClick(ev) {
+      const b = ev.target.closest('button[data-action]'); if (!b) return;
+      handle(b.dataset.action, b.dataset.id, b.dataset.arg);
+    }
+
+    render();
+  </script>
+</body>
+</html>

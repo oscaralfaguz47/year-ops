@@ -10,6 +10,7 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
+using OceansApp.Utility;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 using OceansApp.Utility.SharedMethods.InputValidations;
@@ -232,6 +233,10 @@ namespace OceansAppWeb.Areas.General.Controllers
                         if (result.Succeeded)
                         {
                             await _userManager.AddToRoleAsync(user, userRole);
+                            if (isAuthForManageAdminUsers && consultantData.IsWeeklyPulseParticipant)
+                            {
+                                await _userManager.AddToRoleAsync(user, SD.Role_User_Weekly_Pulse_Participant);
+                            }
 
                             code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                             callbackurl = Url.Action("ConfirmEmail", "Account", new { area = "", code = user.Id + ":" + code }, protocol: HttpContext.Request.Scheme);

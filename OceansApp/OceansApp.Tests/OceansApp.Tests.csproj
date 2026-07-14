@@ -19,8 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OceansApp.DataAccess\OceansApp.DataAccess.csproj" />
+    <ProjectReference Include="..\OceansApp.Utility\OceansApp.Utility.csproj" />
     <ProjectReference Include="..\OceansApp.Models\OceansApp.Models.csproj" />
+    <ProjectReference Include="..\OceansApp.DataAccess\OceansApp.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>
