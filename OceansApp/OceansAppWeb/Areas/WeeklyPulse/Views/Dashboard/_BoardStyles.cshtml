@@ -51,10 +51,12 @@
     .kb-origin { color: #adb5bd; font-size: 1.05rem; line-height: 1; flex: 0 0 auto; align-self: flex-end; }
     /* Badge text stays white; the Flatly fills are too light for that, so deepen each fill
        within the board/modals to a shade that clears ~4.5:1 against white. */
-    .kb-badges .badge, .kb-card-head .kb-readiness, .modal-body .badge { color: #fff !important; }
-    .kb-badges .badge.bg-success, .kb-card-head .kb-readiness.bg-success, .modal-body .badge.bg-success { background-color: #157347 !important; }
-    .kb-badges .badge.bg-warning, .kb-card-head .kb-readiness.bg-warning, .modal-body .badge.bg-warning { background-color: #b26a00 !important; }
-    .kb-badges .badge.bg-secondary, .kb-card-head .kb-readiness.bg-secondary, .modal-body .badge.bg-secondary { background-color: #566573 !important; }
+    .kb-badges .badge, .kb-card-head .kb-readiness, .modal-body .badge, .pulse-readiness .badge { color: #fff !important; }
+    .kb-badges .badge.bg-success, .kb-card-head .kb-readiness.bg-success, .modal-body .badge.bg-success, .pulse-readiness .badge.bg-success { background-color: #157347 !important; }
+    .kb-badges .badge.bg-warning, .kb-card-head .kb-readiness.bg-warning, .modal-body .badge.bg-warning, .pulse-readiness .badge.bg-warning { background-color: #b26a00 !important; }
+    .kb-badges .badge.bg-secondary, .kb-card-head .kb-readiness.bg-secondary, .modal-body .badge.bg-secondary, .pulse-readiness .badge.bg-secondary { background-color: #566573 !important; }
+    /* Readiness row under the filters: the team dot reads on the state-coloured pill. */
+    .pulse-readiness .team-chip { outline: 1px solid rgba(255,255,255,.7); }
     .kb-badges .badge.bg-danger, .modal-body .badge.bg-danger { background-color: #c0392b !important; }
     .kb-badges .badge.bg-info, .modal-body .badge.bg-info { background-color: #2471a3 !important; }
     .kb-badges .badge.bg-light, .modal-body .badge.bg-light { background-color: #566573 !important; border-color: transparent; }

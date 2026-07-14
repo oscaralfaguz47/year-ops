@@ -117,9 +117,25 @@
         <a href="@Url.Action("Index")" class="btn btn-sm @(allSelected ? "btn-secondary" : "btn-outline-secondary")">Show all</a>
         <span class="text-muted small ms-1">Showing @selected.Count of @allTeamIds.Count teams</span>
     </div>
+
+    @* Readiness — a compact per-team glance under the filters (KPI-derived: reported, not
+       healthy). Mirrors the filter's shown set. Was a full board column; now a badge row. *@
+    @if (shown.Any())
+    {
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center mb-2 pulse-readiness">
+            <span class="text-muted small me-1">Readiness:</span>
+            @foreach (var row in shown)
+            {
+                var rb = ReadinessBadge(row.Readiness);
+                <span class="badge rounded-pill @rb.Css">
+                    <span class="team-chip" style="background:@teamColor[row.Team.TeamId]"></span>@row.Team.Name — @rb.Label
+                </span>
+            }
+        </div>
+    }
 </div>
 
-@* ---- Cross-team category board: 5 fixed columns, all shown teams pooled into each,
+@* ---- Cross-team category board: 4 fixed columns, all shown teams pooled into each,
        each card colour-tagged by team. Cards and "+" open the modals rendered below. ---- *@
 <div class="kb-wrap">
     <div class="kb-board">
@@ -153,24 +169,6 @@
                 @if (shown.Sum(r => r.Kpis.Count) == 0)
                 {
                     <div class="kb-empty">No KPIs configured</div>
-                }
-            </div>
-        </div>
-
-        @* Readiness — one pill per shown team (KPI-derived; reported, not healthy). *@
-        <div class="kb-col">
-            <div class="kb-col-head">Readiness</div>
-            <div class="kb-col-body">
-                @foreach (var row in shown)
-                {
-                    var color = teamColor[row.Team.TeamId];
-                    var badge = ReadinessBadge(row.Readiness);
-                    <div class="kb-card">
-                        <div class="kb-card-head">
-                            <span class="kb-card-main"><span class="team-chip" style="background:@color"></span><strong>@row.Team.Name</strong></span>
-                            <span class="badge rounded-pill kb-readiness @badge.Css">@badge.Label</span>
-                        </div>
-                    </div>
                 }
             </div>
         </div>
