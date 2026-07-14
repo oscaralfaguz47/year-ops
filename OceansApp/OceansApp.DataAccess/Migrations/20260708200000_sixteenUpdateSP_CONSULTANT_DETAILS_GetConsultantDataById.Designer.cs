@@ -12,8 +12,8 @@ using OceansApp.DataAccess.Data;
 namespace OceansApp.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260708200000_fifteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById")]
-    partial class fifteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById
+    [Migration("20260708200000_sixteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById")]
+    partial class sixteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

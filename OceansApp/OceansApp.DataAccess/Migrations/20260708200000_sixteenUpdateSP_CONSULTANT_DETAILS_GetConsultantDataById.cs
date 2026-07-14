@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace OceansApp.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class fifteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById : Migration
+    public partial class sixteenUpdateSP_CONSULTANT_DETAILS_GetConsultantDataById : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,6 +43,7 @@ namespace OceansApp.DataAccess.Migrations
           ,CD.IsEligibleForPaidTimeOff
           ,CD.AnnualPaidTimeOffDays
           ,CD.InitialPtoBalance
+          ,CD.InitialAdminPtoBalance
         FROM CONSULTANT_DETAILS CD
         JOIN Users U ON CD.UserId = U.Id
         JOIN UserCategories UC ON U.UserCategoryId = UC.UserCategoryId
@@ -97,6 +98,7 @@ namespace OceansApp.DataAccess.Migrations
           ,CD.IsEligibleForPaidTimeOff
           ,CD.AnnualPaidTimeOffDays
           ,CD.InitialPtoBalance
+          ,CD.InitialAdminPtoBalance
         FROM CONSULTANT_DETAILS CD
         JOIN Users U ON CD.UserId = U.Id
         JOIN UserCategories UC ON U.UserCategoryId = UC.UserCategoryId
