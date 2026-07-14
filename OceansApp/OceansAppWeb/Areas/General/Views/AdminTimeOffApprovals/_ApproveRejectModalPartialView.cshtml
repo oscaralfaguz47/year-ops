@@ -1,0 +1,40 @@
+<div id="modal-admin-approve-request" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div class="close-btn-container">
+                <button onclick="hideModal('modal-admin-approve-request')">x</button>
+            </div>
+            <h2>Approve Time Off Request?</h2>
+            <p id="admin-approve-details"></p>
+            <div id="modal-btns-cont">
+                <a onclick="hideModal('modal-admin-approve-request')" class="cancel-btn">Cancel</a>
+                <button onclick="confirmApprove()" class="btn-primary-submit">
+                    <span>Approve</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-admin-reject-request" class="global-modal" style="display:none">
+    <div class="global-modal-content">
+        <div class="container">
+            <div class="close-btn-container">
+                <button onclick="hideModal('modal-admin-reject-request')">x</button>
+            </div>
+            <h2>Reject Time Off Request?</h2>
+            <p id="admin-reject-details"></p>
+            <label>Rejection Comment <span class="required-asterisk">*</span></label>
+            <div class="input-container">
+                <textarea id="admin-rejection-comment-textarea"
+                    placeholder="Please explain why you are rejecting this request..."></textarea>
+            </div>
+            <div id="modal-btns-cont">
+                <a onclick="hideModal('modal-admin-reject-request')" class="cancel-btn">Cancel</a>
+                <button onclick="confirmReject()" class="btn-primary-submit" style="background:#ef4444;">
+                    <span>Reject</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

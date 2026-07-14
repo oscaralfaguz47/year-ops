@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Claude Code context file (contains local secrets and dev notes)
+CLAUDE.md
+
+# launchSettings contains local credentials — do not commit
+**/Properties/launchSettings.json
+
 # User-specific files
 *.rsuser
 *.suo
@@ -402,3 +408,6 @@ FodyWeavers.xsd
 
 # Local dev launch profile (contains local DB connection string + master creds)
 OceansApp/OceansAppWeb/Properties/launchSettings.json
+
+# Claude Code context file
+OceansApp/CLAUDE.md

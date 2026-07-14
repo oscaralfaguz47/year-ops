@@ -33,7 +33,8 @@ namespace OceansApp.Models.ViewModels.Consultants
         public List<CreateUpdateConsultantsAndPositionsVM>? Positions { get; set; }
         public bool IsWeeklyPulseParticipant { get; set; }
         public bool IsEligibleForPaidTimeOff { get; set; }
-        public int? AnnualPaidTimeOffDays { get; set; }
+        public decimal? AnnualPaidTimeOffDays { get; set; }
         public int? InitialPtoBalance { get; set; }
+        public decimal? InitialAdminPtoBalance { get; set; }
     }
 }

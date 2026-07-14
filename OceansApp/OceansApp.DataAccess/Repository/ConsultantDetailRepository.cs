@@ -63,7 +63,13 @@ namespace OceansApp.DataAccess.Repository
                                     Name = u.Name,
                                     LastName = u.LastName,
                                     Email = u.Email,
-                                    PaymentMethodId = (int)c.PaymentMethodId,
+                                    // PaymentMethodId is nullable in the DB; coalesce to 0 ("not set") rather than
+                                    // hard-casting, which made EF throw "Nullable object must have a value" while
+                                    // materializing any consultant with no payment method (e.g. on the approve /
+                                    // make-payment paths). 0 is a safe sentinel: this VM property is only read as a
+                                    // presence indicator — the actual payment uses the method chosen on the form.
+                                    // Callers that require a method check for 0 and surface a clear message.
+                                    PaymentMethodId = c.PaymentMethodId ?? 0,
                                     CompanyId = c.CompanyId,
                                     CountryName = co.Name,
                                     PaymentPeriod = (int)c.PaymentPeriod,
@@ -134,7 +140,8 @@ namespace OceansApp.DataAccess.Repository
                     StartDate = (DateTime)consultantData.StartDate,
                     IsEligibleForPaidTimeOff = consultantData.IsEligibleForPaidTimeOff,
                     AnnualPaidTimeOffDays = consultantData.AnnualPaidTimeOffDays,
-                    InitialPtoBalance = consultantData.InitialPtoBalance
+                    InitialPtoBalance = consultantData.InitialPtoBalance,
+                    InitialAdminPtoBalance = consultantData.InitialAdminPtoBalance
                 };
                 var createdConsultant = await _db.CONSULTANT_DETAILS.AddAsync(consultantToCreate);
                 await _db.SaveChangesAsync();
@@ -274,6 +281,7 @@ namespace OceansApp.DataAccess.Repository
                 existingConsultant.IsEligibleForPaidTimeOff = consultantData.IsEligibleForPaidTimeOff;
                 existingConsultant.AnnualPaidTimeOffDays = consultantData.AnnualPaidTimeOffDays;
                 existingConsultant.InitialPtoBalance = consultantData.InitialPtoBalance;
+                existingConsultant.InitialAdminPtoBalance = consultantData.InitialAdminPtoBalance;
 
                 existingUser.Name = consultantData.Name.Trim();
                 existingUser.LastName = consultantData.LastName.Trim();
@@ -367,6 +375,7 @@ namespace OceansApp.DataAccess.Repository
                         IsEligibleForPaidTimeOff = consultant.IsEligibleForPaidTimeOff,
                         AnnualPaidTimeOffDays = consultant.AnnualPaidTimeOffDays,
                         InitialPtoBalance = consultant.InitialPtoBalance,
+                        InitialAdminPtoBalance = consultant.InitialAdminPtoBalance,
                         Positions = (List<CreateUpdateConsultantsAndPositionsVM>)consultantProjects
                     };
                 }

@@ -113,6 +113,12 @@
 .status-actions {
     display: flex;
 }
+/* Stack the buttons only on the "Upload hours on behalf" row (two actions), so the single-button
+   action groups (Review for approval, Reject Approvement) keep their natural inline layout. */
+.status-actions.stacked-actions {
+    flex-direction: column;
+    align-items: stretch;
+}
 .action-btns-box {
     margin: 0 !important;
 }
@@ -136,6 +142,11 @@
 }
 .review-btn {
     background-color: #eeb30f;
+}
+.upload-on-behalf-btn img {
+    /* Render the clock icon white to match the button label */
+    filter: brightness(0) invert(1);
+    margin-right: 3px;
 }
 .reject-approvement-btn {
     background-color: #970f15;

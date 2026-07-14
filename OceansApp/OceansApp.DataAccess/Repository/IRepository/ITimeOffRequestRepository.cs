@@ -30,5 +30,10 @@ namespace OceansApp.DataAccess.Repository.IRepository
         Task<List<TimeOffRequestListVM>> GetAllConsultantRequestsAsync(int consultantId);
 
         Task<List<DateTime>> GetConsultantHolidayDatesAsync(int consultantId);
+
+        Task<TimeOffBalancesVM> GetAdminBalancesAsync(int consultantId);
+
+        Task<(List<TimeOffRequestListVM> requests, int totalCount)> GetAdminApprovalsAsync(
+            string approverUserId, TimeOffPaginationFiltersVM filtersAndPagination);
     }
 }

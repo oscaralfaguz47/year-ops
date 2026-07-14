@@ -40,8 +40,9 @@ namespace OceansApp.Models.Models
         public int WorkingModel { get; set; }
         public DateTime? OldConsultantSystemStartDate { get; set; }
         public bool IsEligibleForPaidTimeOff { get; set; }
-        public int? AnnualPaidTimeOffDays { get; set; }
+        public decimal? AnnualPaidTimeOffDays { get; set; }
         public int? InitialPtoBalance { get; set; }
+        public decimal? InitialAdminPtoBalance { get; set; }
 
 
         [ValidateNever]

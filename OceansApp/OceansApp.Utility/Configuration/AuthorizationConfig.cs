@@ -375,6 +375,11 @@ namespace OceansApp.Utility.Configuration
                 options.AddPolicy("AccessToTimeOffApprovals", policy =>
                     policy.RequireClaim(TimeOffClaimsCD.Time_Off_Approvals_ClaimType, TimeOffClaimsCD.Time_Off_Approvals_ClaimValue));
             });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AccessToAdminTimeOffApprovals", policy =>
+                    policy.RequireRole(SD.Role_User_Admin));
+            });
 
             //WEEKLY PULSE
             services.AddAuthorization(options =>

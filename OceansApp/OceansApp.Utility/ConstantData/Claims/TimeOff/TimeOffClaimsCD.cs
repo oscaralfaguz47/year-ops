@@ -7,5 +7,8 @@ namespace OceansApp.Utility.ConstantData.Claims.TimeOff
 
         public const string Time_Off_Approvals_ClaimType = "TimeOffApprovals";
         public const string Time_Off_Approvals_ClaimValue = "Have access to approve or reject time off requests";
+
+        public const string Admin_Time_Off_Approvals_ClaimType = "AdminTimeOffApprovals";
+        public const string Admin_Time_Off_Approvals_ClaimValue = "Have access to approve or reject administrative users time off requests";
     }
 }

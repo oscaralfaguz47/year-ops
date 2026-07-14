@@ -1,0 +1,52 @@
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/General/timeOffApprovals.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/sharedComponents.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/pagination.css?v=@DateTime.Now.Ticks" />
+<link rel="stylesheet" href="~/css/Shared/contentPages.css?v=@DateTime.Now.Ticks" />
+
+<div class="principal-header-container">
+    <div class="filters-container">
+        <div class="header-page">
+            <h2>ADMIN TIME OFF APPROVALS</h2>
+        </div>
+        @await Html.PartialAsync("_PaginationReusable")
+    </div>
+    <div class="table-header-actions">
+        <input id="search-input" type="text" placeholder="Search admin user..."
+            onchange="onSearchChange()" class="form-control" style="max-width:200px;" />
+        <select id="statusFilter" class="form-select" onchange="onFiltersChange()" style="max-width:200px;">
+            <option value="">All statuses</option>
+            <option value="Waiting to be approved">Waiting to be approved</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+    </div>
+</div>
+
+<div class="global-table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Admin User</th>
+                <th>Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Days</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Decision Date</th>
+                <th>Comment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="approvals-tbody"></tbody>
+    </table>
+    <div class="no-results" style="display:none;">No results found.</div>
+</div>
+
+<partial name="_ApproveRejectModalPartialView" />
+
+<input type="hidden" id="preFilterConsultantId" value="@ViewData["PreFilterConsultantId"]" />
+
+<script src="~/js/General/adminTimeOffApprovals.js?v=@DateTime.Now.Ticks"></script>
+<script src="~/js/Shared/sharedComponents.js?v=@DateTime.Now.Ticks"></script>

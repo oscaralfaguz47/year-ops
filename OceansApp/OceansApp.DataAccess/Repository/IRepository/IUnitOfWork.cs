@@ -43,6 +43,7 @@
         IImageBlobRepository ImageBlob { get; }
         IJournalAccountPayableRepository JournalAccountPayable { get; }
         IJournalAccountPayableEntryRepository JournalAccountPayableEntry { get; }
+        IPaymentAnchorRepository PaymentAnchor { get; }
         IPaymentMethodRepository PaymentMethod { get; }
         IPaymentBookEntryParentRepository PaymentBookEntryParent { get; }
         IProductRepository Product { get; }

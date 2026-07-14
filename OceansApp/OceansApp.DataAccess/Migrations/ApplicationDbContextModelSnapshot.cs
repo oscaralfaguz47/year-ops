@@ -416,6 +416,25 @@ namespace OceansApp.DataAccess.Migrations
                     b.ToTable("ACCOUNTING_ACCOUNT");
                 });
 
+            modelBuilder.Entity("OceansApp.Models.Models.AdminPtoConfiguration", b =>
+                {
+                    b.Property<int>("AdminPtoConfigurationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdminPtoConfigurationId"));
+
+                    b.Property<decimal>("AnnualPaidDays")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("EffectiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AdminPtoConfigurationId");
+
+                    b.ToTable("ADMIN_PTO_CONFIGURATION");
+                });
+
             modelBuilder.Entity("OceansApp.Models.Models.ApplicationSystemClaim", b =>
                 {
                     b.Property<int>("ClaimId")
@@ -1111,8 +1130,8 @@ namespace OceansApp.DataAccess.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("AnnualPaidTimeOffDays")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("AnnualPaidTimeOffDays")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("CompanyId")
                         .HasMaxLength(8)
@@ -1128,6 +1147,9 @@ namespace OceansApp.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(4)
                         .HasColumnType("nvarchar(4)");
+
+                    b.Property<decimal?>("InitialAdminPtoBalance")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("InitialPtoBalance")
                         .HasColumnType("int");

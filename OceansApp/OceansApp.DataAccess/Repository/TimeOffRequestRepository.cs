@@ -1,4 +1,5 @@
 using Azure.Storage.Queues;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -8,6 +9,8 @@ using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.TimeOff;
+using OceansApp.Utility;
+using OceansApp.Utility.ConstantData;
 using OceansApp.Utility.NotificationTemplates;
 using OceansApp.Utility.SharedMethods;
 
@@ -42,14 +45,14 @@ namespace OceansApp.DataAccess.Repository
 
             if (consultant.IsEligibleForPaidTimeOff && consultant.AnnualPaidTimeOffDays.HasValue)
             {
-                int annualDays = consultant.AnnualPaidTimeOffDays.Value;
-                int ptoAllowance = annualDays;
+                decimal annualDays = consultant.AnnualPaidTimeOffDays.Value;
+                decimal ptoAllowance = annualDays;
                 int ptoUsedAndPending = await GetUsedDaysAsync(consultantId, "PTO", currentYear);
                 result.PtoAvailable = ptoAllowance - ptoUsedAndPending;
             }
 
             int vtoUsedAndPending = await GetUsedDaysAsync(consultantId, "VTO", currentYear);
-            result.VtoAvailable = 1 - vtoUsedAndPending;
+            result.VtoAvailable = BenefitsCD.VtoAnnualDays - vtoUsedAndPending;
 
             return result;
         }
@@ -219,18 +222,30 @@ namespace OceansApp.DataAccess.Repository
                     "No business days in the selected range (weekends and holidays are excluded).");
 
             var consultant = await _db.CONSULTANT_DETAILS
-                .Include(c => c.ApplicationUser)
+                .Include(c => c.ApplicationUser).ThenInclude(u => u.ApplicationUserCategory)
                 .FirstOrDefaultAsync(c => c.ConsultantId == consultantId);
+
+            bool isAdministrative = consultant.ApplicationUser.ApplicationUserCategory?.Name == SD.UserCategory_Administrative;
 
             if (data.TimeOffType == "PTO")
             {
-                if (!consultant.IsEligibleForPaidTimeOff)
-                    return MethodResponse.CreateFailureNotFoundResponse("You are not eligible for Paid Time Off.");
+                if (isAdministrative)
+                {
+                    var adminBalances = await GetAdminBalancesAsync(consultantId);
+                    if (businessDays > adminBalances.AdminPtoAvailable)
+                        return MethodResponse.CreateFailureNotFoundResponse(
+                            $"Insufficient PTO balance. Available: {adminBalances.AdminPtoAvailable:F2} days, Requested: {businessDays} days.");
+                }
+                else
+                {
+                    if (!consultant.IsEligibleForPaidTimeOff)
+                        return MethodResponse.CreateFailureNotFoundResponse("You are not eligible for Paid Time Off.");
 
-                var balances = await GetBalancesAsync(consultantId);
-                if (businessDays > balances.PtoAvailable)
-                    return MethodResponse.CreateFailureNotFoundResponse(
-                        $"Insufficient PTO balance. Available: {balances.PtoAvailable} days, Requested: {businessDays} days.");
+                    var balances = await GetBalancesAsync(consultantId);
+                    if (businessDays > balances.PtoAvailable)
+                        return MethodResponse.CreateFailureNotFoundResponse(
+                            $"Insufficient PTO balance. Available: {balances.PtoAvailable} days, Requested: {businessDays} days.");
+                }
             }
             else if (data.TimeOffType == "VTO")
             {
@@ -240,11 +255,15 @@ namespace OceansApp.DataAccess.Repository
                         "Insufficient VTO balance. You have already used your voluntary day off this year.");
             }
 
-            var pendingStatus = await _db.TRANSACTION_STATUSES
-                .FirstOrDefaultAsync(s => s.Name == "Waiting to be approved");
-            if (pendingStatus == null)
+            // Admin/Master-role administrative users are auto-approved
+            bool isAutoApproved = isAdministrative && data.TimeOffType == "PTO"
+                && await UserHasAdminOrMasterRoleAsync(userIdCreatedBy);
+
+            var statusName = isAutoApproved ? "Approved" : "Waiting to be approved";
+            var status = await _db.TRANSACTION_STATUSES.FirstOrDefaultAsync(s => s.Name == statusName);
+            if (status == null)
                 return MethodResponse.CreateFailureNotFoundResponse(
-                    "Transaction status 'Waiting to be approved' not found in the database.");
+                    $"Transaction status '{statusName}' not found in the database.");
 
             await using var transaction = await _db.Database.BeginTransactionAsync();
             try
@@ -256,19 +275,32 @@ namespace OceansApp.DataAccess.Repository
                     StartDate = data.StartDate.Value,
                     EndDate = data.EndDate.Value,
                     BusinessDays = businessDays,
-                    TransactionStatusId = pendingStatus.TransactionStatusId,
+                    TransactionStatusId = status.TransactionStatusId,
                     CreationDate = DateTime.UtcNow,
-                    UserCreatedBy = userIdCreatedBy
+                    UserCreatedBy = userIdCreatedBy,
+                    UserActionedBy = isAutoApproved ? userIdCreatedBy : null,
+                    ActionDate = isAutoApproved ? DateTime.UtcNow : null
                 };
 
                 await _db.TIME_OFF_REQUESTS.AddAsync(request);
                 await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                await SendSubmissionEmails(consultant, request, baseUrl);
+                if (isAutoApproved)
+                {
+                    request.TransactionStatus = status;
+                    request.ConsultantDetail = consultant;
+                    await SendDecisionEmail(request, consultant.ApplicationUser, baseUrl);
+                }
+                else
+                {
+                    await SendSubmissionEmails(consultant, request, baseUrl);
+                }
 
                 return MethodResponse.CreateSuccessResponse(
-                    "Your time off request has been submitted successfully.");
+                    isAutoApproved
+                        ? "Your time off request has been approved."
+                        : "Your time off request has been submitted successfully.");
             }
             catch (Exception ex)
             {
@@ -455,6 +487,126 @@ namespace OceansApp.DataAccess.Repository
                 .ToListAsync();
         }
 
+        public async Task<TimeOffBalancesVM> GetAdminBalancesAsync(int consultantId)
+        {
+            var consultant = await _db.CONSULTANT_DETAILS
+                .FirstOrDefaultAsync(c => c.ConsultantId == consultantId);
+
+            var config = await _db.ADMIN_PTO_CONFIGURATION.FirstOrDefaultAsync();
+
+            var result = new TimeOffBalancesVM { IsAdminPtoEnabled = true };
+
+            // VTO (flat 1 day/yr) applies to all categories; set before the config null-check.
+            result.VtoAvailable = BenefitsCD.VtoAnnualDays
+                - await GetUsedDaysAsync(consultantId, "VTO", DateTime.UtcNow.Year);
+
+            if (config == null)
+                return result;
+
+            decimal monthlyRate = config.AnnualPaidDays / 12m;
+            result.AdminPtoMonthlyRate = monthlyRate;
+
+            // Accrual and usage are both bounded to the configured go-live date so that
+            // tenure and time-off predating this system don't distort the balance. Any days
+            // earned before go-live are carried over explicitly via InitialAdminPtoBalance.
+            var accrualStart = consultant.StartDate > config.EffectiveDate
+                ? consultant.StartDate
+                : config.EffectiveDate;
+
+            decimal accrued = CalculateAdminAccruedDays(accrualStart, monthlyRate);
+            decimal initialBalance = consultant.InitialAdminPtoBalance ?? 0m;
+            decimal used = await GetUsedDaysDecimalAsync(consultantId, "PTO", config.EffectiveDate);
+
+            result.AdminPtoInitialBalance = initialBalance;
+            result.AdminPtoEffectiveDate = config.EffectiveDate;
+            result.AdminPtoAccruedToDate = accrued;
+            result.AdminPtoUsed = used;
+            result.AdminPtoAvailable = initialBalance + accrued - used;
+
+            return result;
+        }
+
+        public async Task<(List<TimeOffRequestListVM> requests, int totalCount)> GetAdminApprovalsAsync(
+            string approverUserId, TimeOffPaginationFiltersVM filtersAndPagination)
+        {
+            var administrativeCategoryId = await GetAdministrativeCategoryIdAsync();
+
+            var adminConsultantIds = await _db.CONSULTANT_DETAILS
+                .Where(c => c.ApplicationUser.UserCategoryId == administrativeCategoryId)
+                .Select(c => c.ConsultantId)
+                .ToListAsync();
+
+            // Exclude Admin/Master-role users — they are auto-approved and never need review
+            var autoApproveRoleIds = await _db.Set<IdentityRole>()
+                .Where(r => r.Name == SD.Role_User_Admin || r.Name == SD.Role_User_Master)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            var autoApproveUserIds = await _db.Set<IdentityUserRole<string>>()
+                .Where(ur => autoApproveRoleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            // Only PTO requests from non-auto-approve administrative users, excluding the approver's own
+            var query = _db.TIME_OFF_REQUESTS
+                .Include(r => r.ConsultantDetail).ThenInclude(c => c.ApplicationUser)
+                .Include(r => r.TransactionStatus)
+                .Include(r => r.ApplicationUserActioned)
+                .Where(r => adminConsultantIds.Contains(r.ConsultantId)
+                    && r.TimeOffType == "PTO"
+                    && r.UserCreatedBy != approverUserId
+                    && !autoApproveUserIds.Contains(r.UserCreatedBy));
+
+            var filters = filtersAndPagination?.Filters;
+            if (filters != null)
+            {
+                if (filters.TransactionStatusId.HasValue)
+                    query = query.Where(r => r.TransactionStatusId == filters.TransactionStatusId.Value);
+                if (!string.IsNullOrEmpty(filters.StatusName))
+                    query = query.Where(r => r.TransactionStatus.Name == filters.StatusName);
+                if (filters.ConsultantId.HasValue)
+                    query = query.Where(r => r.ConsultantId == filters.ConsultantId.Value);
+                if (!string.IsNullOrEmpty(filters.SearchText))
+                    query = query.Where(r =>
+                        r.ConsultantDetail.ApplicationUser.Name.Contains(filters.SearchText) ||
+                        r.ConsultantDetail.ApplicationUser.LastName.Contains(filters.SearchText) ||
+                        (r.ConsultantDetail.ApplicationUser.Name + " " + r.ConsultantDetail.ApplicationUser.LastName).Contains(filters.SearchText));
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var pagination = filtersAndPagination?.PaginationWithoutFilters?.Pagination;
+            int page = pagination?.PageIndex ?? 1;
+            int pageSize = (pagination?.PageSize ?? 0) > 0 ? pagination.PageSize : 50;
+
+            var requests = await query
+                .OrderByDescending(r => r.CreationDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new TimeOffRequestListVM
+                {
+                    TimeOffRequestId = r.TimeOffRequestId,
+                    TimeOffType = r.TimeOffType,
+                    StartDate = r.StartDate,
+                    EndDate = r.EndDate,
+                    BusinessDays = r.BusinessDays,
+                    Status = r.TransactionStatus.Name,
+                    ConsultantName = r.ConsultantDetail.ApplicationUser.Name + " "
+                                   + r.ConsultantDetail.ApplicationUser.LastName,
+                    ConsultantId = r.ConsultantId,
+                    ManagerName = r.ApplicationUserActioned != null
+                        ? r.ApplicationUserActioned.Name + " " + r.ApplicationUserActioned.LastName
+                        : null,
+                    ActionDate = r.ActionDate,
+                    RejectionComment = r.RejectionComment,
+                    CreationDate = r.CreationDate
+                })
+                .ToListAsync();
+
+            return (requests, totalCount);
+        }
+
         // ── Private helpers ──
 
 
@@ -501,7 +653,7 @@ namespace OceansApp.DataAccess.Repository
             var emailTemplates = new EmailTemplates();
             string dateRange = FormatDateRange(request.StartDate, request.EndDate);
 
-            // Email 1: To consultant (confirmation)
+            // Email 1: To the user who submitted (confirmation)
             try
             {
                 var confirmBody = emailTemplates.TimeOffRequestSubmittedBody(
@@ -518,11 +670,25 @@ namespace OceansApp.DataAccess.Repository
             }
             catch (Exception) { }
 
-            // Email 2: To all distinct Success Managers
+            // Email 2: To approvers — Admin role users for admin PTO, Success Managers for consultant PTO
             try
             {
-                var managerEmails = await GetDistinctSuccessManagerEmails(consultant.ConsultantId);
-                string approvalUrl = $"{baseUrl}/General/TimeOffApprovals?consultantId={consultant.ConsultantId}";
+                bool isAdminPto = consultant.ApplicationUser.ApplicationUserCategory?.Name == SD.UserCategory_Administrative
+                    && request.TimeOffType == "PTO";
+
+                List<string> approverEmails;
+                string approvalUrl;
+
+                if (isAdminPto)
+                {
+                    approverEmails = await GetAdminRoleUserEmails(request.UserCreatedBy);
+                    approvalUrl = $"{baseUrl}/General/AdminTimeOffApprovals?consultantId={consultant.ConsultantId}";
+                }
+                else
+                {
+                    approverEmails = await GetDistinctSuccessManagerEmails(consultant.ConsultantId);
+                    approvalUrl = $"{baseUrl}/General/TimeOffApprovals?consultantId={consultant.ConsultantId}";
+                }
 
                 var approvalBody = emailTemplates.TimeOffApprovalRequestBody(
                     approvalUrl,
@@ -530,13 +696,13 @@ namespace OceansApp.DataAccess.Repository
                     GetTimeOffTypeLabel(request.TimeOffType), dateRange, request.BusinessDays);
                 var templateEmail = emailTemplates.EmailTemplate("TIME OFF REQUEST TO REVIEW", approvalBody);
 
-                foreach (var managerEmail in managerEmails)
+                foreach (var email in approverEmails)
                 {
                     var approvalEmail = new SendEmailVM
                     {
                         Subject = "TIME OFF REQUEST TO REVIEW - RIPPLE BY OCEANS",
                         SharedEmailFrom = _config["SharedMailboxEmailRippleApp"],
-                        EmailTo = managerEmail.Trim(),
+                        EmailTo = email.Trim(),
                         Body = templateEmail
                     };
                     string msg = JsonConvert.SerializeObject(approvalEmail);
@@ -569,6 +735,92 @@ namespace OceansApp.DataAccess.Repository
                 .ToListAsync();
 
             return emails;
+        }
+
+        private async Task<bool> UserHasAdminOrMasterRoleAsync(string userId)
+        {
+            var roleIds = await _db.Set<IdentityRole>()
+                .Where(r => r.Name == SD.Role_User_Admin || r.Name == SD.Role_User_Master)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            return await _db.Set<IdentityUserRole<string>>()
+                .AnyAsync(ur => ur.UserId == userId && roleIds.Contains(ur.RoleId));
+        }
+
+        private async Task<List<string>> GetAdminRoleUserEmails(string excludeUserId)
+        {
+            var adminRole = await _db.Set<IdentityRole>()
+                .FirstOrDefaultAsync(r => r.Name == SD.Role_User_Admin);
+            if (adminRole == null)
+                return new List<string>();
+
+            var adminUserIds = await _db.Set<IdentityUserRole<string>>()
+                .Where(ur => ur.RoleId == adminRole.Id)
+                .Select(ur => ur.UserId)
+                .ToListAsync();
+
+            return await _db.AspNetUsers
+                .Where(u => adminUserIds.Contains(u.Id)
+                    && u.IsActive
+                    && u.Id != excludeUserId
+                    && u.Email != null)
+                .Select(u => u.Email)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        private async Task<int> GetAdministrativeCategoryIdAsync()
+        {
+            var category = await _db.UserCategories
+                .FirstOrDefaultAsync(c => c.Name == SD.UserCategory_Administrative);
+            return category?.UserCategoryId ?? 0;
+        }
+
+        private static decimal CalculateAdminAccruedDays(DateTime startDate, decimal monthlyRate)
+        {
+            // First accrual is the month after the start date
+            var today = DateTime.UtcNow.Date;
+            int accruedMonths = 0;
+            var accrualDate = GetNextAccrualDate(startDate, startDate);
+
+            while (accrualDate <= today)
+            {
+                accruedMonths++;
+                accrualDate = GetNextAccrualDate(startDate, accrualDate);
+            }
+
+            return accruedMonths * monthlyRate;
+        }
+
+        // Returns the accrual date in the month following `current`, clamped to the last day of that month
+        private static DateTime GetNextAccrualDate(DateTime startDate, DateTime current)
+        {
+            int targetDay = startDate.Day;
+            int nextMonth = current.Month == 12 ? 1 : current.Month + 1;
+            int nextYear = current.Month == 12 ? current.Year + 1 : current.Year;
+            int daysInNextMonth = DateTime.DaysInMonth(nextYear, nextMonth);
+            int day = Math.Min(targetDay, daysInNextMonth);
+            return new DateTime(nextYear, nextMonth, day);
+        }
+
+        private async Task<decimal> GetUsedDaysDecimalAsync(int consultantId, string timeOffType, DateTime? fromDate)
+        {
+            var statusApproved = await _db.TRANSACTION_STATUSES
+                .FirstOrDefaultAsync(s => s.Name == "Approved");
+            var statusPending = await _db.TRANSACTION_STATUSES
+                .FirstOrDefaultAsync(s => s.Name == "Waiting to be approved");
+
+            var query = _db.TIME_OFF_REQUESTS
+                .Where(r => r.ConsultantId == consultantId
+                    && r.TimeOffType == timeOffType
+                    && (r.TransactionStatusId == statusApproved.TransactionStatusId
+                        || r.TransactionStatusId == statusPending.TransactionStatusId));
+
+            if (fromDate.HasValue)
+                query = query.Where(r => r.StartDate >= fromDate.Value);
+
+            return (decimal)await query.SumAsync(r => r.BusinessDays);
         }
 
         private async Task SendDecisionEmail(TimeOffRequest request, ApplicationUser managerUser, string baseUrl)

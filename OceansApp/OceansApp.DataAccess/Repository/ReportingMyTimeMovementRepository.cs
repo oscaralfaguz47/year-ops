@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OceansApp.DataAccess.Data;
 using OceansApp.DataAccess.Repository.IRepository;
+using OceansApp.DataAccess.Services;
 using OceansApp.Models.Models;
 using OceansApp.Models.ViewModels.Blobs;
 using OceansApp.Models.ViewModels.Components;
@@ -611,17 +612,12 @@ namespace OceansApp.DataAccess.Repository
                                    .ToListAsync();
                     }
 
-                    // Iterate over the days between TimeFrom and TimeTo
-                    for (var date = startDateFormat; date <= endDateFormat; date = date.AddDays(1))
+                    // Spread across the period's weekdays (skipping weekends/holidays) via the shared helper.
+                    var weekdayDates = WeekdaySpread.GetWeekdayDates(startDateFormat, endDateFormat,
+                        holidays.Select(h => h.Date));
+
+                    foreach (var date in weekdayDates)
                     {
-                        // Skip Saturdays and Sundays
-                        if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
-                            continue;
-
-                        if (holidays.Any(h => h.Date == date))
-                            continue;
-
-
                         bool isBillable = project.IsBillable;
                         string nonBillableReason = "The project is non billable by default.";
 
@@ -655,6 +651,283 @@ namespace OceansApp.DataAccess.Repository
                     return MethodResponse.CreateFailureExceptionResponse(ex.Message);
                 }
             }
+        }
+
+        public async Task<MethodResponse> UploadHoursOnBehalf(string actingAdminUserId, int subjectConsultantId,
+            int projectId, DateTime periodStart, DateTime periodEnd, decimal totalHours)
+        {
+            // Admin-driven autofill: AutofillTimeEntryTrackingTool + CreateSubmission fused, with the
+            // actor/subject split threaded through. Movements/submission key to the SUBJECT consultant
+            // (including their PaymentPeriod); the acting admin is recorded for audit. See docs/adr/0002.
+            // totalHours is the PERIOD total the admin is filing; the server recomputes the workable-day
+            // count and spreads it across those days (even to the cent, trailing days carry the
+            // remainder). See docs/adr/0003.
+            if (string.IsNullOrWhiteSpace(actingAdminUserId))
+            {
+                return MethodResponse.CreateFailureExceptionResponse("Acting admin user is required.");
+            }
+            if (totalHours <= 0)
+            {
+                return MethodResponse.CreateFailureValidationResponse("Enter a total number of hours greater than zero.", "Hours");
+            }
+
+            await using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var subject = await _db.CONSULTANT_DETAILS.Include(x => x.ApplicationUser)
+                        .FirstOrDefaultAsync(x => x.ConsultantId == subjectConsultantId);
+                    if (subject == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Consultant not found.");
+                    }
+                    if (subject.PaymentPeriod == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The consultant does not have a payment period configured.");
+                    }
+
+                    // Derive the period boundaries from the SUBJECT's PaymentPeriod so the collision guard,
+                    // the weekday spread, the movement overwrite and the submission all use one canonical
+                    // window (the chosen date only selects which period). See docs/adr/0002.
+                    var period = CalculatePaymentPeriodDates(periodStart, subject.PaymentPeriod.Value);
+                    var periodStartCanonical = period.StartDate;
+                    var periodEndCanonical = period.EndDate;
+
+                    // Requires an active assignment to the chosen project (mirror image of Feature 1).
+                    if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == projectId && x.ConsultantId == subjectConsultantId))
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("The consultant is not assigned to the provided project.");
+                    }
+
+                    var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId);
+                    if (project == null)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Invalid project configuration.");
+                    }
+                    // Tracking-tool projects are out of scope: autofill cannot satisfy their evidence gate. See docs/adr/0002.
+                    if (project.ClientHasTrackingTool)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse("Manual hours upload is not available for tracking-tool projects; this case is handled manually.");
+                    }
+
+                    // Reuse the collision guard, which uses the SUBJECT's PaymentPeriod for the period math:
+                    // already-submitted non-rejected period => blocked; rejected => re-submitted; drafts => overwritten.
+                    MethodResponse responseValidateSubmission = await ValidateSubmission(null, periodStartCanonical, subject, projectId);
+                    if (!responseValidateSubmission.Success)
+                    {
+                        return MethodResponse.CreateFailureExceptionResponse(responseValidateSubmission.Message);
+                    }
+
+                    var transactionStatusWaiting = await _db.TRANSACTION_STATUSES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "Waiting to be approved");
+                    if (transactionStatusWaiting == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Transaction status 'Waiting to be approved' not found.");
+                    }
+                    var movementType = await _db.REPORTING_MY_TIME_MOVEMENT_TYPES.AsNoTracking().FirstOrDefaultAsync(x => x.Name == "Normal Hours");
+                    if (movementType == null)
+                    {
+                        return MethodResponse.CreateFailureNotFoundResponse("Movement type 'Normal Hours' not found.");
+                    }
+
+                    var startDateFormat = periodStartCanonical.Date;
+                    var endDateFormat = periodEndCanonical.Date;
+
+                    // Workable days come from one shared resolver — the SAME day-set the preview endpoint
+                    // shows the admin and the spread divides by, so the displayed default and the filed
+                    // total can't diverge. Server owns N; the client never sends it. See docs/adr/0003.
+                    var weekdayDates = await GetWorkableWeekdayDatesAsync(subject, projectId, periodStart);
+                    if (weekdayDates.Count == 0)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse("The selected period has no weekdays to fill hours on.", "Hours");
+                    }
+
+                    // Reject a physically impossible total: more than 24h on every workable day is a typo,
+                    // not a real figure. Besides the absurd pay, such a day synthesizes an out-of-range
+                    // TimeFrom/TimeTo window (e.g. "27:16") that breaks the approvals review screen the
+                    // per-day window exists to satisfy. See docs/adr/0003.
+                    if (totalHours > weekdayDates.Count * 24m)
+                    {
+                        return MethodResponse.CreateFailureValidationResponse(
+                            "The total hours exceed the maximum possible for this period.", "Hours");
+                    }
+
+                    // Overwrite any existing in-period movements for this consultant/project (drafts/rejected).
+                    var existingTimes = await _db.REPORTING_MY_TIME_MOVEMENTS
+                        .Where(x => x.ConsultantId == subject.ConsultantId && x.ProjectId == projectId
+                                 && x.ActionDate >= startDateFormat && x.ActionDate <= endDateFormat)
+                        .ToListAsync();
+                    foreach (var movementToDelete in existingTimes)
+                    {
+                        _db.REPORTING_MY_TIME_MOVEMENTS.Remove(movementToDelete);
+                    }
+
+                    // Spread the period total across the workable days. Even split to the cent, with the
+                    // last few days carrying one extra cent each to soak up the remainder so the filed
+                    // movements sum to exactly totalHours. In the default case (totalHours == N×8) this is
+                    // a flat 8.00/day. See docs/adr/0003.
+                    var dailyQuantities = PeriodTotalSpread.Spread(totalHours, weekdayDates.Count);
+
+                    for (var i = 0; i < weekdayDates.Count; i++)
+                    {
+                        var quantity = dailyQuantities[i];
+                        if (quantity <= 0)
+                        {
+                            // A day that came out at 0 cents (a tiny total, fewer cents than days)
+                            // carries no movement; the non-zero cents landed on the trailing days. See docs/adr/0003.
+                            continue;
+                        }
+
+                        // Synthesize THIS day's TimeFrom/TimeTo window spanning its own quantity (e.g. 8h ->
+                        // 09:00-17:00), anchored at 09:00 unless that overflows the day. Computed per day so
+                        // the remainder day gets its own window. Autofill movements always carry TimeFrom/
+                        // TimeTo; the approvals review screen renders them (a null TimeFrom breaks it).
+                        int dailyMinutes = (int)Math.Round((double)quantity * 60);
+                        int startMinutes = (9 * 60 + dailyMinutes <= 24 * 60) ? 9 * 60 : 0;
+                        string timeFrom = $"{startMinutes / 60:D2}:{startMinutes % 60:D2}";
+                        string timeTo = $"{(startMinutes + dailyMinutes) / 60:D2}:{(startMinutes + dailyMinutes) % 60:D2}";
+
+                        var timeMovementToCreate = new ReportingMyTimeMovement
+                        {
+                            ConsultantId = subject.ConsultantId,
+                            ProjectId = projectId,
+                            ActionDate = weekdayDates[i],
+                            Notes = "Uploaded on behalf by an admin.",
+                            TransactionStatusId = transactionStatusWaiting.TransactionStatusId,
+                            MovementTypeId = movementType.MovementTypeId,
+                            CreationDate = DateTime.UtcNow,
+                            TimeFrom = timeFrom,
+                            TimeTo = timeTo,
+                            Quantity = quantity,
+                            IsBillable = project.IsBillable,
+                            NonBillableReason = "The project is non billable by default.",
+                            UserIdLastUpdatedBy = actingAdminUserId  // actor stamped on each movement
+                        };
+                        await _db.REPORTING_MY_TIME_MOVEMENTS.AddAsync(timeMovementToCreate);
+                    }
+
+                    // Create or re-submit the submission at "Waiting to be approved" — NEVER auto-approved.
+                    var existingSubmission = await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS
+                        .Include(x => x.TransactionStatus)
+                        .FirstOrDefaultAsync(x => x.ConsultantId == subject.ConsultantId && x.ProjectId == projectId
+                            && x.StartPeriodDate.Date == startDateFormat && x.EndPeriodDate.Date == endDateFormat);
+
+                    ReportingMyTimeMovementSubmission submission;
+                    if (existingSubmission == null)
+                    {
+                        submission = new ReportingMyTimeMovementSubmission
+                        {
+                            ConsultantId = subject.ConsultantId,
+                            ProjectId = projectId,
+                            TransactionStatusId = transactionStatusWaiting.TransactionStatusId,
+                            SubmissionDate = DateTime.UtcNow,
+                            StartPeriodDate = periodStartCanonical,
+                            EndPeriodDate = periodEndCanonical
+                        };
+                        await _db.REPORTING_MY_TIME_MOVEMENTS_SUBMISSIONS.AddAsync(submission);
+                    }
+                    else
+                    {
+                        // ValidateSubmission only let us through for a rejected (or absent) submission.
+                        existingSubmission.LastSubmissionDate = DateTime.UtcNow;
+                        existingSubmission.TransactionStatusId = transactionStatusWaiting.TransactionStatusId;
+                        submission = existingSubmission;
+                    }
+
+                    await _db.SaveChangesAsync();
+
+                    // Audit trail: one "uploaded on behalf of {consultant} by {admin}" comment on the submission.
+                    var subjectName = $"{subject.ApplicationUser?.Name} {subject.ApplicationUser?.LastName}".Trim();
+                    var admin = await _db.AspNetUsers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == actingAdminUserId);
+                    var adminName = admin == null ? actingAdminUserId : $"{admin.Name} {admin.LastName}".Trim();
+
+                    var comment = new ReportingMyTimeComments
+                    {
+                        ConsultantId = subject.ConsultantId,
+                        ProjectId = projectId,
+                        Body = $"Uploaded on behalf of {subjectName} by {adminName}.",
+                        CreationDate = DateTime.UtcNow,
+                        ActionDate = periodEndCanonical,
+                        UserId = actingAdminUserId,
+                        SubmissionId = submission.SubmissionId
+                    };
+                    await _db.REPORTING_MY_TIME_COMMENTS.AddAsync(comment);
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return MethodResponse.CreateSuccessResponse(
+                        "Hours uploaded on behalf of the consultant. The submission is waiting to be approved.",
+                        submission.SubmissionId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return MethodResponse.CreateFailureExceptionResponse(ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Read-only workable-day count for a subject/project/period, for the Manual Hours Upload
+        /// preview: the admin's modal calls this on open to prefill the suggested total (N × 8) and
+        /// show "N days". Returns 0 when the upload would refuse the same inputs — consultant unknown,
+        /// no payment period, not assigned to the project, or a tracking-tool project — so the modal
+        /// treats 0 as "nothing to fill" and keeps submit disabled instead of promising an upload the
+        /// server will then reject. The 0-cases here mirror the guards in <see cref="UploadHoursOnBehalf"/>.
+        /// Shares <see cref="GetWorkableWeekdayDatesAsync"/> with the upload so the count shown and the
+        /// count filed are one server-computed N. See docs/adr/0003.
+        /// </summary>
+        public async Task<int> GetWorkableDaysAsync(int subjectConsultantId, int projectId, DateTime periodDate)
+        {
+            var subject = await _db.CONSULTANT_DETAILS.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ConsultantId == subjectConsultantId);
+            if (subject?.PaymentPeriod == null)
+            {
+                return 0;
+            }
+            if (!await _db.PROJECTS_CONSULTANTS_ASSIGNED.AnyAsync(x => x.ProjectId == projectId && x.ConsultantId == subjectConsultantId))
+            {
+                return 0;
+            }
+            // Mirror the upload's tracking-tool guard: autofill can't satisfy a tracking-tool project's
+            // evidence gate, so the upload rejects it — the preview must too, or it would prefill a total
+            // and enable Review for an upload that Confirm then refuses. See docs/adr/0002 + 0003.
+            var project = await _db.PROJECTS.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId);
+            if (project == null || project.ClientHasTrackingTool)
+            {
+                return 0;
+            }
+
+            var weekdayDates = await GetWorkableWeekdayDatesAsync(subject, projectId, periodDate);
+            return weekdayDates.Count;
+        }
+
+        /// <summary>
+        /// The shared workable-day resolver for Manual Hours Upload: canonical period boundaries from
+        /// the SUBJECT's PaymentPeriod, minus weekends and (on paying assignments) paid holidays —
+        /// the exact day-set the spread writes to. Paying-assignment holidays are excluded because the
+        /// payment computation pays them separately via the auto "Holidays" movement; non-paying
+        /// holidays are included as normal work. Used by both the preview and the upload so they share
+        /// one N. See docs/adr/0003.
+        /// </summary>
+        private async Task<List<DateTime>> GetWorkableWeekdayDatesAsync(ConsultantDetail subject, int projectId, DateTime periodDate)
+        {
+            var period = CalculatePaymentPeriodDates(periodDate, subject.PaymentPeriod.Value);
+
+            var currentProjectHistory = await _projectConsultantAssignedHistoryRepository
+                .GetCurrentProjectConsultantHistoryAsync(subject.ConsultantId, projectId, period.EndDate);
+
+            IEnumerable<ConsultantHolidayDate> holidays = new List<ConsultantHolidayDate>();
+            if (currentProjectHistory != null && currentProjectHistory.IsDefaultProject
+                && currentProjectHistory.HolidaysMustBePaid && subject.ConsultantHolidayId > 0)
+            {
+                holidays = await _db.CONSULTANT_HOLIDAY_DATES
+                    .Where(x => x.ConsultantHolidayId == subject.ConsultantHolidayId
+                             && x.Date >= period.StartDate && x.Date <= period.EndDate)
+                    .ToListAsync();
+            }
+
+            return WeekdaySpread.GetWeekdayDates(period.StartDate.Date, period.EndDate.Date, holidays.Select(h => h.Date));
         }
 
         public async Task<MethodResponse> UpdateTimeEntryTrackingTool(string userActionedBy,

@@ -1,0 +1,65 @@
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div id="modal-manual-hours-upload" class="global-modal" style="display:none">
+    <div class="global-modal-content cl-manual-hours-upload">
+        <div class="container">
+            <div>
+                <div class="close-btn-container"><button onclick="hideModal('modal-manual-hours-upload')">x</button></div>
+                <h2>Manual Hours Upload</h2>
+                <p>Upload project hours on behalf of a consultant who can't self-report, for one pay period.</p>
+
+                @Html.AntiForgeryToken()
+
+                <div id="mhu-form" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+
+                    <div>
+                        <label for="mhu-consultant"><strong>1. Consultant</strong></label>
+                        <select id="mhu-consultant" class="form-control">
+                            <option value="">-- Select a consultant --</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 12px;">
+                        <div style="flex: 1;">
+                            <label for="mhu-start"><strong>2. Period start</strong></label>
+                            <input id="mhu-start" type="date" class="form-control" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="mhu-end"><strong>Period end</strong></label>
+                            <input id="mhu-end" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="mhu-project"><strong>3. Project</strong> (actively-assigned, no-tracking-tool only)</label>
+                        <select id="mhu-project" class="form-control">
+                            <option value="">-- Select a consultant and period first --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="mhu-hours"><strong>4. Total hours for the period</strong> <span id="mhu-days" style="color: #555; font-weight: normal;"></span></label>
+                        <input id="mhu-hours" type="number" min="0.5" step="0.5" class="form-control" placeholder="e.g. 160" />
+                        <small style="color: #555;">Defaults to the period's full-time hours (workable days × 8). Override to add or drop a few hours. Don't add holiday hours — if the project pays holidays, they're added automatically later.</small>
+                    </div>
+
+                    <div id="mhu-message" style="margin-top: 8px;"></div>
+
+                    <div id="mhu-confirm" style="display: none; border: 1px solid #baf7f4; border-radius: 8px; padding: 16px;">
+                        <h4>Confirm upload</h4>
+                        <p id="mhu-summary"></p>
+                        <button type="button" class="btn btn-success" onclick="mhuConfirm()">Confirm &amp; upload</button>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('mhu-confirm').style.display='none';">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="action-btns-box">
+                    <button type="button" onclick="hideModal('modal-manual-hours-upload')" class="cancel-btn">Cancel</button>
+                    <button type="button" id="mhu-review-btn" class="review-btn" onclick="mhuReview()">Review</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Finances/PaymentSheets/manualHoursUpload.js?v=@DateTime.Now.Ticks"></script>

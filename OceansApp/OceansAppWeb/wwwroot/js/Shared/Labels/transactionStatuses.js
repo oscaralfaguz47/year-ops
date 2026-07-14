@@ -10,6 +10,8 @@
         statusLabel = `<span class="cel-status paid-label"><img class="status-img" src="/icons/Shared/Statuses/paid.svg">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Waiting to be approved' || transactionStatusName === 'Pending approved') {
         statusLabel = `<span class="cel-status waiting-label"><img class="status-img" src="/icons/Shared/Statuses/waiting.svg">${transactionStatusName}</span>`;
+    } else if (transactionStatusName === 'Awaiting upload') {
+        statusLabel = `<span class="cel-status pending-label"><img class="status-img" src="/icons/Shared/Statuses/pending.svg">${transactionStatusName}</span>`;
     } else if (transactionStatusName === 'Accounted') {
         statusLabel = `<span class="cel-status done-label"><img class="status-img" src="/icons/Shared/Statuses/green-check.svg">${transactionStatusName}</span>`;
     } if (transactionStatusName === 'Pending' || transactionStatusName === 'Pending Accounting') {

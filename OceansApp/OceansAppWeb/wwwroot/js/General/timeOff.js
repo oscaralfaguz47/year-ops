@@ -7,6 +7,10 @@ let holidayDates = [];
 let isDragging = false;
 let dragStart = null;
 let dragEnd = null;
+let requestedBusinessDays = 0;
+
+// Hard-block message reused for the native submit tooltip when VTO is over-allowance.
+const VTO_OVER_ALLOWANCE_MSG = 'You have already used your voluntary day off this year.';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
@@ -36,6 +40,7 @@ async function loadInitialData() {
             const balanceData = await balanceRes.json();
             balances = balanceData.balances;
             renderBalancesCard();
+            renderVtoCard();
         }
     } catch (e) {
         console.error('Failed to load balances:', e);
@@ -118,24 +123,68 @@ function renderBalancesCard() {
     const container = document.getElementById('balances-container');
     let html = '';
 
-    if (balances.isPtoEnabled) {
+    if (balances.isAdminPtoEnabled) {
+        // Consolidated view: Total (= the available/remaining balance the calc
+        // produces), Used, Monthly rate. 'days' shown once on the top line so the
+        // balance never wraps; carried-over/accrued breakdown intentionally omitted.
+        const available = parseFloat(balances.adminPtoAvailable ?? 0).toFixed(2);
+        const used = parseFloat(balances.adminPtoUsed ?? 0).toFixed(2);
+        const monthly = parseFloat(balances.adminPtoMonthlyRate ?? 0).toFixed(2);
+
         html += `<div class="bal-row">
-            <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
-            <div class="bal-val">${balances.ptoAvailable}d</div>
+            <div class="bal-name"><span class="bal-dot pto"></span>Total</div>
+            <div class="bal-val">${available} days</div>
+        </div>
+        <div class="bal-sub-row">
+            <span class="bal-sub-label">Used</span>
+            <span class="bal-sub-val">${used}</span>
+        </div>
+        <div class="bal-sub-row">
+            <span class="bal-sub-label">Monthly rate</span>
+            <span class="bal-sub-val">${monthly}</span>
+        </div>`;
+    } else {
+        if (balances.isPtoEnabled) {
+            html += `<div class="bal-row">
+                <div class="bal-name"><span class="bal-dot pto"></span>Paid Time Off</div>
+                <div class="bal-val">${balances.ptoAvailable} days</div>
+            </div>`;
+        }
+
+        html += `<div class="bal-row">
+            <div class="bal-name"><span class="bal-dot upto"></span>Unpaid Time Off</div>
+            <div><span class="bal-unlimited">Unlimited</span></div>
         </div>`;
     }
 
-    html += `<div class="bal-row">
-        <div class="bal-name"><span class="bal-dot upto"></span>Unpaid Time Off</div>
-        <div><span class="bal-unlimited">Unlimited</span></div>
-    </div>`;
-
-    html += `<div class="bal-row">
-        <div class="bal-name"><span class="bal-dot vto"></span>Voluntary Time Off</div>
-        <div class="bal-val">${balances.vtoAvailable}d</div>
-    </div>`;
-
     container.innerHTML = html;
+}
+
+function renderVtoCard() {
+    const card = document.getElementById('vto-card');
+    const container = document.getElementById('vto-container');
+    if (!card || !container) return;
+
+    // VTO is available to all employees, including admin-PTO users.
+    card.style.display = '';
+
+    // Fixed allowance of 1 day per year (ADR 0003 withdrawn — no config), so the
+    // used count is derived from the remaining balance rather than recalculated.
+    const available = balances.vtoAvailable ?? 0;
+    const used = 1 - available;
+
+    container.innerHTML = `<div class="bal-row">
+        <div class="bal-name"><span class="bal-dot vto"></span>Current balance</div>
+        <div class="bal-val">${available} day${available !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="bal-sub-row">
+        <span class="bal-sub-label">Used</span>
+        <span class="bal-sub-val">${used} day${used !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="bal-sub-row">
+        <span class="bal-sub-label">Allowance</span>
+        <span class="bal-sub-val">1 day per year</span>
+    </div>`;
 }
 
 async function loadCalendarMonth() {
@@ -302,15 +351,16 @@ function openRequestModal(startDate, endDate) {
     document.getElementById('balance-display').innerHTML = '';
     document.getElementById('balance-display').className = '';
 
-    // Add PTO option if eligible
+    // Add PTO option if eligible (consultant or admin)
     const select = document.getElementById('timeOffTypeSelect');
     const existingPto = select.querySelector('option[value="PTO"]');
-    if (balances.isPtoEnabled && !existingPto) {
+    const ptoEnabled = balances.isPtoEnabled || balances.isAdminPtoEnabled;
+    if (ptoEnabled && !existingPto) {
         const opt = document.createElement('option');
         opt.value = 'PTO';
         opt.textContent = 'Paid Time Off';
         select.insertBefore(opt, select.options[1]);
-    } else if (!balances.isPtoEnabled && existingPto) {
+    } else if (!ptoEnabled && existingPto) {
         existingPto.remove();
     }
 
@@ -324,7 +374,10 @@ function onTimeOffTypeChange() {
 
     if (type === 'PTO') {
         balDisplay.className = 'pto';
-        balDisplay.innerHTML = `Available: <strong>${balances.ptoAvailable} days</strong>`;
+        const available = balances.isAdminPtoEnabled
+            ? parseFloat(balances.adminPtoAvailable ?? 0).toFixed(2)
+            : balances.ptoAvailable;
+        balDisplay.innerHTML = `Available: <strong>${available} days</strong>`;
     } else if (type === 'VTO') {
         balDisplay.className = 'vto';
         balDisplay.innerHTML = `Available: <strong>${balances.vtoAvailable} day</strong>`;
@@ -335,6 +388,27 @@ function onTimeOffTypeChange() {
         balDisplay.className = '';
         balDisplay.innerHTML = '';
     }
+
+    updateSubmitState();
+}
+
+// Hard-block VTO submission when requested days exceed the yearly allowance (available < requested).
+// Disables the submit control and attaches a native title tooltip carrying the reason.
+function updateSubmitState() {
+    const btn = document.getElementById('submitRequestBtn');
+    if (!btn) return;
+
+    const type = document.getElementById('timeOffTypeSelect').value;
+    const blocked = type === 'VTO'
+        && requestedBusinessDays > 0
+        && (balances.vtoAvailable ?? 0) < requestedBusinessDays;
+
+    btn.disabled = blocked;
+    if (blocked) {
+        btn.title = VTO_OVER_ALLOWANCE_MSG;
+    } else {
+        btn.removeAttribute('title');
+    }
 }
 
 function recalculateDays() {
@@ -342,6 +416,8 @@ function recalculateDays() {
     const endStr = document.getElementById('endDateInput').value;
     if (!startStr || !endStr) {
         document.getElementById('businessDaysDisplay').value = '';
+        requestedBusinessDays = 0;
+        updateSubmitState();
         return;
     }
 
@@ -349,6 +425,8 @@ function recalculateDays() {
     const end = new Date(endStr + 'T00:00:00');
     if (start > end) {
         document.getElementById('businessDaysDisplay').value = 'Invalid range';
+        requestedBusinessDays = 0;
+        updateSubmitState();
         return;
     }
 
@@ -360,7 +438,9 @@ function recalculateDays() {
         count++;
     }
 
+    requestedBusinessDays = count;
     document.getElementById('businessDaysDisplay').value = count + ' business day' + (count !== 1 ? 's' : '');
+    updateSubmitState();
 }
 
 async function submitTimeOffRequest() {

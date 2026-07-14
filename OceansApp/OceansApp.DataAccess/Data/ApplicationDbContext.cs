@@ -1842,5 +1842,6 @@ namespace OceansApp.DataAccess.Data
         public DbSet<KpiDefinition> KPI_DEFINITIONS { get; set; }
         public DbSet<KpiResult> KPI_RESULTS { get; set; }
         public DbSet<Headline> HEADLINES { get; set; }
+        public DbSet<AdminPtoConfiguration> ADMIN_PTO_CONFIGURATION { get; set; }
     }
 }
