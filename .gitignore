@@ -406,5 +406,8 @@ FodyWeavers.xsd
 # Ignore file deploy.yml
 .github/workflows/deploy.yml
 
+# Local dev launch profile (contains local DB connection string + master creds)
+OceansApp/OceansAppWeb/Properties/launchSettings.json
+
 # Claude Code context file
 OceansApp/CLAUDE.md

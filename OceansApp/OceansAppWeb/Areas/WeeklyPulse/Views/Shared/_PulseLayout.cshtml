@@ -1,0 +1,10 @@
+@*
+    Thin layout wrapping the site chrome (_Layout) with the Weekly Pulse sub-nav, so every
+    page in this area gets the same in-feature navigation without repeating it per view.
+*@
+@{
+    Layout = "_Layout";
+}
+@await Html.PartialAsync("_PulseNav")
+@await Html.PartialAsync("_PulseBreadcrumb")
+@RenderBody()

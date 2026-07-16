@@ -1,0 +1,31 @@
+@using OceansApp.Utility.ConstantData.Claims.WeeklyPulse
+@*
+    Persistent secondary navigation for the Weekly Pulse area. Rendered by _PulseLayout on
+    every Pulse page so the whole feature is reachable in one click and the active section is
+    always signposted. Three top-level destinations only — Review is a mode of the current
+    week (a CTA on the board), and the History drill-downs keep their own breadcrumb backs.
+*@
+@{
+    // Active tab tracks the controller, so Dashboard/Index and Dashboard/Review both light
+    // up "This Week". Reuses the same button pattern as the Dashboard team-filter chips
+    // (solid btn-primary when active, btn-outline-primary otherwise) so the sub-nav reads as
+    // part of the page rather than a foreign nav-pills strip — good contrast at rest and a
+    // consistent Flatly hover (fills primary, white text) instead of a green link colour.
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    string TabCss(string c) => "btn " + (controller == c ? "btn-primary" : "btn-outline-primary");
+
+    var isAdmin = User.HasClaim(c =>
+        c.Type == WeeklyPulseClaimsCD.Administer_ClaimType &&
+        c.Value == WeeklyPulseClaimsCD.Administer_ClaimValue);
+}
+
+@* A plain div, not <nav>: the site theme styles bare <nav> like the top navbar (dark fill
+   + positioning) which would overlap the page heading. *@
+<div class="border-bottom mb-3 py-2 d-flex justify-content-center gap-2">
+    <a class="@TabCss("Dashboard")" href="@Url.Action("Index", "Dashboard", new { area = "WeeklyPulse" })">This Week</a>
+    <a class="@TabCss("History")" href="@Url.Action("Index", "History", new { area = "WeeklyPulse" })">History</a>
+    @if (isAdmin)
+    {
+        <a class="@TabCss("Settings")" href="@Url.Action("Index", "Settings", new { area = "WeeklyPulse" })">Settings</a>
+    }
+</div>

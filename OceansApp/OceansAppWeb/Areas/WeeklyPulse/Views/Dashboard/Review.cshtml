@@ -1,0 +1,554 @@
+@using OceansApp.Models.Domain.WeeklyPulse
+@using OceansApp.Models.Models
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model ReviewVM
+
+@functions {
+    // Converted entities carry a "[from <origin>] " title prefix; the walk shows the plain
+    // title (mirrors the Dashboard), so strip the textual prefix for display and edit prefill.
+    static string StripOrigin(string title)
+    {
+        if (string.IsNullOrEmpty(title) || !title.StartsWith("[from ")) { return title; }
+        var end = title.IndexOf("] ", StringComparison.Ordinal);
+        return end >= 0 ? title[(end + 2)..] : title;
+    }
+
+    // Human label for a conversion origin, revealed when the card's modal opens.
+    static string OriginLabel(OriginType type) => type switch
+    {
+        OriginType.CheckIn => "check-in",
+        OriginType.Headline => "headline",
+        _ => "issue"
+    };
+}
+
+@{
+    // Full team list for the edit-form Team pickers — a live edit can reassign a record to a
+    // team that does not currently surface anything of its own in the walk.
+    var teamOptions = Model.Teams
+        .Select(r => new TeamOptionVM { TeamId = r.Team.TeamId, Name = r.Team.Name })
+        .ToList();
+}
+
+@* Compact cards reuse the Dashboard's .kb-card / badge-contrast styling. *@
+<partial name="_BoardStyles" />
+
+<style>
+    /* Each team segment collapses independently — focus on one, or keep several open. */
+    .team-toggle { cursor: pointer; }
+    .team-toggle .chev { transition: transform .15s ease; font-size: .8em; }
+    .team-toggle.collapsed .chev { transform: rotate(-90deg); }
+</style>
+
+@{
+    ViewData["PulseCrumbs"] = new List<(string, string?)>
+    {
+        ("This Week", Url.Action("Index")),
+        ("Review", null),
+    };
+}
+
+<div class="text-center">
+    <h2 style="font-weight: bold">Weekly Pulse Review</h2>
+    <p class="text-muted">Week of @Model.WeekStart.ToString("dd-MM-yyyy")</p>
+    <div class="mb-2">
+        <button type="button" id="expand-all" class="btn btn-outline-secondary btn-sm">Expand all</button>
+        <button type="button" id="collapse-all" class="btn btn-outline-secondary btn-sm">Collapse all</button>
+    </div>
+    <hr />
+
+    @* A guided sequential walk, not a board: each Team is run through the fixed moments
+       (KPI -> Headlines -> Issues -> To-Dos) in ReviewScriptService order. Only surfaced data
+       shows (loud-first) via ReviewSurfacingService. Each surfaced item is a compact card;
+       clicking it opens a modal to view/edit/act — mirroring the Dashboard. Each team segment
+       is collapsible (expanded by default) so the room can focus on one at a time. *@
+    <div class="container">
+        @foreach (var team in Model.Teams)
+        {
+            var bodyId = $"team-body-{team.Team.TeamId}";
+            <div class="text-start mb-4">
+                <h4 class="team-toggle d-flex align-items-center gap-2" role="button"
+                    data-bs-toggle="collapse" data-bs-target="#@bodyId"
+                    aria-expanded="true" aria-controls="@bodyId">
+                    <span class="badge bg-secondary">@team.Team.DisplayOrder</span>
+                    <span>@team.Team.Name</span>
+                    <span class="chev ms-auto text-muted">▼</span>
+                </h4>
+
+                <div class="collapse show team-body" id="@bodyId">
+                @foreach (var moment in ReviewScriptService.Moments)
+                {
+                    switch (moment)
+                    {
+                        case ReviewMoment.Kpi:
+                            @* KPI review — view-only. Cards open a read-only modal. Only this Week's
+                               included results, Loud (Red/Yellow) before Quiet (Green). *@
+                            <div class="my-3">
+                                <h5>KPI review</h5>
+                                @if (!team.Kpis.Any())
+                                {
+                                    <p class="text-muted small">No KPIs surface for this team.</p>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var kpiRow in team.Kpis)
+                                        {
+                                            var loud = kpiRow.Surfacing == KpiSurfacing.Loud;
+                                            <div class="kb-card kb-click" style="width: 280px" data-bs-toggle="modal" data-bs-target="#kpi-view-modal-@kpiRow.Kpi.KpiDefinitionId">
+                                                <div class="kb-card-head">
+                                                    <span class="kb-card-main">
+                                                        @if (loud)
+                                                        {
+                                                            <strong>@kpiRow.Kpi.Name</strong>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>@kpiRow.Kpi.Name</span>
+                                                        }
+                                                    </span>
+                                                </div>
+                                                <div class="kb-badges mt-1">
+                                                    <span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span>
+                                                    <span class="text-muted small">@kpiRow.Result.Value (target @kpiRow.Kpi.Target)</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            break;
+
+                        case ReviewMoment.Headlines:
+                            @* Headlines — view-only; the only action is dropping a headline to an Issue.
+                               Every headline surfaces: Risk loud, Highlight quiet. *@
+                            <div class="my-3">
+                                <h5>Headlines</h5>
+                                @if (!team.Headlines.Any())
+                                {
+                                    <p class="text-muted small">No headlines for this team.</p>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var headlineRow in team.Headlines)
+                                        {
+                                            var loud = headlineRow.Emphasis == HeadlineEmphasis.Loud;
+                                            <div class="kb-card kb-click" style="width: 280px" data-bs-toggle="modal" data-bs-target="#headline-drop-modal-@headlineRow.Headline.HeadlineId">
+                                                <div class="kb-badges">
+                                                    <span class="badge @(loud ? "bg-danger" : "bg-success")">@headlineRow.Headline.Type</span>
+                                                </div>
+                                                <div class="mt-1">
+                                                    @if (loud)
+                                                    {
+                                                        <strong>@headlineRow.Headline.Text</strong>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>@headlineRow.Headline.Text</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                <button type="button" class="kb-add mt-2" style="width: 280px" data-bs-toggle="modal" data-bs-target="#add-headline-team-@team.Team.TeamId">+ Add headline</button>
+                            </div>
+                            break;
+
+                        case ReviewMoment.Issues:
+                            @* Issues — cards open a fully editable modal (reusing the WP-CR2 form);
+                               issue -> To-Do available. *@
+                            <div class="my-3">
+                                <h5>Issues</h5>
+                                @if (!team.Issues.Any())
+                                {
+                                    <p class="text-muted small">No issues surface for this team.</p>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var issueRow in team.Issues)
+                                        {
+                                            <div class="kb-card kb-click" style="width: 280px" data-bs-toggle="modal" data-bs-target="#issue-modal-@issueRow.Issue.IssueId">
+                                                <div class="kb-card-head">
+                                                    <span class="kb-card-main"><strong>@StripOrigin(issueRow.Issue.Title)</strong></span>
+                                                </div>
+                                                <div class="kb-card-foot">
+                                                    <span class="kb-badges">
+                                                        <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                                                        <span class="badge bg-info">@issueRow.State</span>
+                                                        @if (issueRow.Issue.Pinned)
+                                                        {
+                                                            <span class="badge bg-warning">Pinned</span>
+                                                        }
+                                                    </span>
+                                                    @if (issueRow.Issue.OriginType != null)
+                                                    {
+                                                        <span class="kb-origin" title="converted">↩</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                <button type="button" class="kb-add mt-2" style="width: 280px" data-bs-toggle="modal" data-bs-target="#add-issue-team-@team.Team.TeamId">+ Add issue</button>
+                            </div>
+                            break;
+
+                        case ReviewMoment.ToDos:
+                            @* To-Dos — cards open a fully editable modal (reusing the WP-CR2 form). Every
+                               non-Done to-do surfaces, Blocked flagged loud; Done is dropped. *@
+                            <div class="my-3">
+                                <h5>To-Dos</h5>
+                                @if (!team.ToDos.Any())
+                                {
+                                    <p class="text-muted small">No to-dos surface for this team.</p>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var toDoRow in team.ToDos)
+                                        {
+                                            var loud = toDoRow.Surfacing == ToDoSurfacing.Loud;
+                                            <div class="kb-card kb-click @(loud ? "border border-danger" : "")" style="width: 280px" data-bs-toggle="modal" data-bs-target="#todo-modal-@toDoRow.ToDo.ToDoId">
+                                                <div class="kb-card-head">
+                                                    <span class="kb-card-main"><strong>@StripOrigin(toDoRow.ToDo.Title)</strong></span>
+                                                </div>
+                                                <div class="kb-card-foot">
+                                                    <span class="kb-badges">
+                                                        <span class="badge @(loud ? "bg-danger" : "bg-info")">@toDoRow.State</span>
+                                                    </span>
+                                                    @if (toDoRow.ToDo.OriginType != null)
+                                                    {
+                                                        <span class="kb-origin" title="converted">↩</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                <button type="button" class="kb-add mt-2" style="width: 280px" data-bs-toggle="modal" data-bs-target="#add-todo-team-@team.Team.TeamId">+ Add to-do</button>
+                            </div>
+                            break;
+                    }
+                }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@* Expand/Collapse all — drives every team's collapse via Bootstrap's Collapse API. *@
+<script>
+    (function () {
+        function setAll(show) {
+            document.querySelectorAll('.team-body').forEach(function (el) {
+                bootstrap.Collapse.getOrCreateInstance(el, { toggle: false })[show ? 'show' : 'hide']();
+            });
+        }
+        document.getElementById('expand-all').addEventListener('click', function () { setAll(true); });
+        document.getElementById('collapse-all').addEventListener('click', function () { setAll(false); });
+    })();
+</script>
+
+@*
+    Modals — server-rendered per entity (real IDs + antiforgery token via the Form Tag Helper) so
+    the existing [ValidateAntiForgeryToken] POST actions work unchanged. Each POST reloads and
+    RedirectBack returns to this Review page. Rendered at the end of the view so Bootstrap's
+    fixed-position overlays are never clipped. Add modals are per-team (team pre-scoped, no picker).
+*@
+@foreach (var team in Model.Teams)
+{
+    @* ---- KPI — read-only view (KPIs are recorded on the Dashboard / in Settings) ---- *@
+    foreach (var kpiRow in team.Kpis)
+    {
+        <div class="modal fade" id="kpi-view-modal-@kpiRow.Kpi.KpiDefinitionId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@kpiRow.Kpi.Name <span class="text-muted small">· @team.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <p class="mb-2"><span class="badge @KpiBadge.Css(kpiRow.Result.Status)">@kpiRow.Result.Status</span></p>
+                        <p class="mb-1"><span class="text-muted small">Result</span><br />@kpiRow.Result.Value</p>
+                        <p class="mb-1"><span class="text-muted small">Target</span><br />@kpiRow.Kpi.Target</p>
+                        @if (!string.IsNullOrWhiteSpace(kpiRow.Result.Notes))
+                        {
+                            <p class="mb-0"><span class="text-muted small">Notes</span><br />@kpiRow.Result.Notes</p>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ---- Headline — snapshot; the only action is additive drop-to-issue ---- *@
+    foreach (var headlineRow in team.Headlines)
+    {
+        var loud = headlineRow.Emphasis == HeadlineEmphasis.Loud;
+        <div class="modal fade" id="headline-drop-modal-@headlineRow.Headline.HeadlineId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Headline <span class="text-muted small">· @team.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <p class="mb-2"><span class="badge @(loud ? "bg-danger" : "bg-success")">@headlineRow.Headline.Type</span></p>
+                        <p class="mb-3">@headlineRow.Headline.Text</p>
+                        @if (ReviewScriptService.CanDropToIssue(ReviewMoment.Headlines))
+                        {
+                            <hr />
+                            @* Additive: raises a pre-filled Issue; the headline stays put. *@
+                            <form asp-action="ConvertHeadlineToIssue" method="post">
+                                <input type="hidden" name="headlineId" value="@headlineRow.Headline.HeadlineId" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Drop to issue</button>
+                            </form>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ---- Issue — full lifecycle in one modal: edit, IDS comment, pin, convert-to-to-do ---- *@
+    foreach (var issueRow in team.Issues)
+    {
+        <div class="modal fade" id="issue-modal-@issueRow.Issue.IssueId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@StripOrigin(issueRow.Issue.Title) <span class="text-muted small">· @team.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <p class="mb-2">
+                            <span class="badge bg-secondary">@issueRow.Issue.Priority</span>
+                            <span class="badge bg-info">@issueRow.State</span>
+                            @if (issueRow.Issue.Pinned)
+                            {
+                                <span class="badge bg-warning">Pinned</span>
+                            }
+                        </p>
+                        @if (issueRow.Issue.OriginType != null)
+                        {
+                            <p class="text-muted small mb-2">↩ Converted from a @OriginLabel(issueRow.Issue.OriginType.Value)</p>
+                        }
+
+                        @* Shared WP-CR2 form: title / Team / priority / status in one save. *@
+                        @await Html.PartialAsync("_IssueEditForm", new IssueEditFormVM
+                        {
+                            IssueId = issueRow.Issue.IssueId,
+                            TeamId = issueRow.Issue.TeamId,
+                            Title = StripOrigin(issueRow.Issue.Title),
+                            Priority = issueRow.Issue.Priority,
+                            State = issueRow.State,
+                            Teams = teamOptions
+                        })
+
+                        <hr />
+                        <form asp-action="CommentIssue" method="post" class="d-flex gap-1 mb-2">
+                            <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                            <input type="text" name="comment" class="form-control form-control-sm" placeholder="IDS comment" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Add</button>
+                        </form>
+
+                        @* Pin is offered only on Deferred issues — it un-parks them for Review. *@
+                        @if (issueRow.State == IssueStatus.Deferred)
+                        {
+                            <form asp-action="SetPin" method="post" class="mb-2">
+                                <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                <input type="hidden" name="pinned" value="@((!issueRow.Issue.Pinned).ToString().ToLower())" />
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(issueRow.Issue.Pinned ? "Unpin from Review" : "Pin to Review")
+                                </button>
+                            </form>
+                        }
+
+                        @if (ReviewScriptService.CanSpawnToDo(ReviewMoment.Issues))
+                        {
+                            <hr />
+                            @* Additive conversion: raises a pre-filled To-Do (owner + due required), the issue stays intact. *@
+                            <label class="form-label small mb-1">Convert to to-do</label>
+                            <form asp-action="ConvertIssueToToDo" method="post" class="d-flex flex-column gap-1">
+                                <input type="hidden" name="issueId" value="@issueRow.Issue.IssueId" />
+                                <select name="ownerId" class="form-select form-select-sm" required>
+                                    @foreach (var person in Model.People)
+                                    {
+                                        <option value="@person.Id">@person.DisplayName</option>
+                                    }
+                                </select>
+                                <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" required />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary align-self-start">Convert to to-do</button>
+                            </form>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ---- To-Do — edit fields + own status lifecycle ---- *@
+    foreach (var toDoRow in team.ToDos)
+    {
+        <div class="modal fade" id="todo-modal-@toDoRow.ToDo.ToDoId" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@StripOrigin(toDoRow.ToDo.Title) <span class="text-muted small">· @team.Team.Name</span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        @if (toDoRow.ToDo.OriginType != null)
+                        {
+                            <p class="text-muted small mb-2">↩ Converted from a @OriginLabel(toDoRow.ToDo.OriginType.Value)</p>
+                        }
+
+                        @* Shared WP-CR2 form: owner / title / Team / due date. *@
+                        @await Html.PartialAsync("_ToDoEditForm", new ToDoEditFormVM
+                        {
+                            ToDoId = toDoRow.ToDo.ToDoId,
+                            TeamId = toDoRow.ToDo.TeamId,
+                            Title = StripOrigin(toDoRow.ToDo.Title),
+                            OwnerId = toDoRow.ToDo.OwnerId,
+                            DueDate = toDoRow.ToDo.DueDate,
+                            Teams = teamOptions,
+                            People = Model.People
+                        })
+
+                        <hr />
+                        @* Status is the To-Do's own lifecycle (Open -> Blocked -> Done). *@
+                        <form asp-action="TransitionToDo" method="post" class="d-flex gap-1">
+                            <input type="hidden" name="toDoId" value="@toDoRow.ToDo.ToDoId" />
+                            <select name="status" class="form-select form-select-sm">
+                                @foreach (var s in Enum.GetValues<ToDoStatus>())
+                                {
+                                    if (s == toDoRow.State)
+                                    {
+                                        <option value="@s" selected>@s</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@s">@s</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set status</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ---- Add modals — one set per team, team pre-scoped (no picker) ---- *@
+    <div class="modal fade" id="add-headline-team-@team.Team.TeamId" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Post headline <span class="text-muted small">· @team.Team.Name</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="PostHeadline" method="post">
+                    <input type="hidden" name="teamId" value="@team.Team.TeamId" />
+                    <div class="modal-body text-start">
+                        <label class="form-label small mb-1">Type</label>
+                        <select name="type" class="form-select form-select-sm mb-2">
+                            @foreach (var t in Enum.GetValues<HeadlineType>())
+                            {
+                                <option value="@t">@t</option>
+                            }
+                        </select>
+                        <label class="form-label small mb-1">Headline</label>
+                        <input type="text" name="text" class="form-control form-control-sm" placeholder="Headline" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Post headline</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="add-issue-team-@team.Team.TeamId" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Raise issue <span class="text-muted small">· @team.Team.Name</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="RaiseIssue" method="post">
+                    <input type="hidden" name="teamId" value="@team.Team.TeamId" />
+                    <div class="modal-body text-start">
+                        <label class="form-label small mb-1">Title</label>
+                        <input type="text" name="title" class="form-control form-control-sm mb-2" placeholder="New issue" />
+                        <label class="form-label small mb-1">Priority</label>
+                        <select name="priority" class="form-select form-select-sm">
+                            @foreach (var p in Enum.GetValues<IssuePriority>())
+                            {
+                                if (p == IssuePriority.Med)
+                                {
+                                    <option value="@p" selected>@p</option>
+                                }
+                                else
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-sm btn-success">Raise issue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="add-todo-team-@team.Team.TeamId" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add to-do <span class="text-muted small">· @team.Team.Name</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="RaiseToDo" method="post">
+                    <input type="hidden" name="teamId" value="@team.Team.TeamId" />
+                    <div class="modal-body text-start">
+                        <label class="form-label small mb-1">Title</label>
+                        <input type="text" name="title" class="form-control form-control-sm mb-2" placeholder="New to-do" />
+                        <label class="form-label small mb-1">Owner</label>
+                        <select name="ownerId" class="form-select form-select-sm mb-2">
+                            @foreach (var person in Model.People)
+                            {
+                                <option value="@person.Id">@person.DisplayName</option>
+                            }
+                        </select>
+                        <label class="form-label small mb-1">Due date</label>
+                        <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.WeekStart.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-sm btn-success">Add to-do</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

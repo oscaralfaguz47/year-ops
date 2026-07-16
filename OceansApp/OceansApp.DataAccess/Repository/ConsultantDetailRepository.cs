@@ -9,6 +9,7 @@ using OceansApp.Models.ViewModels.AdminCenter.ConsultantPositions;
 using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.PaymentSheets;
+using OceansApp.Utility;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository
@@ -230,10 +231,32 @@ namespace OceansApp.DataAccess.Repository
                 }
                 if (isAuthForManageAdminUsers)
                 {
-                    if (actualUserRole[0] != consultantData.UserRole)
+                    var rolesChanged = false;
+                    var actualJobRole = actualUserRole.FirstOrDefault(r => r != SD.Role_User_Weekly_Pulse_Participant);
+                    if (actualJobRole != consultantData.UserRole)
                     {
-                        _userManager.RemoveFromRoleAsync(existingUser, actualUserRole[0]).GetAwaiter().GetResult();
+                        if (actualJobRole != null)
+                        {
+                            _userManager.RemoveFromRoleAsync(existingUser, actualJobRole).GetAwaiter().GetResult();
+                        }
                         _userManager.AddToRoleAsync(existingUser, consultantData.UserRole).GetAwaiter().GetResult();
+                        rolesChanged = true;
+                    }
+                    var isActuallyWeeklyPulseParticipant = actualUserRole.Contains(SD.Role_User_Weekly_Pulse_Participant);
+                    if (consultantData.IsWeeklyPulseParticipant != isActuallyWeeklyPulseParticipant)
+                    {
+                        if (consultantData.IsWeeklyPulseParticipant)
+                        {
+                            _userManager.AddToRoleAsync(existingUser, SD.Role_User_Weekly_Pulse_Participant).GetAwaiter().GetResult();
+                        }
+                        else
+                        {
+                            _userManager.RemoveFromRoleAsync(existingUser, SD.Role_User_Weekly_Pulse_Participant).GetAwaiter().GetResult();
+                        }
+                        rolesChanged = true;
+                    }
+                    if (rolesChanged)
+                    {
                         var cacheKey = $"UserSessionChangesExpiration_{existingUser.Id}";
                         _cache.Set(cacheKey, DateTimeOffset.Now.AddSeconds(1), new MemoryCacheEntryOptions
                         {
@@ -300,6 +323,20 @@ namespace OceansApp.DataAccess.Repository
         }
         public async Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId)
         {
+            var isWeeklyPulseParticipant = false;
+            var userIdOfConsultant = await _db.CONSULTANT_DETAILS
+                .Where(x => x.ConsultantId == consultantId)
+                .Select(x => x.UserId)
+                .FirstOrDefaultAsync();
+            if (userIdOfConsultant != null)
+            {
+                var userOfConsultant = await _userManager.FindByIdAsync(userIdOfConsultant);
+                if (userOfConsultant != null)
+                {
+                    isWeeklyPulseParticipant = await _userManager.IsInRoleAsync(userOfConsultant, SD.Role_User_Weekly_Pulse_Participant);
+                }
+            }
+
             var connection = _db.Database.GetDbConnection();
             var parameters = new DynamicParameters();
             parameters.Add("@ConsultantId", consultantId);
@@ -329,6 +366,7 @@ namespace OceansApp.DataAccess.Repository
                         UserCategoryId = consultant.UserCategoryId,
                         UserCategoryName = consultant.UserCategoryName,
                         UserRole = consultant.UserRole,
+                        IsWeeklyPulseParticipant = isWeeklyPulseParticipant,
                         PaymentPeriod = consultant.PaymentPeriod,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,

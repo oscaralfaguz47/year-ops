@@ -63,6 +63,43 @@ function setTimesheetItemActive() {
     aImg.src = timesheetIconBlue;
 }
 
+//Pulse item (only rendered for Weekly Pulse participants)
+const pulseIconBlue = '/icons/Shared/Navbar/pulse-blue.svg';
+const pulseIconWhite = '/icons/Shared/Navbar/pulse-white.svg';
+
+const pulseItem = document.getElementById('pulseItem');
+
+if (pulseItem) {
+    const pulseIcon = pulseItem.querySelector('img');
+
+    pulseItem.addEventListener('mouseenter', () => {
+        if (!pulseItem.classList.contains('nav-item-active')) {
+            pulseIcon.src = pulseIconBlue;
+        }
+    });
+
+    pulseItem.addEventListener('mouseleave', () => {
+        if (!pulseItem.classList.contains('nav-item-active')) {
+            pulseIcon.src = pulseIconWhite;
+        }
+    });
+
+    if (window.location.pathname.toLowerCase().startsWith('/weeklypulse')) {
+        setPulseItemActive();
+    }
+}
+
+function setPulseItemActive() {
+    if (!pulseItem) {
+        return;
+    }
+    pulseItem.classList.add('nav-item-active');
+    const alink = pulseItem.querySelector('a');
+    alink.style.color = blueOceans;
+    const aImg = pulseItem.querySelector('img');
+    aImg.src = pulseIconBlue;
+}
+
 //General item
 const generalIconBlue = '/icons/Shared/Navbar/general-blue.svg';
 const generalIconWhite = '/icons/Shared/Navbar/general-white.svg';

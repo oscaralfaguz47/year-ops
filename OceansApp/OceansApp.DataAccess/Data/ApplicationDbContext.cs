@@ -1622,6 +1622,138 @@ namespace OceansApp.DataAccess.Data
                 entity.Property(e => e.EndDate).HasColumnType("date").IsRequired();
             });
 
+            modelBuilder.Entity<Team>(entity =>
+            {
+                entity.HasIndex(e => e.DisplayOrder);
+                entity.HasIndex(e => e.TeamLeaderId);
+
+                entity.HasOne(e => e.TeamLeader)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamLeaderId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ISSUES (Weekly Pulse Living entity — single identity across Weeks, ADR 0001)
+            modelBuilder.Entity<Issue>(entity =>
+            {
+                entity.HasIndex(e => e.TeamId);
+                entity.HasIndex(e => e.OriginWeekStart);
+                // Conversion back-reference (additive): which source this Issue came from.
+                entity.HasIndex(e => new { e.OriginType, e.OriginId });
+
+                entity.Property(e => e.OriginWeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ISSUE HISTORY (week-stamped status/comment rows — one row per change)
+            modelBuilder.Entity<IssueHistory>(entity =>
+            {
+                entity.HasIndex(e => new { e.IssueId, e.WeekStart });
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Issue)
+                    .WithMany(i => i.History)
+                    .HasForeignKey(e => e.IssueId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // TO-DOS (Weekly Pulse Living entity — single identity across Weeks, ADR 0001)
+            modelBuilder.Entity<ToDo>(entity =>
+            {
+                entity.HasIndex(e => e.TeamId);
+                entity.HasIndex(e => e.OwnerId);
+                entity.HasIndex(e => e.OriginWeekStart);
+                // Conversion back-reference (additive): which source this To-Do came from.
+                entity.HasIndex(e => new { e.OriginType, e.OriginId });
+
+                entity.Property(e => e.DueDate).HasColumnType("date").IsRequired();
+                entity.Property(e => e.OriginWeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Owner)
+                    .WithMany()
+                    .HasForeignKey(e => e.OwnerId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // TO-DO HISTORY (week-stamped status/comment rows — one row per change)
+            modelBuilder.Entity<ToDoHistory>(entity =>
+            {
+                entity.HasIndex(e => new { e.ToDoId, e.WeekStart });
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.ToDo)
+                    .WithMany(t => t.History)
+                    .HasForeignKey(e => e.ToDoId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // KPI DEFINITIONS (Weekly Pulse structural record — one per metric, per Team)
+            modelBuilder.Entity<KpiDefinition>(entity =>
+            {
+                entity.HasIndex(e => e.TeamId);
+                entity.HasIndex(e => e.OwnerId);
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Owner)
+                    .WithMany()
+                    .HasForeignKey(e => e.OwnerId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // KPI RESULTS (Weekly Pulse Snapshot entity — exactly one per (KPI, Week), ADR 0001)
+            modelBuilder.Entity<KpiResult>(entity =>
+            {
+                entity.HasIndex(e => new { e.KpiDefinitionId, e.WeekStart }).IsUnique();
+                entity.HasIndex(e => e.WeekStart);
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.KpiDefinition)
+                    .WithMany()
+                    .HasForeignKey(e => e.KpiDefinitionId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // HEADLINES (Weekly Pulse Snapshot entity — many per (Team, Week), ADR 0001)
+            modelBuilder.Entity<Headline>(entity =>
+            {
+                // Not unique: a Team may post many headlines in a Week (the news round).
+                entity.HasIndex(e => new { e.TeamId, e.WeekStart });
+                entity.HasIndex(e => e.WeekStart);
+
+                entity.Property(e => e.WeekStart).HasColumnType("date").IsRequired();
+
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
         public DbSet<AccountingAccount> ACCOUNTING_ACCOUNT { get; set; }
         public DbSet<AccountPayable> ACCOUNTS_PAYABLE { get; set; }
@@ -1702,6 +1834,14 @@ namespace OceansApp.DataAccess.Data
         public DbSet<SystemArea> SYSTEM_AREAS { get; set; }
         public DbSet<SystemSubArea> SYSTEM_SUB_AREAS { get; set; }
         public DbSet<TimeOffRequest> TIME_OFF_REQUESTS { get; set; }
+        public DbSet<Team> TEAMS { get; set; }
+        public DbSet<Issue> ISSUES { get; set; }
+        public DbSet<IssueHistory> ISSUE_HISTORIES { get; set; }
+        public DbSet<ToDo> TODOS { get; set; }
+        public DbSet<ToDoHistory> TODO_HISTORIES { get; set; }
+        public DbSet<KpiDefinition> KPI_DEFINITIONS { get; set; }
+        public DbSet<KpiResult> KPI_RESULTS { get; set; }
+        public DbSet<Headline> HEADLINES { get; set; }
         public DbSet<AdminPtoConfiguration> ADMIN_PTO_CONFIGURATION { get; set; }
     }
 }

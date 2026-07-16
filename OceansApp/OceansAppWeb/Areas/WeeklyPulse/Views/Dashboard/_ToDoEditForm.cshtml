@@ -1,0 +1,55 @@
+@using OceansApp.Models.ViewModels.WeeklyPulse
+@model ToDoEditFormVM
+
+@*
+    Shared To-Do edit form — the To-Do's own fields (owner, title, Team, due date), saved via
+    EditToDo. The status lifecycle (Open -> Blocked -> Done) is edited separately, not here.
+    Factored as a partial so the Review's live-edit moments (WP-CR4) render the same form. A
+    required title and owner guard the submit.
+*@
+<form asp-action="EditToDo" method="post" class="d-flex flex-column gap-2">
+    <input type="hidden" name="toDoId" value="@Model.ToDoId" />
+    <div>
+        <label class="form-label small mb-1">Title</label>
+        <input type="text" name="title" class="form-control form-control-sm" value="@Model.Title" maxlength="2000" required />
+    </div>
+    <div>
+        <label class="form-label small mb-1">Owner</label>
+        <select name="ownerId" class="form-select form-select-sm" required>
+            @foreach (var person in Model.People)
+            {
+                if (person.Id == Model.OwnerId)
+                {
+                    <option value="@person.Id" selected>@person.DisplayName</option>
+                }
+                else
+                {
+                    <option value="@person.Id">@person.DisplayName</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="flex-fill">
+            <label class="form-label small mb-1">Team</label>
+            <select name="teamId" class="form-select form-select-sm">
+                @foreach (var team in Model.Teams)
+                {
+                    if (team.TeamId == Model.TeamId)
+                    {
+                        <option value="@team.TeamId" selected>@team.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@team.TeamId">@team.Name</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="flex-fill">
+            <label class="form-label small mb-1">Due date</label>
+            <input type="date" name="dueDate" class="form-control form-control-sm" value="@Model.DueDate.ToString("yyyy-MM-dd")" required />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary align-self-start">Save changes</button>
+</form>
