@@ -10,6 +10,7 @@ using OceansApp.Models.ViewModels.Components;
 using OceansApp.Models.ViewModels.Consultants;
 using OceansApp.Models.ViewModels.PaymentSheets;
 using OceansApp.Utility;
+using OceansApp.Utility.ConstantData.Claims.WeeklyPulse;
 using System.Data;
 
 namespace OceansApp.DataAccess.Repository
@@ -324,6 +325,7 @@ namespace OceansApp.DataAccess.Repository
         public async Task<CreateUpdateConsultantVM> GetConsultantDataById(int consultantId)
         {
             var isWeeklyPulseParticipant = false;
+            var roleGrantsWeeklyPulseAccess = false;
             var userIdOfConsultant = await _db.CONSULTANT_DETAILS
                 .Where(x => x.ConsultantId == consultantId)
                 .Select(x => x.UserId)
@@ -333,7 +335,26 @@ namespace OceansApp.DataAccess.Repository
                 var userOfConsultant = await _userManager.FindByIdAsync(userIdOfConsultant);
                 if (userOfConsultant != null)
                 {
-                    isWeeklyPulseParticipant = await _userManager.IsInRoleAsync(userOfConsultant, SD.Role_User_Weekly_Pulse_Participant);
+                    var roleNames = await _userManager.GetRolesAsync(userOfConsultant);
+                    isWeeklyPulseParticipant = roleNames.Contains(SD.Role_User_Weekly_Pulse_Participant);
+
+                    // Whether a job role already grants Pulse access is a fact about role
+                    // claims, so read it from the claims. The modal used to infer it from
+                    // UserCategory == Administrative, which silently locked out every
+                    // Administrative user whose role was not Admin/Master.
+                    var jobRoleNames = roleNames
+                        .Where(r => r != SD.Role_User_Weekly_Pulse_Participant)
+                        .ToList();
+                    if (jobRoleNames.Count > 0)
+                    {
+                        roleGrantsWeeklyPulseAccess = await (
+                            from roleClaim in _db.RoleClaims
+                            join role in _db.Roles on roleClaim.RoleId equals role.Id
+                            where jobRoleNames.Contains(role.Name)
+                                && roleClaim.ClaimType == WeeklyPulseClaimsCD.Participate_ClaimType
+                                && roleClaim.ClaimValue == WeeklyPulseClaimsCD.Participate_ClaimValue
+                            select roleClaim.Id).AnyAsync();
+                    }
                 }
             }
 
@@ -367,6 +388,7 @@ namespace OceansApp.DataAccess.Repository
                         UserCategoryName = consultant.UserCategoryName,
                         UserRole = consultant.UserRole,
                         IsWeeklyPulseParticipant = isWeeklyPulseParticipant,
+                        RoleGrantsWeeklyPulseAccess = roleGrantsWeeklyPulseAccess,
                         PaymentPeriod = consultant.PaymentPeriod,
                         ConsultantHolidayId = consultant.ConsultantHolidayId,
                         ConsultantHolidayName = consultant.ConsultantHolidayName,

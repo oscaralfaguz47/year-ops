@@ -63,10 +63,9 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
                 paymentMethodSelect.val(data.consultantData.paymentMethodId);
                 selectCategory(data.consultantData.userCategoryName, data.consultantData.positions, true, data.consultantData.userRole);
                 createUpdateForm.find('[name="userCategoryName"]').val(data.consultantData.userCategoryName);
-                var weeklyPulseCheckbox = document.getElementById('isWeeklyPulseParticipant');
-                if (weeklyPulseCheckbox && data.consultantData.userCategoryName !== 'Administrative') {
-                    weeklyPulseCheckbox.checked = data.consultantData.isWeeklyPulseParticipant || false;
-                }
+                setWeeklyPulseFields(
+                    data.consultantData.isWeeklyPulseParticipant || false,
+                    data.consultantData.roleGrantsWeeklyPulseAccess || false);
                 countrySelectCreateUpdate.value = data.consultantData.idCountry;
                 createUpdateForm.find('[name="address"]').val(data.consultantData.address);
                 createUpdateForm.find('[name="location"]').val(data.consultantData.location);
@@ -92,6 +91,7 @@ async function displayUpdateCreateConsultantModal(modalId, id) {
             });
     } else {
         selectCategory('Consultant', undefined, false);
+        setWeeklyPulseFields(false, false);
         createUpdateForm.find('[name="userName"]').prop('disabled', false);
         paymentMethodSelect.prop('disabled', true);
         paymentMethodSelect.html('');
@@ -135,7 +135,7 @@ async function createUpdateConsultant(modalId) {
     var locationData = createUpdateForm.find('[name="location"]').val() || null;
     var userRoleData = createUpdateForm.find('[name="userRole"]').val() === undefined ? 'Computer Consultant' : createUpdateForm.find('[name="userRole"]').val();
     var weeklyPulseCheckbox = document.getElementById('isWeeklyPulseParticipant');
-    var isWeeklyPulseParticipantData = weeklyPulseCheckbox !== null && !weeklyPulseCheckbox.disabled && weeklyPulseCheckbox.checked;
+    var isWeeklyPulseParticipantData = weeklyPulseCheckbox !== null && weeklyPulseCheckbox.checked;
 
     const startDateInput = createUpdateForm.find('[name="startDate"]').val();
 
@@ -224,7 +224,6 @@ function selectCategory(selectedValue, selectedOptions, isEditingConsultant, use
         selectedOptionsArray = selectedOptions;
     }
     var isAdministrative = selectedValue === 'Administrative' ? true : false;
-    updateWeeklyPulseCheckboxForCategory(isAdministrative);
     toggleCategoryPtoSections(isAdministrative);
     displaySpinner();
     getPositionsList(isAdministrative)
@@ -269,22 +268,21 @@ function selectCategory(selectedValue, selectedOptions, isEditingConsultant, use
         });
     fillRolesForSelect(isAdministrative, isEditingConsultant, userRole);
 }
-// The Weekly Pulse participant checkbox only applies to Consultant-category users.
-// Administrative users already get Weekly Pulse access through the Admin/Master role claims.
-function updateWeeklyPulseCheckboxForCategory(isAdministrative) {
+// The checkbox reflects one thing only: membership of the 'Weekly Pulse Participant'
+// role. It stays enabled for every category, because UserCategory does not imply any
+// role — an Administrative user whose role is not Admin/Master gets no Pulse access,
+// and previously the modal showed them as enrolled anyway.
+// roleGrantsAccess is a read-only note: their job role already carries the claim, so
+// the role is redundant for them. It never checks or disables the box.
+function setWeeklyPulseFields(isParticipant, roleGrantsAccess) {
     var weeklyPulseCheckbox = document.getElementById('isWeeklyPulseParticipant');
     if (weeklyPulseCheckbox === null) {
         return;
     }
-    var adminHint = document.getElementById('weekly-pulse-admin-hint');
-    if (isAdministrative) {
-        weeklyPulseCheckbox.checked = true;
-        weeklyPulseCheckbox.disabled = true;
-        adminHint.style.display = 'inline';
-    } else {
-        weeklyPulseCheckbox.checked = false;
-        weeklyPulseCheckbox.disabled = false;
-        adminHint.style.display = 'none';
+    weeklyPulseCheckbox.checked = isParticipant;
+    var roleHint = document.getElementById('weekly-pulse-role-hint');
+    if (roleHint !== null) {
+        roleHint.style.display = roleGrantsAccess ? 'inline' : 'none';
     }
 }
 function fillRolesForSelect(isAdministrative, isEditingConsultant, userRole) {
