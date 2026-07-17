@@ -32,6 +32,10 @@ namespace OceansApp.Models.ViewModels.Consultants
         public DateTime? StartDate { get; set; }
         public List<CreateUpdateConsultantsAndPositionsVM>? Positions { get; set; }
         public bool IsWeeklyPulseParticipant { get; set; }
+        // True when the user's job role already carries the Weekly Pulse Participate claim
+        // (Admin, Master, or any role a Master granted it to). Read-only hint for the modal:
+        // never infer this from UserCategory — category and role claims are independent.
+        public bool RoleGrantsWeeklyPulseAccess { get; set; }
         public bool IsEligibleForPaidTimeOff { get; set; }
         public decimal? AnnualPaidTimeOffDays { get; set; }
         public int? InitialPtoBalance { get; set; }

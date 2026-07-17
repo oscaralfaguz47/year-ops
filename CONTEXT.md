@@ -2,6 +2,37 @@
 
 A glossary of the domain language used in Ripple. Implementation details live in code and ADRs, not here.
 
+## User Category
+
+An attribute of a person: **Administrative**, **Consultant**, or **External User**. It describes what
+kind of worker they are, and drives PTO rules, which positions apply, and which roles the consultant
+modal offers.
+
+**A User Category is not a permission.** It grants nothing.
+
+## Role
+
+A named permission bundle (`Master`, `Admin`, `Computer Consultant`, `Success Manager`, …). Roles
+carry **claims**, and claims are what every authorization check in the app actually reads. A Master
+can create roles and grant claims at runtime, so the live role→claim mapping is a property of the
+database, not of the seed.
+
+**"Admin" and "Administrative" are different things on different axes** — `Admin` is a role,
+`Administrative` is a category. A user can be either, both, or neither, and nothing keeps them in
+sync. Treating one as evidence of the other is the bug documented in
+`docs/adr/0004-pulse-participation-is-role-claims-not-user-category.md`. When you need to know what
+someone can do, read their claims.
+
+## Weekly Pulse Participation
+
+Permission to see the Pulse — the `WeeklyPulseParticipate` claim. It is **not** a flag on the user;
+there is no participation column. A person participates when one of their roles carries the claim,
+either the dedicated **Weekly Pulse Participant** role (the per-person lever, toggled by the
+checkbox in the consultant modal) or a job role a Master granted the claim to (the bulk lever).
+
+Enrolment is **opt-in** and independent of User Category. Changes take effect at the user's next
+sign-in, because claims are baked into the auth cookie at sign-in.
+
 ## Payment Sheet
 
 The screen listing consultants to pay for a pay period. **Not a persisted record** — the
